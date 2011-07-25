@@ -755,6 +755,7 @@ time ourPD = newPD(I,Verbosity=>2);
 
 time primaryDecomposition(ideal I_*)
 
+-- ideal S in this example really is primary but isInGenPos returns false
 -- fixing the (only?) bug in the check file
 restart
 loadPackage "newGTZ"
@@ -778,3 +779,4 @@ fiberVars = {e,l,k,j}
 -- S is already a gb for the ideal it generates.
 -- now we need to find out if (ideal S) is a primary ideal in general position.
 
+loadPackage "ExampleIdeals"

@@ -1,9 +1,8 @@
 {*Make the first map of a generic tensor complex:
 Given (over a ring R)
-free modules Bi of rank bi,
+free modules Bi of ranks bi\geq 1,
 a free module A,
 a map A <--- \otimes_j Bj,
-and integers bi >= 1, 
 set d = (d0=0, d1=b1, d2 = b1+b2...). 
 The desired map is the composite
 
@@ -37,7 +36,10 @@ functoriality for symmetric product
 Note that explict free modules can be identified with their duals!
 *}
 ---
-makeExplicitFreeModule = method()
+--ExplicitFreeModule = new Type of HashTable
+
+makeExplicitFreeModule = method() -- Could add: TypicalValue => ExplicitFreeModule
+
 makeExplicitFreeModule(Ring,ZZ) := (S,r) -> (
      --Explicit free modules have cache data about:
      --underlying free module or modules,
@@ -50,6 +52,7 @@ makeExplicitFreeModule(Ring,ZZ) := (S,r) -> (
      E.cache.fromOrdinal = j -> j;
      E.cache.toOrdinal = j -> j;
      E)
+
 makeExplicitFreeModule Module := F -> (
      --if F is not yet an "explicit" free module (as witnessed by the
      --absence of F.cache.basisList), make it into one.
@@ -68,7 +71,9 @@ toOrdinal = E -> E.cache.toOrdinal; tO = toOrdinal
 
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
+path
 kk = ZZ/101
 S = kk[a,b,c]
 F = makeExplicitFreeModule(S,4)
@@ -76,9 +81,11 @@ basisList F
 E = makeExplicitFreeModule(S^5)
 basisList E
 E = makeExplicitFreeModule F
+
 ///
 
 makeExteriorPower = method()
+
 makeExteriorPower(Module, ZZ) := (F,d) ->(
      --make the exterior power free module, with cache similar to makeTensor.
      --generators are given in revlex order. NOTE: that the basisList is 
@@ -91,9 +98,9 @@ makeExteriorPower(Module, ZZ) := (F,d) ->(
      	  E.cache.fromOrdinal = j -> (basisList E)#j;
           E.cache.toOrdinal = I -> position(basisList E, J->J==I);
           E)
-
 ///
 restart
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
 kk = ZZ/101
 S = kk[a,b,c]
@@ -119,7 +126,8 @@ multiSubsets (List,ZZ) := (L,d) -> (
      )
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 L = {A, {1,2}}
 multiSubsets(L,2)
 multiSubsets({0,1,2},2)
@@ -150,7 +158,8 @@ monomialToMultiset(List, List) := (L,mm) ->(
      flatten apply(#mm, i-> splice{mm_i:L_i}))
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[a,b,c]
 F = makeExplicitFreeModule(S,4)
@@ -185,7 +194,8 @@ productList(List):= L->(
      Pp)
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 L0 = {}
 productList L0
 L1 = {toList(0..1)}
@@ -228,7 +238,8 @@ makeTensorProduct (Module, Module,Module) := (M1,M2,M3) -> makeTensorProduct{M1,
 --Note: this is automatically associative!! the commutativity iso is just permuting
 --the basis elements.
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[a,b,c]
 F1 = makeExplicitFreeModule(S,2)
@@ -260,7 +271,8 @@ makeTrace Module := F ->(
 
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[a,b,c]
 makeTrace(S^3)
@@ -288,7 +300,8 @@ makeSymmetricMultiplication(Module,ZZ, ZZ) := (F, d,e) ->(
 *}    
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[a,b,c]
 makeSymmetricMultiplication(S^2, 1,1)
@@ -299,7 +312,8 @@ d = 2;e=1;
 ///
 --Associativity:
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[a,b,c]
 F2 = S^2
@@ -335,7 +349,8 @@ signs = n->(
 *}
 ///
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 signs 3
 
 time for n from 0 to 8 do print time (signs n;)
@@ -399,7 +414,8 @@ wedgeDToWedge (Module, Module) := (F,G) -> (
 ///
 --map of wedge^d A \otimes Sym^d B to wedge^d(A\otimes B).
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[x,y,z]
 b = 2 
@@ -483,7 +499,8 @@ wedgeDToWedgeSparse (Module, Module) := (F,G) -> (
 
 --map of wedge^d A \otimes Sym^d B to wedge^d(A\otimes B).
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[x,y,z]
 b = 2 
@@ -571,7 +588,8 @@ TC1(Ring, Matrix) := (R,f) ->(
 end
 
 restart
-load "~/src/Goettingen-2011/TensorComplexes/TensorComplexes.m2"
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
 kk = ZZ/101
 S = kk[w,x,y,z]
 ab = {3,2,1,1}

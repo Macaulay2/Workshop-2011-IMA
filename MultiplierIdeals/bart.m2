@@ -1,3 +1,4 @@
+restart
 installPackage "MonomialMultiplierIdeals"
 viewHelp MonomialMultiplierIdeals
 
@@ -19,8 +20,8 @@ R = KK[x,y,z,w]
 I = monomialCurveIdeal(R,{2,3,4})
 
 -- term ideal is just the ideal of the terms of the gens... right?
-termIdeal = I -> ideal flatten apply(flatten entries gens I, i -> terms i);
+termIdeal = I -> monomialIdeal flatten apply(flatten entries gens I, i -> terms i);
 
-termIdeal I
+monomialMultiplierIdeal(termIdeal I,5/6)
 
 code methods leadTerm

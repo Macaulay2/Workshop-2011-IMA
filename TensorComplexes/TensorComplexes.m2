@@ -173,6 +173,9 @@ E = makeSymmetricPower(S^4, 2)
 basisList E
 (toOrdinal E) {0,3}
 (fromOrdinal E) 7
+
+E=makeSymmetricPower(F,0)
+
 ///
 
 
@@ -288,8 +291,9 @@ makeSymmetricMultiplication(Module,ZZ, ZZ) := (F, d,e) ->(
      Sde := makeSymmetricPower(F,d+e);
      SdSe := makeTensorProduct{Sd,Se};
      toMonomial := (M,I)->multisetToMonomial(basisList((underlyingModules M)#0),I);
+--     error();
      map(Sde,SdSe , (i,j) -> if
-       toMonomial(Sde,(fromOrdinal Sde)i) == toMonomial(Sde,(fromOrdinal SdSe)j)
+       toMonomial(Sde,(fromOrdinal Sde)i) == toMonomial(SdSe,(fromOrdinal SdSe)j)
             		    then 1_S else 0_S
 	)
      )

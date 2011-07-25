@@ -2,9 +2,12 @@ newPackage(
         "NumericalSchubertCalculus",
         Version => "0.1", 
         Date => "October 29, 2009",
-        Authors => {{Name => "", 
+        Authors => {{Name => "Anton Leykin", 
                   Email => "", 
-                  HomePage => ""}},
+                  HomePage => ""},
+	          {Name => "Abraham Martin del Campo", 
+                  Email => "asanchez@math.tamu.edu", 
+                  HomePage => "www.math.tamu.edu/~asanchez/"}},
         Headline => "a Macaulay2 package for using numerical methods in Schubert Calculus",
         DebuggingMode => true
         )

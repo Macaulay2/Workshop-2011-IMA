@@ -35,7 +35,9 @@ decomposeMonomialCurve=method(Options=>{CoefficientField=>ZZ/101,verbose=>0})
 decomposeMonomialCurve(List):= opts ->A -> (
    kk := opts.CoefficientField;
    vb:=opts.verbose;
-   x:=symbol x;
+   x:=symbol x;xshell
+   
+   
    s:=symbol s;
    t:=symbol t;
    if not gcd A ==1 then print "WARNING: exponents not relatively prime";
@@ -2193,7 +2195,7 @@ doc ///
      Test the Eisenbud-Goto conjecture for simplicial homogeneous monomial algebras.
      We consider a random simplicial homogeneous monomial algebra of codimension c and dimension d
      such that the standard vectors a*e_i are among the Hilbert basis.
-
+
      If lists aL and dL are specified the test is run for all c = 1,...,binomal(a+d-1,d-1) - d.
 
      The option @TO verbose@ can be used to print the quotient of the maximum regularity achieved by the Eisenbud-Goto bound (i.e., counterexample would be >1).

@@ -162,6 +162,7 @@ dualBasisBM (Matrix, ZZ) := o -> (igens, d) -> (
      dualSpace (mons * transpose rowReduce(transpose bmatrix,epsilon))
      );
 
+--version of the BM algorithm with automatic stopping criterion
 dualBasisBMS = method(TypicalValue => Matrix, Options => {Point => {}})
 dualBasisBMS (Matrix, ZZ) := o -> (igens, d) -> (
      R := ring igens;
@@ -260,6 +261,8 @@ dualHilbertDZST (Matrix, ZZ) := o -> (igens, d) -> (
      apply(d+1, i->(fs#(i+1) - fs#i))
      );
 
+--constructs Sylvester array matrix using DZ algorithm
+--(for use with automatic stopping criterion)
 DZSmatrix = method(TypicalValue => List, Options => {Point => {}})
 DZSmatrix (Matrix) := o -> (igens) -> (
      R := ring igens;

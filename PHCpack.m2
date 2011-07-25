@@ -2,8 +2,8 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.0", 
-  Date => "24 May 2011",
+  Version => "1.01", 
+  Date => "25 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
      Email => "lizgross@math.uic.edu",
@@ -41,6 +41,7 @@ export {
   realFilter,
   zeroFilter,
   nonZeroFilter,
+  phcEmbed,
   cascade
 }
 
@@ -181,10 +182,10 @@ solutionsToFile (List,Ring,String) := o -> (S,R,name) -> (
   close file;
 ) 
 
-
 ----------------------------------
 --- conversion to Point        ---
 ----------------------------------
+
 outputToPoint = method()
 outputToPoint HashTable := (H)->{
   SolutionStatus => if H#"mult" == 1 then Regular else Singular, 
@@ -223,17 +224,18 @@ isCoordinateZero (Point,ZZ,RR) := (sol,k,tol) -> (
   return abs(L_k)<=tol; 
 )
 
-
 --##########################################################################--
 -- EXPORTED METHODS
 --
 -- NOTE:
--- trackPaths and refineSolutions are methods adapted from  NumericalAlgebraicGEometry/PHCpack.interface.m2
+-- trackPaths and refineSolutions are methods adapted 
+-- from  NumericalAlgebraicGEometry/PHCpack.interface.m2
 --##########################################################################--
 
 -----------------------------------
 ------ POLY SYSTEM CONVERTER ------
 -----------------------------------
+
 convertToPoly = method(TypicalValue => List)
 convertToPoly List := List => system -> (
   -- IN: system (or a poly) which is rational 
@@ -277,6 +279,7 @@ convertToPoly List := List => system -> (
 ----------------------------------
 ------ THE BLACKBOX SOLVER -------
 ----------------------------------
+
 phcSolve = method(TypicalValue => List)
 phcSolve  List := List => system -> (
   -- IN:  system = list of polynomials in the system 
@@ -326,6 +329,7 @@ phcSolve  List := List => system -> (
 -----------------------------------
 -------- MIXED VOLUME -------------
 -----------------------------------
+
 mixedVolume = method(Options => {stableMV => false, startSystem => false})
 mixedVolume  List := Sequence => opt -> system -> (
   -- IN:  system = list of polynomials in the system 
@@ -496,6 +500,7 @@ trackPaths (List,List,List) := List => o -> (T,S,Ssols) -> (
 -----------------------------------
 ----- REFINING SOLUTIONS ----------
 -----------------------------------
+
 refineSolutions = method()
 refineSolutions (List,List,ZZ) := (f,sols,dp) -> (
   -- IN: f, a polynomial system;
@@ -575,8 +580,22 @@ nonZeroFilter (List,ZZ,RR) := (sols,k,tol) -> (
 )
 
 -----------------------------------------------
+------------------  EMBED  --------------------
+-----------------------------------------------
+ 
+phcEmbed = method(TypicalValue => List)
+phcEmbed (List,ZZ) := (system,dimension) -> (
+  -- IN: system, a polynomial system;
+  --     dimension, expected dimension of the solution set.
+  -- OUT : system with as many random hyperplanes at the end
+  --       as the value of dimension.
+   stdio << "calling phc -c " << endl;
+)
+
+-----------------------------------------------
 ------------------ CASCADE --------------------
 -----------------------------------------------
+
 cascade = method(TypicalValue=>List)
 cascade Ideal := List => (I) -> (
      -- returns a list of WitnessSet's ...

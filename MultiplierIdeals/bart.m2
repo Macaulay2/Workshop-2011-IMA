@@ -15,6 +15,11 @@ monomialMultiplierIdeal(I,5/6)
 -- term ideal of the monomial ideal. DONE!
 -- some intersection of the lattice points. 
 
+-- This implementation is based on the algorithm given in
+-- H.M. Thompson's paper: "Multiplier Ideals of Monomial Space
+-- Curves."
+
+
 KK = ZZ/101
 R = KK[x,y,z,w]	    
 
@@ -42,9 +47,12 @@ affineMonomialCurveIdeal = (S, a) -> (
 I = affineMonomialCurveIdeal(R,{2,3,4})
 
 -- term ideal is just the ideal of the terms of the gens... right?
+
 termIdeal = I -> monomialIdeal flatten apply(flatten entries gens I, i -> terms i);
 
 termIdeal I
+
+
 
 
 -- here we wish to compute the symbolic power I^(floor t). We'll use
@@ -53,3 +61,19 @@ termIdeal I
 
 symbolicPowerCurveIdeal = (I,t) -> saturate(I^(floor t));
 
+
+
+-- now we attack the last part of the intersection, with the
+-- "valuations" and the "G"
+
+describe R
+
+ord(m,x)
+
+ord = (R,mm) -> substitute(gens R, apply(#mm-1, i -> gens R_i => mm_i));
+ord(R,{1,2,3,4}) x
+
+gens R
+nu = map(QQ, 
+     
+     

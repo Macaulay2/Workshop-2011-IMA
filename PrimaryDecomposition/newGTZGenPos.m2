@@ -204,14 +204,13 @@ primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) -
 
    -- problem: compList's ideals are not in general position at this point.  I think
    -- one needs to leave them with coords changed, and then change them back.
-   --genPosList := applyUntil(compList, J -> isInGeneralPosition(J,variables));
    genPosList := applyUntil(compList, J -> isPrimaryZeroDim(J));
    if (genPosList != {}) then
    (
       isInGenPos := fold(genPosList / first, (i,j) -> i and j);
       if (not isInGenPos) then (
 	 error "Uhoh.";
-         -- try again
+         -- try again?
 	 compList = primDecZeroDimField(I, variables, resultSoFar, opts);
       );
    )
@@ -284,8 +283,8 @@ isPrimaryZeroDim(Ideal) := (I) ->
    fiberVars = fiberVars / psi;
    
    S := flatten entries gens gb J;
-   fiberVars = toList (set gens ring J - set (variables / psi));
-
+   --fiberVars = toList (set gens ring J - set (variables / psi));
+   error "err";
    (areLinearPowers(S,fiberVars),0)
 )
 
@@ -294,13 +293,13 @@ areLinearPowers(List,List) := (S, fiberVars) ->
 (
    R := ring first S;
    baseVars := toList (set gens R - set fiberVars);
-
    -- first h should have only a single non-base-variable in its support (and should also be irreducible)
    -- we should pick the element that can be written as the highest degree irreducible.
    potentialHs := select(S, s -> #(set support s - set baseVars) == 1);
    firstHPos := maxPosition(potentialHs / irredPower);
    firstHPos = position(S, s -> s == potentialHs#firstHPos);
    firstH := first first apply(toList factor S#firstHPos, toList);
+   error "err";
 
    phi := invertVariables(baseVars,fiberVars,R,MonomialOrder => Lex);
    newS := S / phi;

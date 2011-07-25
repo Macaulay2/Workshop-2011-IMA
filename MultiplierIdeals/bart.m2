@@ -17,7 +17,23 @@ monomialMultiplierIdeal(I,5/6)
 
 KK = ZZ/101
 R = KK[x,y,z,w]	    
-I = monomialCurveIdeal(R,{2,3,4})
+affineMonomialCurveIdeal = (S, a) -> (
+          -- check that S is a polynomial ring over a field
+          n := # a;
+          if not all(a, i -> instance(i,ZZ) and i >= 1)
+            then error "expected positive integers";
+	  t := symbol t;
+          k := coefficientRing S;
+          M1 := monoid [t];
+          M2 := monoid [Variables=>n];
+          R1 := k M1;
+          R2 := k M2;
+          t = R1_0;
+          mm := matrix table(1, n, (j,i) -> t^(a#i));
+          j := generators kernel map(R1, R2, mm);
+          ideal substitute(j, submatrix(vars S, {0..n-1}))
+          )
+     
 
 -- term ideal is just the ideal of the terms of the gens... right?
 termIdeal = I -> monomialIdeal flatten apply(flatten entries gens I, i -> terms i);

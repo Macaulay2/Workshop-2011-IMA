@@ -311,7 +311,7 @@ areLinearPowers(List,List) := (S, fiberVars) ->
    if (firstHPos =!= null) then 
    (
       hs = {phi(firstH)};
-      varPos = position(fiberVars, x -> (x === first support first hs));
+      varPos := position(fiberVars, x -> (x === first support first hs));
       fiberVars = drop(fiberVars, {varPos,varPos});
       newS = drop(newS,{firstHPos,firstHPos});
       i := 0;
@@ -354,7 +354,7 @@ isLinearPower(RingElement,RingElement,List) := (s,xi,hs) ->
    news := myMap2 s;
    xi = myMap2 xi;
    retVal := (false,0_R);
-   sCoeff = coefficients news;
+   sCoeff := coefficients news;
    coeffIndex := position((flatten entries first sCoeff) / support, xs -> xs === {xi});
    if (n > 0 and coeffIndex =!= null) then
    (

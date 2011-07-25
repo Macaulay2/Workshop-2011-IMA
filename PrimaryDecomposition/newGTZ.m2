@@ -23,7 +23,7 @@ newPackage(
 
 export {
      getSaturation,
-     newPD,GeneralPosition,BasicPD,getSeparator}
+     newPD,GeneralPosition,BasicPD,getSeparator,BooleanValue}
 
 needs "newGTZGenPos.m2"
 
@@ -258,6 +258,7 @@ PPD0(Ideal, List, RingElement) := (I, myVars, p) ->
    --- Also, we assume here that I \cap R is p-primary
    --- The output of PPD0 is the primary decomposition of I
    local retVal;
+   local firstList;
    --- WARNING: need to get an independent set that contains myVars...
    indSetsI := independentSets (I, Limit => 1);
    if (indSetsI == {1_(ring I)}) then (retVal = ZPD(I,myVars,p);)
@@ -306,7 +307,7 @@ debug PrimaryDecomposition
 -- so I don't have to import the core symbols
 getComponentSep = method()
 getComponentSep(List,ZZ) := (compList,i) -> (
-   R = ring first compList;
+   R := ring first compList;
    ss := apply(toList(0..#compList-1), j -> if i == j then 0_R else findNonMember(compList#j, compList#i));
    -- the following throws out zeros, and elements which are                                                                                                                                                                   
    -- not constant multiples of others.                                                                                                                                                                                        
@@ -492,7 +493,7 @@ doc ///
 TEST ///
 -- CORRECT
 restart
-load "newGTZ.m2"
+loadPackage "newGTZ"
 R = QQ[a,b,c]
 I = ideal apply(1 .. 3, i -> random(3,R))
 time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
@@ -520,7 +521,7 @@ time m2PD = primaryDecomposition I
 TEST ///
 -- CORRECT
 restart
-load "newGTZ.m2"
+loadPackage "newGTZ"
 R = ZZ/32003[a,b,c,h]
 I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
 time ourPD = newPD(I,Verbosity=>2);

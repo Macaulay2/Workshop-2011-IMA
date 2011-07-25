@@ -25,7 +25,7 @@ export {
      getSaturation,
      newPD,GeneralPosition,BasicPD,getSeparator,BooleanValue}
 
-needs "newGTZGenPos.m2"
+needs "./newGTZGenPos.m2"
 
 -- Comments:
 -- bug in "help RingElement"
@@ -729,6 +729,7 @@ end
 restart
 loadPackage "newGTZ"
 installPackage "newGTZ"
+check "newGTZ"
 viewHelp newGTZ
 path = prepend("/Mac2SVN/M2/Macaulay2/packages", path)
 load "/Mac2SVN/M2/Macaulay2/packages/ExampleIdeals.m2"

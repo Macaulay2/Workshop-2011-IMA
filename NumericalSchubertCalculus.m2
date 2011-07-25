@@ -10,6 +10,7 @@ newPackage(
         )
 
 export {   
+     	 StartSolutions,
 	 skewSchubertVariety,
  	 createRandomFlagsForSimpleSchubert,
 	 solveSimpleSchubert,

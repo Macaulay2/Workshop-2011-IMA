@@ -3,6 +3,8 @@
 
 if version#"VERSION" <= "1.4" then needsPackage "NAGtypes"
 
+protect symbol PackageExports
+
 newPackage select((
      "NumericalAlgebraicGeometry",
      Version => "1.4",

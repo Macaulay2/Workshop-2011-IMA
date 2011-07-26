@@ -19,6 +19,7 @@ export {
 	Poset,
 	poset,
 	transitiveClosure,
+    dualPoset, gradeLattice, gradePoset, isGraded, posetDiamondProduct, posetProduct, comparabilityGraph,
 --     FullRelationMatrix,
 	RelationMatrix,
 	compare,
@@ -78,6 +79,125 @@ poset(List,List,Matrix) := (I,C,M) ->
 	  symbol cache => new CacheTable
 	  }
      
+-------------------------------------------
+-- UNDOCUMENTED NEW CODE 
+-------------------------------------------
+comparabilityGraph = method();
+comparabilityGraph Poset := P -> (
+    E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
+        if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} else continue;
+    fE := unique flatten E;
+    S := select(P.GroundSet, p -> not member(p, fE));
+    graph(E, Singletons => S)
+);
+
+--Imput: Two posets
+--Output: Product of posets
+--How: Combine Grounds Set. Find cover relations by combining cover relations of P with ground set elements of Q remaining constant. 
+--       Then mirror with Q and P exchanged.
+posetProduct = method();
+posetProduct (Poset,Poset) := (P,Q) -> 
+	poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
+	      join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
+		   flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})));
+
+posetDiamondProduct = method();
+posetDiamondProduct (Poset,Poset) := (P,Q)->(
+	if isLattice P and isLattice Q then (
+		P':=posetProduct(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
+		poset(prepend(minimalElements P, P'.GroundSet), join(apply(minimalElements P', p->(minimalElements P, p)),P'.Relations))
+	) else error "P and Q must be lattices"
+);
+
+isGraded = method();
+isGraded (Poset) := P->(
+	all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true))
+);
+
+-- TODO: Needs simplification!
+gradePoset = method();
+gradePoset (Poset) := P->(
+	--if not isGraded P then error"P must be graded";
+	Q:=P;
+	counter:=1;
+	L:={};
+	n:=max apply(maximalChains P, c->#c);
+	M:=maximalChains P;
+	for i to #M-1 do (
+		if #M_i==n then {
+			L=append(L,M_i)
+		};
+	);
+	C:=coveringRelations(P);
+	J:=apply(max apply(L,c->#c), d -> unique for c in L list if c#?d then c#d else continue);
+	while #(flatten J) < #P.GroundSet do(
+	if counter != 0 then{
+	counter = 0;
+	for i to #C-1 do(
+		if member(C_i_0,flatten J) then{
+			if member(C_i_1,flatten J)==false then{
+				for j to #J-1 do(
+					if member(C_i_0,J_j) then{
+						J=replace(j+1,append(J_(j+1),C_i_1),J);
+						counter = counter+1;
+					};
+				);
+			};
+		};
+		if member(C_i_0,flatten J)==false then{
+			if member(C_i_1,flatten J) then{
+				for j to #J-1 do(
+					if member(C_i_1,J_j) then{
+						J=replace(j-1,append(J_(j-1),C_i_0),J);
+						counter = counter +1;
+					};
+				);
+			};
+		};
+	);
+	}else{
+		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));
+		C=coveringRelations(Q);
+		L={};
+		n=max apply(maximalChains Q, c->#c);
+		M=maximalChains Q;
+		for i to #M-1 do (
+			if #M_i==n then {
+				L=append(L,M_i)
+			};
+		);
+		for i to n-1 do(
+			J=replace(i,apply(L,c->c_i),J);
+		);
+		counter=1;
+	}; 
+	);
+	J
+);
+
+
+-- Caveat!  Does not verify the Poset is a Lattice...
+gradeLattice = method();
+gradeLattice (Poset) := P->(
+	--if not isGraded P then error"P must be graded";
+	--if not isLattice P then error"P must be a Lattice";
+	M:=maximalChains P;
+	if #(unique apply(M,c->#c))!= 1 then error"P must be graded";
+	apply(max apply(M,c->#c), d -> unique for c in M list if c#?d then c#d else continue)
+);
+
+dualPoset = method();
+dualPoset (Poset):=P->(
+	L:={};
+	for i to #P.Relations-1 do(
+		L=append(L,(P.Relations_i_1,P.Relations_i_0));
+	);
+	poset(P.GroundSet,L)
+);
+
+----------------------------------------------------------------------------------
+-- NORMAL CODE
+----------------------------------------------------------------------------------
 -- DirectedGraph, adjacencyMatrix and allPairsShortestPath were moved to Graphs.m2
 
 -- input: a poset, and an element A from I

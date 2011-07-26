@@ -276,7 +276,7 @@ ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 getVariablePowerGenerators=method()
 getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
    independentVars := (set gens ring first G) - set fiberVars;
-   apply(#fiberVars, i -> first select(v, G -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
+   apply(#fiberVars, i -> first select( G, g -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
 )
 
 --R = QQ[a..g]
@@ -325,8 +325,8 @@ areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
     
 )
 
-R = QQ[x,y]
-apply(toList factor (x^2+2*x*y+y^2), toList)
+--R = QQ[x,y]
+--apply(toList factor (x^2+2*x*y+y^2), toList)
 
 -- Input : Lex GB of an ideal I, 
 --isLinearPower = method()
@@ -338,12 +338,12 @@ apply(toList factor (x^2+2*x*y+y^2), toList)
   
 --)
 
-R = QQ[a..g]
-G = {a*b*c*f^4} | flatten entries gens (ideal {d,e,f})^5
-fiberVars = {d,e,f}
-independentVars = {a,b,c,g}
-i = 2
-elimI = select(G, g -> isSubset(set support g, set (independentVars | drop (fiberVars, i))))
+--R = QQ[a..g]
+--G = {a*b*c*f^4} | flatten entries gens (ideal {d,e,f})^5
+--fiberVars = {d,e,f}
+--independentVars = {a,b,c,g}
+--i = 2
+--elimI = select(G, g -> isSubset(set support g, set (independentVars | drop (fiberVars, i))))
   
 
 irredPower = method()

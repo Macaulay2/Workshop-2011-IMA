@@ -15,7 +15,7 @@ newPackage(
 	   HomePage => "http://www.math.cornell.edu/~mike/"},
           {Name=> "contributing authors: Seth, Sonja, David", 
 	   Email=> "",
-	   Homepage=>""}
+	   HomePage=>""}
 	  },
      Headline => "A package for discrete and Gaussian statistical graphical models",
      DebuggingMode => true

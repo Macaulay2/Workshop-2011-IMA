@@ -34,7 +34,7 @@ newPackage(
       Email => "ggsmith@mast.queensu.ca", 
       HomePage => "http://www.mast.queensu.ca/~ggsmith"}},
   Headline => "multilinear algebra with labelled bases",
-  DebuggingMode => false
+  DebuggingMode => true
   )
 
 export {
@@ -44,7 +44,10 @@ export {
   "basisList",
   "fromOrdinal",
   "toOrdinal",
-  "multiSubsets"
+  "multiSubsets",
+  "tensorFold",
+  "symmetricMultiplication",
+  "cauchyMap"
   }
 
 --------------------------------------------------------------------------------
@@ -55,21 +58,19 @@ LabelledModule = new Type of HashTable
 LabelledModule.synonym = "free module with labelled basis"
 
 labelledModule = method(TypicalValue => LabelledModule)
-labelledModule Module := F -> (
-  if not isFreeModule F then error "expected a free module"
-  else (
-    L := apply(rank F, i -> {i});
-    new LabelledModule from {
-      symbol module => F,
-      symbol underlyingModules => {F},
-      symbol basisList => L,
-      symbol cache => new CacheTable}))
+labelledModule Module := M -> (
+  if not isFreeModule M then error "expected a free module";
+  L := apply(rank M, i -> {i});
+  new LabelledModule from {
+    symbol module => M,
+    symbol underlyingModules => {},
+    symbol basisList => L,
+    symbol cache => new CacheTable})
 labelledModule Ring := S -> (
-  L := apply(1, i -> {i});
   new LabelledModule from {
     symbol module => S^1,
-    symbol underlyingModules => {S^1},
-    symbol basisList => L,
+    symbol underlyingModules => {},
+    symbol basisList => {{0}},
     symbol cache => new CacheTable})
 
 net LabelledModule := E -> net module E
@@ -124,6 +125,75 @@ symmetricPower (ZZ, LabelledModule) := (d,E) -> (
     symbol basisList => multiSubsets(basisList E, d),
     symbol cache => new CacheTable})
 
+productList = L -> (
+  n := #L;
+  if n === 0 then {}
+  else if n === 1 then L
+  else if n === 2 then flatten table(L#0, L#1, (i,j) -> {i} | {j})
+  else flatten table(productList drop(L,-1), last L, (i,j) -> i | {j}))
+
+tensorFold = method(TypicalValue => LabelledModule)
+tensorFold List := L -> (
+  n := #L;
+  if n < 1 then error "-- expected a nonempty list";
+  S := ring L#0;
+  if n === 1 then labelledModule S^1
+  else (
+    if any(L, l -> ring l =!= S) then error "-- expected modules over the same ring";
+    new LabelledModule from {
+    symbol module => S^(product apply(L, l -> rank l)),
+    symbol underlyingModules => L,
+    symbol basisList => productList apply(L, l -> basisList l),
+    symbol cache => new CacheTable}))
+LabelledModule ** LabelledModule := LabelledModule => (E,F) -> tensorFold {E,F}
+tensor(LabelledModule,LabelledModule) := options -> (E,F) -> tensorFold {E,F}
+
+map(LabelledModule,LabelledModule,Function) := Matrix => o -> (E,F,f) -> (
+  map(module E, module F, f))
+map(LabelledModule,LabelledModule,Matrix) := Matrix => o -> (E,F,f) -> (
+  map(module E, module F, f))
+
+trace LabelledModule := Matrix => E -> (
+  S := ring E;
+  T := E ** E;
+  map(T, labelledModule S^1, (i,j) -> (
+      I := fromOrdinal(i,T);
+      if I_0 == I_1 then 1_S else 0_S)))
+
+multisetToMonomial = (l,m) -> (
+  seen := new MutableHashTable;
+  scan(m, i -> if seen#?i then seen#i = seen#i +1 else seen#i = 1);
+  apply(l, i -> if seen#?i then seen#i else 0))
+monomialToMultiset = (l,e) -> flatten apply(#e, i -> toList(e#i:l#i))
+
+symmetricMultiplication = method(TypicalValue => Matrix)
+symmetricMultiplication (LabelledModule,ZZ,ZZ) := (E,d,e) -> (
+  S := ring E;
+  Sd := symmetricPower(d,E);
+  Se := symmetricPower(e,E);
+  Sde := symmetricPower(d+e,E);
+  SdSe := Sd ** Se;
+  toMono := (F,l) -> multisetToMonomial(basisList((underlyingModules F)#0),l);
+  map(Sde,SdSe, 
+    (i,j) -> if toMono(Sde, fromOrdinal(i,Sde)) == toMono(SdSe, fromOrdinal(j,SdSe))
+      then 1_S else 0_S))
+
+cauchyMap = method(TypicalValue => Matrix)
+cauchyMap (ZZ, LabelledModule) := (b,E) -> (
+  sour := exteriorPower(b,E);
+  L := underlyingModules E;
+  L10 := {exteriorPower(b,L#0)};
+  L11 := apply(#L-1, j -> symmetricPower(b,L#(j+1)));
+  L = L10 | L11;
+  targ := tensorFold L;
+  M := mutableMatrix(ring E, rank targ, rank sour);
+  local j;
+  for i in basisList sour do (
+    j = transpose i;
+    if j#0 == unique j#0 then (
+      j = apply(j, l -> sort l);
+      M_(toOrdinal(j,targ), toOrdinal(i,sour)) = 1));
+  map(targ, sour, matrix M))
 
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -145,12 +215,15 @@ TEST ///
 S = ZZ/101[a,b,c];
 E = labelledModule S^4
 assert(basisList E  == apply(4, i -> {i}))
-assert(underlyingModules E == {S^4})
+assert(underlyingModules E == {})
 assert(module E == S^4)
 assert(fromOrdinal(2,E) == {2})
 assert(toOrdinal({1},E) == 1)
-E = labelledModule S
-assert(rank E == 1)
+F = labelledModule S
+assert(basisList F == {{0}})
+assert(rank F == 1)
+F' = labelledModule S^0
+assert(basisList F' == {})
 ///
 
 -- test 1
@@ -182,6 +255,35 @@ assert(symmetricPower(-1,E) == labelledModule S^0)
 assert(symmetricPower(1,E) == E)
 ///
 
+-- test 3
+TEST ///
+S = ZZ/101[a,b,c];
+F1 = labelledModule S^2
+F2 = labelledModule S^3
+F3 = labelledModule S^5
+assert(tensor(F1,F2) == F1 ** F2)
+E = tensorFold {F1,F2,F3}
+assert(rank E == product {rank F1, rank F2, rank F3})
+assert(basisList E == sort basisList E)
+assert((underlyingModules E)#0 == F1)
+assert((underlyingModules E)#1 == F2)
+assert((underlyingModules E)#2 == F3)
+F = tensorFold {labelledModule S^1, F2}
+assert(F != F2)
+assert((underlyingModules F)#0 == labelledModule S^1)
+assert((underlyingModules F)#1 == F2)
+assert(toOrdinal({{0},{1}}, F) == 1)
+assert(fromOrdinal(5,E) == {{0},{1},{0}})
+///
+
+-- test 4
+TEST ///
+S = ZZ/101[a,b,c];
+F = labelledModule S^2
+assert(symmetricMultiplication(F,1,1) == matrix{{1_S,0,0,0},{0,1,1,0},{0,0,0,1}})
+assert(symmetricMultiplication(F,2,1) == 0)
+///
+
 end
 --------------------------------------------------------------------------------
 -- SCRATCH SPACE
@@ -192,48 +294,14 @@ uninstallPackage "LabelledModules"
 installPackage "LabelledModules"
 check "LabelledModules"
 
-productList = method(TypicalValue => List)
-productList List := L -> (
-  n := #L;
-  if n === 0 then {}
-  else if n === 1 then L
-  else (
-    flatten table(L#0,
-    )
-  )
-
-productList' = method()
-productList'(List):= L->(
-     --takes a list of lists, and forms  list of  tuples of elements, in order
-     --{0,0}, {0,1}, ... (that is, lexicographically).
-     Pp := if #L == 0 then {}
-     else if #L == 1 then apply(L#0, i->{i})
-     else if #L == 2 then flatten (apply(L_0,i->apply(L_1, j->{i,j})))
-     else (
-	  P0 := productList' drop (L, -1);
-	  P1 := last L;
-	  Pp = (apply(P0,a->apply(P1,b->append(a,b))));
-	  --the following line removes the outermost-but-one set of parens
-	  splice(Pp/toSequence));
---     for i from 1 to #L-2 do Pp = flatten Pp;
-     Pp)
+S = ZZ/101[a,b,c];
+F2 = labelledModule S^2;
+F3 = labelledModule S^3;
+F5 = labelledModule S^5;
+F30 = tensorFold {F2,F3,F5}
+F2' =  tensorFold {F2, labelledModule S^1}
+cauchyMap(1,F2')
+cauchyMap(2,F30)
 
 
-L0 = {}
-productList' L0
-L1 = {toList(0..1)}
-productList' L1
-L2 = {toList(0..1),toList(0..2)}
-productList' L2
-bL makeTensorProduct{QQ^2}
-L3 = {toList(0..1),toList(0..2),toList(0..2)}
-P = productList' L3
-#P
-2*3*3
-L4 = {toList(0..1),toList(0..2),toList(0..1),toList(0,1)}
-productList' L4
-productList' drop(L3,-1)
-last L3
-flatten(productList' drop(L3,-1), last L3, (i,j) -> {i} | {j})
-flatten table(L2#0,L2#1, (i,j) -> {i} | {j})
-flatten table(L2#0,L2#1, (i,j) -> {i} | {j})
+  

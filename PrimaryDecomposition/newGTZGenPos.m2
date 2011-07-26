@@ -308,24 +308,30 @@ isPrimaryZeroDim(Ideal) := (I) ->
 )
 
 -- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
--- check 
 areLinearPowers = method()
 areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
 --   all apply(take(gs,#gs-1),1..(#gs-1),(g,i) -> isLinearPower(G,g,i,fiberVars)))
   R := ring first G;
+  kk := coefficientRing R;
   independentVars := sort toList (set gens R - set fiberVars);
-  
+  --S := R/radical ideal last gs;
+  Q := frac (kk[independentVars])[fiberVars];
+  S := Q/sub(radical ideal last gs, Q);
+  fiberVars = apply(fiberVars, x -> substitute(x,S));
+  -- working hard here!
   -- need to pass to the fraction field first, since the polynomial may not be monic yet.
-  linearFactorList := {last gs} | apply(reverse toList (1..(#fiberVars - 1)), i -> (   gi := gs#i;
-	                                                                               xi := fiberVars#i;
-  						       			   	       linearFactor := first apply(toList factor gi, toList);
-  						       			   	       if #linearFactor != 1 then error "More than one irreducible factor";
-						       			   	       linearFactor = first linearFactor;
-						       			   	       if degree linearFactor > 1 then error "Not linear irreducible factor.";
-						       			   	       phi := map(R,R,{xi=>(linearFactor-xi)});
-  						       			   	       gs = gs / phi;
-     	       	    	      	   	     	       			   	       linearFactor));
+  linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
+									   xi := fiberVars#i;
+	    	      	   	     	       	    	      	   	   deggi := degree(xi,gi);
+									   testGi := (xi - deggi^(-1)*)^deggi
+									   linearFactor := (radical ideal gi)_*;
+									   if #linearFactor != 1 then error "More than one irreducible factor";
+									   linearFactor = first linearFactor;
+									   if degree linearFactor > 1 then error "Not linear irreducible factor.";
+									   phi := map(R,R,{xi=>(linearFactor-xi)});
+									   gs = gs / phi;
+									   linearFactor));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.
   return true;

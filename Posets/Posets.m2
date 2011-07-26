@@ -5,11 +5,13 @@ needsPackage "Graphs"
 
 newPackage(
 	"Posets",
-    	Version => "0.2", 
-    	Date => "September 17, 2010",
+    	Version => "0.2.1", 
+    	Date => "26. July 2011",
     	Authors => {
 	     {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
-	     {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"}
+	     {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},
+         {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
+         {Name => "Stephen Sturgeon", Email => "stephen.sturgeon@uky.edu"}
 	     },
     	Headline => "Package for processing posets and order complexes",
     	DebuggingMode => true
@@ -19,7 +21,13 @@ export {
 	Poset,
 	poset,
 	transitiveClosure,
-    dualPoset, gradeLattice, isGraded, posetDiamondProduct, posetProduct, comparabilityGraph,
+--
+    dualPoset, 
+    gradeLattice, 
+    isGraded, 
+    posetDiamondProduct, 
+    posetProduct, 
+    comparabilityGraph,
 --     FullRelationMatrix,
 	RelationMatrix,
 	compare,
@@ -117,13 +125,16 @@ posetDiamondProduct (Poset,Poset) := (P,Q)->(
 );
 
 isGraded = method();
-isGraded Poset := P -> all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true));
+isGraded Poset := P -> (
+	if P.cache.?isGraded then return P.cache.isGraded;
+    P.cache.isGraded = all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true))
+);
 
 -- Caveat!  Does not verify the Poset is a Lattice...
 gradeLattice = method();
 gradeLattice Poset := P -> (
-	if not isGraded P then error"P must be graded";
-	if not isLattice P then error"P must be a Lattice";
+	if not isGraded P then error "P must be graded";
+	if not isLattice P then error "P must be a Lattice";
 	M:=maximalChains P;
 	if #(unique apply(M,c->#c))!= 1 then error"P must be graded";
 	apply(max apply(M,c->#c), d -> unique for c in M list if c#?d then c#d else continue)

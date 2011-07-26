@@ -1,5 +1,7 @@
 -- -*- coding: utf-8 -*-
 
+needsPackage "Graphs"
+
 newPackage(
      "GraphicalModels",
      Version => "0.1",
@@ -13,7 +15,6 @@ newPackage(
 	   HomePage => "http://www.math.cornell.edu/~mike/"} 
 	  },
      Headline => "A package for discrete and Gaussian statistical graphical models",
-     PackageExports => {"Graphs"},
      DebuggingMode => true
      )
 
@@ -101,6 +102,8 @@ export {bidirectedEdgesMatrix,
        trekSeparation,
        VariableName
 	} 
+     
+needsPackage "Graphs"
 
 markov = local markov
 markovVariables = local markovVariables
@@ -1967,10 +1970,7 @@ assert(I==ideal(s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d),s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d),
 TEST ///
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
--- commented out by dan:
---   the order of the generators of the ring seems to depend on the accidental ordering of c and d in set{c,d}
---   so this test is not a good test
--- assert(toString gaussianRing G === "QQ[l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p_(c,c), p_(d,d), p_(a,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)]")
+assert(toString gaussianRing G === "QQ[l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p_(c,c), p_(d,d), p_(a,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)]")
 ///
 
 -----------------------------

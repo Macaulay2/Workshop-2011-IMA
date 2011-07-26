@@ -68,12 +68,14 @@ symbolicPowerCurveIdeal = (I,t) -> saturate(I^(floor t));
 
 describe R
 
-ord(m,x)
 
-ord = (R,mm) -> substitute(gens R, apply(#mm-1, i -> gens R_i => mm_i));
-ord(R,{1,2,3,4}) x
+ord = (mm,p) -> (
+     R := ring p;
+     KK := coefficientRing R;
+     A := KK (monoid[gens R,Degrees=>mm]);
+     first degree(sub(p,A))
+);
 
-gens R
-nu = map(QQ, 
-     
-     
+ord({1,2,3,4},x^2*y)
+
+

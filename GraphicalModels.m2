@@ -4,19 +4,25 @@ needsPackage "Graphs"
 
 newPackage(
      "GraphicalModels",
-     Version => "0.1",
-     Date => "October 10, 2010",
+     Version => "0.1.1",
+     Date => "July 26, 2011",
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
 	   HomePage => "http://www.shsu.edu/~ldg005"},
 	  {Name => "Mike Stillman",
 	   Email => "mike@math.cornell.edu",
-	   HomePage => "http://www.math.cornell.edu/~mike/"} 
+	   HomePage => "http://www.math.cornell.edu/~mike/"},
+          {Name=> "contributing authors: Seth, Sonja, David", 
+	   Email=> "",
+	   Homepage=>""}
 	  },
      Headline => "A package for discrete and Gaussian statistical graphical models",
      DebuggingMode => true
      )
+
+------------------------------------------
+-- ADDING gaussian undirected stuff during the IMA-2011 workshop...
 
 ------------------------------------------
 -- Algebraic Statistics in Macaulay2
@@ -79,6 +85,8 @@ newPackage(
 --   trekIdeal (Ring R, MixedGraph G)
 --
 ------------------------------------------
+-- Gaussian undirected graphs:
+--   gaussianRing
 
 export {bidirectedEdgesMatrix,
        Coefficients,
@@ -490,6 +498,8 @@ prob = (R,s) -> (
 	   else {s#i});
      sum apply (L, v -> p v))
 
+
+
 -----------------------------------------
 -- Gaussian directed acyclic graphs    --
 -----------------------------------------
@@ -498,10 +508,8 @@ prob = (R,s) -> (
 -- gaussianRing    --
 ---------------------
 
--- gaussianRingList still not fully implemented
--- gaussianRingList := new MutableHashTable;
 
-gaussianRing = method(Options=>{Coefficients=>QQ, VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p"}})
+gaussianRing = method(Options=>{Coefficients=>QQ, VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p", getSymbol "k", getSymbol "t"}})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
@@ -644,6 +652,30 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
      	  I = eliminate(newvars, I + J););
      F := map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0));
      F(I))
+
+
+
+
+
+-----------------------------------------
+-- Gaussian undirected acyclic graphs  --
+-----------------------------------------
+
+gaussianRing Graph := Ring => opts -> (g) -> (
+    bb := graph g;
+    vv := sort vertices g;
+    s := opts.VariableName#0;
+    k := opts.VariableName#3;
+    t := opts.VariableName#4;
+    kk := opts.Coefficients;
+    sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
+    kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
+    m := #kL+1; --eliminate the k's and the t
+    --t = placeholder variable for inverse of determinant of K
+    R := kk(monoid [kL,t,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
+    R#gaussianRing = {#vv,s,k};
+    R)
+
 
 
 ------------------------------

@@ -1,4 +1,6 @@
-needsPackage"Posets"
+needsPackage("Posets", FileName=>"/home/math dept/workshops/IMA-2011/Posets/Posets.m2");
+--needsPackage"Posets"
+
 
 -- TODO: Needs simplification!
 gradePoset = method();
@@ -42,7 +44,7 @@ gradePoset (Poset) := P->(
 		};
 	);
 	}else{
-		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));
+		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));print Q;
 		C=coveringRelations(Q);
 		L={};
 		n=max{max apply(maximalChains Q, c->#c),0};--might fail
@@ -53,7 +55,7 @@ gradePoset (Poset) := P->(
 			};
 		);
 		for i to n-1 do(
-			J=replace(i,apply(L,c->c_i),J);
+			J=replace(i,flatten append(J_i,apply(L,c->c_i)),J);
 		);
 		counter=1;
 	}; 

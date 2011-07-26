@@ -35,7 +35,7 @@ decomposeMonomialCurve=method(Options=>{CoefficientField=>ZZ/101,verbose=>0})
 decomposeMonomialCurve(List):= opts ->A -> (
    kk := opts.CoefficientField;
    vb:=opts.verbose;
-   x:=symbol x;xshell
+   x:=symbol x;
    
    
    s:=symbol s;

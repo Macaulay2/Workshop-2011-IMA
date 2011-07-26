@@ -105,7 +105,7 @@ posetDiamondProduct = method();
 posetDiamondProduct (Poset,Poset) := (P,Q)->(
 	if isLattice P and isLattice Q then (
 		P':=posetProduct(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
-		poset(prepend(minimalElements P, P'.GroundSet), join(apply(minimalElements P', p->(minimalElements P, p)),P'.Relations))
+		poset(prepend({first minimalElements P , first minimalElements Q}, P'.GroundSet), join(apply(minimalElements P', p->({first minimalElements P , first minimalElements Q}, p)),P'.Relations))
 	) else error "P and Q must be lattices"
 );
 
@@ -159,7 +159,7 @@ gradePoset (Poset) := P->(
 		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));
 		C=coveringRelations(Q);
 		L={};
-		n=max apply(maximalChains Q, c->#c);
+		n=max{max apply(maximalChains Q, c->#c),0};--might fail
 		M=maximalChains Q;
 		for i to #M-1 do (
 			if #M_i==n then {
@@ -259,9 +259,16 @@ coveringRelations (Poset) := (P) -> (
 	if P.cache.?coveringRelations then (
 		return P.cache.coveringRelations;
 	);
+   
+        P.cache.coveringRelations =
+   	if # P.Relations === 0 then (
+     	  {}
+          )	
+	else (
 	nonCovers := sum apply(P.Relations, 
 		R -> set apply(select(P.Relations, S -> (first S == last R and first R != last R and first S != last S)), S -> (first R, last S) ));
-	P.cache.coveringRelations = P.Relations - (nonCovers + set apply(P.GroundSet, x -> (x,x)))
+	P.Relations - (nonCovers + set apply(P.GroundSet, x -> (x,x)))
+	)
 )
 
 --input:  A poset P

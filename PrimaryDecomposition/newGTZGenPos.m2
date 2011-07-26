@@ -309,16 +309,42 @@ isPrimaryZeroDim(Ideal) := (I) ->
 areLinearPowers = method()
 areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
-   all apply(gs,1..#gs,(g,i) -> isLinearPower(G,g,i,fiberVars)))
-)
-
--- Input : Lex GB of an ideal I, 
-isLinearPower = method()
-isLinearPower(List,RingElement,ZZ,List) := (G,g,i,fiberVars) -> (
+--   all apply(take(gs,#gs-1),1..(#gs-1),(g,i) -> isLinearPower(G,g,i,fiberVars)))
   R := ring first G;
   independentVars := toList (set gens R - set fiberVars);
-  elimI :
+  linearFactorList := {last gs} | apply(reverse toList (1..(#fiberVars - 1)), i -> (   gi := gs#i;
+	                                                                               xi := fiberVars#i;
+  						       			   	       linearFactor := first apply(toList factor gi, toList);
+  						       			   	       if #linearFactor != 1 then error "More than one irreducible factor";
+						       			   	       linearFactor = first linearFactor;
+						       			   	       if degree linearFactor > 1 then error "Not linear irreducible factor.";
+						       			   	       phi := map(R,R,{xi=>(linearFactor-xi)});
+  						       			   	       gs = gs / phi;
+     	       	    	      	   	     	       			   	       linearFactor));
+  linearFactorList = reverse linearFactorList;
+    
 )
+
+R = QQ[x,y]
+apply(toList factor (x^2+2*x*y+y^2), toList)
+
+-- Input : Lex GB of an ideal I, 
+--isLinearPower = method()
+--isLinearPower(List,RingElement,ZZ,List) := (G,g,i,fiberVars) -> (
+--  R := ring first G;
+--  independentVars := toList (set gens R - set fiberVars);
+--  elimI := select(G, g -> isSubset(set support g, set (independentVars | drop (fiberVars, i))))
+--  RBar := R/radical ideal elimI;
+  
+--)
+
+R = QQ[a..g]
+G = {a*b*c*f^4} | flatten entries gens (ideal {d,e,f})^5
+fiberVars = {d,e,f}
+independentVars = {a,b,c,g}
+i = 2
+elimI = select(G, g -> isSubset(set support g, set (independentVars | drop (fiberVars, i))))
+  
 
 irredPower = method()
 irredPower(RingElement) := (f) ->

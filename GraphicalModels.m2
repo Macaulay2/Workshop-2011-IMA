@@ -108,12 +108,14 @@ export {bidirectedEdgesMatrix,
        pairMarkov, 
        trekIdeal, 
        trekSeparation,
-       VariableName,
+       VariableName,--this should be deleted
        sVariableName,
        kVariableName,
        tVariableName,
        lVariableName,
-       pVariableName
+       pVariableName,
+       gaussianVanishingIdeal,
+       undirectedEdgesMatrix
 	} 
      
 needsPackage "Graphs"
@@ -663,10 +665,13 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
 
 
 
+----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 
 -----------------------------------------
 -- Gaussian undirected graphs  --
 -----------------------------------------
+-- 26JULY2011 
 
 gaussianRing Graph := Ring => opts -> (g) -> (
     bb := graph g;
@@ -680,9 +685,42 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     m := #kL+1; --eliminate the k's and the t
     --t = placeholder variable for inverse of determinant of K
     R := kk(monoid [kL,t,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
-    R#gaussianRing = {#vv,s,k};
+    R#gaussianRing = {#vv,s,k,t};
     R)
 
+undirectedEdgesMatrix = method()
+undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
+     bb := graph g;
+     vv := sort vertices g;
+     n := R#gaussianRing#0; --number of vertices
+     p := value R#gaussianRing#2;-- this p is actually k in this case (in name).
+     PM := mutableMatrix(R,n,n);
+     scan(vv,i->PM_(pos(vv,i),pos(vv,i))=p_(i,i));
+     scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then p_(i,j) else p_(j,i)));
+     matrix PM) 
+
+
+covarianceMatrix (Ring,Graph) := (R,g) -> (
+     vv := sort vertices g;
+     n := R#gaussianRing#0;
+     s := value R#gaussianRing#1;
+     SM := mutableMatrix(R,n,n);
+     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
+     matrix SM) 
+
+gaussianVanishingIdeal=method()
+gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
+    --input: graph G and a polynomial ring R created by gaussianRing (!)
+    g:= graph G;
+    t:= value R#gaussianRing_3;
+    K:= undirectedEdgesMatrix(R,G);
+    adjK := sub(det(K)*inverse(sub(K,frac R)), R);
+    ideal (append(flatten entries( t* covarianceMatrix(R,G) - adjK),t*det(K)-1))
+     )
+
+
+----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 
 
 ------------------------------

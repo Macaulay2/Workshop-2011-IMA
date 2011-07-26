@@ -15,10 +15,23 @@ gaussianRing G --this now works!
 
 gaussianRing (G, Coefficients=>ZZ)
 gaussianRing (G, VariableName=>{getSymbol "seth"}) -- this does NOT do what it's supposed to,
---so need to document this! need to change all names!!
 gaussianRing (G, kVariableName=>Seth)
 transpose vars oo
 
+--
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
+M=undirectedEdgesMatrix(R,G)
+
+-- to get the adjoint:
+-- to be invertible needs to be promoted to fraction field:
+adjK = sub(det(M)* inverse(sub(M,frac R)), R)
+cov=covarianceMatrix(R,G) -- now works for undirected graphs
+flatten  entries( t*cov - adjK) 
+t*det(M)-1
+     
+gaussianVanishingIdeal (R,G)     
+     
 ------------------------------------------------------------
 ---gaussianMatrices:
 --needs to be able to only take as input only a ring R and a set of CI statements S, 

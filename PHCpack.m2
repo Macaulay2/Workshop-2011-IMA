@@ -3,7 +3,7 @@ needsPackage "NAGtypes"
 newPackage(
   "PHCpack",
   Version => "1.01", 
-  Date => "25 Jul 2011",
+  Date => "26 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
      Email => "lizgross@math.uic.edu",
@@ -607,6 +607,12 @@ phcEmbed (List,ZZ) := (system,dimension) -> (
   stdio << " > " << PHCsessionFile << endl;
   run(PHCexe|" -c < " | PHCbatchFile | " > " | PHCsessionFile);
   stdio << "output of phc -c is in file " << PHCoutputFile << endl;
+  -- extending the ring with slack variables zz1, zz2, .. , zzdimension
+  slackvars := apply(dimension, i->getSymbol("zz"|toString (i+1)));
+  R := ring ideal system;
+  RwithSlack := (coefficientRing R)[gens R, slackvars];
+  use RwithSlack;
+  return startSystemFromFile(PHCoutputFile);
 )
 
 -----------------------------------------------

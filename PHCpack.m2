@@ -2,7 +2,7 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.01", 
+  Version => "1.02", 
   Date => "26 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
@@ -131,12 +131,52 @@ startSystemFromFile (String) := (name) -> (
   result
 )
 
+systemFromFile = method(TypicalValue => List)
+systemFromFile (String) := (name) -> (
+  -- IN: file name starting with a polynomial system
+  -- OUT: list of polynomials in a ring with coefficients in CC
+  -- NOTE: the format of the system on file may be such that the
+  --   first term starts with +1*x which cannot be digested by M2.
+  --   In contrast to the startSystemFromFile, the first term could
+  --   also be "-1*x" so we must be a bit more careful...
+  s := get name;
+  s = replace("i","ii",s);
+  s = replace("E","e",s);
+  L := lines(s);
+  n := value L_0;
+  result := {};
+  i := 0; j := 1;
+  local stop;
+  local term;
+  local p;
+  while i < n do (
+    stop = false; p = 0;
+    while not stop do (
+      if #L_j != 0 then (
+        if (L_j_(#L_j-1) != ";") then (
+          -- we have to bite off the first "+" sign of the term
+          term = value substring(1,#L_j-1,L_j);
+          if (L_j_0 == "+") then p = p + term else p = p - term;
+        ) else ( -- in this case (L_j_(#L_j-1) == ";") holds
+          term = value substring(1,#L_j-2,L_j);
+          if (L_j_0 == "+") then p = p + term else p = p - term;
+          stop = true; result = result | {p}
+        );
+      ); j = j + 1;
+      stop = stop or (j >= #L);
+    );
+    i = i + 1; 
+  );
+  result
+)
+
 parseSolutions = method(TypicalValue => Sequence, Options => {Bits => 53})
 parseSolutions (String,Ring) := o -> (s,R) -> (
   -- parses solutions in PHCpack format 
   -- IN:  s = string of solutions in PHCmaple format 
   --      V = list of variable names
-  -- OUT: List of solutions, each of type Point, carrying also other diagnostic information about each.
+  -- OUT: List of solutions, each of type Point, 
+  --      carrying also other diagnostic information about each.
   oldprec := defaultPrecision;
   defaultPrecision = o.Bits;
   L := get s; 
@@ -612,7 +652,7 @@ phcEmbed (List,ZZ) := (system,dimension) -> (
   R := ring ideal system;
   RwithSlack := (coefficientRing R)[gens R, slackvars];
   use RwithSlack;
-  return startSystemFromFile(PHCoutputFile);
+  return systemFromFile(PHCoutputFile);
 )
 
 -----------------------------------------------

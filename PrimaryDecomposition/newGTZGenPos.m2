@@ -89,17 +89,19 @@ getMinimalPolynomial(Ideal) := (I) ->
 -- Input  : 
 --          
 -- Output : 
+-- This is a non-fraction field version of the getMinimalPolynomial
 getMinimalPolynomial2 = method()
 getMinimalPolynomial2(Ideal,List,RingElement,RingElement) := (I,us,x,y) ->
 (
    J := substitute(I,{x => y});
    elimVars := toList(set gens ring I - set us - set {x});
    elimJ := eliminate(J, elimVars);
-   --error "err";
+   --error "debug";
    --if (numgens elimJ == 0 and isSubset(ideal elimVars,J)) then y
-   if numgens elimJ != 1 then error "Uh oh."
+   if numgens elimJ != 1 then error "Could not find minimal polynomial."
    else elimJ_0
 )
+
 TEST ///
 restart
 load "newGTZ.m2"
@@ -151,9 +153,11 @@ splitZeroDimensionalIdeal(Ideal,List,RingElement,RingElement) := (I, us, x, y) -
    myMapInverse := invertLinearRingMap(myMap);
    factorList := apply(toList factor getMinimalPolynomial2(Isat, us, x, y), toList);
    factorList = select(factorList, fac -> first degree fac#0 > 0);
+   << "Factor List:" << endl;
    << netList factorList << endl;
    idealList := apply(factorList, fac -> ideal (myMapInverse fac#0)^(fac#1) + I);
    idealList = apply(idealList, J -> time sepAndSat(J,us));
+   --error "debug";
    apply(idealList, J -> trim ideal gens gb J)
 )
 splitZeroDimensionalIdeal(Ideal,List) := (I,us) ->
@@ -284,9 +288,11 @@ isPrimaryZeroDim(Ideal) := (I) ->
    
    S := flatten entries gens gb J;
    --fiberVars = toList (set gens ring J - set (variables / psi));
-   error "err";
+   --error "debug";
    (areLinearPowers(S,fiberVars),0)
 )
+
+-- need to rewrite areLinearPowers.
 
 areLinearPowers = method()
 areLinearPowers(List,List) := (S, fiberVars) ->
@@ -299,7 +305,7 @@ areLinearPowers(List,List) := (S, fiberVars) ->
    firstHPos := maxPosition(potentialHs / irredPower);
    firstHPos = position(S, s -> s == potentialHs#firstHPos);
    firstH := first first apply(toList factor S#firstHPos, toList);
-   error "err";
+   --error "debug";
 
    phi := invertVariables(baseVars,fiberVars,R,MonomialOrder => Lex);
    newS := S / phi;
@@ -331,13 +337,6 @@ areLinearPowers(List,List) := (S, fiberVars) ->
       );
    );
    loopVar
-)
-
-irredPower = method()
-irredPower(RingElement) := (f) ->
-(
-   factorList := apply(toList factor f, toList);
-   max(factorList / first / degree / first)
 )
 
 isLinearPower = method()
@@ -373,3 +372,11 @@ isLinearPower(RingElement,RingElement,List) := (s,xi,hs) ->
    );
    retVal
 )
+
+irredPower = method()
+irredPower(RingElement) := (f) ->
+(
+   factorList := apply(toList factor f, toList);
+   max(factorList / first / degree / first)
+)
+

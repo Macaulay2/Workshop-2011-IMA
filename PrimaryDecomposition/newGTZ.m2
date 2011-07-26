@@ -696,8 +696,6 @@ I = ideal "-2hjk + 4ef + bj + ak,
            -4ghj - 4ehl - djl + 2ce + 2ag,
            -2dfj - 2dek + ab,
            -2dgj - 2del + ac"
--- should try on laptop and let run for a while
--- gets much closer with GP algorithm
 time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 I = ideal flatten entries gens I
 time ourPD = newPD(I,Verbosity => 2);

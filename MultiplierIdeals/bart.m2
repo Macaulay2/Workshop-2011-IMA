@@ -44,7 +44,6 @@ affineMonomialCurveIdeal = (S, a) -> (
 
 I = affineMonomialCurveIdeal(R,nn)
 
-
      
 ord = (mm,p) -> (
      R := ring p;
@@ -78,9 +77,10 @@ exceptionalDivisorValuation = (nn,mm,p) -> (
      R := ring p;
      ff := sortedff(R,nn);
      n := 0;
-     while p % ff_0^n == 0 do n = n+1; 
+     while p % ff_0 == 0 do (p = p//ff_0;n = n+1;);
+--     while p % ff_0^n == 0 do n = n+1; 
      n = n-1;
-     n*ord(mm,ff_1) + ord(mm,p/ff_0^n)
+     n*ord(mm,ff_1) + ord(mm,p//ff_0^n)
      );
 exceptionalDivisorValuation({2,3,4},{1,1,1},(x^2-z)*x^2)
 

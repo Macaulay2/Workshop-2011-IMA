@@ -12,7 +12,8 @@
 -- Curves."
 
 restart
-installPackage "MonomialMultiplierIdeals"
+--installPackage "MonomialMultiplierIdeals"
+loadPackage "MonomialMultiplierIdeals"
 viewHelp MonomialMultiplierIdeals
 
 R = QQ[x,y];
@@ -87,7 +88,8 @@ sortedff(R,nn)
 
 -- get our hands on G etc
 
-installPackage "Normaliz"
+--installPackage "Normaliz"
+loadPackage "Normaliz"
 
 
 --
@@ -134,6 +136,13 @@ monomialValuationIdeal = (R,mm,val) -> (
      intmat2monomIdeal(M2,R,1)
      );
 monomialValuationIdeal(R,{3,4,5},8)
+
+
+
+exceptionalDivisorValuationIdeal = (R,ff,mm,val) -> (
+     maxpow := ceiling(val / ord(mm,ff_1));
+     sum apply(splice{0..maxpow}, i -> ideal(ff_1^(maxpow-i))*monomialValuationIdeal(R,mm,i))
+     );
 
 
 

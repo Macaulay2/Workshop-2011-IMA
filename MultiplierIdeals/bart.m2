@@ -56,11 +56,17 @@ ord = (mm,p) -> (
 
 sortedff = (R,nn) -> (
      KK := coefficientRing R;
-     A := KK[gens R,Degrees=>nn]; -- note if there are too many variables, an error will occur
-     apply(flatten entries sort(gens affineMonomialCurveIdeal(A,nn),DegreeOrder=>Ascending), i-> sub(i,R))
+     L := sort apply(flatten entries gens affineMonomialCurveIdeal(R,nn), i -> {ord(nn,i), i});
+     apply(L, i-> last i)     
      );
 
 L = sortedff(R,{2,3,4})
+
+
+
+     A := KK[gens R,Degrees=>nn]; -- note if there are too many variables, an error will occur
+     apply(flatten entries sort(gens affineMonomialCurveIdeal(A,nn),DegreeOrder=>Ascending), i-> sub(i,R))
+
 
 --------------HERE
 

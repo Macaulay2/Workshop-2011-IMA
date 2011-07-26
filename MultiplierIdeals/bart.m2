@@ -136,5 +136,15 @@ mm = {1,1,1};
 exceptionalDivisorValuation(nn,mm,x^2+y^2+z^2)
 exceptionalDivisorValuationIdeal(R,ff,mm,4)
 
+uu = {(exponents(ff_0))_0, (exponents(ff_1))_0}
+vv = {(exponents(ff_0))_1, (exponents(ff_1))_1}
 
+(normaliz(matrix{uu_0 - vv_0},5))#"gen"
+Guu_1 = (normaliz(matrix{uu_0 - vv_0} || matrix{vv_0 - uu_0} || matrix{uu_1 - vv_1} || id_(ZZ^3),4))#"gen"
+Gvv_1 = (normaliz(matrix{uu_0 - vv_0} || matrix{vv_0 - uu_0} || matrix{vv_1 - uu_1} || id_(ZZ^3),4))#"gen"
+rho_u = transpose matrix {uu_1-uu_0} -- defining eqn of the ray (not rho from the paper)
+rho_v = transpose matrix {vv_1-vv_0} -- defining eqn of the ray (not rho from the paper)
 
+T = (Guu_1||Gvv_1)*(rho_u|rho_v)
+rows = toList select(0..<numRows T, i -> all(0..<numColumns T, j -> T_(i,j) > 0))
+unique apply(rows, i -> flatten entries (Guu_1||Gvv_1)^{i})

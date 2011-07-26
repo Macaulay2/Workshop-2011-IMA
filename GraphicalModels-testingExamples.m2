@@ -13,7 +13,11 @@ gaussianRing G --passing a graph gives the variable names l's and p's
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 gaussianRing G --this now works!
 
-
+gaussianRing (G, Coefficients=>ZZ)
+gaussianRing (G, VariableName=>{getSymbol "seth"}) -- this does NOT do what it's supposed to,
+--so need to document this! need to change all names!!
+gaussianRing (G, kVariableName=>Seth)
+transpose vars oo
 
 ------------------------------------------------------------
 ---gaussianMatrices:

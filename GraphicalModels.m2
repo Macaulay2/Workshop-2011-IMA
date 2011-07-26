@@ -108,7 +108,12 @@ export {bidirectedEdgesMatrix,
        pairMarkov, 
        trekIdeal, 
        trekSeparation,
-       VariableName
+       VariableName,
+       sVariableName,
+       kVariableName,
+       tVariableName,
+       lVariableName,
+       pVariableName
 	} 
      
 needsPackage "Graphs"
@@ -508,8 +513,10 @@ prob = (R,s) -> (
 -- gaussianRing    --
 ---------------------
 
-
-gaussianRing = method(Options=>{Coefficients=>QQ, VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p", getSymbol "k", getSymbol "t"}})
+-- TO DO: 26JULY2011 
+-- make all gaussianRing methods take specific variablenames as optional inputs, NOT as one long list.
+gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", pVariableName=>getSymbol "p", kVariableName=>getSymbol "k", tVariableName=>getSymbol "t",
+	  VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p", getSymbol "k", getSymbol "t"}})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
@@ -658,15 +665,15 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
 
 
 -----------------------------------------
--- Gaussian undirected acyclic graphs  --
+-- Gaussian undirected graphs  --
 -----------------------------------------
 
 gaussianRing Graph := Ring => opts -> (g) -> (
     bb := graph g;
     vv := sort vertices g;
-    s := opts.VariableName#0;
-    k := opts.VariableName#3;
-    t := opts.VariableName#4;
+    s := opts.sVariableName;
+    k := opts.kVariableName;
+    t := opts.tVariableName;
     kk := opts.Coefficients;
     sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
     kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));

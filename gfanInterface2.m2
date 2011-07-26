@@ -6,12 +6,12 @@ needsPackage "Polyhedra"
 newPackage(
 	"gfanInterface2",
 	Version => "0.3.1", 
-	Date => "March 3, 2011 (update by Josephine Yu)",
+	Date => "July 26, 2011 (update by Josephine Yu)",
 	Authors => {
 		{Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""},
 		{Name => "Andrew Hoefel", Email => "andrew.hoefel@mathstat.dal.ca", HomePage => ""}
 	},
-	Headline => "Interface to A. Jensen's gfan package",
+	Headline => "Interface to @HREF http://home.imf.au.dk/jensen/, Anders Jensen@'s @HREF http://home.imf.au.dk/jensen/software/gfan/gfan.html, Gfan@ software",
 	Configuration => {
 		"path" => "", 
 		"fig2devpath" => "", 
@@ -53,6 +53,7 @@ export {
 	gfanPolynomialSetUnion, -- done!
 	gfanRender, 
 	gfanRenderStaircase, 
+	gfanResultantFan, -- needs gfan 0.6 or higher
 	gfanSaturation, -- done!
 	gfanSecondaryFan, -- v0.4 -- done! but could use better doc
 	gfanStats, -- done!
@@ -76,7 +77,10 @@ export {
 	gfanFunctions, -- for testing purposes
 	gfanParsePolyhedralFan, -- for external use
 	gfanRingToString, -- to make gfan input
-	gfanPolynomialListToString  -- to make gfan input
+	gfanPolynomialListToString,  -- to make gfan input
+	gfanVectorListToString, -- to make gfan input
+	gfanVectorListListToString -- to make gfan input
+
 }
 
 gfanPath = gfanInterface2#Options#Configuration#"path"
@@ -561,21 +565,8 @@ gfanLMPLToString := (L) -> (
 	return out;
 )
 
-gfanSymmetriesToString = method()
-gfanSymmetriesToString := (L) -> (
-	if L === null then return "";
-	out := "{";
-	n := #L - 1;
-	for i from 0 to n do (
-		out = out | gfanSymmetryToString(L#i);
-		if i < n then out = out | "," else out = out | "}";
-		out = out | newline;
-	);
-	return out;
-)
-
-gfanSymmetryToString = method()
-gfanSymmetryToString List := (L) -> (
+gfanVectorToString = method()
+gfanVectorToString List := (L) -> (
 	if L === null then return "";
 	out := "(";
 	n := #L - 1;
@@ -586,6 +577,33 @@ gfanSymmetryToString List := (L) -> (
 	);
 	return out;
 )
+
+gfanVectorListToString = method()
+gfanVectorListToString := (L) -> (
+	if L === null then return "";
+	out := "{";
+	n := #L - 1;
+	for i from 0 to n do (
+		out = out | gfanVectorToString(L#i);
+		if i < n then out = out | "," else out = out | "}";
+		out = out | newline;
+	);
+	return out;
+)
+
+gfanVectorListListToString = method()
+gfanVectorListListToString List := (L) -> (
+	if L === null then return "";
+	out := "{";
+	n := #L - 1;
+	for i from 0 to n do (
+		out = out | gfanVectorListToString(L#i);
+		if i < n then out = out | "," else out = out | "}";
+		out = out | newline;
+	);
+	return out;
+)
+
 
 gfanIntegerListToString = method()
 gfanIntegerListToString := (L) -> if L === null then ""  else toString L
@@ -818,14 +836,14 @@ gfan Ideal := opts -> (I) -> (
 	if opts#"g" then error "Polynomials must be marked for the -g option";
 	input := gfanRingToString(ring I) 
 		| gfanIdealToString(I) 
-		| gfanSymmetriesToString(opts#"symmetry");
+		| gfanVectorListToString(opts#"symmetry");
 	gfanParseLMPL runGfanCommand("gfan", opts, input)
 )
 
 gfan MarkedPolynomialList := opts -> (L) -> (
 	input := gfanMPLToRingToString(L)
 		| gfanMPLToString(L) 
-		| gfanSymmetriesToString(opts#"symmetry");
+		| gfanVectorListToString(opts#"symmetry");
 	gfanParseLMPL runGfanCommand("gfan", opts, input)
 )
 
@@ -833,7 +851,7 @@ gfan List := opts -> (L) -> (
 	if opts#"g" then error "Polynomials must be marked for the -g option";
 	input := gfanRingToString(ring first L)
 		| gfanPolynomialListToString(L) 
-		| gfanSymmetriesToString(opts#"symmetry");
+		| gfanVectorListToString(opts#"symmetry");
 	gfanParseLMPL runGfanCommand("gfan", opts, input)
 )
 
@@ -1110,7 +1128,7 @@ gfanLatticeIdeal = method( Options => {
 )
 
 gfanLatticeIdeal (List) := opts -> (L) -> (
-	input := gfanSymmetriesToString L;
+	input := gfanVectorListToString L;
 	QQ[(getSymbol("x"))_0..(getSymbol("x"))_(#(first L)-1)];
 	gfanParseIdeal replace("x", "x_", runGfanCommand("gfan_latticeideal", opts, input))
 )
@@ -1290,6 +1308,18 @@ gfanRenderStaircase (List) := opts -> (L) -> (
 )
 
 --------------------------------------------------------
+-- gfanResultantFan
+--------------------------------------------------------
+
+gfanResultantFan = method(Options => {
+	 } 
+)
+gfanResultantFan (List) := opts -> (tuple) -> (
+     input := gfanVectorListListToString(tuple);
+     gfanParsePolyhedralFan runGfanCommand("gfan _resultantfan", opts, input)
+)
+
+--------------------------------------------------------
 -- gfan_saturation
 --------------------------------------------------------
 
@@ -1384,7 +1414,7 @@ gfanToPolyhedralFan = method( Options => {
 
 gfanToPolyhedralFan List := opts -> (L) -> (
 	input := gfanMPLToRingToString(first L) 
-		| gfanSymmetriesToString(opts#"symmetry") 
+		| gfanVectorListToString(opts#"symmetry") 
 		| gfanLMPLToString(L);
 	gfanParsePolyhedralFan runGfanCommand("gfan_topolyhedralfan", opts, input) 
 )
@@ -1425,7 +1455,7 @@ gfanTropicalEvaluation = method( Options => {} )
 
 gfanTropicalEvaluation (RingElement, List) := opts -> (f,L) -> (
 	--v0.4 
-	input := gfanRingToString(ring f) | gfanPolynomialListToString({f}) | gfanSymmetriesToString(L);
+	input := gfanRingToString(ring f) | gfanPolynomialListToString({f}) | gfanVectorListToString(L);
 	value runGfanCommand("gfan_tropicalevaluation", opts, input) 
 	-- Make/find a parsing function for the above
 )
@@ -1567,7 +1597,7 @@ gfanTropicalTraverse (List) := opts -> (L) -> (
 	input := gfanMPLToRingToString(first L) 
 		| gfanMPLToString(first L) 
 		| gfanMPLToString(last L)
-		| gfanSymmetriesToString(opts#"symmetry");
+		| gfanVectorListToString(opts#"symmetry");
 	gfanParsePolyhedralFan runGfanCommand("gfan_tropicaltraverse", opts, input) 
 )
 
@@ -2628,6 +2658,26 @@ doc ///
 			@STRONG "gfan Documentation"@
 			@gfanHelp "gfan_renderstaircase"@
 ///
+
+
+doc ///
+	Key
+		gfanResultantFan
+		(gfanResultantFan, List)
+	Headline
+		Tropical variety of the sparse (toric) resultant variety.
+	Usage
+		gfanRenderStaircase(L)
+	Inputs
+		L:List
+	Description
+		Text
+			This method computes the tropical variety of a sparse (toric) resultant variety.
+
+			@STRONG "gfan Documentation"@
+			@gfanHelp "gfan _resultantfan"@
+///
+
 
 doc ///
 	Key

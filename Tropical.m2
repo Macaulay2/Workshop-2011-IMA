@@ -1,7 +1,7 @@
 newPackage("Tropical",
      Headline => "A package for tropical geometry",
      Version => "0.1",
-     Date => "February 28, 2011",
+     Date => "July 26, 2011",
      Authors => {
 	  {Name => "Josephine Yu",
 	   HomePage => "http://people.math.gatech.edu/~jyu67",
@@ -33,7 +33,7 @@ TropicalVariety = new Type of PolymakeObject;
 
 -----------------------------------------------
 -- CONSTRUCTOR
------------------------------------------------
+----------------------------------------------
 
 tropicalVariety = method( Options => {
 	"stable" => false, 
@@ -157,6 +157,16 @@ tropicalDiscriminant Matrix := A -> (
 ----------------------------
 --INPUT: a list of matrices, representing point configurations
 --OUTPUT: tropical resultant
+
+tropicalResultant = method()
+tropicalResultant List := L -> (
+     if (not # set(L / numRows) == 1) then
+     	  error "the matrices in the list must have the same number of rows";
+     numVars := numRows (L#0);
+     gfanInput := 
+     )
+     
+{*
 tropicalResultant = method()
 tropicalResultant List := L -> (
      if (not # set(L / numRows) == 1) then
@@ -173,7 +183,7 @@ tropicalResultant List := L -> (
      cayleySum L;
      -- NOT DONE!
      )
-
+*}
 
 ----------------------------
 --- secondaryFan
@@ -238,17 +248,18 @@ end
 
 restart
 --loadPackage "gfanInterface"
-installPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/gfanInterface2.m2", MakeDocumentation => true)
-installPackage ("Polymake", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/Polymake.m2", MakeDocumentation => true)
-installPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/Tropical.m2")
+installPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2", MakeDocumentation => true)
+installPackage ("Polymake", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Polymake.m2", MakeDocumentation => true)
+installPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Tropical.m2")
 
-loadPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/gfanInterface2.m2")
-loadPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/Tropical.m2", Reload => true)
+loadPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2")
+loadPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Tropical.m2", Reload => true)
 
-needsPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/gfanInterface2.m2",  DebuggingMode =>true)
-needsPackage("Tropical", FileName => "/Users/bb/Documents/math/M2codes/Goettingen-2011/Tropical.m2")
+needsPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2",  DebuggingMode =>true)
+needsPackage("Tropical", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Tropical.m2")
 
 debug gfanInterface2
+viewHelp gfanInterface2
 
 viewHelp "gfanInterface2"
 viewHelp "Polymake"
@@ -257,7 +268,7 @@ viewHelp "Tropical"
 A = matrix {{1,1,1,1,1,1,1,1},{1,1,1,1,0,0,0,0},{1,1,0,0,1,1,0,0},{1,0,1,0,1,0,1,0}}
 T = tropicalDiscriminant A
 
-L = {random(ZZ^2,ZZ^2),random(ZZ^2,ZZ^3),random(ZZ^2,ZZ^4)}
+L = {random(ZZ^2,ZZ^3),random(ZZ^2,ZZ^3),random(ZZ^2,ZZ^3)}
 cayleySum L
 
 P = gfanTropicalStartingCone {x+y+z}
@@ -305,4 +316,16 @@ toPolymakeFormat(T)
 viewHelp toPolymakeFormat
 viewHelp SRdeformations
 
-A = matrix{{}}
+
+----- Making non-acyclic vector configurations for experimentation with secondary fans
+
+needsPackage "Polyhedra"
+
+d=4;n=8;
+(select( apply(1..100, a-> unique(
+		    ((entries map(ZZ^d))/toSequence) | 
+		    apply(toList(1..n-d), i->(apply(1..d, j -> random(-4,4))))/(l->(l/(a->a//gcd(l)))) 
+		    ) 
+       	       ), L -> (print L; C = posHull transpose matrix(L/toList); C#"dimension of lineality space" == d)   
+	  )
+     )/print

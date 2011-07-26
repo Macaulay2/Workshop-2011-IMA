@@ -72,6 +72,8 @@ L = sortedff(R,{2,3,4})
 
 x^2 / 1
 
+-- this is BROKEN! see below
+
 exceptionalDivisorValuation = (nn,mm,p) -> (
      R := ring p;
      ff := sortedff(R,nn);

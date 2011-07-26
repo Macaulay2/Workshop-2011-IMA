@@ -482,12 +482,9 @@ meetExists(Poset, Thing, Thing) := (P,a,b) -> (
 --usage:
 isLattice = method()
 isLattice Poset := P -> (
-    checkJoins := unique flatten flatten apply(P.GroundSet, elt -> 
-	                apply (P.GroundSet, elt2-> joinExists(P,elt, elt2)));
-    checkMeets :=  unique flatten flatten apply(P.GroundSet, elt -> 
-	                apply (P.GroundSet, elt2-> meetExists(P,elt, elt2) ));
-    if member(false, set (flatten{checkJoins,checkMeets})) === true then P.cache.isLattice = false else P.cache.isLattice = true 
-     )
+	if P.cache.?isLattice then return P.cache.isLattice;
+    P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
+);
 
 
 -----------------------------------------------

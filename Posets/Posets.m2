@@ -187,13 +187,7 @@ gradeLattice (Poset) := P->(
 );
 
 dualPoset = method();
-dualPoset (Poset):=P->(
-	L:={};
-	for i to #P.Relations-1 do(
-		L=append(L,(P.Relations_i_1,P.Relations_i_0));
-	);
-	poset(P.GroundSet,L)
-);
+dualPoset (Poset):=P->poset(P.GroundSet, P.Relations/reverse);
 
 ----------------------------------------------------------------------------------
 -- NORMAL CODE

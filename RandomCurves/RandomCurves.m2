@@ -51,3 +51,8 @@ C=(random canonicalCurve)(g,R);
 betti res C
 (genus C, degree C)
 
+
+kk=ZZ/101;
+R=kk[
+viewHelp
+

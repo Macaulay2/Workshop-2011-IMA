@@ -29,6 +29,8 @@ if not version#"VERSION" >= "1.4.0.1" then error "this package requires Macaulay
 SearchObject = new Type of MutableHashTable
 globalAssignment SearchObject
 
+taskList:={};
+
 pSearch=method()
 pSearch SearchObject := Object -> args -> (
      -- if the args consist of a single element make it into a sequence
@@ -49,29 +51,33 @@ pSearch SearchObject := Object -> args -> (
 	       else x
 	       )
 	  else x));
-
-     -- schedule the tasks
-     tsks:=apply(att,i-> createTask(Object.Construction, argsConstr));
-     tsks/schedule;
-     object:=null;
-
-     -- loop until either a (certified) object is found or all tasks have finished 
-     while not all(tsks,isReady) do (
-	  ind:=apply(#tsks,i->i);
-	  ready:={};
-	  -- loop until a task has finished
-	  while #ready==0 do (ready=select(ind,i->isReady tsks_i));
-	  -- check if there is a (certified) object among the results of the finished tasks
-	  scan(tsks_ready,t->(
-	       tmpObject:=taskResult t;
-	       if tmpObject=!=null then 
-	             if cert then 
-		          if Object.Certification prepend(tmpObject,argsCert) then object=tmpObject else object=null
-		     else 
-		          object=tmpObject;));
+     
+     -- wrap the following function around the actual computation:
+     -- if a (certified) result is returned it cancels all other tasks and returns the result 
+     checkRes:=(argsConstr,argsCert,cert,taskNr)->(
+	  tmpobject:=Object.Construction(argsConstr);
+	  -- in case of cert=true check if the objects passes certification 
+	  if cert then 
+	     if Object.Certification prepend(tmpObject,argsCert) then 
+	        object=tmpObject 
+	     else 
+	        object=null 
+	  else object=tmpObject;
+	  if object=!=null then (
+	       scan(#taskList,i->if i!=taskNr then cancelTask taskList_i);
+	       print"pSearch finished successfully.")       
+	  object)
+     
+     -- set up the task List
+     taskList:=apply(att,i-> createTask(checkRes,(argsConstr,argsCert,cert,i)));
+     -- set up a finishing task
+     finishTask:=()->(
+	  
+     taskList/schedule;
+     
 	  -- remove finished tasks from list
      	  tsks=tsks_(ind - set ready);
-	  if object=!=null then (
+	  if object=!=null then (	       
 	       scan(tsks,t->cancelTask t);
 	       tsks={};);
 	  );
@@ -83,17 +89,8 @@ restart
 uninstallPackage"SearchObjects"
 installPackage"SearchObjects"
 
-t1=createTask( ()->( t2=createTask(()-> (sleep 5; print"Hello"));
-	  schedule t2
-	  ))
-schedule t1
-isReady t1, isReady t2
-schedule createTask(()->( schedule createTask(()->(
-		    sleep 10;
-		    print"Hello";))))
-
 constructMatrix=()->(
-     M:=random((ZZ/11)^4,(ZZ/11)^4);
+     M:=random((ZZ/13)^4,(ZZ/13)^4);
      if rank M==2 then M else null)
 
 certifyMatrix=()->true
@@ -102,9 +99,22 @@ sMatrix = new SearchObject from {
      Construction=>constructMatrix,
      Certification=>certifyMatrix
      }
-t1=currentTime();
-M=(pSearch sMatrix)(Attempts=>11^5);
-t2=currentTime();
+
+t1=currentTime(); M=(pSearch sMatrix)(Attempts=>13^5); t2=currentTime();
+t2-t1
+allowableThreads
+Search=()->(counter=0; while(M=constructMatrix(); M===null and counter<13^5) do (counter=counter+1));
+t1=currentTime(); Search(); t2=currentTime();
+t2-t1
+restart
+t1'=currentTime(); 
+counter=0;
+while(
+     M=constructMatrix();
+     M===null and counter<11^5) do (counter=counter+1);
+t2'=currentTime();
+t2'-t1'
+
 viewHelp
 t2-t1
 

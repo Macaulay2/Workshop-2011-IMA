@@ -42,6 +42,7 @@ export {Graph,
      foreFathers,     
      displayGraph,
      showTikZ,
+     tikzGraph,
      simpleGraph,      
      removeNodes, 
      inducedSubgraph,
@@ -486,6 +487,46 @@ showTikZ(Digraph) := opt -> G -> (
      get output
      )
 
+cleanName=(name)->(
+     namep:=replace("\\}","",replace("\\{","",toString name));
+     nameb:=replace("\\(","",replace("\\)","",namep));
+     replace("\\_","",replace("\\*","",nameb))
+     )
+
+edgeLists=(L)->(
+     if any(L, l-> #l=!=2) then (
+	  error "Not a set of edges."
+	  )
+     else (
+	  apply(L, i-> concatenate(cleanName(first i),"/",cleanName(last i)))
+	  )
+     )
+
+tikzGraph = method();
+
+tikzGraph(Graph):=String=>(G)->(
+     V:=apply(vertices G, v-> cleanName(v));
+     vertnum:=#V;
+     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
+     edgepairs:=apply(edges G,toList);
+     edgelist:=edgeLists(edgepairs);
+     name:=temporaryFileName();
+     fn:=openOut name;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
+           for v in toList(0..vertnum-1) do (
+     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+	  	);
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
+     fn << "      \\draw [-] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     close fn;
+     s:=get name;
+     removeFile(name);
+     s
+     )
+
+
 ------------------
 -- Graph basics --
 ------------------
@@ -498,7 +539,15 @@ vertices(Digraph) := G -> (
      	  G1 := graph G;
      	  V := keys G1;
      	  G#cache#vertices = V;
-     	  V))   
+     	  V))
+  
+vertices(Graph) := G -> (
+     if G#cache#?vertices then G#cache#vertices else(
+     	  G1 := graph G;
+     	  V := keys G1;
+     	  G#cache#vertices = V;
+     	  V))
+
 vertices(MixedGraph) := G -> (
      if G#cache#?vertices then G#cache#vertices else(
 	  G1 := graph G;
@@ -1523,3 +1572,13 @@ TEST ///
   peek G1.cache
   descendents(G1, 1)
 ///
+
+
+end;
+
+
+restart
+loadPackage("Graphs",FileName=>"/Users/gwynethwhieldon/Workshop/IMA-2011/Graphs/Graphs.m2")
+R=ZZ/10007[x_1..x_10]
+G=graph{{x_1*x_10,x_2},{x_1,x_2*x_3},{x_3*x_10*x_9,x_1}}
+tikzGraph G

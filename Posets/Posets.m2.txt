@@ -37,10 +37,12 @@ isGraded (Poset) := P->(
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
---Broke
+--Finished
 gradePoset = method();
 gradePoset (Poset) := P->(
-	if not isGraded P then error"P must be graded";
+	--if not isGraded P then error"P must be graded";
+	Q:=P;
+	counter:=1;
 	L:={};
 	n:=max apply(maximalChains P, c->#c);
 	M:=maximalChains P;
@@ -49,7 +51,51 @@ gradePoset (Poset) := P->(
 			L=append(L,M_i)
 		};
 	);
-	apply(max apply(L,c->#c), d -> unique for c in L list if c#?d then c#d else continue)
+	C:=coveringRelations(P);
+	J:=apply(max apply(L,c->#c), d -> unique for c in L list if c#?d then c#d else continue);
+	while #(flatten J) < #P.GroundSet do(
+	if counter != 0 then{
+	counter = 0;
+	for i to #C-1 do(
+		if member(C_i_0,flatten J) then{
+			if member(C_i_1,flatten J)==false then{
+				for j to #J-1 do(
+					if member(C_i_0,J_j) then{
+						J=replace(j+1,append(J_(j+1),C_i_1),J);
+						counter = counter+1;
+					};
+				);
+			};
+		};
+		if member(C_i_0,flatten J)==false then{
+			if member(C_i_1,flatten J) then{
+				for j to #J-1 do(
+					if member(C_i_1,J_j) then{
+						J=replace(j-1,append(J_(j-1),C_i_0),J);
+						counter = counter +1;
+					};
+				);
+			};
+		};
+	);
+	}else{
+		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));
+		C=coveringRelations(Q);
+		L={};
+		n=max apply(maximalChains Q, c->#c);
+		M=maximalChains Q;
+		for i to #M-1 do (
+			if #M_i==n then {
+				L=append(L,M_i)
+			};
+		);
+		for i to n-1 do(
+			J=replace(i,apply(L,c->c_i),J);
+		);
+		counter=1;
+	}; 
+	);
+	J
 );
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -66,7 +112,19 @@ gradeLattice (Poset) := P->(
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+dualPoset = method();
+dualPoset (Poset):=P->(
+	L={};
+	for i to #P.Relations-1 do(
+		L=append(L,(P.Relations_i_1,P.Relations_i_0));
+	);
+	poset(P.GroundSet,L)
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 R=QQ[x_1..x_100];
 P=poset({x_1,x_2,x_3,x_4},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4)})
-Q=poset({x_5,x_6,x_7},{(x_5,x_6),(x_6,x_7)})
+Q=poset({x_1,x_2,x_3,x_4,x_5,x_6,x_7,x_8},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4),(x_5,x_6),(x_6,x_8),(x_7,x_8)})
+L=poset({x_5,x_6,x_7,x_8},{(x_5,x_6),(x_6,x_8),(x_7,x_8)})

@@ -94,7 +94,6 @@ generateChildren(Sequence, List, List) := (kn, l, m) -> (
      L := apply(#m, i->if n-k-l#(k-i-1)>=m#i+1 then take(m,i)|{m#i+1}|drop(m,i+1));
      select(L, a-> a=!=null and a==reverse sort a)
 )
-
 -------------------
 -- find the position where you need
 -- to add a solution of the children problem

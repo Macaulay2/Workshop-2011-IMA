@@ -3,17 +3,11 @@ needsPackage "NAGtypes"
 newPackage(
   "Bertini",
   Version => "0.1", 
-  Date => "24 May 2011",
+  Date => "25 July 2011",
   Authors => {
-    {Name => "Elizabeth Gross",
-     Email => "lizgross@math.uic.edu",
-     HomePage => "http://www.math.uic.edu/~lizgross"},
-    {Name => "Sonja Petrovic", 
-     Email => "petrovic@math.uic.edu",
-     HomePage => "http://www.math.uic.edu/~petrovic"},
-    {Name => "Jan Verschelde", 
-     Email => "jan@math.uic.edu",
-     HomePage => "http://www.math.uic.edu/~jan"},
+    {Name => "Dan Bates",
+     Email => "bates@math.colostate.edu",
+     HomePage => "http://www.math.colostate.edu/~bates"},
     {Name => "Contributing Author: Anton Leykin",
      HomePage => "http://www.math.gatech.edu/~leykin"}
   },
@@ -46,28 +40,36 @@ needsPackage "NAGtypes"
 -- GLOBAL VARIABLES 
 --##########################################################################--
 
-DBG = 0; -- debug level (10=keep temp files)
-path'PHC = (options PHCpack).Configuration#"path";
-PHCexe=path'PHC|(options PHCpack).Configuration#"PHCexe"; 
--- this is the executable string we need to make sure that calls to PHCpack actually run:
+-- DBG = 0; -- debug level (10=keep temp files)
+-- path'PHC = (options PHCpack).Configuration#"path";
+-- PHCexe=path'PHC|(options PHCpack).Configuration#"PHCexe"; 
+-- this is the executable string we need to make sure that calls to PHCpack actually run:    -- How shall we do this with Bertini ???
 -- NOTE: the absolute path should be put into the init-PHCpack.m2 file 
 
--- QUESTION: do we need to prepend "rootPath" to all the file names to resolve issues with cygwin??
+-- QUESTION: do we need to prepend "rootPath" to all the file names to resolve issues with cygwin??? (question from PHCpack interface)
 
 needsPackage "SimpleDoc"
 
 -- Bertini interface for NAG4M2
 -- used by ../NumericalAlgebraicGeometry.m2
 
+-- need to include proper attribution each time Bertini is run...how to do???
+-- (license calls for a line in the output that states which Bertini version was used)
+
 solveBertini = method(TypicalValue => List)
-solveBertini (List,HashTable) := List => (F,o) -> (
-  	  dir := makeBertiniInput F; 
-  	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");
-	  readSolutionsBertini(dir,"finite_solutions")
+solveBertini (List,HashTable) := List => (F,o) -> (  -- F is the list of polynomials; o is the hash table of options.
+  	  dir := makeBertiniInput F;  -- creates the input file 
+  	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	  readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
 	  )
 
-protect StartSolutions, protect StartSystem
-makeBertiniInput = method(TypicalValue=>Nothing, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii})
+-- DAN TO DO:
+--   build several user-accessible front ends (bertiniX, with X=ZerodimSolve, PosdimSolve, ComponentSample, ComponentMembershipTest 
+
+
+
+-- protect StartSolutions, protect StartSystem (Anton/Jan suggested that perhaps we shouldn't be protecting any names???) 
+makeBertiniInput = method(TypicalValue=>Nothing, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii}) -- need to greatly increase the list of options here!!!
 makeBertiniInput List := o -> T -> (
 -- IN:
 --	T = polynomials of target system

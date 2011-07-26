@@ -5,7 +5,7 @@ solveBertini = method(TypicalValue => List)
 solveBertini (List,HashTable) := List => (F,o) -> (
   	  dir := makeBertiniInput F; 
   	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");
-	  readSolutionsBertini(dir,"finite_solutions")
+	  readSolutionsBertini(dir,"finite_solutions") -- might not be the right file to read!!!
 	  )
 
 protect StartSolutions, protect StartSystem
@@ -17,10 +17,11 @@ makeBertiniInput List := o -> T -> (
   v := gens ring T#0; -- variables
   dir := temporaryFileName(); 
   makeDirectory dir;
-  f := openOut (dir|"/input"); -- THE name for Bertini's input file 
+  f := openOut (dir|"/input"); -- standard name for Bertini's input file 
   f << "CONFIG" << endl;
-  --f << "MPTYPE: 2;" << endl; -- multiprecision
-  f << "MPTYPE: 0;" << endl; -- double precision (default?)
+  --f << "MPTYPE: 2;" << endl; -- multiprecision...need to allow these config options in calls involving Bertini
+  f << "MPTYPE: 0;" << endl; -- double precision 
+  --need many more options!!
   if #o.StartSystem > 0 then
     f << "USERHOMOTOPY: 1;" << endl;
   f << endl << "END;" << endl << endl;
@@ -39,7 +40,7 @@ makeBertiniInput List := o -> T -> (
        then f << "f" << i << ", "
        else f << "f" << i << ";" << endl << endl
       );
-  bertiniNumbers := p->( L := toString p; 
+  bertiniNumbers := p->( L := toString p; --Anton: what is this used for???  What's p???
        L = replace("ii", "I", L); 
        L = replace("e", "E", L);
        L

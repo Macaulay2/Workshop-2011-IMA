@@ -1,24 +1,25 @@
 {*Make the first map of a generic tensor complex:
 Given (over a ring R)
 free modules Bi of ranks bi\geq 1,
-a free module A,
+a free module A, of rank a = sum bi.
 a map A <--- \otimes_j Bj,
 set d = (d0=0, d1=b1, d2 = b1+b2...). 
+
 The desired map is the composite
 
-wedge^b1 A ** wedge^b1 B1* ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
+F1= wedge^b1 A ** wedge^b1 B1* ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
 by "trace" to 
 
-wedge^b1 A ** wedge^b1 B1* ** [ (\otimes_{j\geq 2} S^b1 Bj)* ** (\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
+G1=wedge^b1 A ** wedge^b1 B1* ** [ (\otimes_{j\geq 2} S^b1 Bj)* ** (\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
 to (by reassociating)
 
-wedge^b1 A ** [wedge^b1 B1* **  (\otimes_{j\geq 2} S^b1 Bj)*] ** [(\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj]
+G2=wedge^b1 A ** [wedge^b1 B1* **  (\otimes_{j\geq 2} S^b1 Bj)*] ** [(\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj]
 to (by the wedge ** sym to wedge map and multiplication in Sym
 
-wedge^b1 A ** [wedge^b1 \wedge_b1(\otimes_{j\geq 1} Bj*] ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
+G3=wedge^b1 A ** [wedge^b1 \wedge_b1(\otimes_{j\geq 1} Bj*] ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
 to (by the minors)
 
-R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
+F0=R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
 
 
 ----------Implementation:
@@ -396,11 +397,14 @@ flattenedGenericTensor = (L,kk)->(
      apply(#L,i->( B_i=makeExplicitFreeModule(S^(L_i))));
      --Btotal = tensor product of all but B0
      Btotal := makeTensorProduct(apply(#L-1,i->(B_(i+1))));     
-     PHI := map(Btotal,B_0,(i,j)->(
+     f := map(Btotal,B_0,(i,j)->(
 	       x_(toSequence( {(fromOrdinal B_0)(j)}|(fromOrdinal Btotal)(i)))
-	       ));
-     return {PHI,S}
+	       ))
+--     return {PHI,S}
      );
+
+isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
+
 makeMinorsMap = method()
 makeMinorsMap(Matrix, ZZ):=(f,b)->(
      E1 := source(f);
@@ -440,7 +444,9 @@ restart
 path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "TensorComplexes.m2"
 kk=ZZ/101
-f=(flattenedGenericTensor({7,2,2},kk))#0
+f=flattenedGenericTensor({7,2,2},kk)
+S=ring f
+
 E = makeTensorProduct(
      makeExteriorPower(source f, 2), 
      makeExteriorPower(target f, 2))
@@ -450,6 +456,96 @@ g1 = makeMinorsMap(f,E)
 matrix(g)==matrix(g1)
 ///
 
+twist = method()
+twist(Module,ZZ) := (M,d) -> (
+     makeExplicitFreeModule M;
+     E := M**S^{d};
+     E.cache.underlyingModules = M.cache.underlyingModules;
+     E.cache.basisList = M.cache.basisList;
+     E.cache.fromOrdinal = M.cache.fromOrdinal;
+     E.cache.toOrdinal = M.cache.toOrdinal;
+     E)
+
+prep = (S,intlist) ->apply(intlist , i->S^i)
+
+--the following has a problem at the end (4/17/2011)
+TC1 = method()
+TC1(Ring, Matrix) := (S,f) ->(
+     --f: f: A --> B1** B2** ... Bn
+     --makes the map G1 <- F1 as above.
+     --if f is not balanced, we should  be doing something else (swimming)
+     if not isBalanced f then error"map is not balanced";
+     B  = {S^0}|underlyingModules target f;
+     A = source f;
+     n = #B-1;
+     b = B/rank; -- {0, b1, b2,..,bn}
+     d = accumulate(plus,{0}|b); --{0, b1, b1+b2...}
+--     wedgeb1A = makeExteriorPower(A,b_1);
+     L11 = {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
+     L12 = apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
+     F1 = makeTensorProduct(L11 | L12);
+
+     G11 = makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
+     T = makeTrace G11;
+     T**id_F1
+     )
+TC12 = method()
+TC12(Ring, Matrix) := (S,f) ->(
+     --f: f: A --> B1** B2** ... Bn
+     --makes the map G1 <- F1 as above.
+     --if f is not balanced, we should  be doing something else (swimming)
+     if not isBalanced f then error"map is not balanced";
+     B  = {S^0}|underlyingModules target f;
+     A = source f;
+     n = #B-1;
+     b = B/rank; -- {0, b1, b2,..,bn}
+     d = accumulate(plus,{0}|b); --{0, b1, b1+b2...}
+--     wedgeb1A = makeExteriorPower(A,b_1);
+     L11 = {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
+     L12 = apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
+     F1 = makeTensorProduct(L11 | L12);
+
+     G11 = makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
+     T = makeTrace G11;
+     tc1=T**id_F1;
+     
+     uM
+     )
+
+
+///
+restart
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
+kk=ZZ/101
+--f=flattenedGenericTensor({7,1,2,1,2,1},kk)
+--f=flattenedGenericTensor({7,2,2},kk)
+f=flattenedGenericTensor({4,2,2},kk)
+S=ring f
+tc1 = TC1(S,f)
+F1 = source tc1
+uM((uM F1)_1)
+///
+
+end
+
+     F0 = makeTensorProduct(
+	  for i from 2 to n list 
+	     makeSymmetricPower(B_i,d_(i-1)));
+     minorsf = gens minors(b#1, f);
+     wedgeb1Sourcef := makeExteriorPower(source f, b#1);
+     G3 = makeTensorProduct {wedgeb1A,wedgeb1Sourcef,F0};
+     F0G3 = map(F0,G3, (i,j) -> (
+	       i1 := (fromOrdinal F0)i;
+	       j1 := (fromOrdinal G3)j;
+	       detrownumbers := (toOrdinal A)(j1_0);
+	       detcolnumbers = (j1_1)/(toOrdinal source f);
+--problem in the following lines:       
+               if (fromOrdinal F0)i == j1/(k->k_2) then
+	       det(f_detcols^detrows)*F0_i 
+	       else 0_F0)
+	  );
+     error""
 
 
 
@@ -665,67 +761,7 @@ rank A == rank source A
 test(3,5,3)
 ///
 
-twist = method()
-twist(Module,ZZ) := (M,d) -> (
-     makeExplicitFreeModule M;
-     E := M**S^{d};
-     E.cache.underlyingModules = M.cache.underlyingModules;
-     E.cache.basisList = M.cache.basisList;
-     E.cache.fromOrdinal = M.cache.fromOrdinal;
-     E.cache.toOrdinal = M.cache.toOrdinal;
-     E)
 
-prep = (S,intlist) ->apply(intlist , i->S^i)
-
---the following has a problem at the end (4/17/2011)
-TC1 = method()
-TC1(Ring, Matrix) := (R,f) ->(
-     --makes a composite     F0 <- G3 <- G2 <- G1 <- F1 as below
-     B  = {S^0} | (underlyingModules source f);
-     A = target f;
-     n = #B-1;
-     b = B/rank; -- (0, b1, b2,..,bn)
-     d = accumulate(plus,{0}|b); --(0, b1, b1+b2...)
-     wedgeb1A = makeExteriorPower(A,b_1);
-     L11 = {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
-     L12 = for j from 2 to n list 
-              makeSymmetricPower(B_j,d_(j-1)-b#1);
-     F1 = makeTensorProduct(L11 | L12);
-     
-
-     F0 = makeTensorProduct(
-	  for i from 2 to n list 
-	     makeSymmetricPower(B_i,d_(i-1)));
-     minorsf = gens minors(b#1, f);
-     wedgeb1Sourcef := makeExteriorPower(source f, b#1);
-     G3 = makeTensorProduct {wedgeb1A,wedgeb1Sourcef,F0};
-     F0G3 = map(F0,G3, (i,j) -> (
-	       i1 := (fromOrdinal F0)i;
-	       j1 := (fromOrdinal G3)j;
-	       detrownumbers := (toOrdinal A)(j1_0);
-	       detcolnumbers = (j1_1)/(toOrdinal source f);
---problem in the following lines:       
-               if (fromOrdinal F0)i == j1/(k->k_2) then
-	       det(f_detcols^detrows)*F0_i 
-	       else 0_F0)
-	  );
-     error""
-     )
-end
-
-restart
-path = append(path, "~/src/IMA-2011/TensorComplexes/")
-load "TensorComplexes.m2"
-kk = ZZ/101
-S = kk[w,x,y,z]
-ab = {3,2,1,1}
-mods = prep(S, ab)
-twist(mods_0,1)
-tensormods = twist(makeTensorProduct(drop(mods,1)), -1)
-f = random(mods#0,tensormods)
-source f
-TC1(S,f)
-F0G3
 
 
 

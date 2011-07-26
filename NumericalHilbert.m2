@@ -181,80 +181,6 @@ dualBasisBM (Matrix, ZZ) := o -> (igens, d) -> (
      );
 
 --version of the BM algorithm with automatic stopping criterion
-dualBasisBMS = method(TypicalValue => Matrix, Options => {Point => {}})
-dualBasisBMS (Matrix, ZZ) := o -> (igens, d) -> (
-     R := ring igens;
-     n := #gens R;
-     m := #first entries igens;
-     epsilon := .001; --error tolerance for kernel
-     if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     ecart := max apply(first entries igens, g->(gDegree g - lDegree g)); --max ecart of generators
-     betas := {}; --previously found generators
-     newbetas := {1_R}; --new generators
-     npairs := subsets(n,2);
-     M := map(R^m,R^0,0); --the main matrix
-     E := map(R^0,R^n,0); --stores evaluation of each dual generator on each ideal generator
-     bvectors := map(R^1,R^0,0);
-     buildVBlock := v -> ( --function to build new blocks to add to M
- 	  Vb := mutableMatrix(R,#npairs,n);
-    	  for i from 0 to #npairs-1 do (
-      	       Vb_(i,npairs#i#0) =  v#(npairs#i#1);
-      	       Vb_(i,npairs#i#1) = -v#(npairs#i#0);
-    	       );
-    	  new Matrix from Vb
-  	  );
-     V := {{}};
-     
-     for e from 1 to d+1 do (
-	  --print (m, M, E, bvectors, betas, newbetas);
-	  s := #betas;
-	  snew := #newbetas;
-	  M = bvectors || M;
-    	  for i from 0 to #newbetas-1 do (
-	       b := newbetas#i;
-      	       --get alpha vector for b
-      	       alpha := apply(n, k->(
-	       	    subs := matrix{apply(n, l->(if l > k then 0_R else (gens R)#l))};
-		    (gens R)#k * sub(b,subs)
-	       	    ));
-      	       --get new A from new alpha
-	       A := matrix apply(m, j->apply(alpha,a->innerProduct(a,igens_(0,j))));
-	       --expand E with alpha as next row
-	       E = E || matrix{alpha};
-	       --expand M with Vs and new A
-	       newcol := map(R^(s+snew),R^n,0) || A;
-	       for v in V#i do newcol = newcol || v;
-	       --print (M,newcol, numgens target M, numgens target newcol);
-	       M = M | newcol;
-      	       );
-    	  --add newbetas to betas
-	  betas = betas | newbetas;
-	  s = #betas;
-    	  --get bvectors from kernel of M
-    	  (svs, U, Vt) := SVD sub(M,coefficientRing R);
-	  --print (svs,U,Vt);
-    	  Vt = entries Vt;
-    	  bvectors = new MutableList;
-    	  for i to #Vt-1 do
-	       if i > #svs-1 or abs svs#i <= epsilon then bvectors#(#bvectors) = apply(Vt#i, conjugate);
-	  bvectors = new List from bvectors;
-    	  --find newbetas from bvectors
-	  newbetas = apply(bvectors, bv->sum(#bv, i->(bv#i * E_(i//n,i%n))));
-    	  --build Vs from bvectors
-	  V = apply(#bvectors, i->(
-	       w := apply(s, j-> apply(n,k->((bvectors#i)#(j*n + k))));
-	       --print ("w",w);
-	       apply(s, j->buildVBlock(w#j))
-	       ));
-	  if #bvectors > 0 then bvectors = matrix bvectors else break;
-	  M = M || map(R^(snew*#npairs),R^(n*s),0);
-  	  );
-     (mons,bmatrix) := coefficients matrix {betas};
-     --print(mons,bmatrix);
-     bmatrix = sub(bmatrix,coefficientRing R);
-     print(numgens source M, numgens target M);
-     dualSpace (mons * transpose rowReduce(transpose bmatrix,epsilon))
-     );
 
 --ST or DZ algorithms.
 dualHilbertDZST = method(TypicalValue => List, Options => {Point => {}, Strategy => DZ})
@@ -327,7 +253,7 @@ newMonomialGens = (oldGens, newBasis, dmons, d) -> (
      for m in mons do (
 	  if i < #newBasis and m == newBasis#i then (i = i+1; continue);
 	  if any(oldGens, g->(isDivisible(m,g#0) and gDegree m - gDegree(g#0) <= d - g#1)) then continue;
-	  newGens = append(newGens, {m,d});
+	  newGens = append(newGens, (m,d));
      	  );
      newGens
      );

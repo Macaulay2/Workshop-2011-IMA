@@ -83,8 +83,7 @@ poset(List,List,Matrix) := (I,C,M) ->
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, orderIdeal 
-indexElement := (P,A) -> (
-      sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
+indexElement := (P,A) -> position(P.GroundSet, i -> i == A);
 
 -- input:  a list, potentially with nulls
 -- output:  a list w/out nulls

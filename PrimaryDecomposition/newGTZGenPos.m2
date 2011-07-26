@@ -9,11 +9,10 @@ getCoordChange = method()
 getCoordChange(Ring,List) := (R,us) ->
 (
    randTerms := terms random(1,R);
-   okVars := toList(set gens R - set us);
-   lastVar := first okVars;
+   okVars := reverse sort toList(set gens R - set us);
+   lastVar := last okVars;
    myTerms := select(randTerms, i -> isSubset(support i, okVars) and support i != {lastVar});
    coordChange := map(R, R, {lastVar => lastVar + sum myTerms});
-   --coordChangeInverse := invertLinearRingMap(coordChange);
    coordChangeInverse := map(R,R,{lastVar => lastVar - sum myTerms});
    (coordChange,coordChangeInverse,lastVar)
 )
@@ -253,7 +252,7 @@ TEST ///
 restart
 load "newGTZ.m2"
 debug newGTZ
-R = ZZ/32003[a,b,c,d,e,h]
+R = QQ[a,b,c,d,e,h]
 idealList = {ideal(e-h,d-h,c-h,a+b+3*h,b^2+3*b*h+h^2),ideal(e-h,c+d+3*h,b-h,a-h,d^2+3*d*h+h^2),ideal(e-h,d-h,b+c+3*h,a-h,c^2+3*c*h+h^2),ideal(e-h,a+b+c+d+h,d^2-c*h,c*d-b*h,b*d+b*h+c*h+d*h+h^2,c^2+b*h+c*h+d*h+h^2,b*c-h^2,b^2-d*h)}
 isPrimaryZeroDim first idealList
 idealList / (I -> time isPrimaryZeroDim I)
@@ -303,8 +302,8 @@ isPrimaryZeroDim(Ideal) := (I) ->
    fiberVars = fiberVars / psi;
    
    G := flatten entries gens gb J;
-   error "debug";
    gs := getVariablePowerGenerators(G,fiberVars);
+   -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
    areLinearPowers(G,gs,fiberVars)
 )
 
@@ -315,7 +314,7 @@ areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
 --   all apply(take(gs,#gs-1),1..(#gs-1),(g,i) -> isLinearPower(G,g,i,fiberVars)))
   R := ring first G;
-  independentVars := toList (set gens R - set fiberVars);
+  independentVars := sort toList (set gens R - set fiberVars);
   
   -- need to pass to the fraction field first, since the polynomial may not be monic yet.
   linearFactorList := {last gs} | apply(reverse toList (1..(#fiberVars - 1)), i -> (   gi := gs#i;

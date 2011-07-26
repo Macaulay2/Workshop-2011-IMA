@@ -18,6 +18,7 @@ newPackage(
     "keep files" => true
   },
   DebuggingMode => false,
+  AuxiliaryFiles => true,
   CacheExampleOutput => true
 )
 
@@ -207,7 +208,6 @@ trackBertini (List,List,List,HashTable) := List => (S,T,solsS,o) -> (
      readSolutionsBertini(dir, "raw_solutions")
      )
 
-end
 
 
 --##########################################################################--
@@ -216,32 +216,34 @@ end
 
 beginDocumentation()
 
-doc ///
-  Key
-    Bertini
-  Headline
-    software for numerical algebraic geometry
-  Description
-    Text
-      Interfaces the functionality of the software {\tt Bertini}
-      to solve polynomial systems and perform calculations in
-      {\em numerical algebraic geometry}.  The software is available at
-      @HREF"http://www.nd.edu/~sommese/bertini/"@.
-      The site currently provides only executable versions named {\tt bertini} or {\tt bertini.exe} (for Cygwin).
-      The user must have the executable program {\tt phc} available,
-      preferably in the executation path.
-
-      Below is a simple example using the most popular function,
-      a basic zero-dimensional solve with no special options.
-    Example
-      R = CC[x,y]
-      F = {x^2-1,y^2-1}
-      solns = bertiniSolve(F)
-///;
+--doc ///
+--  Key
+--    Bertini
+--  Headline
+--    software for numerical algebraic geometry
+--  Description
+--    Text
+--      Interfaces the functionality of the software {\tt Bertini}
+--      to solve polynomial systems and perform calculations in
+--      {\em numerical algebraic geometry}.  The software is available at
+--      @HREF"http://www.nd.edu/~sommese/bertini/"@.
+--      The site currently provides only executable versions named {\tt bertini} or {\tt bertini.exe} (for Cygwin).
+--      The user must have the executable program {\tt phc} available,
+--      preferably in the executation path.
+--
+--      Below is a simple example using the most popular function,
+--      a basic zero-dimensional solve with no special options.
+--    Example
+--      R = CC[x,y]
+--      F = {x^2-1,y^2-1}
+--      solns = bertiniSolve(F)
+--///;
 
 doc ///
   Key 
     bertiniSolve
+    (bertiniSolve,List)
+    (bertiniSolve,List,HashTable)
   Headline
     temporarily a method for doing a zero-dimensional Bertini run, soon to be deprecated
   Usage
@@ -254,8 +256,8 @@ doc ///
       whose entries are the solutions found by Bertini, with junk points removed if system is not square
   Description
     Text
-      For now, this function simply builds a Bertini-style input file from F and calls Bertini on 
-      this input file.  Solutions are currently pulled from machine-readable file finite_solutions
+      For now, this function simply builds a Bertini style input file from F and calls Bertini on 
+      this input file.  Solutions are currently pulled from machine readable file finitesolutions
       and returned as a list.
     Example
       R = CC[x,y]
@@ -265,4 +267,4 @@ doc ///
 
 
 
-
+end

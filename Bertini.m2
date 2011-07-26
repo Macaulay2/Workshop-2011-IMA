@@ -14,7 +14,7 @@ newPackage(
   Headline => "Interface to Bertini",
   Configuration => { 
     "path" => "",
-    "PHCexe"=>"bertini", 
+    "BERTINIexe"=>"bertini", 
     "keep files" => true
   },
   DebuggingMode => false,
@@ -23,16 +23,19 @@ newPackage(
 )
 
 export { 
-  bertiniSolve,
-  sharpenSolutions,
-  trackPaths,
-  gamma,
-  tDegree
+  bertiniSolve
+--  sharpenSolutions,
+--  trackPaths,
+--  gamma,
+--  tDegree
   }
 
 --protect ErrorTolerance, protect addSlackVariables, protect Iterations,
 --protect generalEquations, protect Bits, protect ResidualTolerance, 
 --protect Append
+
+protect StartSystem, protect StartSolutions, protect gamma
+
 
 needsPackage "NAGtypes"
 
@@ -40,9 +43,9 @@ needsPackage "NAGtypes"
 -- GLOBAL VARIABLES 
 --##########################################################################--
 
--- DBG = 0; -- debug level (10=keep temp files)
--- path'PHC = (options PHCpack).Configuration#"path";
--- PHCexe=path'PHC|(options PHCpack).Configuration#"PHCexe"; 
+ DBG = 0; -- debug level (10=keep temp files)
+ path'BERTINI = (options Bertini).Configuration#"path";
+ BERTINIexe=path'BERTINI|(options Bertini).Configuration#"BERTINIexe"; 
 -- this is the executable string we need to make sure that calls to PHCpack actually run:    -- How shall we do this with Bertini ???
 -- NOTE: the absolute path should be put into the init-PHCpack.m2 file 
 
@@ -56,15 +59,24 @@ needsPackage "SimpleDoc"
 -- need to include proper attribution each time Bertini is run...how to do???
 -- (license calls for a line in the output that states which Bertini version was used)
 
-solveBertini = method(TypicalValue => List)
-solveBertini (List,HashTable) := List => (F,o) -> (  -- F is the list of polynomials; o is the hash table of options.
+bertiniSolve = method(TypicalValue => List)
+bertiniSolve (List) := List => (F) -> (  -- F is the list of polynomials; o is the hash table of options.
   	  dir := makeBertiniInput F;  -- creates the input file 
   	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
 	  readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
 	  )
 
--- DAN TO DO:
---   build several user-accessible front ends (bertiniX, with X=ZerodimSolve, PosdimSolve, ComponentSample, ComponentMembershipTest 
+
+bertiniSolve (List,HashTable) := List => (F,o) -> (  -- F is the list of polynomials; o is the hash table of options.
+  bertiniSolve F
+  )
+
+-- DAN PLAN (7/26/11)
+--   build several user-accessible front ends (bertiniX, with X=ZerodimSolve, PosdimSolve, ComponentSample, ComponentMembershipTest, RefineEndpoints, etc.)
+--     (these need to allow many different options)
+--   these front ends funnel into a general input file maker, each sending the appropriate options to set the configs appropriately for the desired run
+--   there is then a very basic call to run Bertini (done by Anton) 
+--   then the output is read into M2 data types (still deciding on those), with each sort of run feeding into a different output file parser, since different sorts of runs yield different output files 
 
 
 
@@ -75,31 +87,35 @@ makeBertiniInput List := o -> T -> (
 --	T = polynomials of target system
 --      o.StartSystem = start system
   v := gens ring T#0; -- variables
-  dir := temporaryFileName(); 
-  makeDirectory dir;
-  f := openOut (dir|"/input"); -- THE name for Bertini's input file 
-  f << "CONFIG" << endl;
+  dir := temporaryFileName(); -- build a directory to store temporary data 
+  makeDirectory dir; 
+  f := openOut (dir|"/input"); -- typical (but not only possible) name for Bertini's input file 
+
+  -- The following block is the config section of the input file 
+  f << "CONFIG" << endl; -- starting the config section of the input file 
   --f << "MPTYPE: 2;" << endl; -- multiprecision
   f << "MPTYPE: 0;" << endl; -- double precision (default?)
   if #o.StartSystem > 0 then
     f << "USERHOMOTOPY: 1;" << endl;
   f << endl << "END;" << endl << endl;
+
+  -- The following block is the input section of the input file
   f << "INPUT" << endl << endl;
-  if #o.StartSystem > 0 then
+  if #o.StartSystem > 0 then  -- if user-defined, declaration type of vars is "variable"
     f << "variable "
-  else f << "variable_group "; -- variable section
-  scan(#v, i->
+  else f << "variable_group "; -- if not user-defined, dec type of vars if "variable_group"
+  scan(#v, i->  -- now we list the variables in a single list  ...  What about an mhom structure???
        if i<#v-1 
        then f << toString v#i << ", "
        else f << toString v#i << ";" << endl
        );
   f << "function "; -- "function" section
-  scan(#T, i->
+  scan(#T, i-> -- here are the functions
        if i<#T-1
        then f << "f" << i << ", "
        else f << "f" << i << ";" << endl << endl
       );
-  bertiniNumbers := p->( L := toString p; 
+  bertiniNumbers := p->( L := toString p; -- Anton: what are these??? 
        L = replace("ii", "I", L); 
        L = replace("e", "E", L);
        L
@@ -139,7 +155,7 @@ cleanupOutput String := s -> (
   )
 
 readSolutionsBertini = method(TypicalValue=>List)
-readSolutionsBertini (String,String) := (dir,f) -> (
+readSolutionsBertini (String,String) := (dir,f) -> (  -- dir=directory holding the output files, f=file name from which to grab solutions
   s := {};
   if f == "finite_solutions" then (
        --print "implementation unstable: Bertini output format uncertain";

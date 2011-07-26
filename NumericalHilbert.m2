@@ -9,7 +9,20 @@ newPackage(
   DebuggingMode => true
 )
 
-export {dualBasis, dualHilbert, Point, DZ, ST, BM, GB1, GB2, deflation, Size, dualSpace}
+export {
+     dualBasis,
+     dualHilbert,
+     Point,
+     DZ,
+     ST,
+     BM,
+     GB1,
+     GB2,
+     DZSmatrix,
+     deflation,
+     Size,
+     dualSpace
+     }
 
 DualSpace = new Type of MutableHashTable
 dualSpace = method()
@@ -70,28 +83,33 @@ dualBasisDZST (Matrix, ZZ) := o -> (igens, d) -> (
      M := new Matrix;
      if o.Strategy == DZ then M = transpose last DZmatrix(igens, d, Point => o.Point)
                          else M = transpose last STmatrix(igens, d, Point => o.Point);
-     dmons := apply(1..d, i->dMonomials(R,i)); --nested list of monomials up to order d
-     if M != 0 then (
-    	  dualGens := transpose rowReduce(transpose findKernel(M, epsilon), epsilon);
-	  --print(numgens source M, numgens target M);
-    	  dualSpace ((matrix {{1_R}}) | ((matrix {new List from flatten dmons})*sub(dualGens,R)))
-  	  )
-     else dualSpace ((matrix {{1_R}}) | (matrix {new List from flatten dmons}))
+     dmons := apply(1..d, i->first entries basis(i,R)); --nested list of monomials up to order d
+     (matrix{{1_R}})|parseKernel(findKernel(M, epsilon), dmons, epsilon)
      );
 
 findKernel = (M, epsilon) -> (
      R := ring M;
+     M = sub(M, coefficientRing R);
      kerGens := new MutableList;
      if precision 1_R < infinity then (
-       	  (svs, U, Vt) := SVD sub(M, coefficientRing R);
-       	  Vt = entries Vt;
-       	  for i to #Vt-1 do
-	       if i > #svs-1 or abs svs#i <= epsilon then kerGens#(#kerGens) = apply(Vt#i, conjugate);
-       	  transpose matrix new List from kerGens
+	  if numgens target M == 0 then id_(source M)
+	  else (
+       	       (svs, U, Vt) := SVD M;
+       	       Vt = entries Vt;
+       	       for i to #Vt-1 do
+	            if i > #svs-1 or abs svs#i <= epsilon then kerGens#(#kerGens) = apply(Vt#i, conjugate);
+       	       transpose matrix new List from kerGens
+	       )
 	  ) else (
-	  gens kernel sub(M, coefficientRing R)
+	  gens kernel M
 	  )
-     )
+     );
+
+parseKernel = (kern, dmons, epsilon) -> (
+     R := ring first flatten dmons;
+     dualGens := transpose rowReduce(transpose kern, epsilon);
+     (matrix {new List from flatten dmons})*sub(dualGens,R)
+     );
 
 --Implementation of algorithm from 1996 paper of Bernard Mourrain.
 dualBasisBM = method(TypicalValue => Matrix, Options => {Point => {}})
@@ -170,7 +188,7 @@ dualBasisBMS (Matrix, ZZ) := o -> (igens, d) -> (
      m := #first entries igens;
      epsilon := .001; --error tolerance for kernel
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     ecart := max apply(first entries igens, g->(first degree g - first degree leadMonomial g)); --max ecart of generators
+     ecart := max apply(first entries igens, g->(gDegree g - lDegree g)); --max ecart of generators
      betas := {}; --previously found generators
      newbetas := {1_R}; --new generators
      npairs := subsets(n,2);
@@ -261,26 +279,57 @@ dualHilbertDZST (Matrix, ZZ) := o -> (igens, d) -> (
      apply(d+1, i->(fs#(i+1) - fs#i))
      );
 
---constructs Sylvester array matrix using DZ algorithm
+--Constructs Sylvester array matrix using DZ algorithm
 --(for use with automatic stopping criterion)
 DZSmatrix = method(TypicalValue => List, Options => {Point => {}})
 DZSmatrix (Matrix) := o -> (igens) -> (
      R := ring igens;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     topds := apply(igens, degree);
+     epsilon := .001; --error tolerance for kernel for inexact fields
+     if precision 1_R == infinity then epsilon = 0;
+     igens = first entries igens;
+     ecart := max apply(igens, g->(gDegree g - lDegree g)); --max ecart of generators
+     topDegs := apply(igens, gDegree);
      M := new MutableHashTable;
      dmons := {};
-     lastd := 0;
+     monGens := {};
+     finalDeg := 2*(max topDegs);
      d := 0;
-     while d < lastd + (max topds) do (
-     	  dmons = dmons|{dMonomials(R,d)};
+     oldBasis := {};
+     while d <= finalDeg do (
+     	  dmons = append(dmons, first entries basis(d,R));
     	  p := {};
 	  for i from 0 to #igens-1 do
-	       if d-topds#i >= 0 then p|apply(dmons#(d-topds#i), m->(m*(igens#i)));
-    	  M#d = (coefficients(p, Monomials => flatten take(dmons,{0,d})))#1;
+	       if d-topDegs#i >= 0 then p = p|apply(flatten take(dmons,{0,d-topDegs#i}), m->(m*(igens#i)));
+	  if #p > 0 then (
+    	       M#d = (coefficients(matrix {p}, Monomials => flatten take(dmons,{0,d})))#1;
+	       ) else (
+	       M#d = map(R^(#flatten take(dmons,{0,d})),R^0,0);
+	       );
+	  --print M#d;
+	  newBasis := first entries parseKernel(findKernel(transpose M#d, epsilon), dmons, epsilon);
+	  newMGs := newMonomialGens(monGens, newBasis, dmons, d);
+	  --print(d, " newMGs: ",newMGs);
+	  if #newMGs > 0 then finalDeg = max(finalDeg,2*d);
+	  monGens = monGens|newMGs;
      	  d = d+1;
+	  oldBasis = newBasis;
 	  );
-     {}
+     (monGens, select(oldBasis,i->(gDegree i < d-ecart)),d-ecart-1)
+     );
+
+newMonomialGens = (oldGens, newBasis, dmons, d) -> (
+     mons := sort(flatten dmons, MonomialOrder=>Descending);
+     newBasis = sort(newBasis/gLeadMonomial, MonomialOrder=>Descending);
+     --print(mons,newBasis);
+     newGens := {};
+     i := 0;
+     for m in mons do (
+	  if i < #newBasis and m == newBasis#i then (i = i+1; continue);
+	  if any(oldGens, g->(isDivisible(m,g#0) and gDegree m - gDegree(g#0) <= d - g#1)) then continue;
+	  newGens = append(newGens, {m,d});
+     	  );
+     newGens
      );
 
 --Dayton-Zeng algorithm to find the matrices corresponding to the dual space
@@ -289,7 +338,7 @@ DZmatrix = method(TypicalValue => List, Options => {Point => {}})
 DZmatrix (Matrix, ZZ) := o -> (igens, d) -> (
      R := ring igens;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     dmons := apply(d+1, i->dMonomials(R,i));
+     dmons := apply(d+1, i->first entries basis(i,R));
      M := k -> ( --# of dual space generators with lead term of deg k or less
     	  p := igens;
     	  for m in flatten take(dmons,{1,k-1}) do p = p|(m*igens);
@@ -304,7 +353,7 @@ STmatrix = method(TypicalValue => List, Options => {Point => {}})
 STmatrix (Matrix, ZZ) := o -> (igens, d) -> (
      R := ring igens;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     dmons := apply(d+1, i->dMonomials(R,i));
+     dmons := apply(d+1, i->first entries basis(i,R));
      Ms := new MutableList;
      M := matrix {{}};
      for i from 1 to d do (
@@ -335,7 +384,7 @@ hilbertB (Matrix, ZZ) := o -> (igens, d) -> (
      R := ring igens;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
      G := (flatten entries gens gb igens) / leadMonomial;
-     #select(dMonomials(R,d), m->(#select(G, g->isDivisible(m,g)) == 0))
+     #select(first entries basis(d,R), m->(#select(G, g->isDivisible(m,g)) == 0))
      );
 
 --takes alternating sum of number of all monomials, number that are a multiple of the lead term of
@@ -385,37 +434,21 @@ deflation (Matrix) := o -> (igens) -> (
   igens = sub(igens,R) | transpose (sub(A,R)*Br*lvec) | transpose (matrix{h}*lvec - 1);
   print transpose igens;
   deflation(igens, Point => p, Size => m)
-)
+);
 
---homog = f -> (
---  R := ring f;
---  S := (coefficientRing R)[t,gens R];
---  homogenize(sub(f,S),t)   
---)
-
-dehomog = f -> (
-  R := ring f;
-  sub(f,R_0=>1)
-)
-
---produces a list of all monomials of degree d in the ring R in lex order
-dMonomials = (R, d) -> (
-  mons := new MutableHashTable;
-  recurm := (m, varIndex, deg) -> (
-    if varIndex == #(gens R)-1 then
-      mons#(#mons) = m*(((gens R)#varIndex)^deg)
-    else for k from 0 to deg do
-      recurm(m*(((gens R)#varIndex)^k), varIndex+1, deg-k);
-    true
-  );
-  recurm(1_R, 0, d);
-  reverse values mons
-)
-
+--returns if lead term of a is divisible by lead term of b
 isDivisible = (a, b) -> (
   dif := (listForm a)#0#0 - (listForm b)#0#0;
-  #select(dif, i->(i < 0)) == 0
-)
+  all(dif, i->(i >= 0))
+);
+
+--lead monomial and lead term degree according to ordering associated with
+--the ring (local) and reverse ordering (global)
+lLeadMonomial = f -> leadMonomial first terms f;
+gLeadMonomial = f -> leadMonomial last terms f;
+
+lDegree = f -> first degree lLeadMonomial f;
+gDegree = f -> first degree gLeadMonomial f;
 
 --performs Gaussian reduction on M but starting from the bottom right
 rowReduce = (M,epsilon) -> (
@@ -438,12 +471,12 @@ rowReduce = (M,epsilon) -> (
     --print new Matrix from M;
   );
   M = new Matrix from M
-)
+);
 
 --generates a vector of specified length of random complex numbers with unit modulus
 randomVector = (dimension) -> (
   apply(dimension, i -> exp((random 2.*pi)*ii))
-)
+);
 
 --build a matrix from a nested list of matrices of uniform size
 blockMatrix = (blist) -> (
@@ -460,13 +493,13 @@ blockMatrix = (blist) -> (
     M = M || N;
   );
   M
-)
+);
 
 --evaluation of a dual element v on a polynomial w
 innerProduct = (v,w) -> (
   c := entries (coefficients matrix{{v,w}})#1;
   sum(#c,i->(c#i#0)*(c#i#1))
-)
+);
 
 newtonsMethod = (eqns, p, n) -> (
   elist := (entries eqns)#0;
@@ -477,7 +510,7 @@ newtonsMethod = (eqns, p, n) -> (
       grad := sub(A#j, p);
     );
   );
-)
+);
 
 beginDocumentation()
 document { 
@@ -544,3 +577,12 @@ M = matrix {{x*y+z, y*z+x, x^2-z^2}}
 M = matrix {{z*y-x^2, y^2}}
 dualBasis(M,5)
 dualHilbert(M,4)
+
+loadPackage "NumericalHilbert"
+loadPackage ("NumericalHilbert", Reload => true)
+R = RR[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
+R = QQ[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
+R = (ZZ/101)[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
+M = matrix {{x^2-x*y^2,x^3}}
+DZSmatrix(M)
+

@@ -343,22 +343,21 @@ basisList G
 ///
 
 
-makeCauchy=method()
+makeCauchy = method()
 makeCauchy(ZZ,Module) := (b,E)->(
      	  --E is thought of as E0 ** ... ** Em
 	  --produces the map
 	  --wedge^b(E) -> wedge^b(E0) ** Sym^b E1 ** Sym^b E2 ** ...
-     
-     sour = makeExteriorPower(E,b);
-     L = underlyingModules E;
-     L10 = {makeExteriorPower(L_0,b)};
-     L11 = apply(#L-1, j-> makeSymmetricPower(L_(j+1), b));
-     L1 = L10 | L11;
-     tar  = makeTensorProduct L1;
-     M = mutableMatrix(ring E, rank tar, rank sour);
+     sour := makeExteriorPower(E,b);
+     L := underlyingModules E;
+     L10 := {makeExteriorPower(L_0,b)};
+     L11 := apply(#L-1, j-> makeSymmetricPower(L_(j+1), b));
+     L1 := L10 | L11;
+     tar := makeTensorProduct L1;
+     M := mutableMatrix(ring E, rank tar, rank sour);
+     j := {};
      scan(basisList sour, i->(
 	       j = transpose i;
-	       print(i,j);
 	       if j_0 == unique j_0 then(
 		    j = apply(j, ji->sort ji);
 	       	    M_((toOrdinal tar) j, (toOrdinal sour) i) = 1;
@@ -376,13 +375,83 @@ S = kk[a,b,c]
 F2 = S^2
 F3 = S^3
 F5 = S^5
-F = makeTensorProduct{F2,F3} --{F2,F3,F5}
+F = makeTensorProduct{F2,F3,F5} --{F2,F3}
 FF = makeTensorProduct{F2,S^1}
 makeCauchy(1,FF)
 makeCauchy(2,F)
 rank oo
-bL sour
 ///
+
+---  L is the ranks of A, B_1, and up to B_n
+---  S=Sym(A**B_1**..**B_n)
+---  this is the map (A*)**S(-1)-->(B_1**B_2**..**B_n)**S obtained 
+---  by flattening the generic tensor
+---  I don't know when we want to define the ring S (before the code or in the code).
+flattenedGenericTensor = (L,kk)->(
+     --make ring of generic tensor
+     inds := productList(apply(#L,i->(toList(0..((L#i)-1)))));
+     vrbls := apply(inds,i->( x_(toSequence(i))));
+     S := kk[vrbls];
+     --make generic tensor (flattened)
+     apply(#L,i->( B_i=makeExplicitFreeModule(S^(L_i))));
+     --Btotal = tensor product of all but B0
+     Btotal := makeTensorProduct(apply(#L-1,i->(B_(i+1))));     
+     PHI := map(Btotal,B_0,(i,j)->(
+	       x_(toSequence( {(fromOrdinal B_0)(j)}|(fromOrdinal Btotal)(i)))
+	       ));
+     return {PHI,S}
+     );
+makeMinorsMap = method()
+makeMinorsMap(Matrix, ZZ):=(f,b)->(
+     E1 := source(f);
+     E2 := target(f);
+     F2 := makeTensorProduct(
+	  makeExteriorPower(E1,b),
+	  makeExteriorPower(E2,b)
+	                     );
+     J := basisList F2;
+     matrix{apply(rank F2,i->(
+	    cols := apply((J#i)#0,l->( (toOrdinal E1)(l)));
+	    rows := apply((J#i)#1,k->( (toOrdinal E2)(k)));   
+	    determinant(submatrix(f,rows,cols)) 
+	       ))}
+     );
+makeMinorsMap(Matrix, Module):=(f,E)->(
+     --Assumes that E has the form 
+     --E = wedge^b((source f)^*) ** wedge^b(target f)
+     --where source f and target f are explicit free modules.
+     S := ring f;
+     b := #((basisList E)_0_0);
+     if b != #((basisList E)_0_1) or #((basisList E)_0) !=2
+               then error "E doesn't have the right format";
+     J := basisList E;
+     sour := (underlyingModules((underlyingModules E)_0))_0;
+     tar := (underlyingModules((underlyingModules E)_1))_0;
+     map(S^1, E, (i,j)->(p := J_j;
+	   determinant submatrix(
+		f,p_1/(toOrdinal tar),p_0/(toOrdinal sour)
+		                )
+	   	     	 )
+        )
+      )
+
+///
+restart
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
+kk=ZZ/101
+f=(flattenedGenericTensor({7,2,2},kk))#0
+E = makeTensorProduct(
+     makeExteriorPower(source f, 2), 
+     makeExteriorPower(target f, 2))
+g = makeMinorsMap(f,2)
+g1 = makeMinorsMap(f,E)
+0 == g-matrix(g1)
+matrix(g)==matrix(g1)
+///
+
+
+
 
 {*
 DtoTensor = method()

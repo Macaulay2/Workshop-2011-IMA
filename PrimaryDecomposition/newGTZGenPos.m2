@@ -10,11 +10,11 @@ getCoordChange(Ring,List) := (R,us) ->
 (
    randTerms := terms random(1,R);
    okVars := toList(set gens R - set us);
-   lastVar := last okVars;
-   myTerms := select(randTerms, i -> isSubset(support i, okVars));
-   linForm := sum myTerms;
-   coordChange := map(R, R, {lastVar => linForm});
-   coordChangeInverse := invertLinearRingMap(coordChange);
+   lastVar := first okVars;
+   myTerms := select(randTerms, i -> isSubset(support i, okVars) and support i != {lastVar});
+   coordChange := map(R, R, {lastVar => lastVar + sum myTerms});
+   --coordChangeInverse := invertLinearRingMap(coordChange);
+   coordChangeInverse := map(R,R,{lastVar => lastVar - sum myTerms});
    (coordChange,coordChangeInverse,lastVar)
 )
 TEST ///
@@ -22,7 +22,7 @@ restart
 load "newGTZ.m2"
 debug newGTZ
 R = ZZ/32003[a,b,c,x]
-(phi,phiInverse) = getCoordChange(R,{x})
+(phi,phiInverse,lastVar) = getCoordChange(R,{x})
 phi*phiInverse
 phiInverse*phi
 ///
@@ -242,8 +242,10 @@ TEST ///
 restart
 load "newGTZ.m2"
 debug newGTZ
-R = ZZ/32003[a,b,c,d,e,f,g,h,i]
-I = ideal(i,h,g,f,c,b*d+a*e)
+R = ZZ/32003[a,b,c,d,e,f,g,h,i, MonomialOrder=>Lex]
+I = ideal(i,h,g,e+d,c,b*d+a*e)
+I = ideal gens gb I
+support first independentSets I
 isPrimaryZeroDim(I)
 ///
 
@@ -253,6 +255,7 @@ load "newGTZ.m2"
 debug newGTZ
 R = ZZ/32003[a,b,c,d,e,h]
 idealList = {ideal(e-h,d-h,c-h,a+b+3*h,b^2+3*b*h+h^2),ideal(e-h,c+d+3*h,b-h,a-h,d^2+3*d*h+h^2),ideal(e-h,d-h,b+c+3*h,a-h,c^2+3*c*h+h^2),ideal(e-h,a+b+c+d+h,d^2-c*h,c*d-b*h,b*d+b*h+c*h+d*h+h^2,c^2+b*h+c*h+d*h+h^2,b*c-h^2,b^2-d*h)}
+isPrimaryZeroDim first idealList
 idealList / (I -> time isPrimaryZeroDim I)
 
 restart
@@ -275,7 +278,7 @@ ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 -- Output: Constructs the g_i from proposition 5.5 in GTZ.
 getVariablePowerGenerators=method()
 getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
-   independentVars := (set gens ring first G) - set fiberVars;
+   independentVars := toList (set gens ring first G) - set fiberVars;
    apply(#fiberVars, i -> first select( G, g -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
 )
 
@@ -292,7 +295,7 @@ isPrimaryZeroDim(Ideal) := (I) ->
    R := ring I;
    independentVars := support first independentSets I;
    (phi,phiInverse,lastVar) := getCoordChange(ring I,independentVars);
-   fiberVars := toList (set gens R - set independentVars);
+   fiberVars := reverse sort toList (set gens R - set independentVars);
    
    RLex := newRing(R, MonomialOrder => Lex);
    psi := map(RLex,R);
@@ -300,18 +303,21 @@ isPrimaryZeroDim(Ideal) := (I) ->
    fiberVars = fiberVars / psi;
    
    G := flatten entries gens gb J;
-   --error "debug";
+   error "debug";
    gs := getVariablePowerGenerators(G,fiberVars);
    areLinearPowers(G,gs,fiberVars)
 )
 
 -- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
+-- check 
 areLinearPowers = method()
 areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
 --   all apply(take(gs,#gs-1),1..(#gs-1),(g,i) -> isLinearPower(G,g,i,fiberVars)))
   R := ring first G;
   independentVars := toList (set gens R - set fiberVars);
+  
+  -- need to pass to the fraction field first, since the polynomial may not be monic yet.
   linearFactorList := {last gs} | apply(reverse toList (1..(#fiberVars - 1)), i -> (   gi := gs#i;
 	                                                                               xi := fiberVars#i;
   						       			   	       linearFactor := first apply(toList factor gi, toList);
@@ -322,7 +328,8 @@ areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
   						       			   	       gs = gs / phi;
      	       	    	      	   	     	       			   	       linearFactor));
   linearFactorList = reverse linearFactorList;
-    
+  -- if we make it through the apply without an error, then all the factors are linear.
+  return true;
 )
 
 --R = QQ[x,y]

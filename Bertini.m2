@@ -18,7 +18,6 @@ newPackage(
     "keep files" => true
   },
   DebuggingMode => false,
-  AuxiliaryFiles => true,
   CacheExampleOutput => true
 )
 
@@ -239,6 +238,31 @@ doc ///
       F = {x^2-1,y^2-1}
       solns = bertiniSolve(F)
 ///;
+
+doc ///
+  Key 
+    bertiniSolve
+  Headline
+    temporarily a method for doing a zero-dimensional Bertini run, soon to be deprecated
+  Usage
+    S = bertiniSolve F
+  Inputs
+    F:List
+      whose entries are polynomials (system need not be square) 
+  Outputs
+    S:List
+      whose entries are the solutions found by Bertini, with junk points removed if system is not square
+  Description
+    Text
+      For now, this function simply builds a Bertini-style input file from F and calls Bertini on 
+      this input file.  Solutions are currently pulled from machine-readable file finite_solutions
+      and returned as a list.
+    Example
+      R = CC[x,y]
+      F = {x^2-1,y^2-1}
+      S = bertiniSolve F
+///;
+
 
 
 

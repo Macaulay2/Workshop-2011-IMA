@@ -148,3 +148,5 @@ rho_v = transpose matrix {vv_1-vv_0} -- defining eqn of the ray (not rho from th
 T = (Guu_1||Gvv_1)*(rho_u|rho_v)
 rows = toList select(0..<numRows T, i -> all(0..<numColumns T, j -> T_(i,j) > 0))
 unique apply(rows, i -> flatten entries (Guu_1||Gvv_1)^{i})
+
+-- intersect(Ideal,Ideal,Ideal) etc

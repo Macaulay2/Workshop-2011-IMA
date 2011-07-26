@@ -25,6 +25,7 @@ R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
 
 not yet done:
 
+**change to function(ZZ, module) 
 **map of wedge^d A ** wedge^d (B1 \otimes B2 ...) to R
 **map of wedge^d A ** \otimes_j Sym^d Bj to wedge^d(A** \otimes_j Bj). (done for just one j)
 
@@ -185,7 +186,7 @@ productList(List):= L->(
      --takes a list of lists, and forms  list of  tuples of elements, in order
      --{0,0}, {0,1}, ... (that is, lexicographically).
      Pp := if #L == 0 then {}
-     else if #L == 1 then L#0
+     else if #L == 1 then apply(L#0, i->{i})
      else if #L == 2 then flatten (apply(L_0,i->apply(L_1, j->{i,j})))
      else (
 	  P0 := productList drop (L, -1);
@@ -205,6 +206,7 @@ L1 = {toList(0..1)}
 productList L1
 L2 = {toList(0..1),toList(0..2)}
 productList L2
+bL makeTensorProduct{QQ^2}
 
 L3 = {toList(0..1),toList(0..2),toList(0..2)}
 P = productList L3
@@ -256,6 +258,10 @@ uM oo
 basisList E
 (toOrdinal E) {0,2,3}
 (fromOrdinal E) 5
+
+E = makeTensorProduct(S^2,S^1)
+basisList E
+(toOrdinal E){0,0}
 ///
 
 makeTrace = method()
@@ -311,6 +317,11 @@ S = kk[a,b,c]
 makeSymmetricMultiplication(S^2, 1,1)
 makeSymmetricMultiplication(S^2, 2,1)
 d = 2;e=1;
+E=S^2
+F=makeTensorProduct{E,E}
+bL F
+bL makeSymmetricPower(E,2)
+
 ///
 
 ///
@@ -329,6 +340,48 @@ G = makeTensorProduct{makeTensorProduct{F2,F3},F5}
 basisList F
 basisList F1
 basisList G
+///
+
+
+makeCauchy=method()
+makeCauchy(ZZ,Module) := (b,E)->(
+     	  --E is thought of as E0 ** ... ** Em
+	  --produces the map
+	  --wedge^b(E) -> wedge^b(E0) ** Sym^b E1 ** Sym^b E2 ** ...
+     
+     sour = makeExteriorPower(E,b);
+     L = underlyingModules E;
+     L10 = {makeExteriorPower(L_0,b)};
+     L11 = apply(#L-1, j-> makeSymmetricPower(L_(j+1), b));
+     L1 = L10 | L11;
+     tar  = makeTensorProduct L1;
+     M = mutableMatrix(ring E, rank tar, rank sour);
+     scan(basisList sour, i->(
+	       j = transpose i;
+	       print(i,j);
+	       if j_0 == unique j_0 then(
+		    j = apply(j, ji->sort ji);
+	       	    M_((toOrdinal tar) j, (toOrdinal sour) i) = 1;
+		    )
+	       ));
+     map(tar, sour, matrix M)
+     )
+
+///
+restart
+path = append(path, "~/src/IMA-2011/TensorComplexes/")
+load "TensorComplexes.m2"
+kk = ZZ/101
+S = kk[a,b,c]
+F2 = S^2
+F3 = S^3
+F5 = S^5
+F = makeTensorProduct{F2,F3} --{F2,F3,F5}
+FF = makeTensorProduct{F2,S^1}
+makeCauchy(1,FF)
+makeCauchy(2,F)
+rank oo
+bL sour
 ///
 
 {*

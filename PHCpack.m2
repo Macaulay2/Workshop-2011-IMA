@@ -2,7 +2,7 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.02", 
+  Version => "1.03", 
   Date => "26 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
@@ -118,8 +118,9 @@ startSystemFromFile (String) := (name) -> (
     while not stop do (
       if #L_j != 0 then (
         -- we have to bite off the first "+" sign of the term
-        term = value substring(1,#L_j-1,L_j); p = p + term;
-        if (L_j_(#L_j-1) == ";") then (
+        if (L_j_(#L_j-1) != ";") then (
+           term = value substring(1,#L_j-1,L_j); p = p + term;
+        ) else ( -- in this case (L_j_(#L_j-1) == ";") holds
           term = value substring(1,#L_j-2,L_j); p = p + term;
           stop = true; result = result | {p}
         );
@@ -552,12 +553,12 @@ refineSolutions (List,List,ZZ) := (f,sols,dp) -> (
   PHCbatchFile := temporaryFileName() | "PHCbatch";
   PHCsessionFile := temporaryFileName() | "PHCsession";
   PHCsolutions := temporaryFileName() | "PHCsolutions";
-  -- stdio << "writing input system to " << PHCinputFile << endl;
+  stdio << "writing input system to " << PHCinputFile << endl;
   systemToFile(f,PHCinputFile);
-  -- stdio << "appending solutions to " << PHCinputFile << endl;
+  stdio << "appending solutions to " << PHCinputFile << endl;
   R := ring first f;
   solutionsToFile(sols,R,PHCinputFile,Append=>true);
-  -- stdio << "preparing input data for phc -v in " << PHCbatchFile << endl;
+  stdio << "preparing input data for phc -v in " << PHCbatchFile << endl;
   s := concatenate("3\n",PHCinputFile);
   s = concatenate(s,"\n");
   s = concatenate(s,PHCoutputFile);
@@ -576,11 +577,12 @@ refineSolutions (List,List,ZZ) := (f,sols,dp) -> (
   close bat;
   -- stdio << "running phc -v, writing output to " << PHCsessionFile << endl;
   run(PHCexe|" -v < " | PHCbatchFile | " > " | PHCsessionFile);
-  stdio << "using temporary file " << PHCoutputFile << " for storing refined solutions " << endl;
-  -- stdio << "running phc -z on " << PHCoutputFile << endl;
-  -- stdio << "solutions in Maple format in " << PHCsolutions << endl;
+  stdio << "using temporary file " << PHCoutputFile;
+  stdio << " for storing refined solutions " << endl;
+  stdio << "running phc -z on " << PHCoutputFile << endl;
+  stdio << "solutions in Maple format in " << PHCsolutions << endl;
   run(PHCexe|" -z " | PHCoutputFile | " " | PHCsolutions);
-  -- stdio << "parsing file " << PHCsolutions << " for solutions" << endl;
+  stdio << "parsing file " << PHCsolutions << " for solutions" << endl;
   b := ceiling(log_2(10^dp));
   result := parseSolutions(PHCsolutions,R,Bits=>b);
   result

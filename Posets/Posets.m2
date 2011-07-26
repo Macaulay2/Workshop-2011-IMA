@@ -57,7 +57,11 @@ export {
 	openInterval,
 	moebiusFunction,
 	isAntichain,
-	meetIrreducibles
+	meetIrreducibles,
+	texPoset,
+	outputTexPoset,
+	displayPoset,
+	SuppressLabels
        }
 
 needsPackage "SimplicialComplexes"
@@ -192,6 +196,7 @@ transitiveClosure(List,List) := (I,C) -> (
 
 -- input:  A poset, and two elements A and B from I
 -- output: true if A<= B, false else
+
 compare = method()
 compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
     Aindex:=indexElement(P,A);
@@ -666,6 +671,104 @@ moebiusFunction Poset := HashTable => P -> (
 
 moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) ->(
      moebiusFunction (closedInterval(P,elt1,elt2)))
+
+-----------------------------------
+--Posets
+-----------------------------------
+
+cleanName=(name)->(
+     namep:=replace("\\}","",replace("\\{","",toString name));
+     nameb:=replace("\\(","",replace("\\)","",namep));
+     replace("\\_","",replace("\\*","",nameb))
+     )
+
+texPoset = method(Options => {symbol SuppressLabels => true});
+
+texPoset(Poset):= opts -> (P)->(
+     C:=maximalChains P;
+     edgelist:=apply(coveringRelations P, r-> concatenate(cleanName first r,"/",cleanName last r));
+     L:=max apply(C, c-> #c)-1;
+     heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+     protoH:=partition(g-> last g, heightpairs);
+     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+     levelsets:=apply(values H, v-> #v-1);
+     halflevelsets:=apply(levelsets, j-> j/2.0);
+     spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
+     name:=temporaryFileName();
+     fn:=openOut name;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
+     if opts.SuppressLabels then (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+	  )
+     else (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+     	  );
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
+     fn << "\\draw [-] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     close fn;
+     s:=get name;
+     removeFile name;
+     s
+     )
+
+outputTexPoset = method(Options => {symbol SuppressLabels => true});
+
+outputTexPoset(Poset,String):= opts -> (P,name)->(
+     C:=maximalChains P;
+     edgelist:=apply(coveringRelations P, r-> concatenate(cleanName first r,"/",cleanName last r));
+     L:=max apply(C, c-> #c)-1;
+     heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+     protoH:=partition(g-> last g, heightpairs);
+     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+     levelsets:=apply(values H, v-> #v-1);
+     halflevelsets:=apply(levelsets, j-> j/2.0);
+     spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
+     fn:=openOut name;
+     fn << "\\documentclass[8pt]{article}"<< endl;
+     fn << "\\usepackage{tikz}" << endl;
+     fn << "\\begin{document}" << endl;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1.5, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
+     if opts.SuppressLabels then (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+	  )
+     else (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+     	  );
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
+     fn << "\\draw [-] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     fn << "\\end{document}" << endl;
+     close fn;
+     get name   
+     )
+
+displayPoset=method(Options => { symbol SuppressLabels => true })
+
+displayPoset(Poset):=opts->(P)->(
+     name:=temporaryFileName();
+     outputTexPoset(P,concatenate(name,".tex"),opts);
+     run concatenate("pdflatex ",name);
+     run concatenate("open ", replace("/tmp/","",name),".pdf");
+     )
 
 -----------------------------------
 --Boolean Lattices

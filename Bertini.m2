@@ -211,3 +211,34 @@ trackBertini (List,List,List,HashTable) := List => (S,T,solsS,o) -> (
 end
 
 
+--##########################################################################--
+-- DOCUMENTATION
+--##########################################################################--
+
+beginDocumentation()
+
+doc ///
+  Key
+    Bertini
+  Headline
+    software for numerical algebraic geometry
+  Description
+    Text
+      Interfaces the functionality of the software {\tt Bertini}
+      to solve polynomial systems and perform calculations in
+      {\em numerical algebraic geometry}.  The software is available at
+      @HREF"http://www.nd.edu/~sommese/bertini/"@.
+      The site currently provides only executable versions named {\tt bertini} or {\tt bertini.exe} (for Cygwin).
+      The user must have the executable program {\tt phc} available,
+      preferably in the executation path.
+
+      Below is a simple example using the most popular function,
+      a basic zero-dimensional solve with no special options.
+    Example
+      R = CC[x,y]
+      F = {x^2-1,y^2-1}
+      solns = bertiniSolve(F)
+///;
+
+
+

@@ -589,7 +589,24 @@ phcEmbed (List,ZZ) := (system,dimension) -> (
   --     dimension, expected dimension of the solution set.
   -- OUT : system with as many random hyperplanes at the end
   --       as the value of dimension.
-   stdio << "calling phc -c " << endl;
+  PHCinputFile := temporaryFileName() | "PHCinput";
+  PHCoutputFile := temporaryFileName() | "PHCoutput";
+  PHCbatchFile := temporaryFileName() | "PHCbatch";
+  PHCsessionFile := temporaryFileName() | "PHCsession";
+  stdio << "writing output to file " << PHCoutputFile << endl;
+  systemToFile(system,PHCinputFile);
+  s := concatenate("1\ny\n",PHCinputFile);
+  s = concatenate(s,"\n",PHCoutputFile);
+  s = concatenate(s,"\n");
+  s = concatenate(s,toString(dimension));
+  s = concatenate(s,"\nn\n");
+  bat := openOut PHCbatchFile;
+  bat << s;
+  close bat;
+  stdio << "calling phc -c < " << PHCbatchFile;
+  stdio << " > " << PHCsessionFile << endl;
+  run(PHCexe|" -c < " | PHCbatchFile | " > " | PHCsessionFile);
+  stdio << "output of phc -c is in file " << PHCoutputFile << endl;
 )
 
 -----------------------------------------------

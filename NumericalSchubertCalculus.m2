@@ -1,19 +1,19 @@
 newPackage(
         "NumericalSchubertCalculus",
-        Version => "0.1", 
+        Version => "0.2", 
         Date => "October 29, 2009",
         Authors => {{Name => "Anton Leykin", 
-                  Email => "", 
-                  HomePage => ""},
+                  Email => "leykin@math.gatech.edu", 
+                  HomePage => "http://people.math.gatech.edu/~aleykin3"},
 	          {Name => "Abraham Martin del Campo", 
                   Email => "asanchez@math.tamu.edu", 
-                  HomePage => "www.math.tamu.edu/~asanchez/"}},
+                  HomePage => "www.math.tamu.edu/~asanchez"}},
         Headline => "a Macaulay2 package for using numerical methods in Schubert Calculus",
         DebuggingMode => true
         )
 
 export {   
-     	 StartSolutions,
+   StartSolutions,
 	 skewSchubertVariety,
  	 createRandomFlagsForSimpleSchubert,
 	 solveSimpleSchubert,
@@ -21,7 +21,7 @@ export {
 	 findGaloisElement,
 	 isFullSymmetric,
 	 isGaloisFullSymmetric,
-         Memoize
+   Memoize
    }
 
 -------------------------

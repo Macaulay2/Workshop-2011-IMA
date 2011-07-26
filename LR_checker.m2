@@ -1,15 +1,15 @@
 -- Abraham Martin del Campo
 -- 25/July/2011
--- ##################
+-- ---------------------
 -- This is a file where I implement Ravi's LR-decomposition
--- ##################
+-- ---------------------
 
 -- Given two partitions, we compute the red checker and black checker position
 --
 -- input: two partitions, the grassmannian
 
 restart;
----------------------
+-- ---------------------
 --	verifyLength	--
 --								--
 -- makes sure a partition l
@@ -111,7 +111,7 @@ moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
 	       redpos#(blackup#0)=blackdown#1;
 	  ) else if g == 1 then(
 	       block := 0;
-	       blokindx = for i to critdiag-critrow list critrow-1-i;
+	       blokindx = for i to critdiag-critrow-1 list critrow-1-i;
 	       apply(blokindx, b -> if redpos#critrow < redpos#blokindx and redpos#blockindx < redpos#critdiag then block = 1);
 	       if block != 1 then (
 		    -- switch the rows of the red checkers in the critical diagonal and row
@@ -132,4 +132,7 @@ moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
      {redpos, split}
 )
 -- TEST THE FUNCTION HERE!!
-moveRed({1,5},{0,0},{99, 5, 99, 4, 99, 1},6)
+moveRed({0,3},{3,2},{3,99,99,5,99,1},6) -- this should move the red
+moveRed({2,5},{3,4},{2,99,99,5,99,1},6) -- this shouldn't move the red
+moveRed({0, 2}, {4, 1}, {2, 99, 99, 5, 99, 1},6) --this one should move the red!!
+moveRed({1, 3}, {4, 2}, {1, 99, 99, 5, 99, 2},6) -- and this error is even worse!

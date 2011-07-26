@@ -128,7 +128,7 @@ intmat2monomIdeal ( Matrix, Ring, ZZ, ZZ ) := (M,R,d,c) -> (
 -- 
 
 monomialValuationIdeal = (R,mm,val) -> (
-     M := (matrix{mm}|matrix{{-val}})|| id_(ZZ^(#mm+1));
+     M := (matrix{mm}|matrix{{-val}}) || id_(ZZ^(#mm+1));
      normalizOutput := normaliz(M,4);
      M2 := normalizOutput#"gen";
      intmat2monomIdeal(M2,R,1)

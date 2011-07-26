@@ -650,9 +650,16 @@ phcEmbed (List,ZZ) := (system,dimension) -> (
   run(PHCexe|" -c < " | PHCbatchFile | " > " | PHCsessionFile);
   stdio << "output of phc -c is in file " << PHCoutputFile << endl;
   -- extending the ring with slack variables zz1, zz2, .. , zzdimension
-  slackvars := apply(dimension, i->getSymbol("zz"|toString (i+1)));
+  slackvars := apply(dimension, i->getSymbol("zz"|toString(i+1)));
   R := ring ideal system;
-  RwithSlack := (coefficientRing R)[gens R, slackvars];
+  -- surplus variables are used when the initial system is overconstrained
+  nv := numgens R; nq := #system; nbss := nq - nv;
+  if (nbss > 0) then (
+    surplusvars := apply(nbss, i->getSymbol("ss"|toString(i+1)));
+    RwithSlack := (coefficientRing R)[gens R, surplusvars, slackvars];
+  ) else (
+    RwithSlack := (coefficientRing R)[gens R, slackvars];
+  );
   use RwithSlack;
   return systemFromFile(PHCoutputFile);
 )

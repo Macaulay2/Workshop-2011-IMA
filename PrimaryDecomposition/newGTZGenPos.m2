@@ -270,107 +270,54 @@ I = ideal apply(1 .. 3, i -> random(3,R))
 ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 ///
 
+
+-- Input : Lex GB of an ideal of k(independentVars)[fiberVars]
+-- Output: Constructs the g_i from proposition 5.5 in GTZ.
+getVariablePowerGenerators=method()
+getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
+   independentVars := (set gens ring first G) - set fiberVars;
+   apply(#fiberVars, i -> first select(v, G -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
+)
+
+--R = QQ[a..g]
+--v = {a*b*c*e^4} | flatten entries gens (ideal {d,e,f})^5
+--fiberVars = {d,e,f}
+--independentVars = {a,b,c,g}
+--apply(#fiberVars, i -> first select(v, g -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
+
+-- This function should be called only on ideals before a change of coordinates have been applied.
 isPrimaryZeroDim = method()
 isPrimaryZeroDim(Ideal) := (I) ->
 (
    R := ring I;
-   variables := support first independentSets I;
-   (phi,phiInverse,myVar) := getCoordChange(ring I,variables);
-   fiberVars := toList (set gens R - set variables);
+   independentVars := support first independentSets I;
+   (phi,phiInverse,lastVar) := getCoordChange(ring I,independentVars);
+   fiberVars := toList (set gens R - set independentVars);
    
-   -- trying to do lex product order here to simulate the fraction field.
-   --newR := (coefficientRing R) monoid([fiberVars,variables, MonomialOrder=>{Lex=>#fiberVars,Lex=>#variables}]);
-   
-   newR := newRing(R, MonomialOrder => Lex);
-   psi := map(newR,R);
+   RLex := newRing(R, MonomialOrder => Lex);
+   psi := map(RLex,R);
    J := psi(phi(I));
    fiberVars = fiberVars / psi;
    
-   S := flatten entries gens gb J;
-   --fiberVars = toList (set gens ring J - set (variables / psi));
+   G := flatten entries gens gb J;
    --error "debug";
-   (areLinearPowers(S,fiberVars),0)
+   gs := getVariablePowerGenerators(G,fiberVars);
+   areLinearPowers(G,gs,fiberVars)
 )
 
--- need to rewrite areLinearPowers.
-
+-- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
 areLinearPowers = method()
-areLinearPowers(List,List) := (S, fiberVars) ->
+areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
-   R := ring first S;
-   baseVars := toList (set gens R - set fiberVars);
-   -- first h should have only a single non-base-variable in its support (and should also be irreducible)
-   -- we should pick the element that can be written as the highest degree irreducible.
-   potentialHs := select(S, s -> #(set support s - set baseVars) == 1);
-   firstHPos := maxPosition(potentialHs / irredPower);
-   firstHPos = position(S, s -> s == potentialHs#firstHPos);
-   firstH := first first apply(toList factor S#firstHPos, toList);
-   --error "debug";
-
-   phi := invertVariables(baseVars,fiberVars,R,MonomialOrder => Lex);
-   newS := S / phi;
-   hs := {};
-
-   fiberVars = fiberVars / phi;
-   
-   if (firstHPos =!= null) then 
-   (
-      hs = {phi(firstH)};
-      varPos := position(fiberVars, x -> (x === first support first hs));
-      fiberVars = drop(fiberVars, {varPos,varPos});
-      newS = drop(newS,{firstHPos,firstHPos});
-      i := 0;
-      loopVar := true;
-      while (fiberVars =!= {} and loopVar) do
-      (
-         local newHInfo;
-	 findNewH := position(newS, s -> (newHInfo = isLinearPower(s,fiberVars#i,hs); newHInfo#0));
-	 if (findNewH === null) then i = i + 1
-         else
-         (
-            hs = append(hs, newHInfo#1);
-            newS = drop(newS,{findNewH,findNewH});
-	    fiberVars = drop(fiberVars, {i,i});
-	    i = 0;
-         );
-         if (i == #fiberVars and i > 0) then loopVar = false;
-      );
-   );
-   loopVar
+   all apply(gs,1..#gs,(g,i) -> isLinearPower(G,g,i,fiberVars)))
 )
 
+-- Input : Lex GB of an ideal I, 
 isLinearPower = method()
-isLinearPower(RingElement,RingElement,List) := (s,xi,hs) ->
-(
-   R := ring s;
-   usedVars := flatten (hs / support);
-   n := degree(xi, s);
-   newR := R/(substitute(ideal hs,R));
-   myMap := map(R, newR);
-   myMap2 := map(newR, R);
-   usedVars = usedVars / myMap2;
-   news := myMap2 s;
-   xi = myMap2 xi;
-   retVal := (false,0_R);
-   sCoeff := coefficients news;
-   coeffIndex := position((flatten entries first sCoeff) / support, xs -> xs === {xi});
-   if (n > 0 and coeffIndex =!= null) then
-   (
-      --- make s monic in the xi variable
-      news = news // ((flatten entries last sCoeff)#coeffIndex);
-      -- is linear power?
-      firstTerm := sum select(terms news, f -> degree(xi,f) == n);
-      secondTerm := sum select(terms news, f -> degree(xi,f) == n-1);
-      if (secondTerm != 0_(ring s)) then 
-      (
-         insideTerm := secondTerm // (n*xi^(n-1));
-	 newH := xi + insideTerm;
-         testElt := newH^n;
-	 if (isSubset(support insideTerm, usedVars) and testElt == news) then retVal = (true,myMap newH);
-      )
-      else if (firstTerm == news) then retVal = (true,myMap xi);
-   );
-   retVal
+isLinearPower(List,RingElement,ZZ,List) := (G,g,i,fiberVars) -> (
+  R := ring first G;
+  independentVars := toList (set gens R - set fiberVars);
+  elimI :
 )
 
 irredPower = method()

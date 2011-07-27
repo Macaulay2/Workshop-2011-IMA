@@ -5,7 +5,7 @@ needsPackage "Graphs"
 newPackage(
      "GraphicalModels",
      Version => "0.1.1",
-     Date => "July 26, 2011",
+     Date => "July 27, 2011",
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
@@ -13,7 +13,7 @@ newPackage(
 	  {Name => "Mike Stillman",
 	   Email => "mike@math.cornell.edu",
 	   HomePage => "http://www.math.cornell.edu/~mike/"},
-          {Name=> "contributing authors: Seth, Sonja, David", 
+          {Name=> "contributing authors: Seth, Sonja, David -- during IMA-2011 workshop", 
 	   Email=> "",
 	   HomePage=>""}
 	  },

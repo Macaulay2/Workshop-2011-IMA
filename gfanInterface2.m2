@@ -11,7 +11,7 @@ newPackage(
 		{Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""},
 		{Name => "Andrew Hoefel", Email => "andrew.hoefel@mathstat.dal.ca", HomePage => ""}
 	},
-	Headline => "Interface to @HREF http://home.imf.au.dk/jensen/, Anders Jensen@'s @HREF http://home.imf.au.dk/jensen/software/gfan/gfan.html, Gfan@ software",
+	Headline => "Interface to Anders Jensen's Gfan software",
 	Configuration => {
 		"path" => "", 
 		"fig2devpath" => "", 
@@ -430,7 +430,7 @@ gfanParsePolymakeHeader List := (L) -> (
 	typeWords := separate(" ", typeLine);
 	if #typeWords === 2 and typeWords#1 == "PolyhedralCone" then 
 		PolymakeCone
-	else if #typeWords === 2 and typeWords#1 == "PolyhedralFan" then
+	else if #typeWords === 2 and (typeWords#1 == "PolyhedralFan" or typeWords#1 == "SymmetricFan") then
 		PolymakeFan
 	else
 		PolymakeObject
@@ -1738,7 +1738,7 @@ doc ///
 		a Macaulay2 interface to gfan
 	Description
 		Text
-			@EM "gfanInterface2"@ is an interface to Anders Jensen's gfan package, which is a C++
+			@EM "gfanInterface2"@ is an interface to Anders Jensen's Gfan software (available at @HREF "http://home.imf.au.dk/jensen/software/gfan/gfan.html"@), which is a C++
 			program to compute the Groebner fan (i.e. all the initial ideals) of an ideal.
 
 			The main function in this package is @TO gfan@ which computes all of the Groebner 

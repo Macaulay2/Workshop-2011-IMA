@@ -21,10 +21,12 @@ export {
      "SearchObject",
      "Attempts", 
      "Certification", 
-     "Construction"}
+     "Construction",
+     "Do",
+     "showTasks",
+     "status"}
 
 if not version#"VERSION" >= "1.4.0.1" then error "this package requires Macaulay2 version 1.4.0.1 or newer"
-
 
 SearchObject = new Type of MutableHashTable
 globalAssignment SearchObject
@@ -55,34 +57,41 @@ pSearch SearchObject := Object -> args -> (
      -- wrap the following function around the actual computation:
      -- if a (certified) result is returned it cancels all other tasks and returns the result 
      checkRes:=(argsConstr,argsCert,cert,taskNr)->(
-	  tmpobject:=Object.Construction(argsConstr);
+	  tmpObject:=Object.Construction(argsConstr);
 	  -- in case of cert=true check if the objects passes certification 
-	  if cert then 
-	     if Object.Certification prepend(tmpObject,argsCert) then 
-	        object=tmpObject 
-	     else 
-	        object=null 
+	  object:=null;
+	  if cert then (
+	     if Object.Certification prepend(tmpObject,argsCert) then object=tmpObject)
 	  else object=tmpObject;
 	  if object=!=null then (
 	       scan(#taskList,i->if i!=taskNr then cancelTask taskList_i);
-	       print"pSearch finished successfully.")       
-	  object)
+    	       Object.Do(object));
+	  object);
      
      -- set up the task List
-     taskList:=apply(att,i-> createTask(checkRes,(argsConstr,argsCert,cert,i)));
+     taskList=apply(att,i-> createTask(checkRes,(argsConstr,argsCert,cert,i)));
      -- set up a finishing task
-     finishTask:=()->(
-	  
+     -- this is called if all tasks have finished (which means that they are not canceled)
+     finish:=()->(
+	  object:=null;
+	  scan(taskList,t-> (
+	       if isReady t then (
+		    r:=taskResult t;
+		    if r=!=null then object=r)));
+          if object===null then print("search failed"));
+     finishTask:=createTask(finish);
+          
+     scan(taskList,t->addDependencyTask(finishTask,t));
      taskList/schedule;
-     
-	  -- remove finished tasks from list
-     	  tsks=tsks_(ind - set ready);
-	  if object=!=null then (	       
-	       scan(tsks,t->cancelTask t);
-	       tsks={};);
-	  );
-     return object;
-     ) 
+     )
+
+trstatus= t-> (
+     s:=toString(t);
+     r:=null;
+     scan({"created","running","canceled","done","terminated"}, st-> if match(st,s) then r=st);
+     r)
+
+showTasks=()-> tally apply(taskList,t-> trstatus t)
 
 end
 restart
@@ -94,14 +103,18 @@ constructMatrix=()->(
      if rank M==2 then M else null)
 
 certifyMatrix=()->true
+doMatrix=(M)->(print M)
 
 sMatrix = new SearchObject from {
      Construction=>constructMatrix,
-     Certification=>certifyMatrix
+     Certification=>certifyMatrix,
+     Do=>doMatrix
      }
 
 t1=currentTime(); M=(pSearch sMatrix)(Attempts=>13^5); t2=currentTime();
+showTasks()
 t2-t1
+
 allowableThreads
 Search=()->(counter=0; while(M=constructMatrix(); M===null and counter<13^5) do (counter=counter+1));
 t1=currentTime(); Search(); t2=currentTime();

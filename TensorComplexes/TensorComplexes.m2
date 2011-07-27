@@ -349,13 +349,11 @@ makeCauchy(ZZ,Module) := (b,E)->(
 	  --produces the map
 	  --wedge^b(E) -> wedge^b(E0) ** Sym^b E1 ** Sym^b E2 ** ...
      sour := makeExteriorPower(E,b);
-     << basisList sour << endl;
      L := underlyingModules E;
      L10 := {makeExteriorPower(L_0,b)};
      L11 := apply(#L-1, j-> makeSymmetricPower(L_(j+1), b));
      L1 := L10 | L11;
      tar := makeTensorProduct L1;
-     << basisList tar << endl;
      M := mutableMatrix(ring E, rank tar, rank sour);
      j := {};
      scan(basisList sour, i->(
@@ -542,7 +540,8 @@ restart
 path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "TensorComplexes.m2"
 kk=ZZ/101
-tc({2,4,5},kk)
+timing betti tc({1,4,6,7},kk)
+timing betti tc({1,3,4,6,7},kk)
 
 EN(7,3)
 --f=flattenedGenericTensor({7,1,2,1,2,1},kk)

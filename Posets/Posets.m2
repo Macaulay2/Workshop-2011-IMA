@@ -276,12 +276,14 @@ compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
 coveringRelations = method();
 coveringRelations Poset := P -> (
 	if P.cache.?coveringRelations then return P.cache.coveringRelations;
-    P.cache.coveringRelations = if #P.Relations === 0 then {} else (
-	    nonCovers := sum apply(P.Relations, 
-		        R -> set apply(select(P.Relations, S -> (first S == last R and first R != last R and first S != last S)), S -> (first R, last S) ));
-	    P.Relations - (nonCovers + set apply(P.GroundSet, x -> (x,x)))
-	)
-)
+    	P.cache.coveringRelations = if #P.Relations === 0 then {} else (
+       	     edgeset := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
+	     if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} else continue;
+	     testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
+     	     nonCovers:=apply(testpairs, p-> {first first p, last last p});
+     	     select(edgeset, p-> not member(p,nonCovers))
+	 )    
+    )
 
 --input:  A poset P
 --output:  A digraph which represents the Hasse Diagram of P

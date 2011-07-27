@@ -460,7 +460,8 @@ doc ///
   Description
     Text
       The method topWitnessSet constructs and embedding for the given
-      polynomial system with the given dimension and then calls phcSolve.
+      polynomial system with the given dimension and then calls phcSolve
+      for the computation of generic points on the solution set.
 
       The computation of a witness set for the twisted cubic
       is illustrated below.
@@ -470,6 +471,15 @@ doc ///
       w = topWitnessSet(f,1)
       dim(w)
       degree(w)
+      toString equations(w)
+      toString slice(w)
+      toString points(w)
+    Text
+      A witness set for the twisted cubic consists of the original system,
+      a random linear hyperplane to slice the space curve,
+      and three generic points.  Observe that the value for the last
+      coordinate of all points equals (or is close to) zero.
+      This last coordinate corresponds to the added slack variable.
 ///;
 
 -----------------------------------

@@ -318,24 +318,28 @@ areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
   --S := R/radical ideal last gs;
   Q := frac (kk[independentVars])[fiberVars];
   S := Q/sub(radical ideal last gs, Q);
-  fiberVars = apply(fiberVars, x -> substitute(x,S));
-  -- working hard here!
   -- need to pass to the fraction field first, since the polynomial may not be monic yet.
   linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
+	                                                                   fiberVars = apply(fiberVars, x -> substitute(x,S));
 									   xi := fiberVars#i;
 	    	      	   	     	       	    	      	   	   deggi := degree(xi,gi);
-									   testGi := (xi - deggi^(-1)*)^deggi
-									   linearFactor := (radical ideal gi)_*;
-									   if #linearFactor != 1 then error "More than one irreducible factor";
-									   linearFactor = first linearFactor;
-									   if degree linearFactor > 1 then error "Not linear irreducible factor.";
-									   phi := map(R,R,{xi=>(linearFactor-xi)});
-									   gs = gs / phi;
-									   linearFactor));
+									   -- store the coefficients
+									   (mons,coeffs) := coefficients gi;
+									   -- get the indices of monomials containing xi^(deggi-1)
+									   monomialIndices := select(#(flatten entries mons), i -> degree(xi,(flatten entries mons)#i) == deggi-1);
+									   -- reconstruct coeff of xi^(deggi-1) from the indices
+									   degGiMinusOneCoeff := (sum apply(monomialIndices, i -> (flatten entries mons)#i*(flatten entries coeffs)#i)) // xi^(deggi-1);
+									   testGi := (xi + deggi^(-1)*degGiMinusOneCoeff)^deggi;
+									   if (testGi != gi) then error "Not a linear power!";
+									   newI := ideal S + sub(testGi,Q);
+									   S = Q/newI;
+									   testGi));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.
   return true;
 )
+
+
 
 --R = QQ[x,y]
 --apply(toList factor (x^2+2*x*y+y^2), toList)

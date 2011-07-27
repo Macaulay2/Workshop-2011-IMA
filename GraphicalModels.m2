@@ -1571,7 +1571,7 @@ doc///
      R:Ring
        which should be a gaussianRing
      G:
-       @ofClass {Digraph,MixedGraph}@
+       @ofClass {Graph,Digraph,MixedGraph}@
    Outputs
      :Matrix
        the $n \times{} n$ covariance matrix of symbols where n is the number of vertices in $G$

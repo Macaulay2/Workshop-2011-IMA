@@ -27,8 +27,6 @@ F0=R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
 not yet done:
 
 **change to function(ZZ, module) 
-**map of wedge^d A ** wedge^d (B1 \otimes B2 ...) to R
-**map of wedge^d A ** \otimes_j Sym^d Bj to wedge^d(A** \otimes_j Bj). (done for just one j)
 
 Not needed now, but would be nice:
 exterior multiplication and contraction and trace
@@ -388,13 +386,14 @@ rank oo
 ---  this is the map (A*)**S(-1)-->(B_1**B_2**..**B_n)**S obtained 
 ---  by flattening the generic tensor
 ---  I don't know when we want to define the ring S (before the code or in the code).
+
 flattenedGenericTensor = (L,kk)->(
      --make ring of generic tensor
      inds := productList(apply(#L,i->(toList(0..((L#i)-1)))));
      vrbls := apply(inds,i->( x_(toSequence(i))));
      S := kk[vrbls];
      --make generic tensor (flattened)
-     apply(#L,i->( B_i=makeExplicitFreeModule(S^(L_i))));
+     B := apply(#L,i->makeExplicitFreeModule S^(L_i));
      --Btotal = tensor product of all but B0
      Btotal := makeTensorProduct(apply(#L-1,i->(B_(i+1))));     
      f := map(Btotal,B_0,(i,j)->(
@@ -507,10 +506,23 @@ TC12(Ring, Matrix) := (S,f) ->(
 
      G11 = makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
      T = makeTrace G11;
-     tc1=T**id_F1;
+     G1 = makeTensorProduct(target T, F1);
+     tc1=map(G1,F1,T**id_F1);
+     G1mods = flatten(((uM target T)|{F1})/uM);
+     perm=join({2*n-2, 2*n-1}, 
+	         toList(0..n-2), 
+		 flatten apply(n-1, j->{j+n-1, j+2*n})
+		 );
+     H1 = makeTensorProduct G1mods;
+     H2 =  makeTensorProduct G1mods_perm;
+     permMatrix = mutableMatrix(S, rank H2, rank H1);
+     scan(basisList H1, 
+	  J -> 
+	  permMatrix_((toOrdinal H2) J_perm, (toOrdinal H1) J)=1
+     	  );
      
-     uM
-     )
+     permMap = map(H2, H1, matrix permMatrix) 
+	       )
 
 
 ///
@@ -520,9 +532,24 @@ load "TensorComplexes.m2"
 kk=ZZ/101
 --f=flattenedGenericTensor({7,1,2,1,2,1},kk)
 --f=flattenedGenericTensor({7,2,2},kk)
-f=flattenedGenericTensor({4,2,2},kk)
+f=flattenedGenericTensor({6,2,2,2},kk)
+--f=flattenedGenericTensor({8,2,2,2,2},kk)
 S=ring f
-tc1 = TC1(S,f)
+TC12(S,f);
+tc12 = oo;
+rank oo
+
+Ttar = target T
+blTtar = bL Ttar
+flatten (blTtar_0)
+Ttar1 = makeTensorProduct flatten((uM(Ttar))/uM)
+map(Ttar1,Ttar, (i,j) ->
+     if (fromOrdinal Ttar1) i == flatten ((fromOrdinal Ttar) j) then 1 else 0)
+((bL Ttar1)_0) == flatten ((bL Ttar)_0)
+
+Ttar2 = makeTensorProduct 
+           apply(n-1, i->
+		 makeTensorProduct{(uM Ttar1)_i, (uM Ttar1)_(n-1+i)})
 F1 = source tc1
 uM((uM F1)_1)
 ///

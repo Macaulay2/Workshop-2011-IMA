@@ -1565,16 +1565,16 @@ doc///
    Headline
      the covariance matrix of a gaussian graphical model
    Usage
-     S = covarianceMatrix R or S = covarianceMatrix(R,G)
+     covarianceMatrix R
+     covarianceMatrix(R,G)
    Inputs
      R:Ring
        which should be a gaussianRing
-     G:Digraph
-       a directed acyclic graph, 
-       or @ofClass MixedGraph@ with directed and bidirected edges
+     G:
+       @ofClass {Digraph,MixedGraph}@
    Outputs
-     S:Matrix
-       the n x n covariance matrix of symbols where n is the number of vertices in G
+     :Matrix
+       the $n \times{} n$ covariance matrix of symbols where n is the number of vertices in $G$
    Description 
      Text
        If this function is called without a graph G, it is assumed that R is the gauss ring of a directed acyclic graph.

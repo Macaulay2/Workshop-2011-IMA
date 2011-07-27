@@ -2,8 +2,8 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.03", 
-  Date => "26 Jul 2011",
+  Version => "1.04", 
+  Date => "27 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
      Email => "lizgross@math.uic.edu",
@@ -42,6 +42,7 @@ export {
   zeroFilter,
   nonZeroFilter,
   phcEmbed,
+  topWitnessSet,
   cascade
 }
 
@@ -654,14 +655,27 @@ phcEmbed (List,ZZ) := (system,dimension) -> (
   R := ring ideal system;
   -- surplus variables are used when the initial system is overconstrained
   nv := numgens R; nq := #system; nbss := nq - nv;
+  local RwithSlack;
   if (nbss > 0) then (
     surplusvars := apply(nbss, i->getSymbol("ss"|toString(i+1)));
-    RwithSlack := (coefficientRing R)[gens R, surplusvars, slackvars];
+    RwithSlack = (coefficientRing R)[gens R, surplusvars, slackvars];
   ) else (
-    RwithSlack := (coefficientRing R)[gens R, slackvars];
+    RwithSlack = (coefficientRing R)[gens R, slackvars];
   );
   use RwithSlack;
   return systemFromFile(PHCoutputFile);
+)
+
+-----------------------------------------------
+------------  TOP WITNESS SET  ----------------
+-----------------------------------------------
+ 
+topWitnessSet = method(TypicalValue => WitnessSet)
+topWitnessSet (List,ZZ) := (system,dimension) -> (
+  -- IN: system, a polynomial system;
+  --     dimension, top dimension of the solution set.
+  -- OUT : a witness set for the top dimensional component.
+  e := phcEmbed(system,dimension)
 )
 
 -----------------------------------------------

@@ -217,36 +217,6 @@ symmetricMultiplication (LabeledModule,ZZ,ZZ) := (F,d,e) -> (
 	)
      )
   
-
-
-
-{*makeSymmetricMultiplication = method()
-makeSymmetricMultiplication(Module,ZZ, ZZ) := (F, d,e) ->(
-     --make the map Sym^d(F)\otimes Sym^e F \to Sym^(d+e) F
-     --Caveat: for large examples it would probably be better to make this as a sparse matrix!
-     S := ring F;
-     Sd := makeSymmetricPower(F,d);
-     Se := makeSymmetricPower(F,e);
-     Sde := makeSymmetricPower(F,d+e);
-     SdSe := makeTensorProduct{Sd,Se};
-     map(Sde,SdSe , (i,j) -> if
-       (fromOrdinal Sde)i == sort flatten ((fromOrdinal SdSe)j)
-            		    then 1_S else 0_S
-	)
-     )
-*}
-{*symmetricMultiplication = method(TypicalValue => Matrix)
-symmetricMultiplication (LabeledModule,ZZ,ZZ) := (E,d,e) -> (
-  S := ring E;
-  Sd := symmetricPower(d,E);
-  Se := symmetricPower(e,E);
-  Sde := symmetricPower(d+e,E);
-  SdSe := Sd ** Se;
-  toMono := (F,l) -> multisetToMonomial(basisList((underlyingModules F)#0),l);
-  map(Sde,SdSe, 
-    (i,j) -> if toMono(Sde, fromOrdinal(i,Sde)) == toMono(SdSe, fromOrdinal(j,SdSe))
-      then 1_S else 0_S))
-*}
 cauchyMap = method(TypicalValue => Matrix)
 cauchyMap (ZZ, LabeledModule) := (b,E) -> (
   sour := exteriorPower(b,E);
@@ -289,7 +259,7 @@ assert(module E == S^4)
 assert(fromOrdinal(2,E) == 2)
 assert(toOrdinal(1,E) == 1)
 F = labeledModule S
-assert(basisList F == {0})
+assert(basisList F == {{}})
 assert(rank F == 1)
 F' = labeledModule S^0
 assert(basisList F' == {})
@@ -302,7 +272,7 @@ F = labeledModule S^4
 E = exteriorPower(2,F)
 assert(rank E == 6)
 assert(#basisList E == 6)
-assert(exteriorPower(0,E) == labeledModule S^1)
+assert(exteriorPower(0,E) == labeledModule S)
 assert(basisList exteriorPower(1,E) == apply(basisList E, i -> {i}))
 assert(exteriorPower(-1,E) == labeledModule S^0)
 E' = exteriorPower(2,E)
@@ -319,7 +289,7 @@ E = symmetricPower(2,F)
 assert(#basisList E == binomial(4+2-1,2))
 assert(toOrdinal({0,3},E) == 6)
 assert(fromOrdinal(7,E) == {1,3})
-assert(symmetricPower(0,E) == labeledModule S^1)
+assert(symmetricPower(0,E) == labeledModule S)
 assert(symmetricPower(-1,E) == labeledModule S^0)
 assert(basisList symmetricPower(1,E) == apply(basisList E, i -> {i}))
 ///
@@ -351,9 +321,7 @@ S = ZZ/101[a,b,c];
 F = labeledModule S^2
 assert(matrix symmetricMultiplication(F,1,1) == matrix{{1_S,0,0,0},{0,1,1,0},{0,0,0,1}})
 assert(rank matrix symmetricMultiplication(F,2,1) == 4)
-
-matrix symmetricMultiplication(F,2,0) 
-basisList symmetricPower(0,F)
+assert(matrix symmetricMultiplication(F,2,0) == id_(S^3))
 ///
 
 -- test 5

@@ -186,3 +186,31 @@ rows = toList select(0..<numRows T, i -> all(0..<numColumns T, j -> T_(i,j) > 0)
 unique apply(rows, i -> flatten entries (Guu_1||Gvv_1)^{i})
 
 -- intersect(Ideal,Ideal,Ideal) etc
+
+
+
+
+
+
+
+restart
+load "bart.m2"
+loadPackage "Dmodules"
+R = QQ[x,y,z];
+nn = {2,3,4};
+I = affineMonomialCurveIdeal(R,nn)
+ff = sortedff(R,nn)
+time A = monomialSpaceCurveMultiplierIdeal(R,nn,20/7)
+time B = multiplierIdeal(I,20/7)
+trim A
+trim B
+
+test = (t) -> (
+     A := monomialSpaceCurveMultiplierIdeal(R,nn,t);
+     B := multiplierIdeal(I,t);
+     if ( A == B ) then (
+          print "ok";
+     ) else (
+          print "no";
+     );
+     );

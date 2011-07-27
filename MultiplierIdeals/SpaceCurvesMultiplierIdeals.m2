@@ -290,7 +290,7 @@ monomialValuationIdeal = (R,mm,val) -> (
 exceptionalDivisorValuationIdeal = (R,ff,mm,val) -> (
      maxpow := ceiling(val / ord(mm,ff_1));
      if maxpow < 0 then ideal(1_R) else
-     sum apply(splice{0..maxpow}, i -> ideal(ff_1^(maxpow-i))*monomialValuationIdeal(R,mm,i))
+     sum apply(splice{0..maxpow}, i -> ideal(ff_1^i)*monomialValuationIdeal(R,mm,val-i*ord(mm,ff_1)))
      );
 
 
@@ -450,6 +450,15 @@ R = QQ[x,y,z];
 nn = {2,3,4};
 I = affineMonomialCurveIdeal(R,nn)
 ff = sortedff(R,nn)
+
+intersect {
+exceptionalDivisorValuationIdeal(R,ff,{1,1,2},2),
+exceptionalDivisorValuationIdeal(R,ff,{1,2,2},3),
+exceptionalDivisorValuationIdeal(R,ff,{2,3,4},7),
+I
+}
+trim oo
+
 time A = monomialSpaceCurveMultiplierIdeal(R,nn,20/7)
 time B = multiplierIdeal(I,20/7)
 trim A
@@ -466,7 +475,10 @@ test = (t) -> (
      );
 
 t = 20/7
+t = 31/14
+t = 17/6
 test(t)
+
 
 restart
 installPackage"SpaceCurvesMultiplierIdeals"

@@ -28,7 +28,9 @@ export {
     posetDiamondProduct, 
     posetProduct, 
     comparabilityGraph,
+    incomparabilityGraph,
     gradePoset,
+    mergePoset,
 --     FullRelationMatrix,
 	RelationMatrix,
 	compare,
@@ -141,70 +143,60 @@ gradeLattice Poset := P -> (
 	if not isGraded P then error "P must be graded";
 	if not isLattice P then error "P must be a Lattice";
 	M:=maximalChains P;
-	if #(unique apply(M,c->#c))!= 1 then error"P must be graded";
-	apply(max apply(M,c->#c), d -> unique for c in M list if c#?d then c#d else continue)
+    nM := unique apply(M, c -> #c);
+	if #nM != 1 then error "P must be graded";
+	apply(first nM, d -> unique for c in M list if c#?d then c#d else continue)
 );
 
 dualPoset = method();
 dualPoset Poset := P -> poset(P.GroundSet, P.Relations/reverse);
 
+mergePoset = method();
+mergePoset (Poset, Poset):=(P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations));
+
 -- TODO: Needs simplification!
 gradePoset = method();
-gradePoset (Poset) := P->(
-	--if not isGraded P then error"P must be graded";
-	Q:=P;
-	counter:=1;
-	L:={};
-	n:=max apply(maximalChains P, c->#c);
-	M:=maximalChains P;
-	for i to #M-1 do (
-		if #M_i==n then {
-			L=append(L,M_i)
-		};
-	);
-	C:=coveringRelations(P);
-	J:=apply(max apply(L,c->#c), d -> unique for c in L list if c#?d then c#d else continue);
-	while #(flatten J) < #P.GroundSet do(
-	if counter != 0 then{
-	counter = 0;
-	for i to #C-1 do(
-		if member(C_i_0,flatten J) then{
-			if member(C_i_1,flatten J)==false then{
-				for j to #J-1 do(
-					if member(C_i_0,J_j) then{
-						J=replace(j+1,append(J_(j+1),C_i_1),J);
-						counter = counter+1;
-					};
-				);
-			};
-		};
-		if member(C_i_0,flatten J)==false then{
-			if member(C_i_1,flatten J) then{
-				for j to #J-1 do(
-					if member(C_i_1,J_j) then{
-						J=replace(j-1,append(J_(j-1),C_i_0),J);
-						counter = counter +1;
-					};
-				);
-			};
-		};
-	);
-	}else{
-		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));print Q;
-		C=coveringRelations(Q);
-		L={};
-		n=max{max apply(maximalChains Q, c->#c),0};--might fail
-		M=maximalChains Q;
-		for i to #M-1 do (
-			if #M_i==n then {
-				L=append(L,M_i)
-			};
-		);
-		for i to n-1 do(
-			J=replace(i,flatten append(J_i,apply(L,c->c_i)),J);
-		);
-		counter=1;
-	}; 
+gradePoset Poset := P->(
+	if not isGraded P then error "P must be graded";
+    nPGS := #P.GroundSet;
+	counter := 1;
+	M := maximalChains P;
+	n := max apply(M, c->#c);
+    L := select(M, c -> #c == n);
+	C := coveringRelations P;
+	J := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
+	while #(flatten J) < nPGS do (
+	    if counter != 0 then (
+            counter = 0;
+            for i to #C - 1 do (
+                m0 := member(C_i_0, flatten J);
+                m1 := member(C_i_1, flatten J);
+                if m0 and not m1 then (
+                    for j to #J - 1 do
+                        if member(C_i_0, J_j) then (
+                            J = replace(j+1, append(J_(j+1), C_i_1), J);
+                            counter = counter + 1;
+                        );
+                ) else if not m0 and m1 then (
+                    for j to #J - 1 do
+                        if member(C_i_1, J_j) then (
+                            J = replace(j-1, append(J_(j-1), C_i_0),J);
+                            counter = counter + 1;
+                        );
+                );
+            );
+        ) else (
+            P = dropElements(P, flatten J); --slowest part!
+            M = maximalChains P;
+            C = coveringRelations P;
+            if #M != 0 then (
+                n = max apply(M, c->#c);
+                L = select(M, c -> #c == n);
+	            J' := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
+                J = apply(max(#J, #J'), d -> unique join(if J#?d then J#d else {}, if J'#?d then J'#d else {}));
+            );
+            counter = 1;
+        ); 
 	);
 	J
 );

@@ -814,7 +814,6 @@ cmdLineArgs = hashTable {
 	"gfan _fanlink" => {"i"},
 	"gfan _fanproduct" => {"i1", "i2"},
 	"gfan _minors" => {"r", "d", "n"},
-	"gfan _resultantfan" => {"i"},
 	"gfan _tropicallinearspace" => {"n", "d"}
 }
 
@@ -1318,17 +1317,24 @@ gfanRenderStaircase (List) := opts -> (L) -> (
 --------------------------------------------------------
 
 gfanResultantFan = method(Options => {
-	  "vectorinput"=>false,
+	  "vectorinput"=>true,
 	  "special"=> null
 	 } 
 )
 gfanResultantFan (List) := opts -> (tuple) -> (
-     input :="";
-     if (opts#"special" =!= null) then (
-     	  input = gfanVectorListListToString(tuple)|gfanVectorListToString(opts#"special");
+     type := PolynomialRing;
+     if (tuple !={}) then
+     (
+          if (not same(tuple/class)) then error "All elements in the list should be of the same class\n";
+     	  type= class(tuple#0);     
+   	  );
+     vectorConfiguration := tuple;
+     
+     if(type===PolynomialRing) then vectorConfiguration = tuple/exponents;
+                    
+     input := gfanVectorListListToString(vectorConfiguration)|gfanVectorToString(opts#"special");
 	  
-     	  gfanParsePolyhedralFan runGfanCommand("gfan _resultantfan", opts, input)
-	  )
+     gfanParsePolyhedralFan runGfanCommand("gfan _resultantfan", opts, input)
 )
 
 --------------------------------------------------------

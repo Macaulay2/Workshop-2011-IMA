@@ -43,8 +43,6 @@ newPackage(
 
 needsPackage "Normaliz"
 needsPackage "MonomialMultiplierIdeals"
---loadPackage("Normaliz", Reload=>true);
---loadPackage("MonomialMultiplierIdeals", Reload=>true);
 
 export {
      monomialSpaceCurveMultiplierIdeal    
@@ -174,8 +172,9 @@ intersectionIndexSet = (ff) -> (
      unique apply(rows, i -> flatten entries candidateGens^{i})
      );
 
-
-monomialSpaceCurveMultiplierIdeal = (R, nn, t) -> (
+monomialSpaceCurveMultiplierIdeal = method()
+monomialSpaceCurveMultiplierIdeal(Ring, List, QQ) :=
+monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
      ff := sortedff(R,nn);
      curveIdeal := affineMonomialCurveIdeal(R,nn);
      
@@ -192,12 +191,45 @@ monomialSpaceCurveMultiplierIdeal = (R, nn, t) -> (
 
 -- intersect(Ideal,Ideal,Ideal) etc
 
+beginDocumentation()
 
+doc ///
+Key
+  monomialSpaceCurveMultiplierIdeal
+  (monomialSpaceCurveMultiplierIdeal,Ring,List,QQ)
+  (monomialSpaceCurveMultiplierIdeal,Ring,List,ZZ)
+Headline
+  multiplier ideal of monomial space curve
+Usage
+  I = monomialSpaceCurveMultiplierIdeal(R,nn,t)
+Inputs
+  R:Ring
+  nn:List
+  t:QQ
+Outputs
+  I:Ideal
+Description
+  Text
+  
+    Given a monomial space curve {\tt C} and a parameter {\tt t}, the function 
+    {\tt monomialSpaceCurveMultiplierIdeal} computes the multiplier ideal associated to the embedding of {\tt C}
+    in {\tt 3}-space and the parameter {\tt t}.
+    
+    More precisely, we assume that {\tt R} is a polynomial ring in three variables, {\tt n = \{a,b,c\}}
+    is a sequence of positive integers of lenght three, and that {\tt t} is a rational number. The corresponding
+    curve {\tt C} is then given by the embedding {\tt u\to(u^a,u^b,u^c)}.
+  
+  Example
+    R = QQ[x,y,z];
+    nn = {2,3,4};
+    t = 5/2;
+    I = monomialSpaceCurveMultiplierIdeal(R,nn,t)
+
+///
 
 end
 
 restart
---load "bart.m2"
 debug loadPackage"SpaceCurvesMultiplierIdeals"
 loadPackage "Dmodules"
 R = QQ[x,y,z];
@@ -219,6 +251,9 @@ test = (t) -> (
      );
      );
 
-t = 5/2
+t = 20/7
 test(t)
-     
+
+restart
+installPackage"SpaceCurvesMultiplierIdeals"
+viewHelp SpaceCurvesMultiplierIdeals

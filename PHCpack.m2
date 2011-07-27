@@ -675,7 +675,13 @@ topWitnessSet (List,ZZ) := (system,dimension) -> (
   -- IN: system, a polynomial system;
   --     dimension, top dimension of the solution set.
   -- OUT : a witness set for the top dimensional component.
-  e := phcEmbed(system,dimension)
+  stdio << "... calling phcEmbed ..." << endl;
+  e := phcEmbed(system,dimension);
+  stdio << "... calling phcSolve ..." << endl;
+  s := phcSolve(e);
+  stdio << "... constructing a witness set ... " << endl;
+  return witnessSet(ideal(take(e,{0,#e-dimension-1})),
+                    ideal(take(e,{#e-dimension,#e-1})),s);
 )
 
 -----------------------------------------------

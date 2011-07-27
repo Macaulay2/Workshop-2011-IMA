@@ -94,6 +94,7 @@ getMinimalPolynomial2(Ideal,List,RingElement,RingElement) := (I,us,x,y) ->
 (
    J := substitute(I,{x => y});
    elimVars := toList(set gens ring I - set us - set {x});
+   -- time this thing!
    elimJ := eliminate(J, elimVars);
    --error "debug";
    --if (numgens elimJ == 0 and isSubset(ideal elimVars,J)) then y
@@ -340,8 +341,8 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
   --S := R/radical ideal last gs;
   Q := frac (kk[independentVars])[fiberVars];
   --error "err";
-  --S := Q/sub(radical ideal last gs, Q);
-  S := Q/sub(ideal last gs, Q);
+  S := Q/sub(radical ideal last gs, Q);
+  --S := Q/sub(ideal last gs, Q);
   -- need to pass to the fraction field first, since the polynomial may not be monic yet.
   linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
 									   fiberVars = apply(fiberVars, x -> substitute(x,S));

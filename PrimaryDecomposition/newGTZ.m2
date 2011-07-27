@@ -571,6 +571,31 @@ time ourPD = newPD(I,Verbosity=>2);
 I = ideal flatten gens I
 time m2PD = primaryDecomposition I;
 
+restart
+load "newGTZ.m2"
+debug newGTZ
+R = QQ[a,b,c,d]
+I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
+time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
+I = ideal flatten gens I
+time ourPD = newPD(I,Verbosity=>2);
+I = ideal flatten gens I
+time m2PD = primaryDecomposition I;
+
+restart
+load "newGTZ.m2"
+debug newGTZ
+R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
+p = z^2+1
+q = z^4+2
+-- fix this example...
+I = ideal(p^2*q^3, (y-z^3)^3, (x-y*z+z^4)^4)
+time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
+I = ideal flatten gens I
+time ourPD = newPD(I,Verbosity=>2);
+I = ideal flatten gens I
+time m2PD = primaryDecomposition I;
+
 -- CORRECT
 -- BIG time difference...
 restart
@@ -584,7 +609,7 @@ I = ideal(
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
 -- 78 seconds
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition}); -- CRASH on Ubuntu
+time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 I = ideal flatten gens I
 time ourPD = newPD(I,Verbosity=>2);
 I = ideal flatten gens I

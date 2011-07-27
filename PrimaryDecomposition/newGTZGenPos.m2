@@ -190,7 +190,7 @@ applyUntil(List, Function) := opts -> (xs, f) ->
    retVal := for i from 0 to #xs-1 list
              (
 	        temp := f(xs#i);
-		if (temp#0 == opts.BooleanValue) then i = #xs;
+		if (temp == opts.BooleanValue) then i = #xs;
 		temp
              );
    retVal
@@ -207,10 +207,11 @@ primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) -
 
    -- problem: compList's ideals are not in general position at this point.  I think
    -- one needs to leave them with coords changed, and then change them back.
+   error "err";
    genPosList := applyUntil(compList, J -> isPrimaryZeroDim(J));
    if (genPosList != {}) then
    (
-      isInGenPos := fold(genPosList / first, (i,j) -> i and j);
+      isInGenPos := all (genPosList, i -> i);
       if (not isInGenPos) then (
 	 error "Uhoh.";
          -- try again?
@@ -265,6 +266,19 @@ I = ideal(c-d,a+b+2*d,d^2+h^2,b^2+2*b*d-h^2)
 isPrimaryZeroDim I
 
 restart
+loadPackage "newGTZ"
+debug newGTZ
+R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
+I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f
+          ,e*g*j+8001*c*j^2+e^2*l,d*g*j+d*e*l+16001*a*c,e*f*j+8001*b*j^2+e^2*k,d*f*j+d*e*k+16001*a*b,d*e*j-a*h*j-16001*a^2,d*e^2-a*e*h-8001*a*d*j,d*g*k*l-c*h*k*l-d*f*l^2+b*h*l^2-2*c*f*g+2*b*g^2-16001
+       	  *c^2*k+16001*b*c*l,d*g*k^2-c*h*k^2-d*f*k*l+b*h*k*l-2*c*f^2+2*b*f*g-16001*b*c*k+16001*b^2*l,d*g^2*k-c*g*h*k-d*f*g*l+c*f*h*l-8001*c*d*k*l+8001*b*d*l^2+16001*c^2*f-16001*b*c*g,d*f*g*k-b*g*h*k-
+       	  8001*c*d*k^2-d*f^2*l+b*f*h*l+8001*b*d*k*l+16001*b*c*f-16001*b^2*g,c*f*g*k-b*g^2*k-8001*c^2*k^2-c*f^2*l+b*f*g*l-16001*b*c*k*l-8001*b^2*l^2,e^2*g*k+8001*c*e*j*k-e^2*f*l-8001*b*e*j*l,d*g*h*l^2
+       	  -c*h^2*l^2-8001*d^2*l^3+2*d*g^3-2*c*g^2*h+16000*c*d*g*l+c^2*h*l-8001*c^3,d*f*h*l^2-b*h^2*l^2-8001*d^2*k*l^2+2*d*f*g^2-2*b*g^2*h+16001*c*d*g*k+16001*c*d*f*l+16001*b*d*g*l+b*c*h*l-8001*b*c^2,
+       	  d*f*h*k*l-b*h^2*k*l-8001*d^2*k^2*l+2*d*f^2*g-2*b*f*g*h+16001*c*d*f*k+16001*b*d*g*k-16001*b*c*h*k+16001*b*d*f*l-16001*b^2*h*l-8001*b^2*c,d*f*h*k^2-b*h^2*k^2-8001*d^2*k^3+2*d*f^3-2*b*f^2*h+
+       	  16000*b*d*f*k+b^2*h*k-8001*b^3)
+isPrimaryZeroDim(I)
+
+restart
 load "newGTZ.m2"
 debug newGTZ
 R = QQ[a,b,c,d]
@@ -273,7 +287,6 @@ time(isPrimaryZeroDim I)
 ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 ///
 
-
 -- Input : Lex GB of an ideal of k(independentVars)[fiberVars]
 -- Output: Constructs the g_i from proposition 5.5 in GTZ.
 getVariablePowerGenerators=method()
@@ -281,12 +294,6 @@ getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
    independentVars := toList (set gens ring first G) - set fiberVars;
    apply(#fiberVars, i -> first select( G, g -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
 )
-
---R = QQ[a..g]
---v = {a*b*c*e^4} | flatten entries gens (ideal {d,e,f})^5
---fiberVars = {d,e,f}
---independentVars = {a,b,c,g}
---apply(#fiberVars, i -> first select(v, g -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
 
 -- This function should be called only on ideals before a change of coordinates have been applied.
 isPrimaryZeroDim = method()
@@ -297,7 +304,10 @@ isPrimaryZeroDim(Ideal) := (I) ->
    (phi,phiInverse,lastVar) := getCoordChange(ring I,independentVars);
    fiberVars := reverse sort toList (set gens R - set independentVars);
    
-   RLex := newRing(R, MonomialOrder => Lex);
+   --RLex := newRing(R, MonomialOrder => Lex);
+   --RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,GRevLex=>#independentVars}];
+   --RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,Lex=>#independentVars}];
+   RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {GRevLex=>#fiberVars,GRevLex=>#independentVars}];
    psi := map(RLex,R);
    J := psi(phi(I));
    fiberVars = fiberVars / psi;
@@ -313,13 +323,14 @@ isPrimaryZeroDim(Ideal) := (I) ->
 getLinearPowers = method()
 getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
---   all apply(take(gs,#gs-1),1..(#gs-1),(g,i) -> isLinearPower(G,g,i,fiberVars)))
   R := ring first G;
   kk := coefficientRing R;
   independentVars := sort toList (set gens R - set fiberVars);
   --S := R/radical ideal last gs;
   Q := frac (kk[independentVars])[fiberVars];
-  S := Q/sub(radical ideal last gs, Q);
+  --error "err";
+  --S := Q/sub(radical ideal last gs, Q);
+  S := Q/sub(ideal last gs, Q);
   -- need to pass to the fraction field first, since the polynomial may not be monic yet.
   linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
 	                                                                   fiberVars = apply(fiberVars, x -> substitute(x,S));
@@ -335,34 +346,11 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 									   if (testHi^(deggi) != gi) then error "Not a linear power!";
 									   newI := ideal S + sub(testHi,Q);
 									   S = Q/newI;
-									   testGi));
+									   testHi));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.
   return true;
 )
-
-
-
---R = QQ[x,y]
---apply(toList factor (x^2+2*x*y+y^2), toList)
-
--- Input : Lex GB of an ideal I, 
---isLinearPower = method()
---isLinearPower(List,RingElement,ZZ,List) := (G,g,i,fiberVars) -> (
---  R := ring first G;
---  independentVars := toList (set gens R - set fiberVars);
---  elimI := select(G, g -> isSubset(set support g, set (independentVars | drop (fiberVars, i))))
---  RBar := R/radical ideal elimI;
-  
---)
-
---R = QQ[a..g]
---G = {a*b*c*f^4} | flatten entries gens (ideal {d,e,f})^5
---fiberVars = {d,e,f}
---independentVars = {a,b,c,g}
---i = 2
---elimI = select(G, g -> isSubset(set support g, set (independentVars | drop (fiberVars, i))))
-  
 
 irredPower = method()
 irredPower(RingElement) := (f) ->

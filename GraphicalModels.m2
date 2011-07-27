@@ -710,12 +710,12 @@ covarianceMatrix (Ring,Graph) := (R,g) -> (
 gaussianVanishingIdeal=method()
 gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
     --input: graph G and a polynomial ring R created by gaussianRing (!)
+    --output: the vanishing ideal of hte parametrization
     g:= graph G;
-    t:= value R#gaussianRing_3;
     K:= undirectedEdgesMatrix(R,G);
     adjK := sub(det(K)*inverse(sub(K,frac R)), R);
-    IbeforeElimination:=ideal (append(flatten entries( t* covarianceMatrix(R,G) - adjK),t*det(K)-1));
-    IbeforeElimination
+    Itemp:=saturate(ideal (det(K)*covarianceMatrix(R,G) - adjK), det(K));
+    ideal selectInSubring(1, gens gb Itemp)
      )
 
 

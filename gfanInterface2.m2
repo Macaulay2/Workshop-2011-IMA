@@ -79,8 +79,9 @@ export {
 	gfanRingToString, -- to make gfan input
 	gfanPolynomialListToString,  -- to make gfan input
 	gfanVectorListToString, -- to make gfan input
-	gfanVectorListListToString -- to make gfan input
-
+	gfanVectorListListToString, -- to make gfan input
+	gfanVersion,
+     	runGfanCommand
 }
 
 gfanPath = gfanInterface2#Options#Configuration#"path"
@@ -781,6 +782,7 @@ argStrs = hashTable {
 	"restrict" => "--restrict",
 	"scale" => "--scale",
 	"shiftVariables" => "--shiftVariables",
+	"special" => "--special",
 	"star" => "--star",
 	"stable" => "--stable",
 	"symmetry" => "--symmetry",
@@ -1312,11 +1314,18 @@ gfanRenderStaircase (List) := opts -> (L) -> (
 --------------------------------------------------------
 
 gfanResultantFan = method(Options => {
+	  "vectorinput"=>false,
+	  "special"=>false
 	 } 
 )
 gfanResultantFan (List) := opts -> (tuple) -> (
-     input := gfanVectorListListToString(tuple);
-     gfanParsePolyhedralFan runGfanCommand("gfan _resultantfan", opts, input)
+     input :="";
+     if opts#"special" then (
+     	  input = gfanVectorListListToString(tuple)
+	  |gfanVectorListToString(opts#"special");
+	  
+     	  gfanParsePolyhedralFan runGfanCommand("gfan _resultantfan", opts, input)
+	  )
 )
 
 --------------------------------------------------------
@@ -1652,6 +1661,14 @@ gfanTropicalVariety Ideal := opts -> I -> (
      )
 
 
+--------------------------------------------------------
+-- version
+--------------------------------------------------------
+
+gfanVersion  = () -> (
+     o := new OptionTable from {};
+     runGfanCommand("gfan _version", o, )
+          )
 
 --------------------------------------------------------
 -- Documentation

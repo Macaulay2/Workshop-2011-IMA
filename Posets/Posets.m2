@@ -30,6 +30,7 @@ export {
     comparabilityGraph,
     incomparabilityGraph,
     gradePoset,
+    grading,
     mergePoset,
 --     FullRelationMatrix,
 	RelationMatrix,
@@ -162,6 +163,7 @@ mergePoset (Poset, Poset):=(P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet),
 gradePoset = method();
 gradePoset Poset := P->(
 	if not isGraded P then error "P must be graded";
+	if P.cache.?grading then return P.cache.grading;
     nPGS := #P.GroundSet;
 	counter := 1;
 	M := maximalChains P;
@@ -202,7 +204,7 @@ gradePoset Poset := P->(
             counter = 1;
         ); 
 	);
-	J
+	P.cache.grading = J
 );
 ----------------------------------------------------------------------------------
 -- NORMAL CODE
@@ -258,7 +260,7 @@ compare = method()
 compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
     Aindex:=indexElement(P,A);
     Bindex:=indexElement(P,B);
-    if P.RelationMatrix_Bindex_Aindex==0 then false else true
+    P.RelationMatrix_Bindex_Aindex != 0
 )
 
 
@@ -332,16 +334,15 @@ atoms Poset := List => P -> (
 -- output:  meet irreducibles of poset
 meetIrreducibles = method()
 meetIrreducibles Poset := P -> (
-     -- want to compute meets only for non-comparable elements
-     if (isLattice P) == true
-     then (
-     nonComparablePairs := select(subsets(P.GroundSet,2), posspair-> 
-	  compare(P, posspair#0,posspair#1) == false and compare(P,posspair#1,posspair#0)== false);
-     meets :=  nonnull unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true 
-	  then posetMeet(P,posspair#0, posspair#1)); 
-     meetIrred := toList (set P.GroundSet - set meets))
-     else error "P is not a lattice"
-     )
+    -- want to compute meets only for non-comparable elements
+    if isLattice P then (
+        nonComparablePairs := select(subsets(P.GroundSet,2), posspair-> 
+            compare(P, posspair#0,posspair#1) == false and compare(P,posspair#1,posspair#0)== false);
+        meets := nonnull unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true 
+	        then posetMeet(P,posspair#0, posspair#1)); 
+        meetIrred := toList (set P.GroundSet - set meets)
+    ) else error "P is not a lattice"
+)
 
 
 --------------------------------------------------
@@ -378,9 +379,7 @@ dropElements (Poset, Function) := (P, f) -> (
 -- inputs:  a poset P and a list L of elements from P to "keep"
 -- outputs:  induced poset the list L
 subPoset = method();
-subPoset (Poset, List) := Poset => (P, L) -> (
-  dropElements(P, toList(set P.GroundSet - set L))
-  )
+subPoset (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L));
 
 
 -- closedInterval
@@ -388,22 +387,18 @@ subPoset (Poset, List) := Poset => (P, L) -> (
 -- output:  the induced poset with minimal element and maximal element corresponding to the 2 given elements
 closedInterval = method()
 closedInterval(Poset, Thing, Thing) := (P, elt1, elt2) ->(
-     if (compare(P,elt1,elt2) == true or compare(P,elt2,elt1) == true) == false then return error "these elments are uncomparable";
+     if not (compare(P,elt1,elt2) or compare(P,elt2,elt1)) then return error "these elements are uncomparable";
      -- find elements between a and b
-     if compare(P,elt1,elt2) === true 
-          then return subPoset(P,select(P.GroundSet, elt -> compare(P,elt1,elt) == true and compare(P,elt,elt2) == true));
-     if compare(P,elt2,elt1) === true 	  
-          then return subPoset(P, select(P.GroundSet, elt -> compare(P,elt2,elt) == true and compare(P,elt,elt1) == true));
-      )
+     if compare(P,elt1,elt2) then return subPoset(P, select(P.GroundSet, elt -> compare(P,elt1,elt) and compare(P,elt,elt2)));
+     if compare(P,elt2,elt1) then return subPoset(P, select(P.GroundSet, elt -> compare(P,elt2,elt) and compare(P,elt,elt1)));
+)
 
 --openInterval
 --input: poset and two elements
 -- output: the induced poset coming from the poset with minimal element and maximal element corresponding to the 2 given elements
-     --with these 2 elements removed 
+--         with these 2 elements removed 
 openInterval = method()
-openInterval(Poset, Thing, Thing) := (P, elt1, elt2) ->(
-     dropElements(closedInterval(P, elt1, elt2), {elt1, elt2})
-)
+openInterval(Poset, Thing, Thing) := (P, elt1, elt2) -> dropElements(closedInterval(P, elt1, elt2), {elt1, elt2});
 
 
 --------------------------------------------------
@@ -447,7 +442,7 @@ isAntichain = method()
 
 isAntichain (Poset, List) := (P, L) ->(
      Q := subPoset(P, L);
-     if  minimalElements(Q) == maximalElements(Q) then true else false
+     minimalElements(Q) == maximalElements(Q)
 )
      
      
@@ -472,24 +467,13 @@ orderComplex (Poset) := opts -> (P) -> (
 -- usage:
 
 filter= method()
-filter(Poset, Thing) := (P, a) -> (
-	M:=P.RelationMatrix;
-	aindex := indexElement (P,a);
-	GreaterThana:= entries((transpose(M))_aindex);
-	nonnull(apply(#GreaterThana, i-> if GreaterThana_i == 1 then P.GroundSet#i)) 
-	)
-
+filter(Poset, Thing) := (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0));
 
 -- input: a poset, and an element from I
 -- output:  the filter of a, i.e. all elements in the poset that are <= a
 -- usage:
 orderIdeal = method()
-orderIdeal(Poset, Thing) := (P,a) -> (
-     M:=P.RelationMatrix;
-     aindex := indexElement (P,a);
-     LessThana:= entries M_aindex;
-     nonnull(apply(#LessThana, i-> if LessThana_i == 1 then P.GroundSet#i))
-     )
+orderIdeal(Poset, Thing) := (P,a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0));
 
 
 
@@ -505,11 +489,15 @@ posetJoin(Poset,Thing,Thing) := (P,a,b)  -> (
      OIa := filter(P,a);     
      OIb := filter(P,b);
      upperBounds := toList (set(OIa)*set(OIb));
-     if upperBounds == {} then (error "your elements do not share any upper bounds") else (M := P.RelationMatrix;
-     	  heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-     	  if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
-	  else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
-     ))
+     if upperBounds == {} then (
+        error "your elements do not share any upper bounds";
+     ) else (
+         M := P.RelationMatrix;
+         heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
+     	 if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
+	     else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
+     )
+)
 
 
 joinExists = method()
@@ -757,8 +745,7 @@ moebiusFunction Poset := HashTable => P -> (
      )
 
 
-moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) ->(
-     moebiusFunction (closedInterval(P,elt1,elt2)))
+moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2))
 
 -----------------------------------
 --Posets

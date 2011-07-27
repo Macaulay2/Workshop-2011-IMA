@@ -720,6 +720,28 @@ gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
      )
 
 
+pairMarkov Graph := List => (G) -> (
+     -- given a graph G, returns a list of triples {A,B,C}
+     -- where A,B,C are disjoint sets of the form:
+     -- for all non-edges {i,j}:  {i,j, all other vertices} 
+     removeRedundants flatten apply(sort vertices G, v -> (
+     	  apply(toList nonneighbors(G,v), non-> (
+		    {set {v}, set {non}, set vertices G - set {v} - set {non}}
+		    )
+	       )
+	  )
+     )
+)
+
+localMarkov Graph := List =>  (G) -> (
+     -- Given a digraph G, return a list of triples {A,B,C}
+     -- of the form {v, nonneighbors of v, all other vertices }
+     removeRedundants apply(sort vertices G, v -> (
+	   {set {v}, nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
+		    )
+	       )
+	  )
+ 
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
 

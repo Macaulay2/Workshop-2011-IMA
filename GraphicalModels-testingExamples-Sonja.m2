@@ -42,7 +42,11 @@ m=R#numberOfEliminationVariables
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R=gaussianRing G 
 
+ pairMarkov G
+localMarkov G 
 
+
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
 ------------------------------------------------------------
 ---gaussianMatrices:
 --needs to be able to only take as input only a ring R and a set of CI statements S, 

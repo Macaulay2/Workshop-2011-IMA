@@ -267,8 +267,9 @@ isPrimaryZeroDim I
 restart
 load "newGTZ.m2"
 debug newGTZ
-R = QQ[a,b,c]
-I = ideal apply(1 .. 3, i -> random(3,R))
+R = QQ[a,b,c,d]
+I = ideal apply(1 .. 4, i -> random(3,R))
+time(isPrimaryZeroDim I)
 ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 ///
 
@@ -304,12 +305,13 @@ isPrimaryZeroDim(Ideal) := (I) ->
    G := flatten entries gens gb J;
    gs := getVariablePowerGenerators(G,fiberVars);
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
-   areLinearPowers(G,gs,fiberVars)
+   getLinearPowers(G,gs,fiberVars)
 )
 
 -- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
-areLinearPowers = method()
-areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
+-- Should return the linear powers that appear in GTZ Prop 7.3 (or DGP algorithm 8, pg 11)
+getLinearPowers = method()
+getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 (
 --   all apply(take(gs,#gs-1),1..(#gs-1),(g,i) -> isLinearPower(G,g,i,fiberVars)))
   R := ring first G;
@@ -329,9 +331,9 @@ areLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 									   monomialIndices := select(#(flatten entries mons), i -> degree(xi,(flatten entries mons)#i) == deggi-1);
 									   -- reconstruct coeff of xi^(deggi-1) from the indices
 									   degGiMinusOneCoeff := (sum apply(monomialIndices, i -> (flatten entries mons)#i*(flatten entries coeffs)#i)) // xi^(deggi-1);
-									   testGi := (xi + deggi^(-1)*degGiMinusOneCoeff)^deggi;
-									   if (testGi != gi) then error "Not a linear power!";
-									   newI := ideal S + sub(testGi,Q);
+									   testHi := (xi + deggi^(-1)*degGiMinusOneCoeff);
+									   if (testHi^(deggi) != gi) then error "Not a linear power!";
+									   newI := ideal S + sub(testHi,Q);
 									   S = Q/newI;
 									   testGi));
   linearFactorList = reverse linearFactorList;

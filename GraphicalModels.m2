@@ -671,7 +671,7 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
 -----------------------------------------
 -- Gaussian undirected graphs  --
 -----------------------------------------
--- 26JULY2011 
+-- 27JULY2011 
 
 gaussianRing Graph := Ring => opts -> (g) -> (
     bb := graph g;

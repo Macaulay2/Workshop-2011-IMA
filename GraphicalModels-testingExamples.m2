@@ -39,6 +39,7 @@ numgens I
 m=R#numberOfEliminationVariables
 
 
+
 ------------------------------------------------------------
 ---gaussianMatrices:
 --needs to be able to only take as input only a ring R and a set of CI statements S, 

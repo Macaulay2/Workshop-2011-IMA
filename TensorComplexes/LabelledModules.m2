@@ -1,6 +1,6 @@
 -- -*- coding: utf-8 -*-
 --------------------------------------------------------------------------------
--- Copyright 2011  Gregory G. Smith
+-- Copyright 2011  Daniel Erman
 --
 -- This program is free software: you can redistribute it and/or modify it under
 -- the terms of the GNU General Public License as published by the Free Software
@@ -19,7 +19,7 @@ newPackage(
   "LabelledModules",
   AuxiliaryFiles => false,
   Version => "1.0",
-  Date => "26 July 2011",
+  Date => "27 July 2011",
   Authors => {
     {
       Name => "Daniel Erman", 
@@ -32,7 +32,10 @@ newPackage(
     {
       Name => "Gregory G. Smith", 
       Email => "ggsmith@mast.queensu.ca", 
-      HomePage => "http://www.mast.queensu.ca/~ggsmith"}},
+      HomePage => "http://www.mast.queensu.ca/~ggsmith"},
+    {
+      Name => "Dumitru Stamate", 
+      Email => "dumitru.stamate@fmi.unibuc.ro"}},
   Headline => "multilinear algebra with labelled bases",
   DebuggingMode => true
   )
@@ -60,7 +63,7 @@ LabelledModule.synonym = "free module with labelled basis"
 labelledModule = method(TypicalValue => LabelledModule)
 labelledModule Module := M -> (
   if not isFreeModule M then error "expected a free module";
-  L := apply(rank M, i -> {i});
+  L := apply(rank M, i -> i);
   new LabelledModule from {
     symbol module => M,
     symbol underlyingModules => {},
@@ -70,7 +73,7 @@ labelledModule Ring := S -> (
   new LabelledModule from {
     symbol module => S^1,
     symbol underlyingModules => {},
-    symbol basisList => {{0}},
+    symbol basisList => {0},
     symbol cache => new CacheTable})
 
 net LabelledModule := E -> net module E
@@ -89,7 +92,7 @@ basisList LabelledModule := E -> E.basisList
 fromOrdinal = method(TypicalValue => List)
 fromOrdinal(ZZ, LabelledModule) := (i, E) -> (basisList E)#i
 toOrdinal = method(TypicalValue => ZZ)
-toOrdinal(List, LabelledModule) := (l, E) -> (
+toOrdinal(Thing, LabelledModule) := (l, E) -> (
   position(basisList E, j -> j === l))
 
 LabelledModule == LabelledModule := (E,F) -> (
@@ -102,7 +105,6 @@ exteriorPower (ZZ, LabelledModule) := options -> (d,E) -> (
   r := rank E;
   if d < 0 or d > r then labelledModule S^0
   else if d === 0 then labelledModule S^1
-  else if d === 1 then E
   else new LabelledModule from {
       symbol module => S^(binomial(rank E, d)),
       symbol underlyingModules => {E},
@@ -118,7 +120,6 @@ symmetricPower (ZZ, LabelledModule) := (d,E) -> (
   S := ring E;
   if d < 0 then labelledModule S^0
   else if d === 0 then labelledModule S^1
-  else if d === 1 then E
   else new LabelledModule from {
     symbol module => (ring E)^(binomial(rank E + d - 1, d)),
     symbol underlyingModules => {E},
@@ -128,7 +129,7 @@ symmetricPower (ZZ, LabelledModule) := (d,E) -> (
 productList = L -> (
   n := #L;
   if n === 0 then {}
-  else if n === 1 then L
+  else if n === 1 then apply(L#0, i -> {i})
   else if n === 2 then flatten table(L#0, L#1, (i,j) -> {i} | {j})
   else flatten table(productList drop(L,-1), last L, (i,j) -> i | {j}))
 
@@ -137,14 +138,14 @@ tensorFold List := L -> (
   n := #L;
   if n < 1 then error "-- expected a nonempty list";
   S := ring L#0;
-  if n === 1 then labelledModule S^1
+  if n === 0 then labelledModule S^0
   else (
     if any(L, l -> ring l =!= S) then error "-- expected modules over the same ring";
     new LabelledModule from {
-    symbol module => S^(product apply(L, l -> rank l)),
-    symbol underlyingModules => L,
-    symbol basisList => productList apply(L, l -> basisList l),
-    symbol cache => new CacheTable}))
+      symbol module => S^(product apply(L, l -> rank l)),
+      symbol underlyingModules => L,
+      symbol basisList => productList apply(L, l -> basisList l),
+      symbol cache => new CacheTable}))
 LabelledModule ** LabelledModule := LabelledModule => (E,F) -> tensorFold {E,F}
 tensor(LabelledModule,LabelledModule) := options -> (E,F) -> tensorFold {E,F}
 
@@ -214,13 +215,13 @@ document {
 TEST ///
 S = ZZ/101[a,b,c];
 E = labelledModule S^4
-assert(basisList E  == apply(4, i -> {i}))
+assert(basisList E  == apply(4, i -> i))
 assert(underlyingModules E == {})
 assert(module E == S^4)
-assert(fromOrdinal(2,E) == {2})
-assert(toOrdinal({1},E) == 1)
+assert(fromOrdinal(2,E) == 2)
+assert(toOrdinal(1,E) == 1)
 F = labelledModule S
-assert(basisList F == {{0}})
+assert(basisList F == {0})
 assert(rank F == 1)
 F' = labelledModule S^0
 assert(basisList F' == {})
@@ -234,7 +235,7 @@ E = exteriorPower(2,F)
 assert(rank E == 6)
 assert(#basisList E == 6)
 assert(exteriorPower(0,E) == labelledModule S^1)
-assert(exteriorPower(1,E) == E)
+assert(basisList exteriorPower(1,E) == apply(basisList E, i -> {i}))
 assert(exteriorPower(-1,E) == labelledModule S^0)
 E' = exteriorPower(2,E)
 assert(#basisList E' == 15)
@@ -248,11 +249,11 @@ S = ZZ/101[a,b,c];
 F = labelledModule S^4
 E = symmetricPower(2,F)
 assert(#basisList E == binomial(4+2-1,2))
-assert(toOrdinal({{0},{3}},E) == 6)
-assert(fromOrdinal(7,E) == {{1},{3}})
+assert(toOrdinal({0,3},E) == 6)
+assert(fromOrdinal(7,E) == {1,3})
 assert(symmetricPower(0,E) == labelledModule S^1)
 assert(symmetricPower(-1,E) == labelledModule S^0)
-assert(symmetricPower(1,E) == E)
+assert(basisList symmetricPower(1,E) == apply(basisList E, i -> {i}))
 ///
 
 -- test 3
@@ -272,8 +273,8 @@ F = tensorFold {labelledModule S^1, F2}
 assert(F != F2)
 assert((underlyingModules F)#0 == labelledModule S^1)
 assert((underlyingModules F)#1 == F2)
-assert(toOrdinal({{0},{1}}, F) == 1)
-assert(fromOrdinal(5,E) == {{0},{1},{0}})
+assert(toOrdinal({0,1}, F) == 1)
+assert(fromOrdinal(5,E) == {0,1,0})
 ///
 
 -- test 4
@@ -282,6 +283,18 @@ S = ZZ/101[a,b,c];
 F = labelledModule S^2
 assert(symmetricMultiplication(F,1,1) == matrix{{1_S,0,0,0},{0,1,1,0},{0,0,0,1}})
 assert(symmetricMultiplication(F,2,1) == 0)
+///
+
+-- test 5
+TEST ///
+S = ZZ/101[a,b,c];
+F2 = labelledModule S^2;
+F3 = labelledModule S^3;
+F5 = labelledModule S^5;
+F30 = tensorFold {F2,F3,F5}
+assert(rank cauchyMap(2,F30) == 90)
+F2' =  tensorFold {F2, labelledModule S^1}
+assert(cauchyMap(1,F2') == id_(S^2))
 ///
 
 end
@@ -294,14 +307,5 @@ uninstallPackage "LabelledModules"
 installPackage "LabelledModules"
 check "LabelledModules"
 
-S = ZZ/101[a,b,c];
-F2 = labelledModule S^2;
-F3 = labelledModule S^3;
-F5 = labelledModule S^5;
-F30 = tensorFold {F2,F3,F5}
-F2' =  tensorFold {F2, labelledModule S^1}
-cauchyMap(1,F2')
-cauchyMap(2,F30)
 
 
-  

@@ -348,11 +348,13 @@ makeCauchy(ZZ,Module) := (b,E)->(
 	  --produces the map
 	  --wedge^b(E) -> wedge^b(E0) ** Sym^b E1 ** Sym^b E2 ** ...
      sour := makeExteriorPower(E,b);
+     << basisList sour << endl;
      L := underlyingModules E;
      L10 := {makeExteriorPower(L_0,b)};
      L11 := apply(#L-1, j-> makeSymmetricPower(L_(j+1), b));
      L1 := L10 | L11;
      tar := makeTensorProduct L1;
+     << basisList tar << endl;
      M := mutableMatrix(ring E, rank tar, rank sour);
      j := {};
      scan(basisList sour, i->(
@@ -377,6 +379,9 @@ F5 = S^5
 F = makeTensorProduct{F2,F3,F5} --{F2,F3}
 FF = makeTensorProduct{F2,S^1}
 makeCauchy(1,FF)
+U = underlyingModules FF
+basisList U#0
+basisList U#1
 makeCauchy(2,F)
 rank oo
 ///

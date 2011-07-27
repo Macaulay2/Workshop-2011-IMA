@@ -291,13 +291,11 @@ makeSymmetricMultiplication = method()
 makeSymmetricMultiplication(Module,ZZ, ZZ) := (F, d,e) ->(
      --make the map Sym^d(F)\otimes Sym^e F \to Sym^(d+e) F
      --Caveat: for large examples it would probably be better to make this as a sparse matrix!
+     S := ring F;
      Sd := makeSymmetricPower(F,d);
      Se := makeSymmetricPower(F,e);
      Sde := makeSymmetricPower(F,d+e);
      SdSe := makeTensorProduct{Sd,Se};
-     
---     toMonomial := (M,I)->multisetToMonomial(basisList((underlyingModules M)#0),I);
---     error();
      map(Sde,SdSe , (i,j) -> if
        (fromOrdinal Sde)i == sort flatten ((fromOrdinal SdSe)j)
             		    then 1_S else 0_S
@@ -407,7 +405,6 @@ flattenedGenericTensor = (L,kk)->(
      f := map(Btotal,B_0,(i,j)->(
 	       x_(toSequence( {(fromOrdinal B_0)(j)}|(fromOrdinal Btotal)(i)))
 	       ))
---     return {PHI,S}
      );
 
 isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
@@ -523,103 +520,51 @@ tensorComplex1(Ring, Matrix) := (S,f) ->(
      ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12
      )
 
+EN=(a,c) -> (f:=flattenedGenericTensor({a,c}|apply(a-c, i-> 1),kk);
+	     f1 := tensorComplex1(ring f,f);
+	     betti res coker f1)
 
+tensorComplex = (L,kk) -> (
+     --L a list of integers;
+     --fails unless L_0 = sum_{1..#L-1} L_i
+     --returns balanced tensor complex of type L over the ground field kk
+     f:=flattenedGenericTensor(L, kk);
+     res coker (tensorComplex1(ring f, f)))
+     
+tc = (D,kk)->(
+     --produces pure resolution of type (0,D_0, D_1, ...)
+     L := {last D,first D}|apply(#D-1, i->D_(i+1)-D_i);
+     tensorComplex(L,kk))
+     
 ///
+
 restart
 path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "TensorComplexes.m2"
 kk=ZZ/101
+tc({2,4,5},kk)
+
+EN(7,3)
 --f=flattenedGenericTensor({7,1,2,1,2,1},kk)
 --f=flattenedGenericTensor({7,2,2},kk)
 f=flattenedGenericTensor({5,2,2,1},kk)
 f=flattenedGenericTensor({4,2,2},kk)
-f=flattenedGenericTensor({6,2,2,2},kk)
+--f=flattenedGenericTensor({6,2,2,2},kk) --too big for the air
 f=flattenedGenericTensor({6,1,2,1,2},kk)
 --f=flattenedGenericTensor({8,2,2,2,2},kk)
-S=ring f
-timing f1 = tensorComplex1(S,f)
+f=flattenedGenericTensor({6,2,1,1,1,1},kk)
+S=ring f;
+f1 = tensorComplex1(ring f,f);
+f1 = tensorComplex1(S,f);
+betti res coker f1
+f=flattenedGenericTensor({6,2}|apply(4, i-> 1),kk);
+EN(6,2)
+
+g1 = leadTerm f1
+betti res coker g1
+codim coker g1
 betti res coker f1
 ///
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -710,6 +710,14 @@ allMultiDegreesLessThan = d -> (
 --------------------------------
 -- Face Poset
 --------------------------------
+
+--Internal test function for facePoset:
+testmax = method();
+
+testmax(List):=Boolean=>(L)->(
+     min apply(L, j->#j) > 1
+     )
+
 facePoset=method();
 
 facePoset(SimplicialComplex):=Poset=>(D)->(
@@ -754,7 +762,8 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) ->(
 cleanName=(name)->(
      namep:=replace("\\}","",replace("\\{","",toString name));
      nameb:=replace("\\(","",replace("\\)","",namep));
-     replace("\\_","",replace("\\*","",nameb))
+     namec:=replace("\\_","",replace("\\*","",nameb));
+     replace(", ","-",namec)
      )
 
 texPoset = method(Options => {symbol SuppressLabels => true});

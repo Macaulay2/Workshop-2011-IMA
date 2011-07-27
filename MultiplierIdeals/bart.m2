@@ -60,7 +60,7 @@ exceptionalDivisorValuation = (nn,mm,p) -> (
      n*ord(mm,ff_1) + ord(mm,p)
      );
 
-km = (mm,ff) -> sum mm -1 + ord(mm, ff_1) - ord(mm, ff_0);
+km = (mm,ff) -> sum(mm) - 1 + ord(mm, ff_1) - ord(mm, ff_0);
 
 
 
@@ -121,7 +121,43 @@ termIdeal = I -> monomialIdeal flatten apply(flatten entries gens I, i -> terms 
 -- the saturate command, but in the future there may be a better
 -- option.
 
-symbolicPowerCurveIdeal = (I,t) -> saturate(I^(floor t));
+symbolicPowerCurveIdeal = (I,t) -> saturate(I^(max(0,floor t)));
+
+
+intersectionIndexSet = (ff) -> (
+     uu := {(exponents(ff_0))_0, (exponents(ff_1))_0};
+     vv := {(exponents(ff_0))_1, (exponents(ff_1))_1};
+     
+     cols := #(uu_0);
+     candidateGens1 := (normaliz(matrix{uu_0 - vv_0} || matrix{vv_0 - uu_0} || matrix{uu_1 - vv_1} || id_(ZZ^cols),4))#"gen";
+     candidateGens2 := (normaliz(matrix{uu_0 - vv_0} || matrix{vv_0 - uu_0} || matrix{vv_1 - uu_1} || id_(ZZ^cols),4))#"gen";
+     candidateGens  := candidateGens1 || candidateGens2;
+     rhoEquation    := (transpose matrix {uu_1-uu_0}) | (transpose matrix {vv_1-vv_0});
+     
+     T := candidateGens * rhoEquation;
+     rows := toList select(0..<numRows T, i -> all(0..<numColumns T, j -> T_(i,j) > 0));
+     unique apply(rows, i -> flatten entries candidateGens^{i})
+     );
+
+
+monomialSpaceCurveMultiplierIdeal = (R, nn, t) -> (
+     ff := sortedff(R,nn);
+     curveIdeal := affineMonomialCurveIdeal(R,nn);
+     
+     indexList := intersectionIndexSet(ff);
+     
+     
+     symbpow := symbolicPowerCurveIdeal(curveIdeal , t-1);
+     term    := monomialMultiplierIdeal(termIdeal(curveIdeal) , t);
+     
+     validl  := intersect apply(indexList , mm -> exceptionalDivisorValuationIdeal(R,ff,mm,floor(t*ord(mm,ff_1)-km(mm,ff))));
+     
+     intersect(symbpow,term,validl)
+     );
+
+-- intersect(Ideal,Ideal,Ideal) etc
+
+
 
 end
 

@@ -23,11 +23,11 @@ newPackage(
 )
 
 export { 
-  bertiniSolve
---  sharpenSolutions,
---  trackPaths,
---  gamma,
---  tDegree
+  bertiniZeroDimSolve,
+  bertiniPosDimSolve,
+  bertiniSample,
+  bertiniComponentMemberTest,
+  bertiniRefineSols
   }
 
 --protect ErrorTolerance, protect addSlackVariables, protect Iterations,
@@ -59,17 +59,61 @@ needsPackage "SimpleDoc"
 -- need to include proper attribution each time Bertini is run...how to do???
 -- (license calls for a line in the output that states which Bertini version was used)
 
+
+-- The following five methods are just front ends for various Bertini functions.
+-- Each just calls bertiniSolve() with the appropriate input data and toggle (corresp. to the type of run).
+-- bertiniSolve then does all the work of building the input file, calling bertini, and calling the appropriate output parser. 
+
+bertiniZeroDimSolve = method(TypicalValue => List)
+bertiniZeroDimSolve (List,HashTable) := List => (F,o) -> (  
+--F is the list of polynomials; o is the hash table of options.
+         bertiniSolve(F,0,o)
+         ) 
+
+bertiniPosDimSolve = method(TypicalValue => List)
+bertiniPosDimSolve (List,HashTable) := List => (F,o) -> (  
+--F is the list of polynomials; o is the hash table of options.
+         bertiniSolve(F,1,o)
+         ) 
+
+bertiniSample = method(TypicalValue => List)
+bertiniSample (List,ZZ,ZZ,HashTable) := List => (F,dim,compnum,o) -> (  
+--F is the list of polynomials; o is the hash table of options.
+         bertiniSolve(F,2,o)
+         ) 
+
+bertiniComponentMemberTest = method(TypicalValue => List)
+bertiniComponentMemberTest (List,List,HashTable) := List => (F,pts,o) -> (  
+--F is the list of polynomials; o is the hash table of options.
+         bertiniSolve(F,3,o)
+         ) 
+
+bertiniRefineSols = method(TypicalValue => List)
+bertiniRefineSols (List,List,RR,HashTable) := List => (F,pts,tol,o) -> (  
+--F is the list of polynomials; o is the hash table of options.
+         bertiniSolve(F,4,o)
+         ) 
+
+
+
 bertiniSolve = method(TypicalValue => List)
-bertiniSolve (List) := List => (F) -> (  -- F is the list of polynomials; o is the hash table of options.
+
+-- Can probably delete the following version in a moment:
+--bertiniSolve (List) := List => (F) -> (  -- F is the list of polynomials; o is the hash table of options.
+--  	  dir := makeBertiniInput F;  -- creates the input file 
+--  	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+--	  readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+--	  )
+
+bertiniSolve (List,ZZ,HashTable) := List => (F,n,o) -> (  -- F is the list of polynomials; o is the hash table of options.
   	  dir := makeBertiniInput F;  -- creates the input file 
   	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
 	  readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
-	  )
-
-
-bertiniSolve (List,HashTable) := List => (F,o) -> (  -- F is the list of polynomials; o is the hash table of options.
-  bertiniSolve F
+--  Can probably delete the following line in a moment:
+--  bertiniSolve F
   )
+
+
 
 -- DAN PLAN (7/26/11)
 --   build several user-accessible front ends (bertiniX, with X=ZerodimSolve, PosdimSolve, ComponentSample, ComponentMembershipTest, RefineEndpoints, etc.)
@@ -239,31 +283,31 @@ beginDocumentation()
 --      solns = bertiniSolve(F)
 --///;
 
-doc ///
-  Key 
-    bertiniSolve
-    (bertiniSolve,List)
-    (bertiniSolve,List,HashTable)
-  Headline
-    temporarily a method for doing a zero-dimensional Bertini run, soon to be deprecated
-  Usage
-    S = bertiniSolve F
-  Inputs
-    F:List
-      whose entries are polynomials (system need not be square) 
-  Outputs
-    S:List
-      whose entries are the solutions found by Bertini, with junk points removed if system is not square
-  Description
-    Text
-      For now, this function simply builds a Bertini style input file from F and calls Bertini on 
-      this input file.  Solutions are currently pulled from machine readable file finitesolutions
-      and returned as a list.
-    Example
-      R = CC[x,y]
-      F = {x^2-1,y^2-1}
-      S = bertiniSolve F
-///;
+--doc ///
+--  Key 
+--    bertiniSolve
+--    (bertiniSolve,List)
+--    (bertiniSolve,List,HashTable)
+--  Headline
+--    temporarily a method for doing a zero-dimensional Bertini run, soon to be deprecated
+--  Usage
+--    S = bertiniSolve F
+--  Inputs
+--    F:List
+--      whose entries are polynomials (system need not be square) 
+--  Outputs
+--    S:List
+--      whose entries are the solutions found by Bertini, with junk points removed if system is not square
+--  Description
+--    Text
+--      For now, this function simply builds a Bertini style input file from F and calls Bertini on 
+--      this input file.  Solutions are currently pulled from machine readable file finitesolutions
+--      and returned as a list.
+--    Example
+--      R = CC[x,y]
+--      F = {x^2-1,y^2-1}
+--      S = bertiniSolve F
+--///;
 
 
 

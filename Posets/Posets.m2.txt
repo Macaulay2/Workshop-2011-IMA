@@ -2,86 +2,56 @@ needsPackage("Posets", FileName=>"/home/math dept/workshops/IMA-2011/Posets/Pose
 --needsPackage"Posets"
 
 
--- TODO: Needs simplification!
-gradePoset = method();
-gradePoset (Poset) := P->(
-	--if not isGraded P then error"P must be graded";
-	Q:=P;
-	counter:=1;
-	L:={};
-	n:=max apply(maximalChains P, c->#c);
-	M:=maximalChains P;
-	for i to #M-1 do (
-		if #M_i==n then {
-			L=append(L,M_i)
-		};
-	);
-	C:=coveringRelations(P);
-	J:=apply(max apply(L,c->#c), d -> unique for c in L list if c#?d then c#d else continue);
-	while #(flatten J) < #P.GroundSet do(
-	if counter != 0 then{
-	counter = 0;
-	for i to #C-1 do(
-		if member(C_i_0,flatten J) then{
-			if member(C_i_1,flatten J)==false then{
-				for j to #J-1 do(
-					if member(C_i_0,J_j) then{
-						J=replace(j+1,append(J_(j+1),C_i_1),J);
-						counter = counter+1;
-					};
-				);
-			};
-		};
-		if member(C_i_0,flatten J)==false then{
-			if member(C_i_1,flatten J) then{
-				for j to #J-1 do(
-					if member(C_i_1,J_j) then{
-						J=replace(j-1,append(J_(j-1),C_i_0),J);
-						counter = counter +1;
-					};
-				);
-			};
-		};
-	);
-	}else{
-		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));print Q;
-		C=coveringRelations(Q);
-		L={};
-		n=max{max apply(maximalChains Q, c->#c),0};--might fail
-		M=maximalChains Q;
-		for i to #M-1 do (
-			if #M_i==n then {
-				L=append(L,M_i)
-			};
-		);
-		for i to n-1 do(
-			J=replace(i,flatten append(J_i,apply(L,c->c_i)),J);
-		);
-		counter=1;
-	}; 
-	);
-	J
-);
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-mergePoset = method();
-mergePoset (Poset,Poset):=(P,Q)->(
-	poset(unique flatten {P.GroundSet,Q.GroundSet},unique flatten {P.Relations,Q.Relations})
-);
-
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 distributivePoset = method();
 distributivePoset (Poset):=P->(
-	L:={};
-	
+	L:=apply(subsets(P.GroundSet),i->i);
+	G:={};
+	J:={};
+	R:={};
+	K:={};
+	--Q:=poset(flatten {P.GroundSet,0^}
+	for i to #L-1 do(
+		for j to #L_i-1 do (
+			K=append(K,apply(minimalElements P, p->closedInterval(P,p,L_i_j)));
+		);
+		if K != {} then{
+		for k to #K-1 do(
+			if k == 0 then{
+				Q=first K_0;
+			};
+			Q=mergePoset(Q,first K_k);
+		);
+		J=append(J,Q);
+		};
+		K={};
+	);  
+	for i to #J-1 do(
+		if not member(sort (J_i).GroundSet,G) then{
+			G=append(G,sort (J_i).GroundSet);
+		};
+	);
+	J=apply(G,j->subPoset(P,j));
+	for i to #G-1 do(
+		for j to #G-1 do(
+			if j!=i then{	
+			if isSubset(G_i,G_j) then{
+				R=append(R,(G_i,G_j));
+			};
+			};
+		);
+	);
+	POI:=poset(G,R);
+	POI.cache.OriginalPoset=P;
+	POI	
 );
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 R=QQ[x_1..x_100];
-P=poset({x_1,x_2,x_3,x_4},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4)})
-Q=poset({x_1,x_2,x_3,x_4,x_5,x_6,x_7,x_8},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4),(x_5,x_6),(x_6,x_8),(x_7,x_8)})
-L=poset({x_5,x_6,x_7,x_8},{(x_5,x_6),(x_6,x_8),(x_7,x_8)})
-H=poset({x_1,x_2,x_9},{(x_1,x_2),(x_2,x_9)})
+P=poset({x_1,x_2,x_3,x_4},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4)});
+Q=poset({x_1,x_2,x_3,x_4,x_5,x_6,x_7,x_8},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4),(x_5,x_6),(x_6,x_8),(x_7,x_8)});
+L=poset({x_5,x_6,x_7,x_8},{(x_5,x_6),(x_6,x_8),(x_7,x_8)});
+H=poset({x_1,x_2,x_9},{(x_1,x_2),(x_2,x_9)});

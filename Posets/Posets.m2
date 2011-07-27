@@ -28,6 +28,7 @@ export {
     posetDiamondProduct, 
     posetProduct, 
     comparabilityGraph,
+    gradePoset,
 --     FullRelationMatrix,
 	RelationMatrix,
 	compare,
@@ -61,7 +62,8 @@ export {
 	texPoset,
 	outputTexPoset,
 	displayPoset,
-	SuppressLabels
+	SuppressLabels,
+    PDFViewer
        }
 
 needsPackage "SimplicialComplexes"
@@ -134,7 +136,6 @@ isGraded Poset := P -> (
     P.cache.isGraded = all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true))
 );
 
--- Caveat!  Does not verify the Poset is a Lattice...
 gradeLattice = method();
 gradeLattice Poset := P -> (
 	if not isGraded P then error "P must be graded";
@@ -147,6 +148,66 @@ gradeLattice Poset := P -> (
 dualPoset = method();
 dualPoset Poset := P -> poset(P.GroundSet, P.Relations/reverse);
 
+-- TODO: Needs simplification!
+gradePoset = method();
+gradePoset (Poset) := P->(
+	--if not isGraded P then error"P must be graded";
+	Q:=P;
+	counter:=1;
+	L:={};
+	n:=max apply(maximalChains P, c->#c);
+	M:=maximalChains P;
+	for i to #M-1 do (
+		if #M_i==n then {
+			L=append(L,M_i)
+		};
+	);
+	C:=coveringRelations(P);
+	J:=apply(max apply(L,c->#c), d -> unique for c in L list if c#?d then c#d else continue);
+	while #(flatten J) < #P.GroundSet do(
+	if counter != 0 then{
+	counter = 0;
+	for i to #C-1 do(
+		if member(C_i_0,flatten J) then{
+			if member(C_i_1,flatten J)==false then{
+				for j to #J-1 do(
+					if member(C_i_0,J_j) then{
+						J=replace(j+1,append(J_(j+1),C_i_1),J);
+						counter = counter+1;
+					};
+				);
+			};
+		};
+		if member(C_i_0,flatten J)==false then{
+			if member(C_i_1,flatten J) then{
+				for j to #J-1 do(
+					if member(C_i_1,J_j) then{
+						J=replace(j-1,append(J_(j-1),C_i_0),J);
+						counter = counter +1;
+					};
+				);
+			};
+		};
+	);
+	}else{
+		Q=subPoset(Q,select(P.GroundSet,p->not member(p,flatten J)));print Q;
+		C=coveringRelations(Q);
+		L={};
+		n=max{max apply(maximalChains Q, c->#c),0};--might fail
+		M=maximalChains Q;
+		for i to #M-1 do (
+			if #M_i==n then {
+				L=append(L,M_i)
+			};
+		);
+		for i to n-1 do(
+			J=replace(i,flatten append(J_i,apply(L,c->c_i)),J);
+		);
+		counter=1;
+	}; 
+	);
+	J
+);
 ----------------------------------------------------------------------------------
 -- NORMAL CODE
 ----------------------------------------------------------------------------------
@@ -761,13 +822,14 @@ outputTexPoset(Poset,String):= opts -> (P,name)->(
      get name   
      )
 
-displayPoset=method(Options => { symbol SuppressLabels => true })
+displayPoset=method(Options => { symbol SuppressLabels => true, symbol PDFViewer => "open" })
 
 displayPoset(Poset):=opts->(P)->(
+    if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
      name:=temporaryFileName();
-     outputTexPoset(P,concatenate(name,".tex"),opts);
+     outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
      run concatenate("pdflatex ",name);
-     run concatenate("open ", replace("/tmp/","",name),".pdf");
+     run concatenate(opts.PDFViewer, " ", replace("/tmp/","",name),".pdf");
      )
 
 -----------------------------------

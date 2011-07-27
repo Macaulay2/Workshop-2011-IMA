@@ -443,6 +443,13 @@ Description
 
 end
 
+
+
+restart
+installPackage"SpaceCurvesMultiplierIdeals"
+viewHelp SpaceCurvesMultiplierIdeals
+
+
 restart
 debug loadPackage"SpaceCurvesMultiplierIdeals"
 loadPackage "Dmodules"
@@ -466,12 +473,48 @@ test = (t) -> (
      );
      );
 
-t = 20/7
-t = 31/14
-t = 17/6
-test(t)
+test(20/7)
+test(31/14)
+test(17/6)
+
+
 
 
 restart
-installPackage"SpaceCurvesMultiplierIdeals"
-viewHelp SpaceCurvesMultiplierIdeals
+debug loadPackage"SpaceCurvesMultiplierIdeals"
+loadPackage "Dmodules"
+R = QQ[x,y,z];
+test = (nn,t) -> (
+     I := affineMonomialCurveIdeal(R,nn);
+     A := monomialSpaceCurveMultiplierIdeal(R,nn,t);
+     B := multiplierIdeal(I,t);
+     if ( A == B ) then (
+          print "ok";
+     ) else (
+          print "no";
+     );
+     );
+
+-- only use G={nn}, don't bother computing the rest of it
+quick = (R,nn,t) -> (
+     ff := sortedff(R,nn);
+     I := affineMonomialCurveIdeal(R,nn);
+     valnn := floor(t*ord(nn,ff_1)-exceptionalDivisorDiscrepancy(nn,ff));
+     
+     intersect {
+       symbolicPowerCurveIdeal(I,t-1),
+       exceptionalDivisorValuationIdeal(R,ff,nn,valnn)
+     }
+     );
+
+test2 = (nn,t) -> (
+     A := monomialSpaceCurveMultiplierIdeal(R,nn,t);
+     B := quick(R,nn,t);
+     if ( A == B ) then (
+          print "ok";
+     ) else (
+          print "no";
+     );
+     );
+
+(0..50) / (i -> (<< i; test2({2,3,5},i/7);));

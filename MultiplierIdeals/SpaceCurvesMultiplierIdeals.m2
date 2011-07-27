@@ -1,3 +1,33 @@
+-- -*- coding: utf-8 -*-
+--------------------------------------------------------------------------------
+-- Copyright 2007, 2011 Michael Stillman
+--
+-- This program is free software: you can redistribute it and/or modify it under
+-- the terms of the GNU General Public License as published by the Free Software
+-- Foundation, either version 3 of the License, or (at your option) any later
+-- version.
+--
+-- This program is distributed in the hope that it will be useful, but WITHOUT
+-- ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+-- FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+-- details.
+--
+-- You should have received a copy of the GNU General Public License along with
+-- this program.  If not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------------------
+
+newPackage(
+	"SpaceCurvesMultiplierIdeals",
+    	Version => "0.5", 
+    	Date => "July 27, 2011",
+    	Authors => {
+	     {Name => "Zach Teitler"},
+	     {Name => "Bart Snapp"},
+	     {Name => "Claudiu Raicu"}
+	     },
+    	Headline => "multiplier ideals of monomial space curves"
+    	)
+
 -- End functionality:
 -- input: ring, sequence of integers, and a real number
 -- output: multiplier ideal
@@ -15,6 +45,11 @@ needsPackage "Normaliz"
 needsPackage "MonomialMultiplierIdeals"
 --loadPackage("Normaliz", Reload=>true);
 --loadPackage("MonomialMultiplierIdeals", Reload=>true);
+
+export {
+     monomialSpaceCurveMultiplierIdeal    
+     }
+
 
 -- the code for affineMonomialCurveIdeal is based off of the code for
 -- monomialCurveideal
@@ -162,39 +197,8 @@ monomialSpaceCurveMultiplierIdeal = (R, nn, t) -> (
 end
 
 restart
-load "bart.m2"
-KK = ZZ/101;
-R = KK[x,y,z];	    
-nn = {3,4,5};
-ff = sortedff(R,nn);
-I = affineMonomialCurveIdeal(R,nn)
-mm = {1,1,1};
-exceptionalDivisorValuation(nn,mm,x^2+y^2+z^2)
-exceptionalDivisorValuationIdeal(R,ff,mm,4)
-
-uu = {(exponents(ff_0))_0, (exponents(ff_1))_0}
-vv = {(exponents(ff_0))_1, (exponents(ff_1))_1}
-
-(normaliz(matrix{uu_0 - vv_0},5))#"gen"
-Guu_1 = (normaliz(matrix{uu_0 - vv_0} || matrix{vv_0 - uu_0} || matrix{uu_1 - vv_1} || id_(ZZ^3),4))#"gen"
-Gvv_1 = (normaliz(matrix{uu_0 - vv_0} || matrix{vv_0 - uu_0} || matrix{vv_1 - uu_1} || id_(ZZ^3),4))#"gen"
-rho_u = transpose matrix {uu_1-uu_0} -- defining eqn of the ray (not rho from the paper)
-rho_v = transpose matrix {vv_1-vv_0} -- defining eqn of the ray (not rho from the paper)
-
-T = (Guu_1||Gvv_1)*(rho_u|rho_v)
-rows = toList select(0..<numRows T, i -> all(0..<numColumns T, j -> T_(i,j) > 0))
-unique apply(rows, i -> flatten entries (Guu_1||Gvv_1)^{i})
-
--- intersect(Ideal,Ideal,Ideal) etc
-
-
-
-
-
-
-
-restart
-load "bart.m2"
+--load "bart.m2"
+debug loadPackage"SpaceCurvesMultiplierIdeals"
 loadPackage "Dmodules"
 R = QQ[x,y,z];
 nn = {2,3,4};

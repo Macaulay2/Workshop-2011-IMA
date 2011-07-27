@@ -65,6 +65,9 @@ export {
 	texPoset,
 	outputTexPoset,
 	displayPoset,
+	texFacePoset,
+	outputTexFacePoset,
+	displayFacePoset,
 	SuppressLabels,
     PDFViewer
        }
@@ -265,6 +268,8 @@ compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
 --------------------------------------------------
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output: The minimal relations defining our poset
+--------------------------------------------------
+--This needs to have another nested sort somehow on the nodes...
 
 coveringRelations = method();
 coveringRelations Poset := P -> (
@@ -766,6 +771,9 @@ cleanName=(name)->(
      replace(", ","-",namec)
      )
 
+
+--coveringRelations breaks when nodes are labeled by lists!
+
 texPoset = method(Options => {symbol SuppressLabels => true});
 
 texPoset(Poset):= opts -> (P)->(
@@ -854,6 +862,102 @@ displayPoset(Poset):=opts->(P)->(
      run concatenate("pdflatex ",name);
      run concatenate(opts.PDFViewer, " ", replace("/tmp/","",name),".pdf");
      )
+
+--FacePosets aren't identifying chains well enough:
+FPCoveringRelations=(P)-> (
+     covrel:=coveringRelations P;
+     select(covrel, p -> #last p - # first p == 1)
+     )
+
+texFacePoset = method(Options => {symbol SuppressLabels => true});
+
+texFacePoset(Poset):= opts -> (P)->(
+     C:=maximalChains P;
+     edgelist:=apply(FPCoveringRelations(P), r-> concatenate(cleanName first r,"/",cleanName last r));
+     L:=max apply(C, c-> #c)-1;
+     heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+     protoH:=partition(g-> last g, heightpairs);
+     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+     levelsets:=apply(values H, v-> #v-1);
+     halflevelsets:=apply(levelsets, j-> j/2.0);
+     spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
+     name:=temporaryFileName();
+     fn:=openOut name;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
+     if opts.SuppressLabels then (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+	  )
+     else (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+     	  );
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
+     fn << "\\draw [-] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     close fn;
+     s:=get name;
+     removeFile name;
+     s
+     )
+
+outputTexFacePoset = method(Options => {symbol SuppressLabels => true});
+
+outputTexFacePoset(Poset,String):= opts -> (P,name)->(
+     C:=maximalChains P;
+     edgelist:=apply(FPCoveringRelations P, r-> concatenate(cleanName first r,"/",cleanName last r));
+     L:=max apply(C, c-> #c)-1;
+     heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+     protoH:=partition(g-> last g, heightpairs);
+     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+     levelsets:=apply(values H, v-> #v-1);
+     halflevelsets:=apply(levelsets, j-> j/2.0);
+     spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
+     fn:=openOut name;
+     fn << "\\documentclass[8pt]{article}"<< endl;
+     fn << "\\usepackage{tikz}" << endl;
+     fn << "\\begin{document}" << endl;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1.5, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
+     if opts.SuppressLabels then (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+	  )
+     else (
+     	  for i from 0 to L do (
+     	       for j from 0 to levelsets_i do (
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+     	       	    )
+     	       );
+     	  );
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
+     fn << "\\draw [-] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     fn << "\\end{document}" << endl;
+     close fn;
+     get name   
+     )
+
+displayFacePoset=method(Options => { symbol SuppressLabels => true, symbol PDFViewer => "open" })
+
+displayFacePoset(Poset):=opts->(P)->(
+    if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
+     name:=temporaryFileName();
+     outputTexFacePoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
+     run concatenate("pdflatex ",name);
+     run concatenate(opts.PDFViewer, " ", replace("/tmp/","",name),".pdf");
+     )
+
 
 -----------------------------------
 --Boolean Lattices

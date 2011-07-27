@@ -21,14 +21,14 @@ newPackage(
   Version => "1.0",
   Date => "27 July 2011",
   Authors => {
-    {
-      Name => "Daniel Erman", 
-      Email => "derman@math.stanford.edu", 
-      HomePage => "http://math.stanford.edu/~derman/"},
     {	 
       Name => "David Eisenbud", 
       Email => "de@msri.org", 
-      HomePage => "http://www.msri.org/~de/"},	     
+      HomePage => "http://www.msri.org/~de/"},
+    {
+      Name => "Daniel Erman", 
+      Email => "derman@math.stanford.edu", 
+      HomePage => "http://math.stanford.edu/~derman/"},	     
     {
       Name => "Gregory G. Smith", 
       Email => "ggsmith@mast.queensu.ca", 

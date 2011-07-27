@@ -1851,6 +1851,45 @@ doc///
    SeeAlso
      trekIdeal
 ///
+--------------------------------------------------------------------------------------
+--------New Documentations July 27--------------
+--------------------------------------------------------------------------------------
+
+--------------------------------------------
+-- Documentation undirectedEdgesMatrix------
+--------------------------------------------
+
+doc/// 
+   Key
+     undirectedEdgesMatrix
+     (undirectedEdgesMatrix,Ring,Graph)
+   Headline
+     the matrix corresponding to the edges of an undirected graph
+   Usage
+     W = undirectedEdgesMatrix(R,G)
+   Inputs
+     R:Ring
+       which should be a gaussianRing
+     G:Graph
+       undirected graph
+   Outputs
+     S:Matrix
+       the n x n symmetric matrix ... 
+   Description 
+     Text
+       Note that this matrix is symmetric in the symbols.
+     Example
+       G = graph({{a,b},{b,c},{c,d},{a,d}})
+       R = gaussianRing G
+       M = undirectedEdgesMatrix(R,G)
+   SeeAlso
+     gaussianRing
+     gaussianParametrization
+     covarianceMatrix
+     directedEdgesMatrix
+///
+
+--------------------------------------------------------------------------------------
 
 --------------------------
 ---- TESTS GO HERE! ------

@@ -962,7 +962,7 @@ end   -- terminate reading ...
 restart
 uninstallPackage "PHCpack"
 
-installPackage("PHCpack", RemakeAllDocumentation=>true, UserMode=>true,DebuggingMode => true)
+installPackage("PHCpack", RemakeAllDocumentation=>true, RerunExamples=>true, UserMode=>true,DebuggingMode => true)
 viewHelp PHCpack
 -- RerunExamples=>true,
 

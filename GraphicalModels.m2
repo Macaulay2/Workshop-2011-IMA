@@ -1962,6 +1962,57 @@ assert(I === J)
 --- TEST Gaussian Directed Graphical Models ---
 -----------------------------------------------
 
+-----------------------------------------------
+--- TESTs for undirected methods:--------------
+-----------------------------------------------
+
+-----------------------------------------------
+--- TEST gaussianRing--------------------------
+-----------------------------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R = gaussianRing G
+correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,b), k_(a,d),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}
+assert(0 == vars R - matrix correctOutput )
+///
+
+-----------------------------------------------
+--- TEST undirectedEdgesMatrix-----------------
+-----------------------------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
+M=undirectedEdgesMatrix(R,G)
+correctOutput = {{k_(a,a), k_(a,b), 0, k_(a,d)}, {k_(a,b), k_(b,b), k_(b,c),0}, {0, k_(b,c), k_(c,c), k_(c,d)}, {k_(a,d), 0, k_(c,d),k_(d,d)}}
+assert(0 == M - matrix correctOutput )
+///
+
+-----------------------------------------------
+--- TEST covarianceMatrix(R,G)-----------------
+-----------------------------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
+cov=covarianceMatrix(R,G)
+correctOutput = {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b),s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)},{s_(a,d), s_(b,d), s_(c,d), s_(d,d)}}
+assert(0 == cov - matrix correctOutput )
+///
+
+-----------------------------------------------
+--- TEST gaussianVanishingIdeal-----------------
+-----------------------------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
+I = gaussianVanishingIdeal (R,G)
+correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,d)+s_(a,b)*s_(b,d)*s_(c,d)+s_(a,c)*s_(b,b)*s_(d,d)-s_(a,b)*s_(b,c)*s_(d,d),s_(a,c)*s_(a,d)*s_(b,c)-s_(a,c)^2*s_(b,d)-s_(a,b)*s_(a,d)*s_(c,c)+s_(a,a)*s_(b,d)*s_(c,c)+s_(a,b)*s_(a,c)*s_(c,d)-s_(a,a)*s_(b,c)*s_(c,d), s_(a,b)*s_(a,d)*s_(b,d)*s_(c,c)-s_(a,a)*s_(b,d)^2*s_(c,c)-s_(a,c)*s_(a,d)*s_(b,b)*s_(c,d)+s_(a,a)*s_(b,c)*s_(b,d)*s_(c,d)+s_(a,c)^2*s_(b,b)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)*s_(d,d), s_(a,b)*s_(a,c)*s_(b,d)^2*s_(c,c)-s_(a,a)*s_(b,c)*s_(b,d)^2*s_(c,c)-s_(a,c)^2*s_(b,b)*s_(b,d)*s_(c,d)+s_(a,a)*s_(b,c)^2*s_(b,d)*s_(c,d)-s_(a,b)^2*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,a)*s_(b,b)*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,b)*s_(a,c)*s_(b,b)*s_(c,d)^2-s_(a,a)*s_(b,b)*s_(b,c)*s_(c,d)^2+s_(a,c)^2*s_(b,b)*s_(b,c)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)^2*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,b)*s_(c,c)*s_(d,d)+s_(a,b)^2*s_(b,c)*s_(c,c)*s_(d,d)}
+assert( I == ideal correctOutput)
+///
+
 ----------------------------
 --- TEST gaussianRing    ---
 ----------------------------

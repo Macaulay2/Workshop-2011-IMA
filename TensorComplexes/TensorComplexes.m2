@@ -295,10 +295,11 @@ makeSymmetricMultiplication(Module,ZZ, ZZ) := (F, d,e) ->(
      Se := makeSymmetricPower(F,e);
      Sde := makeSymmetricPower(F,d+e);
      SdSe := makeTensorProduct{Sd,Se};
-     toMonomial := (M,I)->multisetToMonomial(basisList((underlyingModules M)#0),I);
+     
+--     toMonomial := (M,I)->multisetToMonomial(basisList((underlyingModules M)#0),I);
 --     error();
      map(Sde,SdSe , (i,j) -> if
-       toMonomial(Sde,(fromOrdinal Sde)i) == toMonomial(SdSe,(fromOrdinal SdSe)j)
+       (fromOrdinal Sde)i == sort flatten ((fromOrdinal SdSe)j)
             		    then 1_S else 0_S
 	)
      )
@@ -315,6 +316,8 @@ kk = ZZ/101
 S = kk[a,b,c]
 makeSymmetricMultiplication(S^2, 1,1)
 makeSymmetricMultiplication(S^2, 2,1)
+makeSymmetricMultiplication(S^2, 2,0)
+makeSymmetricMultiplication(S^2, 0,7)
 d = 2;e=1;
 E=S^2
 F=makeTensorProduct{E,E}
@@ -470,64 +473,55 @@ twist(Module,ZZ) := (M,d) -> (
      E.cache.toOrdinal = M.cache.toOrdinal;
      E)
 
-prep = (S,intlist) ->apply(intlist , i->S^i)
+tensor(Matrix, Matrix) := Matrix => options -> (m,n) -> m**n;
 
---the following has a problem at the end (4/17/2011)
-TC1 = method()
-TC1(Ring, Matrix) := (S,f) ->(
+
+tensorComplex1 = method()
+tensorComplex1(Ring, Matrix) := (S,f) ->(
      --f: f: A --> B1** B2** ... Bn
      --makes the map G1 <- F1 as above.
      --if f is not balanced, we should  be doing something else (swimming)
      if not isBalanced f then error"map is not balanced";
-     B  = {S^0}|underlyingModules target f;
-     A = source f;
-     n = #B-1;
-     b = B/rank; -- {0, b1, b2,..,bn}
-     d = accumulate(plus,{0}|b); --{0, b1, b1+b2...}
---     wedgeb1A = makeExteriorPower(A,b_1);
-     L11 = {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
-     L12 = apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
-     F1 = makeTensorProduct(L11 | L12);
-
-     G11 = makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
-     T = makeTrace G11;
-     T**id_F1
-     )
-TC12 = method()
-TC12(Ring, Matrix) := (S,f) ->(
-     --f: f: A --> B1** B2** ... Bn
-     --makes the map G1 <- F1 as above.
-     --if f is not balanced, we should  be doing something else (swimming)
-     if not isBalanced f then error"map is not balanced";
-     B  = {S^0}|underlyingModules target f;
-     A = source f;
-     n = #B-1;
-     b = B/rank; -- {0, b1, b2,..,bn}
-     d = accumulate(plus,{0}|b); --{0, b1, b1+b2...}
---     wedgeb1A = makeExteriorPower(A,b_1);
-     L11 = {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
-     L12 = apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
-     F1 = makeTensorProduct(L11 | L12);
-
-     G11 = makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
-     T = makeTrace G11;
-     G1 = makeTensorProduct(target T, F1);
-     tc1=map(G1,F1,T**id_F1);
-     G1mods = flatten(((uM target T)|{F1})/uM);
-     perm=join({2*n-2, 2*n-1}, 
+     B := {S^0}|underlyingModules target f;
+     A := source f;
+     n := #B-1;
+     b := B/rank; -- {0, b1, b2,..,bn}
+     d := accumulate(plus,{0}|b); --{0, b1, b1+b2...}
+     L11 := {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
+     L12 := apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
+     F1 := makeTensorProduct(L11 | L12);
+     G11 := makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
+     T := makeTrace G11;
+     G1 := makeTensorProduct(target T, F1);
+     tc1 := map(G1,F1,T**id_F1);
+     G1mods := flatten(((uM target T)|{F1})/uM);
+     perm := join({2*n-2, 2*n-1}, 
 	         toList(0..n-2), 
 		 flatten apply(n-1, j->{j+n-1, j+2*n})
 		 );
-     H1 = makeTensorProduct G1mods;
-     H2 =  makeTensorProduct G1mods_perm;
-     permMatrix = mutableMatrix(S, rank H2, rank H1);
+     H1 := makeTensorProduct G1mods;
+     G2factors := G1mods_perm;
+     G2 := makeTensorProduct G2factors;
+     permMatrix := mutableMatrix(S, rank G2, rank H1);
      scan(basisList H1, 
 	  J -> 
-	  permMatrix_((toOrdinal H2) J_perm, (toOrdinal H1) J)=1
+	  permMatrix_((toOrdinal G2) J_perm, (toOrdinal H1) J)=1
      	  );
-     
-     permMap = map(H2, H1, matrix permMatrix) 
-	       )
+     permMap := map(G2, H1, matrix permMatrix);
+     tc12 := permMap*tc1;
+     G2A := G2factors_0;
+     G2L := makeTensorProduct G2factors_(toList(1..n));
+     G2R := makeTensorProduct G2factors_(toList(n+1..#G2factors-1));
+     TC3Rmatrix := fold(tensor, 
+	  apply (n-1, j-> makeSymmetricMultiplication(B_(j+2), b_1, d_(j+1)-b_1))
+	  );
+     TC3R := map (makeTensorProduct apply(n-1, j-> makeSymmetricPower(B_(j+2), d_(j+1))) ,G2R, TC3Rmatrix);
+     tpB := makeTensorProduct apply(n,i->B_(i+1));
+     tarTC3L := makeExteriorPower(tpB, b_1);
+     TC3L := map (tarTC3L, G2L, transpose makeCauchy(b_1, tpB));
+     TC4L := makeMinorsMap(f, makeTensorProduct(G2A, tarTC3L));
+     ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12
+     )
 
 
 ///
@@ -537,310 +531,95 @@ load "TensorComplexes.m2"
 kk=ZZ/101
 --f=flattenedGenericTensor({7,1,2,1,2,1},kk)
 --f=flattenedGenericTensor({7,2,2},kk)
+f=flattenedGenericTensor({5,2,2,1},kk)
+f=flattenedGenericTensor({4,2,2},kk)
 f=flattenedGenericTensor({6,2,2,2},kk)
+f=flattenedGenericTensor({6,1,2,1,2},kk)
 --f=flattenedGenericTensor({8,2,2,2,2},kk)
 S=ring f
-TC12(S,f);
-tc12 = oo;
-rank oo
-
-Ttar = target T
-blTtar = bL Ttar
-flatten (blTtar_0)
-Ttar1 = makeTensorProduct flatten((uM(Ttar))/uM)
-map(Ttar1,Ttar, (i,j) ->
-     if (fromOrdinal Ttar1) i == flatten ((fromOrdinal Ttar) j) then 1 else 0)
-((bL Ttar1)_0) == flatten ((bL Ttar)_0)
-
-Ttar2 = makeTensorProduct 
-           apply(n-1, i->
-		 makeTensorProduct{(uM Ttar1)_i, (uM Ttar1)_(n-1+i)})
-F1 = source tc1
-uM((uM F1)_1)
+timing f1 = tensorComplex1(S,f)
+betti res coker f1
 ///
 
 end
 
-     F0 = makeTensorProduct(
-	  for i from 2 to n list 
-	     makeSymmetricPower(B_i,d_(i-1)));
-     minorsf = gens minors(b#1, f);
-     wedgeb1Sourcef := makeExteriorPower(source f, b#1);
-     G3 = makeTensorProduct {wedgeb1A,wedgeb1Sourcef,F0};
-     F0G3 = map(F0,G3, (i,j) -> (
-	       i1 := (fromOrdinal F0)i;
-	       j1 := (fromOrdinal G3)j;
-	       detrownumbers := (toOrdinal A)(j1_0);
-	       detcolnumbers = (j1_1)/(toOrdinal source f);
---problem in the following lines:       
-               if (fromOrdinal F0)i == j1/(k->k_2) then
-	       det(f_detcols^detrows)*F0_i 
-	       else 0_F0)
-	  );
-     error""
-
-
-
-{*
-DtoTensor = method()
-DtoTensor (Module) := F -> (
-     --Assumes F = D^b G;
-     --returns map D^b G --> G\otimes...\otimes G.
-     G := (underlyingModules F)#0;
-     g := rank G;
-     b:=0;
-     while binomial(g+b-1,g)<rank F do b = b+1;
-     s := signs rank F;
-     P = permutations rank F;
-     tG := makeTensorProduct(splice{b:G});
-     map(tG,F,(i,j) -> )
-
-signs = n->(
-     --list the signs of the permutations, in the order they
-     --are produced by permuations n. SLOW for n>=7.
-          ZF := ZZ^n;
-          (permutations n)/(p-> det ZF_p))
-*}
-///
-restart
-path = append(path, "~/src/IMA-2011/TensorComplexes/")
-load "TensorComplexes.m2"
-signs 3
-
-time for n from 0 to 8 do print time (signs n;)
-kk = ZZ/101
-S = kk[a,b,c]
-F2 = S^2
-F = makeSymmetricPower(F2, 3)
-DtoTensor F
-///
-
-wedgeDToWedge = method()
-wedgeDToWedge (Module, Module) := (F,G) -> (
-     --requires 
-     -- F =  wedge^b F0 \otimes D^b(F1)
-     --and 
-     -- G = wedge^b(F0\otimes F1).
-     --creates the equivariant embedding F->G.
-     
-     --sort out the underlying modules and ranks
-     S := ring F;
-     rankF := rank F;
-     WbF0 := (underlyingModules F)#0;
-     wbf0 := rank WbF0;
-     F0 := (underlyingModules WbF0)#0;
-     f0 := rank F0;
-
-     DbF1 := (underlyingModules F)#1;
-     dbf1 := rank DbF1;
-     F1 := (underlyingModules DbF1)#0;
-     f1 := rank F1;     
-
-     F0F1 := (underlyingModules G)#0;
-
-     --find b
-     b := 0;     
-     while binomial(f1+b-1,b)<dbf1 do b = b+1;
-     
-     --check setup
-     if F0 != (underlyingModules F0F1)#0 then error"bad underlying module 0";
-     if F1 != (underlyingModules F0F1)#1 then error"bad underlying module 1";
-     if rank F0F1 != f0*f1 then error"bad module F0F1";     
-     if rank G != binomial(rank F0F1, b) then error"bad module G";
-     if rank WbF0 != binomial(f0,b) then error "bad module wedge b F0";     
-     if rank DbF1 != binomial(f1+b-1,b) then error "bad module DbF1";          
-     if rank F != binomial(f0,b) *binomial(f1+b-1,b) then error "bad module F";    
-
-     --make the map
---     I := id_(S^(binomial(f1,b)));
-	  
-     map(G,F,(i,j)->(
-     BG = (fromOrdinal G) i;
-     BF = (fromOrdinal F) j;
-     BG0 = BG/first; -- corresponds to an element of wedge^b F0
-     BG1 = BG/last; -- corresponds to an element of wedge^b F1
-     BF0 =  first BF; -- element of wedge^b F0
-     BF1 = last BF;-- corresponds to an element of D^b F1
-     if BG0 == BF0 and BF1 == sort BG1 then 1_S else 0_S))
-)
-
-
-///
---map of wedge^d A \otimes Sym^d B to wedge^d(A\otimes B).
-restart
-path = append(path, "~/src/IMA-2011/TensorComplexes/")
-load "TensorComplexes.m2"
-kk = ZZ/101
-S = kk[x,y,z]
-b = 2 
-r0=3
-r1 = 4
-
-test = (b, r0,r1) ->(
-F0 = S^r0;
-F1 = S^r1;
-WbF0 = makeExteriorPower(F0,b);
-DbF1 = makeSymmetricPower(F1, b);
-F = makeTensorProduct{WbF0, DbF1};
-G = makeExteriorPower(makeTensorProduct{F0,F1},b);
-print(rank F, rank G);
-time A = wedgeDToWedge(F,G);
-rank A == rank source A)
-
-test(3,5,3)
-
-///
-
-
---this could presumably be done faster by creating a sparse matrix and filling in where the 1's are.
---the number of 1's is 
--- binomial(f0, b) * (f1)^b (these correspond to a subset of the basis of G)
---while the number of elements of the matrix is 
---binomial(f0*f1,b)*binomial(f0,b)*binomial(f1+b-1, b).
-
-
-wedgeDToWedgeSparse = method()
-wedgeDToWedgeSparse (Module, Module) := (F,G) -> (
-     --requires 
-     -- F =  wedge^b F0 \otimes D^b(F1)
-     --and 
-     -- G = wedge^b(F0\otimes F1).
-     --creates the equivariant injection F -> G.
-     
-     --sort out the underlying modules and ranks
-     S := ring F;
-     rankF := rank F;
-     WbF0 := (underlyingModules F)#0;
-     F0 := (underlyingModules WbF0)#0;
-     f0 := rank F0;
-     wbf0 := rank WbF0;
-     DbF1 := (underlyingModules F)#1;
-     dbf1 := rank DbF1;
-     F1 := (underlyingModules DbF1)#0;
-     f1 := rank F1;     
-     F0F1 := (underlyingModules G)#0;
-     if F0 != (underlyingModules F0F1)#0 then error"bad modules";
-     if F1 != (underlyingModules F0F1)#1 then error"bad modules";     
-
-     --find b
-     b:=0;     
-     while binomial(f1+b-1,b)<dbf1 do b = b+1;
-     
-{*     map(G,F,(i,j)->(
-     BG = (fromOrdinal G) i;
-     BF = (fromOrdinal F) j;
-     BG0 = BG/first; -- corresponds to an element of wedge^b F0
-     BG1 = BG/last; -- corresponds to an element of wedge^b F1
-     BF0 =  first BF; -- element of wedge^b F0
-     BF1 = last BF;-- corresponds to an element of D^b F1
-     if BG0 == BF0 and BF1 == sort BG1 then 1_S else 0_S))
-*}
-     P0 := basisList WbF0; -- list of strictly ordered b-tuples of basis elements of F0
-     P1 := productList toList(b:basisList F1); -- list of unordered b-tuples of basis elements of F1
-     --make the map as a sparse matrix, with a 1 for each element (p,q) \in P0 x P1, in position corresponding
-     --to the position of the basis element 
-     -- (p0 wedge p1..) \otimes product q  in F and 
-     --(p0\otimes q0) \wedge (p1\otimes q1)...  in G.
-     entryList := flatten apply(P0,p -> apply(P1, q-> (
-		    i := (toOrdinal G) apply(#p, i->{p_i,q_i});
-		    j := (toOrdinal F) {p,sort q};
-		    (i,j) => 1_S)));
-     print entryList;
---     error();
-     map(G,F, entryList)
-)
-///
-
---map of wedge^d A \otimes Sym^d B to wedge^d(A\otimes B).
-restart
-path = append(path, "~/src/IMA-2011/TensorComplexes/")
-load "TensorComplexes.m2"
-kk = ZZ/101
-S = kk[x,y,z]
-b = 2 
-r0 = 3
-r1 = 3
-
-F0 = S^r0;
-F1 = S^r1;
-makeExplicitFreeModule F0
-makeExplicitFreeModule F1
-productList toList (2:basisList F1)
-WbF0 = makeExteriorPower(F0,b);
-DbF1 = makeSymmetricPower(F1, b);
-F = makeTensorProduct{WbF0, DbF1};
-G = makeExteriorPower(makeTensorProduct{F0,F1},b);
-A = wedgeDToWedgeSparse(F,G);
-
-rank A
-rank F
-rank G
-
-
-test = (b, r0,r1) ->(
-F0 = S^r0;
-F1 = S^r1;
-WbF0 = makeExteriorPower(F0,b);
-DbF1 = makeSymmetricPower(F1, b);
-F = makeTensorProduct{WbF0, DbF1};
-G = makeExteriorPower(makeTensorProduct{F0,F1},b);
-print(rank F, rank G);
-time A = wedgeDToWedgeSparse(F,G);
-print (rank A == rank source A);
-time A = wedgeDToWedge(F,G);
-rank A == rank source A
-)
-test(3,5,3)
-///
 
 
 
 
 
 
-kk = ZZ/101
-S = kk[x,y,z]
-ab = {3,2,1,3}
-mods = prep(S, ab)
-twist(mods_0,1)
-tensormods = twist(makeTensorProduct(drop(mods,1)), -1)
-f = random(mods#0,tensormods)
-source f
-TC1(S,f)
-F0G1;
-minorsf
-f
-n
-b
-d
-F0
-F1
-uM F1
 
-{*Make the first map of a generic tensor complex:
-Given (over a ring R)
-a map A <--- \otimes_j Bj,
-and integers bi >= 1, 
-set d = (d0=0, d1=b1, d2 = b1+b2...). 
-The desired map is the composite
 
-F0= wedge^b1 A ** wedge^b1 B1* ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
-by "trace" to 
 
-G1 = wedge^b1 A ** wedge^b1 B1* ** 
-     [ (\otimes_{j\geq 2} S^b1 Bj)*
-     **(\otimes_{j\geq 2} S^b1 Bj)] 
-     **\otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
-to (by reassociating)
 
-G2 = wedge^b1 A ** [wedge^b1 B1* ** (\otimes_{j\geq 2} S^b1 Bj)*] 
-       ** [(\otimes_{j\geq 2} S^b1 Bj)]  
-       ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj]
-to (by the wedge ** sym to wedge map and multiplication in Sym
 
-G3 = wedge^b1 A ** \wedge_b1(\otimes_{j\geq 1} Bj*] 
-     ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
-to (by the minors)
 
-F0 = R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
-*}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

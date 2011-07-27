@@ -1,6 +1,6 @@
 -- -*- coding: utf-8 -*-
 --------------------------------------------------------------------------------
--- Copyright 2007, 2011 Michael Stillman
+-- Copyright 2011 Claudiu Raicu, Bart Snapp, Zach Teitler
 --
 -- This program is free software: you can redistribute it and/or modify it under
 -- the terms of the GNU General Public License as published by the Free Software
@@ -18,7 +18,7 @@
 
 newPackage(
 	"SpaceCurvesMultiplierIdeals",
-    	Version => "0.5", 
+    	Version => "0.1", 
     	Date => "July 27, 2011",
     	Authors => {
 	     {Name => "Zach Teitler"},
@@ -92,14 +92,16 @@ exceptionalDivisorValuation = (nn,mm,p) -> (
      n*ord(mm,ff_1) + ord(mm,p)
      );
 
-km = (mm,ff) -> sum(mm) - 1 + ord(mm, ff_1) - ord(mm, ff_0);
+exceptionalDivisorDiscrepancy = (mm,ff) -> (
+     sum(mm) - 1 + ord(mm, ff_1) - ord(mm, ff_0)
+     );
 
 
 
 
 --
--- The code below was copied directy from Zach Teitler's Pacakage
--- MonomialMultiplierIdeas.m2
+-- The code below was copied directly from Zach Teitler's Package
+-- MonomialMultiplierIdeals.m2
 -- 
 
 intmat2monomIdeal = method();
@@ -130,7 +132,7 @@ intmat2monomIdeal ( Matrix, Ring, ZZ, ZZ ) := (M,R,d,c) -> (
 );
 
 --
--- The code above was copied directy from Zach Teitler's Pacakage
+-- The code above was copied directy from Zach Teitler's Package
 -- MonomialMultiplierIdeas.m2
 -- 
 
@@ -184,7 +186,9 @@ monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
      symbpow := symbolicPowerCurveIdeal(curveIdeal , t-1);
      term    := monomialMultiplierIdeal(termIdeal(curveIdeal) , t);
      
-     validl  := intersect apply(indexList , mm -> exceptionalDivisorValuationIdeal(R,ff,mm,floor(t*ord(mm,ff_1)-km(mm,ff))));
+     validl  := intersect apply(indexList ,
+                     mm -> exceptionalDivisorValuationIdeal(R,ff,mm,
+                          floor(t*ord(mm,ff_1)-exceptionalDivisorDiscrepancy(mm,ff)) ));
      
      intersect(symbpow,term,validl)
      );
@@ -216,7 +220,7 @@ Description
     in {\tt 3}-space and the parameter {\tt t}.
     
     More precisely, we assume that {\tt R} is a polynomial ring in three variables, {\tt n = \{a,b,c\}}
-    is a sequence of positive integers of lenght three, and that {\tt t} is a rational number. The corresponding
+    is a sequence of positive integers of length three, and that {\tt t} is a rational number. The corresponding
     curve {\tt C} is then given by the embedding {\tt u\to(u^a,u^b,u^c)}.
   
   Example

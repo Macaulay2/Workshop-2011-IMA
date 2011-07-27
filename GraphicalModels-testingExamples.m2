@@ -30,8 +30,20 @@ cov=covarianceMatrix(R,G) -- now works for undirected graphs
 flatten  entries( t*cov - adjK) 
 t*det(M)-1
      
-gaussianVanishingIdeal (R,G)     
-     
+I=gaussianVanishingIdeal (R,G)  
+m=R#numberOfEliminationVariables
+selectInSubring(1, gens gb I)
+    g:= graph G;
+    t:= value R#gaussianRing_3;
+    K:= undirectedEdgesMatrix(R,G);
+    adjK := sub(det(K)*inverse(sub(K,frac R)), R);
+Itemp=ideal (det(K)*covarianceMatrix(R,G) - adjK)
+saturate(Itemp,det(K))
+selectInSubring(1, gens gb oo)
+
+eliminate( first9variables, I)
+gens R
+
 ------------------------------------------------------------
 ---gaussianMatrices:
 --needs to be able to only take as input only a ring R and a set of CI statements S, 

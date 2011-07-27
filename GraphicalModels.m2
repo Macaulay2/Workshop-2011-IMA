@@ -111,11 +111,11 @@ export {bidirectedEdgesMatrix,
        VariableName,--this should be deleted
        sVariableName,
        kVariableName,
-       tVariableName,
        lVariableName,
        pVariableName,
        gaussianVanishingIdeal,
-       undirectedEdgesMatrix
+       undirectedEdgesMatrix,
+       numberOfEliminationVariables --entry stored inside gaussianRing
 	} 
      
 needsPackage "Graphs"
@@ -517,8 +517,8 @@ prob = (R,s) -> (
 
 -- TO DO: 26JULY2011 
 -- make all gaussianRing methods take specific variablenames as optional inputs, NOT as one long list.
-gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", pVariableName=>getSymbol "p", kVariableName=>getSymbol "k", tVariableName=>getSymbol "t",
-	  VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p", getSymbol "k", getSymbol "t"}})
+gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",
+	  VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p", getSymbol "k"}})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
@@ -678,14 +678,13 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     vv := sort vertices g;
     s := opts.sVariableName;
     k := opts.kVariableName;
-    t := opts.tVariableName;
     kk := opts.Coefficients;
     sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
     kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
-    m := #kL+1; --eliminate the k's and the t
-    --t = placeholder variable for inverse of determinant of K
-    R := kk(monoid [kL,t,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
-    R#gaussianRing = {#vv,s,k,t};
+    m := #kL; --eliminate the k's 
+    R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
+    R#numberOfEliminationVariables = m;
+    R#gaussianRing = {#vv,s,k};
     R)
 
 undirectedEdgesMatrix = method()
@@ -715,7 +714,8 @@ gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
     t:= value R#gaussianRing_3;
     K:= undirectedEdgesMatrix(R,G);
     adjK := sub(det(K)*inverse(sub(K,frac R)), R);
-    ideal (append(flatten entries( t* covarianceMatrix(R,G) - adjK),t*det(K)-1))
+    IbeforeElimination:=ideal (append(flatten entries( t* covarianceMatrix(R,G) - adjK),t*det(K)-1));
+    IbeforeElimination
      )
 
 
@@ -960,6 +960,8 @@ doc ///
   Headline
     A package for discrete and Gaussian statistical graphical models 
   Description
+    Text
+      Contributors: Alexander Diaz, Shaowei Lin, Sonja Petrović, Seth Sullivant,..
     Text
       This package extends Markov.m2. It is used to construct ideals corresponding to discrete graphical models,
       as described in several places, including the paper: Luis David Garcia, Michael Stillman and Bernd Sturmfels,

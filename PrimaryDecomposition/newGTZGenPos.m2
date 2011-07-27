@@ -207,7 +207,6 @@ primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) -
 
    -- problem: compList's ideals are not in general position at this point.  I think
    -- one needs to leave them with coords changed, and then change them back.
-   error "err";
    genPosList := applyUntil(compList, J -> isPrimaryZeroDim(J));
    if (genPosList != {}) then
    (
@@ -304,15 +303,26 @@ isPrimaryZeroDim(Ideal) := (I) ->
    (phi,phiInverse,lastVar) := getCoordChange(ring I,independentVars);
    fiberVars := reverse sort toList (set gens R - set independentVars);
    
-   --RLex := newRing(R, MonomialOrder => Lex);
-   --RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,GRevLex=>#independentVars}];
+   RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,GRevLex=>#independentVars}];
    --RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,Lex=>#independentVars}];
-   RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {GRevLex=>#fiberVars,GRevLex=>#independentVars}];
+   
+   -- try using the fraction field here?
+   
+   -- try GRevLex and then go to Lex?
+   --RGRevLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {GRevLex=>#fiberVars,GRevLex=>#independentVars}];
+   --RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,Lex=>#independentVars}];
+   --psi := map(RGRevLex,R);
+   
    psi := map(RLex,R);
    J := psi(phi(I));
    fiberVars = fiberVars / psi;
    
    G := flatten entries gens gb J;
+   
+   -- For the GRevLex=>Lex (attempted) trick
+   --G := gens gb J;
+   --G = flatten entries gens gb sub(G,RLex);
+   
    gs := getVariablePowerGenerators(G,fiberVars);
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
    getLinearPowers(G,gs,fiberVars)
@@ -333,9 +343,10 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
   S := Q/sub(ideal last gs, Q);
   -- need to pass to the fraction field first, since the polynomial may not be monic yet.
   linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
-	                                                                   fiberVars = apply(fiberVars, x -> substitute(x,S));
+									   fiberVars = apply(fiberVars, x -> substitute(x,S));
 									   xi := fiberVars#i;
 	    	      	   	     	       	    	      	   	   deggi := degree(xi,gi);
+	                                                                   gi = gi // coefficient(xi^deggi,gi);
 									   -- store the coefficients
 									   (mons,coeffs) := coefficients gi;
 									   -- get the indices of monomials containing xi^(deggi-1)
@@ -349,6 +360,8 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 									   testHi));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.
+  -- we should return the linear factor list.  However, before doing this, we need to clear denominators and put the linear forms
+  -- back in the polynomial ring.
   return true;
 )
 

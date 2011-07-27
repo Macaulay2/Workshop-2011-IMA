@@ -1559,6 +1559,7 @@ doc///
    Key
      covarianceMatrix
      (covarianceMatrix,Ring)
+     (covarianceMatrix,Ring,Graph)
      (covarianceMatrix,Ring,Digraph)
      (covarianceMatrix,Ring,MixedGraph)
    Headline
@@ -1581,6 +1582,12 @@ doc///
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
        R = gaussianRing G
        S = covarianceMatrix R
+     Text
+       Note that the covariance matrix is symmetric in the symbols.
+     Example
+       G = graph({{a,b},{b,c},{c,d},{a,d}})
+       R = gaussianRing G
+       S = covarianceMatrix(R,G)       
      Text
        Note that the covariance matrix is symmetric in the symbols.
      Example
@@ -1908,40 +1915,6 @@ doc///
      gaussianRing
      gaussianParametrization
      covarianceMatrix
-     directedEdgesMatrix
-///
-
----------------------------------------
--- Documentation covarianceMatrix    --
----------------------------------------
-
-doc/// 
-   Key
-     covarianceMatrix
-     (covarianceMatrix,Ring,Graph)
-   Headline
-     the covariance matrix of a gaussian graphical model
-   Usage
-     S = covarianceMatrix(R,G)
-   Inputs
-     R:Ring
-       which should be a gaussianRing
-     G:Graph
-       an undirected graph 
-   Outputs
-     S:Matrix
-       the n x n covariance matrix of symbols where n is the number of vertices in G
-   Description 
-     Text
-       Note that the covariance matrix is symmetric in the symbols.
-     Example
-       G = graph({{a,b},{b,c},{c,d},{a,d}})
-       R = gaussianRing G
-       S = covarianceMatrix(R,G)
-   SeeAlso
-     gaussianRing
-     gaussianParametrization
-     bidirectedEdgesMatrix
      directedEdgesMatrix
 ///
 

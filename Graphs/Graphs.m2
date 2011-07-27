@@ -41,8 +41,10 @@ export {Graph,
      nonneighbors,
      foreFathers,     
      displayGraph,
+     drawGraph,
      showTikZ,
      tikzGraph,
+     outTikzGraph,
      simpleGraph,      
      removeNodes, 
      inducedSubgraph,
@@ -502,6 +504,7 @@ edgeLists=(L)->(
 	  )
      )
 
+
 tikzGraph = method();
 
 tikzGraph(Graph):=String=>(G)->(
@@ -526,6 +529,140 @@ tikzGraph(Graph):=String=>(G)->(
      s
      )
 
+tikzGraph(Digraph):=String=>(G)->(
+     V:=apply(vertices G, v-> cleanName(v));
+     vertnum:=#V;
+     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
+     edgepairs:=apply(edges G,toList);
+     edgelist:=edgeLists(edgepairs);
+     name:=temporaryFileName();
+     fn:=openOut name;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
+           for v in toList(0..vertnum-1) do (
+     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+	  	);
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
+     fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     close fn;
+     s:=get name;
+     removeFile(name);
+     s
+     )
+
+
+outTikzGraph = method();
+
+outTikzGraph(Graph,String):=String=>(G,name)->(
+     V:=apply(vertices G, v-> cleanName(v));
+     vertnum:=#V;
+     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
+     edgepairs:=apply(edges G,toList);
+     edgelist:=edgeLists(edgepairs);
+     fn:=openOut name;
+     fn << "\\documentclass[12pt]{article}"<< endl;
+     fn << "\\usepackage{tikz}" << endl;
+     fn << "\\begin{document}" << endl;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
+           for v in toList(0..vertnum-1) do (
+     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+	  	);
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
+     fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     fn << "\\end{document}" << endl;
+     close fn;
+     get name
+     )
+
+outTikzGraph(Digraph,String):=String=>(G,name)->(
+     V:=apply(vertices G, v-> cleanName(v));
+     vertnum:=#V;
+     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
+     edgepairs:=apply(edges G,toList);
+     edgelist:=edgeLists(edgepairs);
+     fn:=openOut name;
+     fn << "\\documentclass[12pt]{article}"<< endl;
+     fn << "\\usepackage{tikz}" << endl;
+     fn << "\\usetikzlibrary{arrows}" << endl;
+     fn << "\\begin{document}" << endl;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
+           for v in toList(0..vertnum-1) do (
+     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+	  	);
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
+     fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     fn << "\\end{document}" << endl;
+     close fn;
+     get name
+     )
+
+
+outTikzGraph(Graph,Thing,Thing,String):=(G,r,s,name)->(
+     V:=apply(vertices G, v-> cleanName(v));
+     vertnum:=#V;
+     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString s,")"));
+     edgepairs:=apply(edges G,toList);
+     edgelist:=edgeLists(edgepairs);
+     fn:=openOut name;
+     fn << "\\documentclass[12pt]{article}"<< endl;
+     fn << "\\usepackage{tikz}"<< endl;
+     fn << "\\begin{document}"<< endl;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=",toString r, ", vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
+           for v in toList(0..vertnum-1) do (
+     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+	  	);
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
+     fn << "      \\draw [-] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     fn << "\\end{document}"<< endl;
+     close fn;
+     get name
+     )
+
+outTikzGraph(Digraph,Thing,Thing,String):=(G,r,s,name)->(
+     V:=apply(vertices G, v-> cleanName(v));
+     vertnum:=#V;
+     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString s,")"));
+     edgepairs:=apply(edges G,toList);
+     edgelist:=edgeLists(edgepairs);
+     fn:=openOut name;
+     fn << "\\documentclass[12pt]{article}"<< endl;
+     fn << "\\usepackage{tikz}"<< endl;
+     fn << "\\usetikzlibrary{arrows}" << endl;
+     fn << "\\begin{document}"<< endl;
+     fn << "\\begin{tikzpicture}" << endl;
+     fn << concatenate("[scale=",toString r, ", vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
+           for v in toList(0..vertnum-1) do (
+     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+	  	);
+     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
+     fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
+     fn << "\\end{tikzpicture}" << endl;
+     fn << "\\end{document}"<< endl;
+     close fn;
+     get name
+     )
+
+drawGraph=method()
+drawGraph(Graph):=(G)->(
+     name:=temporaryFileName();
+     outTikzGraph(G,1,4,concatenate(name,".tex"));
+     run concatenate("pdflatex ",name);
+     run concatenate("open ", replace("/tmp/","",name),".pdf");
+     )
+
+drawGraph(Digraph):=(G)->(
+     name:=temporaryFileName();
+     outTikzGraph(G,1,4,concatenate(name,".tex"));
+     run concatenate("pdflatex ",name);
+     run concatenate("open ", replace("/tmp/","",name),".pdf");
+     )
 
 ------------------
 -- Graph basics --
@@ -1578,7 +1715,14 @@ end;
 
 
 restart
+uninstallPackage"Graphs"
 loadPackage("Graphs",FileName=>"/Users/gwynethwhieldon/Workshop/IMA-2011/Graphs/Graphs.m2")
 R=ZZ/10007[x_1..x_10]
-G=graph{{x_1*x_10,x_2},{x_1,x_2*x_3},{x_3*x_10*x_9,x_1}}
+G=digraph{{x_1*x_10,x_2},{x_1,x_2*x_3},{x_3*x_10*x_9,x_1}}
 tikzGraph G
+
+outTikzGraph(G,"testname")
+outTikzGraph(G,3,4,"testname")
+
+drawGraph G
+

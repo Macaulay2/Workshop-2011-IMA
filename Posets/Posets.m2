@@ -35,6 +35,7 @@ export {
 	RelationMatrix,
 	compare,
 	orderIdeal,
+	facePoset,
 	filter,
 	Relations,
 	GroundSet,
@@ -706,7 +707,28 @@ allMultiDegreesLessThan = d -> (
 	L
 )
 
+--------------------------------
+-- Face Poset
+--------------------------------
+facePoset=method();
 
+facePoset(SimplicialComplex):=Poset=>(D)->(
+     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
+     chainheads:=apply(flatten entries facets D, i-> support i);
+     maxchains:=apply(chainheads, i-> {i});
+     while any(maxchains, testmax) do ( 
+     	  nextstage:={};
+     	  holdover:=select(maxchains,c-> not testmax c);
+     	  for m in select(maxchains,testmax) do (
+	       minsize:=min apply(m, i-> #i);
+	       minset:=first select(m, i-> #i== minsize);
+     	       coveredfaces:=subsets(minset,minsize-1);
+	       nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
+	       );
+      	  maxchains = join(nextstage,holdover);
+      	  );    
+     poset(faceset,unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
+)
 
 
 ---------------------------------

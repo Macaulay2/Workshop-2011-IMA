@@ -52,7 +52,9 @@ export {
   "tensorFold",
   "symmetricMultiplication",
   "cauchyMap",
-  "traceMap"
+  "traceMap",
+  "flattenedGenericTensor",
+  "minorsMap"
   }
 
 --------------------------------------------------------------------------------
@@ -216,8 +218,8 @@ symmetricMultiplication (LabeledModule,ZZ,ZZ) := (F,d,e) -> (
             		    then 1_S else 0_S
 	)
      )
-  
-cauchyMap = method(TypicalValue => Matrix)
+
+cauchyMap = method(TypicalValue => LabeledModuleMap)
 cauchyMap (ZZ, LabeledModule) := (b,E) -> (
   sour := exteriorPower(b,E);
   L := underlyingModules E;
@@ -233,6 +235,47 @@ cauchyMap (ZZ, LabeledModule) := (b,E) -> (
       j = apply(j, l -> sort l);
       M_(toOrdinal(j,targ), toOrdinal(i,sour)) = 1));
   map(targ, sour, matrix M))
+
+flattenedGenericTensor = method()
+flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
+     --make ring of generic tensor
+     inds := productList apply(#L, i -> toList(0..L#i-1));
+     x := symbol x;
+     vrbls := apply(inds,i -> x_(toSequence i));
+     S := kk[vrbls];
+     --make generic tensor (flattened)
+     Blist := apply(#L, i->labeledModule S^(L_i));
+     --B = tensor product of all but Blist_0
+     B := tensorFold apply(#L-1,i-> Blist_(i+1));     
+     f := map(B,Blist_0,(i,j)->(
+	       x_(toSequence({fromOrdinal(j, Blist_0)}|
+			     fromOrdinal(i, B)
+			     ))))
+     )
+
+isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
+
+minorsMap = method()
+minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
+     --Assumes that E has the form 
+     --E = wedge^b((source f)^*) ** wedge^b(target f)
+     --where source f and target f are labeled free modules.
+     S := ring f;
+     b := #((basisList E)_0_0);
+     if b != #((basisList E)_0_1) or #((basisList E)_0) !=2
+               then error "E doesn't have the right format";
+     J := basisList E;
+     sour := (underlyingModules((underlyingModules E)_0))_0;
+     tar := (underlyingModules((underlyingModules E)_1))_0;
+     map(labeledModule S, E, (i,j)->(
+	        p := J_j;
+	   det submatrix(f,
+		apply(p_1, k-> toOrdinal(k, tar)),
+	        apply(p_0, k-> toOrdinal(k, sour))		
+             	                )))
+      )
+
+--ADD minorsMap(LabeledModuleMap, LabeledModule)
 
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -331,9 +374,21 @@ F2 = labeledModule S^2;
 F3 = labeledModule S^3;
 F5 = labeledModule S^5;
 F30 = tensorFold {F2,F3,F5}
-assert(rank cauchyMap(2,F30) == 90)
+assert(rank matrix cauchyMap(2,F30)== 90)
 F2' =  tensorFold {F2, labeledModule S^1}
-assert(cauchyMap(1,F2') == id_(S^2))
+assert(matrix cauchyMap(1,F2') == id_(S^2))
+///
+
+--test 6
+TEST///
+kk=ZZ/101
+f=flattenedGenericTensor({6,2,2,2},kk)
+S=ring f
+E = tensorFold(
+     {exteriorPower(2,source f), 
+     exteriorPower(2,target f)})
+g = minorsMap(matrix f,E)
+
 ///
 
 end

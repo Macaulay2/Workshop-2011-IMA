@@ -38,6 +38,9 @@ numgens I
 --by the way:
 m=R#numberOfEliminationVariables
 
+--trying to modify gaussianVanishingIdeal:
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
 
 
 ------------------------------------------------------------

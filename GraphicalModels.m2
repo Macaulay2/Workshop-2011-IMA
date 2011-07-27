@@ -711,6 +711,7 @@ gaussianVanishingIdeal=method()
 gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
     --input: graph G and a polynomial ring R created by gaussianRing (!)
     --output: the vanishing ideal of hte parametrization
+    --currently works on really small examples! future work to make faster...
     g:= graph G;
     K:= undirectedEdgesMatrix(R,G);
     adjK := sub(det(K)*inverse(sub(K,frac R)), R);
@@ -1962,10 +1963,12 @@ assert(I === J)
 --- TEST Gaussian Directed Graphical Models ---
 -----------------------------------------------
 
+----------------------------------------------------------------------------------------------
+--27 JULY 2011
 -----------------------------------------------
---- TESTs for undirected methods:--------------
+--- TESTs for undirected methods:-------------- 
 -----------------------------------------------
-
+ 
 -----------------------------------------------
 --- TEST gaussianRing--------------------------
 -----------------------------------------------
@@ -2012,6 +2015,9 @@ I = gaussianVanishingIdeal (R,G)
 correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,d)+s_(a,b)*s_(b,d)*s_(c,d)+s_(a,c)*s_(b,b)*s_(d,d)-s_(a,b)*s_(b,c)*s_(d,d),s_(a,c)*s_(a,d)*s_(b,c)-s_(a,c)^2*s_(b,d)-s_(a,b)*s_(a,d)*s_(c,c)+s_(a,a)*s_(b,d)*s_(c,c)+s_(a,b)*s_(a,c)*s_(c,d)-s_(a,a)*s_(b,c)*s_(c,d), s_(a,b)*s_(a,d)*s_(b,d)*s_(c,c)-s_(a,a)*s_(b,d)^2*s_(c,c)-s_(a,c)*s_(a,d)*s_(b,b)*s_(c,d)+s_(a,a)*s_(b,c)*s_(b,d)*s_(c,d)+s_(a,c)^2*s_(b,b)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)*s_(d,d), s_(a,b)*s_(a,c)*s_(b,d)^2*s_(c,c)-s_(a,a)*s_(b,c)*s_(b,d)^2*s_(c,c)-s_(a,c)^2*s_(b,b)*s_(b,d)*s_(c,d)+s_(a,a)*s_(b,c)^2*s_(b,d)*s_(c,d)-s_(a,b)^2*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,a)*s_(b,b)*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,b)*s_(a,c)*s_(b,b)*s_(c,d)^2-s_(a,a)*s_(b,b)*s_(b,c)*s_(c,d)^2+s_(a,c)^2*s_(b,b)*s_(b,c)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)^2*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,b)*s_(c,c)*s_(d,d)+s_(a,b)^2*s_(b,c)*s_(c,c)*s_(d,d)}
 assert( I == ideal correctOutput)
 ///
+
+----------------------------------------------------------------------------------------------
+
 
 ----------------------------
 --- TEST gaussianRing    ---

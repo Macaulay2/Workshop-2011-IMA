@@ -17,7 +17,7 @@ export {
       tropicalMap,
       tropicalDiscriminant,
       tropicalResultant,
-      cayleySum
+      cayleyConfiguration
       --options
       }
  
@@ -86,12 +86,12 @@ extrinsicIndex := (C,A) -> (
 
 
 ----------------------------
--- cayleySum
+-- cayleyConfiguration
 ----------------------------
 -- INPUT: a list of matrices, all with the same number of rows
 -- OUTPUT: a matrix, representing the Cayley sum of the columns of input matrices
-cayleySum = method()
-cayleySum List := L -> (
+cayleyConfiguration = method()
+cayleyConfiguration List := L -> (
      if (not # set(L / numRows) == 1) then
      	  error "the matrices in the list must have the same number of rows";
      N := L / numColumns;
@@ -158,13 +158,6 @@ tropicalDiscriminant Matrix := A -> (
 --INPUT: a list of matrices, representing point configurations
 --OUTPUT: tropical resultant
 
-tropicalResultant = method()
-tropicalResultant List := L -> (
-     if (not # set(L / numRows) == 1) then
-     	  error "the matrices in the list must have the same number of rows";
-     numVars := numRows (L#0);
-     gfanInput := 
-     )
      
 {*
 tropicalResultant = method()
@@ -180,7 +173,7 @@ tropicalResultant List := L -> (
      mixedOrthants := apply(chosenMixedCells, C -> (
 	      flatten apply(#C, i -> sort( (toList(set(0..N#i-1)-C#i)) / (j->j+startIndices#i) ))
 	  ));
-     cayleySum L;
+     cayleyConfiguration L;
      -- NOT DONE!
      )
 *}
@@ -270,7 +263,7 @@ A = matrix {{1,1,1,1,1,1,1,1},{1,1,1,1,0,0,0,0},{1,1,0,0,1,1,0,0},{1,0,1,0,1,0,1
 T = tropicalDiscriminant A
 
 L = {random(ZZ^2,ZZ^3),random(ZZ^2,ZZ^3),random(ZZ^2,ZZ^3)}
-cayleySum L
+cayleyConfiguration L
 
 P = gfanTropicalStartingCone {x+y+z}
 F = gfanTropicalTraverse P
@@ -321,13 +314,33 @@ viewHelp SRdeformations
 -- resultants
 
 restart
-loadPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2",LoadDocumentation => true, DebuggingMode => true)
+needsPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2", DebuggingMode => true);
+needsPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Tropical.m2", DebuggingMode => true);
+
+A = {{{0},{1},{2}},{{0},{1},{2}}}
+cayleyConfiguration (A/matrix@@transpose)
+cayleyA = entries transpose oo
+gfanSecondaryFan cayleyA
+gfanResultantFan (A, "special" => {0,0,0,0,0,0})
+
+QQ[a1,a2,a3,b1,b2,b3,x];
+I = ideal(a1+a2*x+a3*x^2, b1+b2*x+b3*x^3);
+fVector newtonPolytope  (eliminate(I,{x}))_0
 
 
-A = {{0,1},{0,1}}
-QQ[x,y]
-gfanResultantFan ({1+x+y,1+x+y,1+x+y}, "special" => {0,1,1,0,1,1,0,1,1})
+A = {{{0,0},{1,0},{0,1}},{{0,0},{1,0},{2,1}},{{0,0},{0,1},{1,2}}}
+cayleyConfiguration (A/matrix@@transpose)
+cayleyA = entries transpose oo
+gfanSecondaryFan cayleyA
+resFan = gfanResultantFan (A, "special" => {0,0,0,0,0,0,0,0,0})
+gfanResultantFan (A, "special" => {0,1,1,0,1,1,0,1,1})
 
+
+needsPackage "Polyhedra"
+P = newtonPolytope F
+fVector P
+
+resFan
 
 ----- Making non-acyclic vector configurations for experimentation with secondary fans
 

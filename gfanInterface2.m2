@@ -65,6 +65,7 @@ export {
 	gfanTropicalEvaluation, -- v0.4 -- done!
 	gfanTropicalFunction, -- v0.4 -- done!
 	gfanTropicalHyperSurface, -- v0.4 -- done!
+	gfanTropicalHyperSurfaceReconstruction,
 	gfanTropicalIntersection, -- done!
 	gfanTropicalLifting,
 	gfanTropicalLinearSpace, -- v0.4 -- done! doc needs double checking
@@ -824,7 +825,8 @@ cmdLineArgs = hashTable {
 	"gfan _fanlink" => {"i"},
 	"gfan _fanproduct" => {"i1", "i2"},
 	"gfan _minors" => {"r", "d", "n"},
-	"gfan _tropicallinearspace" => {"n", "d"}
+	"gfan _tropicallinearspace" => {"n", "d"},
+	"gfan _tropicalhypersurfacereconstruction" => {"i"}
 }
 
 
@@ -1513,6 +1515,25 @@ gfanTropicalHyperSurface RingElement := opts -> (f) -> (
 	input := gfanRingToString(ring f) | gfanPolynomialListToString{f};
 	gfanParsePolyhedralFan runGfanCommand("gfan _tropicalhypersurface", opts, input) 
 )
+
+
+--------------------------------------------------------
+-- gfan_tropicalhypersurfacereconstruction
+--------------------------------------------------------
+
+gfanTropicalHyperSurfaceReconstruction = method( Options => {
+	  "i" => null, -- set inside the method
+	  "projection" => null} )
+
+gfanTropicalHyperSurfaceReconstruction PolymakeFan := opts -> (F) -> (
+     	file := gfanMakeTemporaryFile F#"rawstring";	
+	opts = opts ++ { "i" => file};
+	input := gfanVectorListToString opts#"projection";
+	out := gfanParsePolyhedralFan runGfanCommand("gfan _tropicalhypersurfacereconstruction", opts, input) ;
+	gfanRemoveTemporaryFile file;
+	out
+)
+
 
 
 --------------------------------------------------------

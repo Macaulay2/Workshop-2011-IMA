@@ -1076,7 +1076,7 @@ doc ///
       for each vertex v of G. In other words, for every vertex v of G and all nondescendents w of v, 
       v is independent of w given all other nondescendents. 
       
-      For example, for the digraph D on $4$ vertices with edges a->b, a->c, b->c, and b->d, 
+      For example, for the undirected graph G on $5$ vertices with edges {{a,b},{b,c},{c,d},{d,e},{e,a}}, 
       we get the following pairwise Markov statements:
     Example
       G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
@@ -1106,18 +1106,33 @@ doc ///
 doc ///
   Key
     localMarkov
+    (localMarkov,Graph)
     (localMarkov,Digraph)
   Headline
     Local Markov statements for a directed graph.
   Usage
     localMarkov G
   Inputs
-    G:Digraph 
+    G:
+      @ofClass {Graph,Digraph,DiGraph}@ 
   Outputs
     L:List
       whose entries are triples {A,B,C} representing local Markov  conditional independence statements of the form
       ''A is independent of B given C'' that hold for G.
   Description
+  
+    Text
+      Given an undirected graph G, local Markov statements are of the form
+      \{$v$, nondescendents($v$) - parents($v$), parents($v$)\} .
+      That is, 
+      every vertex $v$ of G is independent of its nondescendents (excluding parents) given the parents. 
+      
+      For example, for the undirected graph G on 5 vertices with edges {{a,b},{b,c},{c,d},{d,e},{e,a}}, 
+      we get the following local Markov statements:
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+      L = localMarkov G
+      
     Text
       Given a directed graph G, local Markov statements are of the form
       \{$v$, nondescendents($v$) - parents($v$), parents($v$)\} .

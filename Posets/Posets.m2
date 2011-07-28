@@ -801,33 +801,38 @@ texPoset(Poset):= opts -> (P)->(
 outputTexPoset = method(Options => {symbol SuppressLabels => true});
 
 outputTexPoset(Poset,String):= opts -> (P,name)->(
-     C := maximalChains P;
-     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
-     edgelist := apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
+     C:= maximalChains P;
+     --hash table of variable labels:
+     idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
+     --edge list to be read into TikZ:
+     edgelist:= apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
+     --height of poset:
      L:=max apply(C, c-> #c)-1;
      heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
      protoH:=partition(g-> last g, heightpairs);
      H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
      levelsets:=apply(values H, v-> #v-1);
-     halflevelsets:=apply(levelsets, j-> j/2.0);
-     spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
+     scalew:=min{1.5,15/ max levelsets};
+     scaleh:=min{2/scalew,15/L};
+     halflevelsets:=apply(levelsets, j-> scalew*j/2.0);
+     spacings:=apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
      fn:=openOut name;
      fn << "\\documentclass[8pt]{article}"<< endl;
      fn << "\\usepackage{tikz}" << endl;
      fn << "\\begin{document}" << endl;
      fn << "\\begin{tikzpicture}" << endl;
-     fn << concatenate("[scale=1.5, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
+     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]")<< endl;
      if opts.SuppressLabels then (
      	  for i from 0 to L do (
      	       for j from 0 to levelsets_i do (
-	       	    fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+	       	    fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
      	       	    )
      	       );
 	  )
      else (
      	  for i from 0 to L do (
      	       for j from 0 to levelsets_i do (
-	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
      	       	    )
      	       );
      	  );
@@ -845,7 +850,7 @@ displayPoset(Poset):=opts->(P)->(
     if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
      name:=temporaryFileName();
      outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
-     run concatenate("pdflatex -output-directory /tmp ",name);
+     run concatenate("pdflatex -output-directory /tmp ",name, " 1>/dev/null");
      run concatenate(opts.PDFViewer, " ", name,".pdf");
      )
 

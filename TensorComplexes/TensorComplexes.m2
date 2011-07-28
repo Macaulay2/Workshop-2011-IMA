@@ -485,6 +485,7 @@ tensorComplex1(Ring, Matrix) := (S,f) ->(
      L11 := {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
      L12 := apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
      F1 := makeTensorProduct(L11 | L12);
+     F0 := makeTensorProduct apply(n-1, j-> makeSymmetricPower(B_(j+2), d_(j+1)));
      G11 := makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
      T := makeTrace G11;
      G1 := makeTensorProduct(target T, F1);
@@ -510,29 +511,35 @@ tensorComplex1(Ring, Matrix) := (S,f) ->(
      TC3Rmatrix := fold(tensor, 
 	  apply (n-1, j-> makeSymmetricMultiplication(B_(j+2), b_1, d_(j+1)-b_1))
 	  );
-     TC3R := map (makeTensorProduct apply(n-1, j-> makeSymmetricPower(B_(j+2), d_(j+1))) ,G2R, TC3Rmatrix);
+     TC3R := map (F0 ,G2R, TC3Rmatrix);
      tpB := makeTensorProduct apply(n,i->B_(i+1));
      tarTC3L := makeExteriorPower(tpB, b_1);
      TC3L := map (tarTC3L, G2L, transpose makeCauchy(b_1, tpB));
      TC4L := makeMinorsMap(f, makeTensorProduct(G2A, tarTC3L));
-     ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12
+     map(F0, F1**S^{ -b_1 }, ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12)
      )
 
-EN=(a,c) -> (f:=flattenedGenericTensor({a,c}|apply(a-c, i-> 1),kk);
-	     f1 := tensorComplex1(ring f,f);
-	     betti res coker f1)
 
-tensorComplex = (L,kk) -> (
+genericTensorComplex = (L,kk) -> (
      --L a list of integers;
      --fails unless L_0 = sum_{1..#L-1} L_i
      --returns balanced tensor complex of type L over the ground field kk
      f:=flattenedGenericTensor(L, kk);
      res coker (tensorComplex1(ring f, f)))
      
-tc = (D,kk)->(
+gtc1 = (D,kk) ->(
+     L := {last D,first D}|apply(#D-1, i->D_(i+1)-D_i);
+     f:= flattenedGenericTensor(L, kk);
+     tensorComplex1(ring f,f))
+     
+gtc = (D,kk)->(
      --produces pure resolution of type (0,D_0, D_1, ...)
      L := {last D,first D}|apply(#D-1, i->D_(i+1)-D_i);
      tensorComplex(L,kk))
+
+EN=(a,c) -> (f:=flattenedGenericTensor({a,c}|apply(a-c, i-> 1),kk);
+	     f1 := tensorComplex1(ring f,f);
+	     betti res coker f1)
      
 ///
 
@@ -540,8 +547,10 @@ restart
 path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "TensorComplexes.m2"
 kk=ZZ/101
-timing betti tc({1,4,6,7},kk)
-timing betti tc({1,3,4,6,7},kk)
+
+timing betti(f1 = gtc1({1,4,6,7},kk))
+--timing betti F
+timing betti gtc({1,3,4,6,7},kk)
 
 EN(7,3)
 --f=flattenedGenericTensor({7,1,2,1,2,1},kk)

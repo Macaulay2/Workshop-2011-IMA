@@ -253,7 +253,7 @@ flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
 			     ))))
      )
 
-isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
+
 
 minorsMap = method()
 minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
@@ -275,7 +275,64 @@ minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
              	                )))
       )
 
---ADD minorsMap(LabeledModuleMap, LabeledModule)
+minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap(ff,E) ->
+     minorsMap(matrix ff, E)
+
+
+tensor(Matrix, Matrix) := Matrix => options -> (m,n) -> m**n;
+tensor(LabeledModuleMap,LabeledModuleMap) := LabeledModuleMap => options -> (m,n) -> 
+     map((target m)**(target n), (source m)**(source n), (matrix m)**(matrix n))
+
+isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
+
+----TO FIX:
+tensorComplex1 = method()
+tensorComplex1(Ring, Matrix) := (S,f) ->(
+     --f: f: A --> B1** B2** ... Bn
+     --makes the map F0 <- F1 as above.
+     --if f is not balanced, we should  be doing something else 
+     if not isBalanced f then error"map is not balanced";
+     B := {S^0}|underlyingModules target f;
+     A := source f;
+     n := #B-1;
+     b := B/rank; -- {0, b1, b2,..,bn}
+     d := accumulate(plus,{0}|b); --{0, b1, b1+b2...}
+     L11 := {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
+     L12 := apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
+     F1 := makeTensorProduct(L11 | L12);
+     F0 := makeTensorProduct apply(n-1, j-> makeSymmetricPower(B_(j+2), d_(j+1)));
+     G11 := makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
+     T := makeTrace G11;
+     G1 := makeTensorProduct(target T, F1);
+     tc1 := map(G1,F1,T**id_F1);
+     G1mods := flatten(((uM target T)|{F1})/uM);
+     perm := join({2*n-2, 2*n-1}, 
+	         toList(0..n-2), 
+		 flatten apply(n-1, j->{j+n-1, j+2*n})
+		 );
+     H1 := makeTensorProduct G1mods;
+     G2factors := G1mods_perm;
+     G2 := makeTensorProduct G2factors;
+     permMatrix := mutableMatrix(S, rank G2, rank H1);
+     scan(basisList H1, 
+	  J -> 
+	  permMatrix_((toOrdinal G2) J_perm, (toOrdinal H1) J)=1
+     	  );
+     permMap := map(G2, H1, matrix permMatrix);
+     tc12 := permMap*tc1;
+     G2A := G2factors_0;
+     G2L := makeTensorProduct G2factors_(toList(1..n));
+     G2R := makeTensorProduct G2factors_(toList(n+1..#G2factors-1));
+     TC3Rmatrix := fold(tensor, 
+	  apply (n-1, j-> makeSymmetricMultiplication(B_(j+2), b_1, d_(j+1)-b_1))
+	  );
+     TC3R := map (F0 ,G2R, TC3Rmatrix);
+     tpB := makeTensorProduct apply(n,i->B_(i+1));
+     tarTC3L := makeExteriorPower(tpB, b_1);
+     TC3L := map (tarTC3L, G2L, transpose makeCauchy(b_1, tpB));
+     TC4L := makeMinorsMap(f, makeTensorProduct(G2A, tarTC3L));
+     map(F0, F1**S^{ -b_1 }, ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12)
+     )
 
 --------------------------------------------------------------------------------
 -- DOCUMENTATION

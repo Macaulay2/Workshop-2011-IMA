@@ -230,9 +230,10 @@ nonnull := L -> select(L, i-> i =!= null);
 
 transitiveClosure = method()
 transitiveClosure(List,List) := (I,C) -> (
-     G := digraph hashTable apply(I,v->v=>set apply(select(C,e->e_0==v),e->e_1));
+     idx := hashTable apply(#I, i-> I_i=> i);
+     G := digraph hashTable apply(I,v->idx#v => set apply(select(C, e -> e_0==v),e -> idx#(e_1)));
      H := floydWarshall G;
-     matrix apply(I,u->apply(I,v->if H#(u,v)<1/0. then 1 else 0))
+     matrix apply(I,u->apply(I,v->if H#(idx#u,idx#v)<1/0. then 1 else 0))
      )
 
 --input: A poset with any type of relation C (not necessarily minimal, maximal, etc.)
@@ -751,12 +752,6 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 --Posets
 -----------------------------------
 
-cleanName=(name)->(
-     namep:=replace("\\}","\\}",replace("\\{","\\{",toString name));
-     nameb:=replace("\\(","",replace("\\)","",namep));
-     namec:=replace("\\_","",replace("\\*","",nameb));
-     replace(", ","-",namec)
-     )
 
 
 --coveringRelations breaks when nodes are labeled by lists!
@@ -2165,14 +2160,14 @@ assert( ((closedInterval(P2,c,g)).Relations) === {(c,c),(c,e),(c,f),(c,g),(e,e),
 setPartition=method()
 
 setPartition ZZ := n ->(
-     L={{{1}}};
+     L:={{{1}}};
      for i from 2 to n do (
 	  L=flatten for lambda in L list (
 	       lambdaparts := apply(#lambda, l-> for k to #lambda-1 list if k=!=l then lambda_k else continue);
      	       append(apply(#lambda, p-> lambdaparts_p | {lambda_p | {i}}), join(lambda,{{i}}))
 	       );
 	  );
-     L
+     apply(L, sort)
      )
 
 
@@ -2185,7 +2180,7 @@ setPartition List := S ->(
      	       join(protoLevelSet, {lambda|{{s}}})
 	       );
 	  );
-     L
+     apply(L, sort)
      )
 
 partitionRefinementPairs = method()

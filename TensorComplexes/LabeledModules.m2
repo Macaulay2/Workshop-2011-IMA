@@ -205,9 +205,12 @@ LabeledModuleMap#{Standard,AfterNoPrint} = f -> (
   << endl;)
 
 rank LabeledModuleMap := ZZ => f -> rank matrix f
-transpose LabeledModuleMap := LabeledModuleMap => o-> f->
-     map(source f,target f, transpose matrix f)
+transpose LabeledModuleMap := LabeledModuleMap => o -> f ->
+map(source f,target f, transpose matrix f)
 
+LabeledModuleMap * LabeledModuleMap := LabeledModuleMap => (f,g) -> 
+map(target f, source g, matrix f*g)
+     
 traceMap = method()
 traceMap LabeledModule := LabeledModuleMap => E -> (
   S := ring E;
@@ -256,20 +259,17 @@ cauchyMap (ZZ, LabeledModule) := (b,E) -> (
 
 flattenedGenericTensor = method()
 flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
-     --make ring of generic tensor
-     inds := productList apply(#L, i -> toList(0..L#i-1));
-     x := symbol x;
-     vrbls := apply(inds,i -> x_(toSequence i));
-     S := kk[vrbls];
-     --make generic tensor (flattened)
-     Blist := apply(#L, i->labeledModule S^(L_i));
-     --B = tensor product of all but Blist_0
-     B := tensorProduct apply(#L-1,i-> Blist_(i+1));     
-     f := map(B,Blist_0,(i,j)->(
-	       x_(toSequence({fromOrdinal(j, Blist_0)}|
-			     fromOrdinal(i, B)
-			     ))))
-     )
+  --make ring of generic tensor
+  inds := productList apply(#L, i -> toList(0..L#i-1));
+  x := symbol x;
+  vrbls := apply(inds,i -> x_(toSequence i));
+  S := kk[vrbls];
+  --make generic tensor (flattened)
+  Blist := apply(#L, i->labeledModule S^(L_i));
+  --B = tensor product of all but Blist_0
+  B := tensorProduct apply(#L-1, i -> Blist_(i+1));     
+  f := map(B, Blist_0, 
+    (i,j) -> x_(toSequence({fromOrdinal(j, Blist_0)}| fromOrdinal(i, B)))))
 
 minorsMap = method()
 minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
@@ -357,6 +357,194 @@ beginDocumentation()
 document { 
   Key => LabeledModules,
   Headline => "multilinear algebra with labeled basis",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => LabeledModule,
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+undocumented { (net, LabeledModule), (net, LabeledModuleMap) }
+
+document { 
+  Key => {labeledModule, (labeledModule,Module), (labeledModule,Ring)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {underlyingModules, (underlyingModules, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {basisList, (basisList, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {fromOrdinal, (fromOrdinal, ZZ, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {toOrdinal, (toOrdinal, Thing, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (ring, LabeledModule),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (module, LabeledModule),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (rank, LabeledModule),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (symbol ==, LabeledModule, LabeledModule),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (exteriorPower, ZZ, LabeledModule),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {multiSubsets, (multiSubsets, ZZ, ZZ), (multiSubsets, List, ZZ)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (symmetricPower, ZZ, LabeledModule),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {tensorProduct, (tensorProduct, List), (tensorProduct, Sequence)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {(symbol **, LabeledModule, LabeledModule), 
+    (tensor,LabeledModule, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {symmetricMultiplication, 
+    (symmetricMultiplication, LabeledModule, ZZ, ZZ)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {cauchyMap, (cauchyMap, ZZ, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {traceMap, (traceMap, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {minorsMap, (minorsMap, LabeledModuleMap, LabeledModule), 
+    (minorsMap, Matrix, LabeledModule)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {flattenedGenericTensor, 
+    (flattenedGenericTensor, List, Ring)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => LabeledModuleMap,
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => {(map,LabeledModule,LabeledModule,Matrix),
+    (map,LabeledModule,LabeledModule,List),    
+    (map,LabeledModule,LabeledModule,Function)},
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (source, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (target, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (matrix, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (ring, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (rank, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (transpose, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (tensor, LabeledModuleMap, LabeledModuleMap),
+  Headline => "???",
+  "Blah, blah, blah.",
+  }
+
+document { 
+  Key => (symbol *, LabeledModuleMap, LabeledModuleMap),
+  Headline => "???",
   "Blah, blah, blah.",
   }
 

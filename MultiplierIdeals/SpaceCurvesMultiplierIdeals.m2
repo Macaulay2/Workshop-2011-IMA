@@ -598,8 +598,8 @@ document {
   Key => SpaceCurvesMultiplierIdeals,
   Headline => "A package for computing multiplier ideals of monomial space curves",
   "This implementation is based on the algorithm given in
-   H.M. Thompson's paper: ", EM "Multiplier Ideals of Monomial Space Curves. ",  
-   HREF{"http://arxiv.org/abs/1006.1915","arXiv:1006.1915v4"}, " [math.AG]"
+   H.M. Thompson's paper: ", EM "Multiplier Ideals of Monomial Space Curves, ",  
+   HREF{"http://arxiv.org/abs/1006.1915","arXiv:1006.1915v4"}, " [math.AG]."
 }
 
 doc ///

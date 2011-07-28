@@ -7,7 +7,7 @@ getPositionOfVertices = (G,S) -> apply(S, w -> pos(sort vertices G, w))
 restart
 pos = (h, x) -> position(h, i->i===x)
 loadPackage "Graphs"
-G=graph {{e,b},{c,e},{e,d},{a,e},{d,a},{c,b}}
+G=graph {{a,b},{a,c},{c,b},{c,d},{c,e},{d,e}}
 Gvers= vertices G
 n=# vertices G
 --hastable for vertex labeling
@@ -17,6 +17,22 @@ n=# vertices G
   --   Ghash#(Gvers#(i-1)) = i
     -- )
 --peek Ghash
+
+
+
+--input vertex label, out vertex index
+getPos=(v)->pos(vertices G, v)
+--input is integer locator, output neighbors
+nbr=(v)->(graph G)#((vertices G)#v)
+--input is index of vertex and ordering, output is position of neighbors of vertex in ordering
+indNbr=(v,sigma)->apply(#nbr(v),i->
+     pos(sigma,pos(vertices G,(toList nbr(v))#i))
+     )
+
+
+
+
+
 lexBFS=(G)->(    
 S=new MutableList from apply (# vertices G, i->{});
 Size=new MutableList from apply (# vertices G, i->0);

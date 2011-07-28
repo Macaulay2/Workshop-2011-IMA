@@ -153,6 +153,7 @@ S = kk[a,b,c]
 F2 = S^2
 F = makeSymmetricPower(F2, 3)
 DtoTensor F
+4+4
 ///
 
 wedgeDToWedge = method()

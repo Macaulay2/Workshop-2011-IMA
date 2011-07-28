@@ -382,7 +382,7 @@ intersectionIndexSet = (ff) -> (
 
 monomialSpaceCurveMultiplierIdeal = method()
 monomialSpaceCurveMultiplierIdeal(Ring, List, QQ) :=
-monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
+monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := Ideal => (R, nn, t) -> (
      ff := sortedGens(R,nn);
      curveIdeal := affineMonomialCurveIdeal(R,nn);
      
@@ -416,7 +416,7 @@ monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
 
 monomialSpaceCurveLCT = method()
 monomialSpaceCurveLCT(Ring,List) := (R, nn) -> monomialSpaceCurveLCT(sortedGens(R,nn));
-monomialSpaceCurveLCT(List) := ff -> (
+monomialSpaceCurveLCT(List) := QQ => ff -> (
      indexList  := intersectionIndexSet(ff);
      curveIdeal := ideal ff;
      lctTerm    := monomialLCT(termIdeal(curveIdeal));
@@ -511,7 +511,7 @@ monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , ZZ ) := (R, nn,a,b) -> mono
 monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , ZZ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , QQ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 
-monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := (R, nn , Left , Right) -> (
+monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := List => (R, nn , Left , Right) -> (
   ff  := sortedGens(R,nn);
   lct := monomialSpaceCurveLCT(R,nn);
   
@@ -625,6 +625,44 @@ Description
 
 ///
 
+doc ///
+Key
+  monomialSpaceCurveJumpingNumbers
+  (monomialSpaceCurveJumpingNumbers Ring, List)
+  (monomialSpaceCurveJumpingNumbers Ring, List, ZZ, ZZ)
+  (monomialSpaceCurveJumpingNumbers Ring, List, QQ, ZZ)
+  (monomialSpaceCurveJumpingNumbers Ring, List, ZZ, QQ)
+  (monomialSpaceCurveJumpingNumbers Ring, List, QQ, QQ)
+    
+Headline
+  jumping numbers and corresponding multiplier ideals of monomial space curves
+Usage
+ -- (jn,mi) = monomialSpaceCurveJumpingNumbers(R,nn)
+Inputs
+  R:
+  nn:
+Outputs
+  L:
+Description
+  Text
+  
+    Given a monomial space curve {\tt C} and a parameter {\tt t}, the function 
+    {\tt monomialSpaceCurveMultiplierIdeal} computes the multiplier ideal associated to the embedding of {\tt C}
+    in {\tt 3}-space and the parameter {\tt t}.
+    
+    More precisely, we assume that {\tt R} is a polynomial ring in three variables, {\tt n = \{a,b,c\}}
+    is a sequence of positive integers of length three, and that {\tt t} is a rational number. The corresponding
+    curve {\tt C} is then given by the embedding {\tt u\to(u^a,u^b,u^c)}.
+  
+  Example
+    R = QQ[x,y,z];
+    nn = {2,3,4};
+    t = 5/2;
+    I = monomialSpaceCurveMultiplierIdeal(R,nn,t)
+
+///
+
+
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 ------------------------ TESTS ---------------------------------------------------------------------
@@ -635,78 +673,12 @@ Description
 end
 
 
-restart
-debug loadPackage"SpaceCurvesMultiplierIdeals"
-loadPackage "Dmodules"
-R = QQ[x,y,z];
-nn = {2,3,4};
-I = affineMonomialCurveIdeal(R,nn)
-ff = sortedGens(R,nn)
-
-time A = monomialSpaceCurveMultiplierIdeal(R,nn,20/7)
-time B = multiplierIdeal(I,20/7)
-trim A
-trim B
-
-test = (t) -> (
-     A := monomialSpaceCurveMultiplierIdeal(R,nn,t);
-     B := multiplierIdeal(I,t);
-     if ( A == B ) then (
-          print "ok";
-     ) else (
-          print "no";
-     );
-     );
-
-test(20/7)
-test(31/14)
-test(17/6)
-
-
-
 
 restart
 debug loadPackage"SpaceCurvesMultiplierIdeals"
-loadPackage "Dmodules"
-R = QQ[x,y,z];
-test = (nn,t) -> (
-     I := affineMonomialCurveIdeal(R,nn);
-     A := monomialSpaceCurveMultiplierIdeal(R,nn,t);
-     B := multiplierIdeal(I,t);
-     if ( A == B ) then (
-          print "ok";
-     ) else (
-          print "no";
-     );
-     );
-
--- only use G={nn}, don't bother computing the rest of it
-quick = (R,nn,t) -> (
-     ff := sortedGens(R,nn);
-     I := affineMonomialCurveIdeal(R,nn);
-     valnn := floor(t*ord(nn,ff_1)-exceptionalDivisorDiscrepancy(nn,ff));
-     
-     intersect {
-       symbolicPowerCurveIdeal(I,t-1),
-       exceptionalDivisorValuationIdeal(R,ff,nn,valnn)
-     }
-     );
-
-test2 = (nn,t) -> (
-     A := monomialSpaceCurveMultiplierIdeal(R,nn,t);
-     B := quick(R,nn,t);
-     if ( A == B ) then (
-          print "ok";
-     ) else (
-          print "no";
-     );
-     );
-
-(0..50) / (i -> (<< i; test2({2,3,5},i/7);));
-
-
-restart
-debug loadPackage"SpaceCurvesMultiplierIdeals"
+installPackage "SpaceCurvesMultiplierIdeals"
+uninstallPackage "SpaceCurvesMultiplierIdeals"
+viewHelp "SpaceCurvesMultiplierIdeals"
 R = QQ[x,y,z]
 monomialSpaceCurveLCT(R,{2,3,4})
 nn = {2,3,4};

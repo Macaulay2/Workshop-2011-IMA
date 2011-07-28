@@ -284,6 +284,9 @@ doc ///
     The program "phc" (at least version 2.3.52, but preferably higher)
     of PHCpack needs to in the path for execution.
 
+    The current implementation resolves only one triple intersection
+    condition (although the root count in LRrule is general).
+
     The current output of the calculations consist of strings
     and requires still parsing and independent verification
     with proper Macaulay 2 arithmetic.
@@ -320,6 +323,17 @@ doc ///
     Text
       The Schubert condition [2 4 6]*[3 5 7]^2 resolves to 2[1 2 3]
       means that there are two 3-planes that satisfy the condition.
+    
+      If the right hand side of the equation returned by LRrule
+      consists of one bracket of consecutive natural numbers starting
+      at zero, then there are finitely many solutions.
+      Otherwise, the problem may be underdetermined,
+      consider the example:
+    Example
+      LRrule(7, matrix{{2,3,6,7},{1,3,5,7},{1,2,5,7}})
+    Text
+      Littlewood-Richardson homotopies work only for fully determined
+      Schubert intersection conditions.
 ///;
 
 doc ///

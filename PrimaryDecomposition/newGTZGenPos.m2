@@ -335,7 +335,7 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 	    d := degree(xi,gi);
 	    a := leadCoefficient gi;
 	    -- find coeffs of xi^(d-1)
-	    b := contract(xi^(d-1),gi-xi^d);
+	    b := contract(xi^(d-1),gi-a*xi^d);
 	    -- use binomial formula to guess linear factor
 	    linearFactor := (a*d*xi + b);
 	    gi = gi*(d^d)*(a^(d-1));

@@ -1326,7 +1326,7 @@ gfanResultantFan (List) := opts -> (tuple) -> (
      if (tuple !={}) then
      (
           if (not same(tuple/class)) then error "All elements in the list should be of the same class\n";
-     	  type= class(tuple#0);     
+     	  type= class class(tuple#0);     
    	  );
      vectorConfiguration := tuple;
      

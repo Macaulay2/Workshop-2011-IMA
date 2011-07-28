@@ -498,25 +498,22 @@ potentialJumpingNumbers ( List , Number , Number ) := (ff , Left, Right) -> (
 
 
 
--- monomialJumpingNumbers
+-- monomialSpaceCurveJumpingNumbers
 -- return a list {jumpingNumbers, multiplierIdeals}
 -- where for jumpingNumbers#i <= c < jumpingNumbers#(i+1), J(I^c) = multiplierIdeals#i
 -- Finds jumping numbers in interval [a,b]
--- Default: [a,b] = [monomialLCT(I),keynumber(I)]
-monomialJumpingNumbers = method();
-monomialJumpingNumbers ( MonomialIdeal ) := (I) -> monomialJumpingNumbers(I,monomialLCT I,keynumber I);
-monomialJumpingNumbers ( MonomialIdeal , ZZ , ZZ ) := (I,a,b) -> monomialJumpingNumbers(I,promote(a,QQ),promote(b,QQ));
-monomialJumpingNumbers ( MonomialIdeal , QQ , ZZ ) := (I,a,b) -> monomialJumpingNumbers(I,promote(a,QQ),promote(b,QQ));
-monomialJumpingNumbers ( MonomialIdeal , ZZ , QQ ) := (I,a,b) -> monomialJumpingNumbers(I,promote(a,QQ),promote(b,QQ));
+-- Default: [a,b] = [monomialSpaceCurveLCT(R,nn),keynumber(affineMonomialSpaceCurveIdeal(R,nn))]
+monomialSpaceCurveJumpingNumbers = method();
+monomialSpaceCurveJumpingNumbers ( Ring, List ) := (R, nn) -> monomialSpaceCurveJumpingNumbers(R, nn, monomialSpaceCurveLCT(R, nn),keynumber affineMonomialSpaceCurveIdeal(R,nn));
+monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , ZZ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
+monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , ZZ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
+monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , QQ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 
-monomialJumpingNumbers ( MonomialIdeal , QQ , QQ ) := (I , Left , Right) -> (
+monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := (R, nn , Left , Right) -> (
+  ff  := sortedGens(R,nn);
+  lct := monomialSpaceCurveLCT(R,nn);
   
-  R := ring I;
-  use R;
-  
-  lct := monomialLCT(I);
-  
-  pjn := potentialJumpingNumbers(I, Left, Right);
+  pjn := potentialJumpingNumbers(ff, Left, Right);
   
   -- Empty list?
   if ( #pjn == 0 ) then (
@@ -538,15 +535,15 @@ monomialJumpingNumbers ( MonomialIdeal , QQ , QQ ) := (I , Left , Right) -> (
   -- and use that for p-epsilon
   if ( (pjn#0) == lct ) then (
     jumpingNumbers = { lct };
-    prev = monomialMultiplierIdeal(I,lct);
+    prev = monomialSpaceCurveMultiplierIdeal(R,nn,lct);
     next = prev;
     multiplierIdeals = { prev };
   ) else (
-    pjn2 := potentialJumpingNumbers(I, lct, pjn#0 );
+    pjn2 := potentialJumpingNumbers(ff, lct, pjn#0 );
     -- pjn2#-1 = pjn#0
     -- The greatest potential jumping number less than p is pjn2#-2
-    prev = monomialMultiplierIdeal(I,pjn2#-2);
-    next = monomialMultiplierIdeal(I,pjn#0);
+    prev = monomialSpaceCurveMultiplierIdeal(R,nn,pjn2#-2);
+    next = monomialSpaceCurveMultiplierIdeal(R,nn,pjn#0);
     if ( prev != next ) then (
       -- yes it is a jumping number
       jumpingNumbers = { pjn#0 };
@@ -563,7 +560,7 @@ monomialJumpingNumbers ( MonomialIdeal , QQ , QQ ) := (I , Left , Right) -> (
   for i from 1 to (#pjn-1) do (
     
     prev = next;
-    next = monomialMultiplierIdeal(I,pjn#i);
+    next = monomialSpaceCurveMultiplierIdeal(R,nn,pjn#i);
     
     if ( prev != next ) then (
       jumpingNumbers = append( jumpingNumbers , pjn#i );

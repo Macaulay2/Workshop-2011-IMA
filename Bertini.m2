@@ -23,25 +23,45 @@ newPackage(
 )
 
 export { 
-  bertiniZeroDimSolve,
-  bertiniParameterHomotopy,
-  bertiniPosDimSolve,
-  bertiniSample,
-  bertiniComponentMemberTest,
-  bertiniRefineSols
-  }
+  "bertiniSolve",
+  "bertiniZeroDimSolve",
+  "bertiniParameterHomotopy",
+  "bertiniPosDimSolve",
+  "bertiniSample",
+  "bertiniComponentMemberTest",
+  "bertiniRefineSols",
+  "StartSystem",  
+  "StartSolutions",  
+  "gamma",
+  "MPTYPE",  
+  "PRECISION",  
+  "ODEPREDICTOR",  
+  "TRACKTOLBEFOREEG",  
+  "TRACKTOLDURINGEG",
+  "FINALTOL",  
+  "MAXNORM",  
+  "MINSTEPSIZEBEFOREEG",  
+  "MINSTEPSIZEDURINGEG",  
+  "IMAGTHRESHOLD",
+  "COEFFBOUND",  
+  "DEGREEBOUND",  
+  "CONDNUMTHRESHOLD",  
+  "RANDOMSEED",  
+  "SINGVALZEROTOL",
+  "ENDGAMENUM", 
+  "USEREGENERATION",  
+  "SECURITYLEVEL",  
+  "SCREENOUT",  
+  "OUTPUTLEVEL",
+  "STEPSFORINCREASE",  
+  "MAXNEWTONITS",  
+  "MAXSTEPSIZE",  
+  "MAXNUMBERSTEPS",  
+  "MAXCYCLENUM",
+  "REGENSTARTLEVEL"
+}
 
---protect ErrorTolerance, protect addSlackVariables, protect Iterations,
---protect generalEquations, protect Bits, protect ResidualTolerance, 
---protect Append
-
-protect StartSystem, protect StartSolutions, protect gamma
-protect MPTYPE, protect PRECISION, protect ODEPREDICTOR, protect TRACKTOLBEFOREEG, protect TRACKTOLDURINGEG
-protect FINALTOL, protect MAXNORM, protect MINSTEPSIZEBEFOREEG, protect MINSTEPSIZEDURINGEG, protect IMAGTHRESHOLD
-protect COEFFBOUND, protect DEGREEBOUND, protect CONDNUMTHRESHOLD, protect RANDOMSEED, protect SINGVALZEROTOL
-protect ENDGAMENUM, protect USEREGENERATION, protect SECURITYLEVEL, protect SCREENOUT, protect OUTPUTLEVEL
-protect STEPSFORINCREASE, protect MAXNEWTONITS, protect MAXSTEPSIZE, protect MAXNUMBERSTEPS, protect MAXCYCLENUM
-protect REGENSTARTLEVEL, protect runType, protect deg, protect dimen, protect numpts, protect tol, protect pts
+protect runType, protect deg, protect dimen, protect numpts, protect tol, protect pts
 
 needsPackage "NAGtypes"
 
@@ -140,13 +160,12 @@ bertiniSolve List := o -> F -> (  -- F is the list of polynomials
 
 
 -- DAN PLAN (7/26/11)
---   allow many different options
---   these front ends funnel into a general input file maker, each sending the appropriate options to set the configs appropriately for the desired run
---   there is then a very basic call to run Bertini (done by Anton) 
---   then the output is read into M2 data types (still deciding on those), with each sort of run feeding into a different output file parser, since different sorts of runs yield different output files 
---   provide more flexibility for users, allowing them to exclude options for each of the front ends
+--   solve problem with passing in options
+--   build output parsers: output is read into M2 data types (still deciding on those), with each sort of run feeding into a different output file parser, since different sorts of runs yield different output files 
 
-
+-------------------
+-- makeBertiniInput
+-------------------
 
 -- protect StartSolutions, protect StartSystem (Anton/Jan suggested that perhaps we shouldn't be protecting any names???) 
 makeBertiniInput = method(TypicalValue=>Nothing, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,dimen=>-1,deg=>-1,numpts=>-1,pts=>{},tol=>-1,runType=>0})  
@@ -213,7 +232,7 @@ makeBertiniInput List := o -> T -> (
 		 ));
        close f;
        );
-  stdio << dir;
+  stdio << "Temporary directory for input and output files:" << dir;
   dir
   )
 

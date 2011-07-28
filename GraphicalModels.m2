@@ -2185,6 +2185,28 @@ correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,
 assert( I == ideal correctOutput)
 ///
 
+--------------------------
+---- TEST pairMarkov  ----
+--------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+S = pairMarkov G
+L = {{{a}, {d}, {e, b, c}}, {{c}, {e}, {d, a, b}}, {{b}, {d}, {e,a, c}}, {{b}, {e}, {d, a, c}}, {{a}, {c}, {d, e, b}}}
+assert(S === L)
+///
+
+--------------------------
+---- TEST localMarkov  ---
+--------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+S = localMarkov G
+L = {{{a}, {c, d}, {e, b}}, {{a, b}, {d}, {e, c}}, {{a, e}, {c},{d, b}}, {{b, c}, {e}, {d, a}}, {{b}, {d, e}, {a, c}}}
+assert(S === L)
+///
+
 ----------------------------------------------------------------------------------------------
 
 

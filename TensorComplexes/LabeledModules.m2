@@ -80,7 +80,8 @@ labeledModule Ring := S -> (
     symbol cache => new CacheTable})
 
 net LabeledModule := E -> net module E
-LabeledModule#{Standard,AfterPrint} = LabeledModule#{Standard,AfterNoPrint} = E -> (
+LabeledModule#{Standard,AfterPrint} = 
+LabeledModule#{Standard,AfterNoPrint} = E -> (
   << endl;				  -- double space
   << concatenate(interpreterDepth:"o") << lineNumber << " : free ";
   << ring E << "-module with labeled basis" << endl;)
@@ -130,7 +131,7 @@ symmetricPower (ZZ, LabeledModule) := (d,E) -> (
     symbol cache => new CacheTable})
 
 productList = L -> (
-     --L is supposed to be a list of lists
+  --L is supposed to be a list of lists
   n := #L;
   if n === 0 then {}
   else if n === 1 then apply(L#0, i -> {i})
@@ -272,31 +273,28 @@ flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
     (i,j) -> x_(toSequence({fromOrdinal(j, Blist_0)}| fromOrdinal(i, B)))))
 
 minorsMap = method()
-minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
-     --Assumes that E has the form 
-     --E = wedge^b((source f)^*) ** wedge^b(target f)
-     --where source f and target f are labeled free modules.
-     S := ring f;
-     b := #((basisList E)_0_0);
-     if b != #((basisList E)_0_1) or #((basisList E)_0) !=2
-               then error "E doesn't have the right format";
-     J := basisList E;
-     sour := (underlyingModules((underlyingModules E)_0))_0;
-     tar := (underlyingModules((underlyingModules E)_1))_0;
-     map(labeledModule S, E, (i,j)->(
-	        p := J_j;
-	   det submatrix(f,
-		apply(p_1, k-> toOrdinal(k, tar)),
-	        apply(p_0, k-> toOrdinal(k, sour))		
-             	                )))
-      )
+minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E) -> (
+  --Assumes that E has the form 
+  --E = wedge^b((source f)^*) ** wedge^b(target f)
+  --where source f and target f are labeled free modules.
+  S := ring f;
+  b := #((basisList E)_0_0);
+  if b != #((basisList E)_0_1) or #((basisList E)_0) != 2
+  then error "E doesn't have the right format";
+  J := basisList E;
+  sour := (underlyingModules((underlyingModules E)_0))_0;
+  tar := (underlyingModules((underlyingModules E)_1))_0;
+  map(labeledModule S, E, (i,j)-> (
+      p := J_j;
+      det submatrix(f, apply(p_1, k-> toOrdinal(k, tar)),
+	apply(p_0, k-> toOrdinal(k, sour))))))
 
-minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap => (ff,E) ->
-     minorsMap(matrix ff, E)
+minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap => (f,E) ->
+     minorsMap(matrix f, E)
 
-
-tensor(LabeledModuleMap,LabeledModuleMap) := LabeledModuleMap => options -> (m,n) -> 
-     map((target m)**(target n), (source m)**(source n), (matrix m)**(matrix n))
+tensor(LabeledModuleMap,LabeledModuleMap) := LabeledModuleMap => o -> (m,n) -> 
+map((target m)**(target n), (source m)**(source n), (matrix m)**(matrix n))
+LabeledModuleMap ** LabeledModuleMap := LabeledModuleMap => (f,g) -> tensor(f,g)
 
 isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
 ///
@@ -537,7 +535,8 @@ document {
   }
 
 document { 
-  Key => (tensor, LabeledModuleMap, LabeledModuleMap),
+  Key => {(tensor, LabeledModuleMap, LabeledModuleMap),
+    (symbol **, LabeledModuleMap, LabeledModuleMap)},
   Headline => "???",
   "Blah, blah, blah.",
   }
@@ -622,7 +621,8 @@ assert(fromOrdinal(5,E) == {0,1,0})
 TEST ///
 S = ZZ/101[a,b,c];
 F = labeledModule S^2
-assert(matrix symmetricMultiplication(F,1,1) == matrix{{1_S,0,0,0},{0,1,1,0},{0,0,0,1}})
+assert(matrix symmetricMultiplication(F,1,1) == matrix{
+    {1_S,0,0,0},{0,1,1,0},{0,0,0,1}})
 assert(rank symmetricMultiplication(F,2,1) == 4)
 assert(matrix symmetricMultiplication(F,2,0) == id_(S^3))
 ///

@@ -279,16 +279,21 @@ cauchyMap (ZZ, LabeledModule) := (b,E) -> (
 flattenedGenericTensor = method()
 flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
   --make ring of generic tensor
+  if #L === 0 then error "expected a nonempty list";
   inds := productList apply(#L, i -> toList(0..L#i-1));
   x := symbol x;
   vrbls := apply(inds,i -> x_(toSequence i));
-  S := kk[vrbls];
+  local S;
+  if #L === 1 then S=kk[x_0..x_(L_0-1)] 
+  else S = kk[vrbls];
   --make generic tensor (flattened)
   Blist := apply(#L, i->labeledModule S^(L_i));
   --B = tensor product of all but Blist_0
-  B := tensorProduct apply(#L-1, i -> Blist_(i+1));     
-  f := map(B, Blist_0, 
-    (i,j) -> x_(toSequence({fromOrdinal(j, Blist_0)}| fromOrdinal(i, B)))))
+  if #L === 1 then map(labeledModule S,Blist_0, vars S)
+  else(
+    B := tensorProduct apply(#L-1, i -> Blist_(i+1));     
+    map(B, Blist_0, 
+      (i,j) -> x_(toSequence({fromOrdinal(j, Blist_0)}| fromOrdinal(i, B))))))
 
 minorsMap = method()
 -- Since we may not need the "full" minors map, we may be able
@@ -328,46 +333,48 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   B := {S^0} | underlyingModules target f;
   A := source f;
   n := #B-1;
-  b := B / rank; -- {0, b1, b2,..,bn}
-  d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
-  -- source of output map
-  F1 := tensorProduct({exteriorPower(b_1,A), exteriorPower(b_1,B_1)} |
-    apply(toList(2..n), j-> symmetricPower(d_(j-1)-b_1,B_j)));
-  -- target of output map
-  F0 := tensorProduct apply(n-1, j-> symmetricPower(d_(j+1), B_(j+2)));
-  trMap := traceMap tensorProduct apply(toList(2..n), 
-    j -> symmetricPower(b_1,B_j));
-  G1 := tensorProduct(target trMap, F1);
-  g0 := map(G1, F1, trMap ** id_F1); -- tc1
-  G1factors := flatten(
-    ((underlyingModules target trMap) | {F1}) / underlyingModules );
-  -- G2 and G1 are isomorphic as free modules with ordered basis but different
-  -- as labeled modules
-  G2 := tensorProduct G1factors;
-  -- g1 is the map induced by dropping all parentheses in the tensor product  
-  g1 := map(G2, G1, id_(S^(rank G1)));
-  perm := join({2*n-2, 2*n-1}, toList(0..n-2), 
-    flatten apply(n-1, j -> {j+n-1, j+2*n}));
-  G3factors := G1factors_perm;
-  G3 := tensorProduct G3factors;
-  -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
-  -- The reordering is given by the permutation 'perm'  
-  permMatrix := mutableMatrix(S, rank G3, rank G2);
-  for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
-  g2 := map(G3, G2, matrix permMatrix);
-  -- tc12 := permMap*tc1;
-  G3a := G3factors_0;
-  G3b := tensorProduct G3factors_(toList(1..n));
-  G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
-  prodB := tensorProduct apply(n,i -> B_(i+1));  
-  G4b := exteriorPower(b_1, prodB);
-  dualCauchyMap := map (G4b, G3b, transpose cauchyMap(b_1, prodB));
-  g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
-  symMultMap := map(F0, G3c, tensorProduct apply(n-1, 
-      j -> symmetricMultiplication(B_(j+2),b_1,d_(j+1)-b_1)));
-  minMap := minorsMap(f, tensorProduct(G3a, G4b));
-  g4 := minMap ** symMultMap;
-  map(F0, F1 ** labeledModule S^{ -b_2}, g4 * g3 * g2 * g1 * g0))
+  if n === 0 or n === 1 then f
+  else(
+    b := B / rank; -- {0, b1, b2,..,bn}
+    d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
+    -- source of output map
+    F1 := tensorProduct({exteriorPower(b_1,A), exteriorPower(b_1,B_1)} |
+      apply(toList(2..n), j-> symmetricPower(d_(j-1)-b_1,B_j)));
+    -- target of output map
+    F0 := tensorProduct apply(n-1, j-> symmetricPower(d_(j+1), B_(j+2)));
+    trMap := traceMap tensorProduct apply(toList(2..n), 
+      j -> symmetricPower(b_1,B_j));
+    G1 := tensorProduct(target trMap, F1);
+    g0 := map(G1, F1, trMap ** id_F1); -- tc1
+    G1factors := flatten(
+      ((underlyingModules target trMap) | {F1}) / underlyingModules );
+    -- G2 and G1 are isomorphic as free modules with ordered basis but different
+    -- as labeled modules
+    G2 := tensorProduct G1factors;
+    -- g1 is the map induced by dropping all parentheses in the tensor product  
+    g1 := map(G2, G1, id_(S^(rank G1)));
+    perm := join({2*n-2, 2*n-1}, toList(0..n-2), 
+      flatten apply(n-1, j -> {j+n-1, j+2*n}));
+    G3factors := G1factors_perm;
+    G3 := tensorProduct G3factors;
+    -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
+    -- The reordering is given by the permutation 'perm'  
+    permMatrix := mutableMatrix(S, rank G3, rank G2);
+    for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
+    g2 := map(G3, G2, matrix permMatrix);
+    -- tc12 := permMap*tc1;
+    G3a := G3factors_0;
+    G3b := tensorProduct G3factors_(toList(1..n));
+    G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
+    prodB := tensorProduct apply(n,i -> B_(i+1));  
+    G4b := exteriorPower(b_1, prodB);
+    dualCauchyMap := map (G4b, G3b, transpose cauchyMap(b_1, prodB));
+    g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
+    symMultMap := map(F0, G3c, tensorProduct apply(n-1, 
+      	j -> symmetricMultiplication(B_(j+2),b_1,d_(j+1)-b_1)));
+    minMap := minorsMap(f, tensorProduct(G3a, G4b));
+    g4 := minMap ** symMultMap;
+    map(F0, F1 ** labeledModule S^{ -b_2}, g4 * g3 * g2 * g1 * g0)))
 
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -663,10 +670,12 @@ assert(matrix cauchyMap(1,F2') == id_(S^2))
 
 --test 6
 TEST///
-kk=QQ;
+kk=ZZ/101;
 f=flattenedGenericTensor({4,1,2,1},kk);
-R=kk[a,b,c];
-assert(betti res coker matrix tensorComplex1 f==betti res coker random(R^2,R^{4:-1}))
+BD=new BettiTally from {(0,{0},0) => 2, (1,{1},1) => 4, (2,{3},3) => 4, (3,{4},4) => 2};
+assert(betti res coker matrix tensorComplex1 f==BD)
+f=flattenedGenericTensor({3,3},kk)
+
 ///
 
 end
@@ -680,7 +689,8 @@ installPackage "LabeledModules"
 check "LabeledModules"
 
 kk = ZZ/101;
-f = flattenedGenericTensor({4,2,2},kk)
+f = flattenedGenericTensor({},kk)
+
 f = flattenedGenericTensor({4,1,2,1},kk)
 
 g = tensorComplex1 f

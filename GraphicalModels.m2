@@ -1928,6 +1928,50 @@ doc///
      directedEdgesMatrix
 ///
 
+-----------------------------------------
+-- Documentation gaussianVanishingIdeal--
+-----------------------------------------
+
+doc ///
+   Key
+     gaussianVanishingIdeal
+     (gaussianVanishingIdeal,Ring,Graph)
+   Headline
+     correlation ideal of a Bayesian network of joint Gaussian variables
+   Usage
+     I = gaussianVanishingIdeal(R,G)
+   Inputs
+     R:Ring
+       created with @TO gaussianRing@
+     G:Graph
+       an undirected graph
+     
+   Outputs
+     I:Ideal
+        in R, of the relations in the correlations of the random variables implied by the independence statements 
+	of the graph G, or the list of independence statements G
+   Description
+     Text
+       The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
+       are disjoint lists of integers in the range 1..n (n is the number of random variables)
+       is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
+       rows are in A union C, and whose columns are in B union C.  In general, this ideal need not be prime.
+       
+       These ideals were first written down by Seth Sullivant, in "Algebraic geometry of Gaussian Bayesian networks". 
+       The routines in this package involving Gaussian variables are all based on that paper.
+     Example
+       G = graph({{a,b},{b,c},{c,d},{a,d}})
+       R=gaussianRing G 
+       J = gaussianVanishingIdeal(R,G) 
+     
+   SeeAlso
+     globalMarkov
+     localMarkov
+     gaussianRing
+     gaussianMatrices
+     trekIdeal
+///
+
 --------------------------------------------------------------------------------------
 
 --------------------------

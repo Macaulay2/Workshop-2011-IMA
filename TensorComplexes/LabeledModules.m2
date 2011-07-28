@@ -54,7 +54,8 @@ export {
   "cauchyMap",
   "traceMap",
   "flattenedGenericTensor",
-  "minorsMap"
+  "minorsMap",
+  "tensorComplex1"
   }
 
 --------------------------------------------------------------------------------
@@ -191,12 +192,17 @@ new LabeledModuleMap from {
   symbol source => F,
   symbol target => E,
   symbol matrix => map(module E,module F,f)}
-map(LabeledModule, LabeledModule, List) := o-> (E,F,L) ->
+map(LabeledModule, LabeledModule, List) := o -> (E,F,L) ->
 new LabeledModuleMap from {
   symbol ring => ring F,
   symbol source => F,
   symbol target => E,
   symbol matrix => map(module E,module F,L)}
+map(LabeledModule,LabeledModule,ZZ) := LabeledModuleMap => o -> 
+(E,F,i) -> map(E,F,matrix map(module E, module F, i))
+map(LabeledModule,LabeledModule,LabeledModuleMap) := LabeledModuleMap => o -> 
+(E,F,f) -> map(E,F, matrix f)
+
 net LabeledModuleMap := g -> net matrix g
 LabeledModuleMap#{Standard,AfterPrint} = 
 LabeledModuleMap#{Standard,AfterNoPrint} = f -> (
@@ -206,11 +212,19 @@ LabeledModuleMap#{Standard,AfterNoPrint} = f -> (
   << endl;)
 
 rank LabeledModuleMap := ZZ => f -> rank matrix f
-transpose LabeledModuleMap := LabeledModuleMap => o -> f ->
+transpose LabeledModuleMap := LabeledModuleMap => f ->
 map(source f,target f, transpose matrix f)
 
+LabeledModule#id = E -> map(E,E,1)
+
 LabeledModuleMap * LabeledModuleMap := LabeledModuleMap => (f,g) -> 
-map(target f, source g, matrix f*g)
+map(target f, source g, matrix f * matrix g)
+
+tensor(LabeledModuleMap,LabeledModuleMap) := LabeledModuleMap => o -> (m,n) -> 
+map((target m)**(target n), (source m)**(source n), (matrix m)**(matrix n))
+LabeledModuleMap ** LabeledModuleMap := LabeledModuleMap => (f,g) -> tensor(f,g)
+
+LabeledModuleMap.tensorProduct = T -> fold(tensor, T)
      
 traceMap = method()
 traceMap LabeledModule := LabeledModuleMap => E -> (
@@ -273,6 +287,8 @@ flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
     (i,j) -> x_(toSequence({fromOrdinal(j, Blist_0)}| fromOrdinal(i, B)))))
 
 minorsMap = method()
+-- Since we may not need the "full" minors map, we may be able
+-- to speed up this method.
 minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E) -> (
   --Assumes that E has the form 
   --E = wedge^b((source f)^*) ** wedge^b(target f)
@@ -292,61 +308,63 @@ minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E) -> (
 minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap => (f,E) ->
      minorsMap(matrix f, E)
 
-tensor(LabeledModuleMap,LabeledModuleMap) := LabeledModuleMap => o -> (m,n) -> 
-map((target m)**(target n), (source m)**(source n), (matrix m)**(matrix n))
-LabeledModuleMap ** LabeledModuleMap := LabeledModuleMap => (f,g) -> tensor(f,g)
 
 isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
-///
-----TO FIX:
+
 tensorComplex1 = method()
-tensorComplex1(Ring, Matrix) := (S,f) ->(
-     --f: f: A --> B1** B2** ... Bn
-     --makes the map F0 <- F1 as above.
-     --if f is not balanced, we should  be doing something else 
-     if not isBalanced f then error"map is not balanced";
-     B := {S^0}|underlyingModules target f;
-     A := source f;
-     n := #B-1;
-     b := B/rank; -- {0, b1, b2,..,bn}
-     d := accumulate(plus,{0}|b); --{0, b1, b1+b2...}
-     L11 := {makeExteriorPower(A,b_1),makeExteriorPower(B_1,b_1)};
-     L12 := apply(toList(2..n), j->makeSymmetricPower(B_j,d_(j-1)-b#1));
-     F1 := makeTensorProduct(L11 | L12);
-     F0 := makeTensorProduct apply(n-1, j-> makeSymmetricPower(B_(j+2), d_(j+1)));
-     G11 := makeTensorProduct apply(toList(2..n), j->makeSymmetricPower(B_j,b#1));
-     T := makeTrace G11;
-     G1 := makeTensorProduct(target T, F1);
-     tc1 := map(G1,F1,T**id_F1);
-     G1mods := flatten(((uM target T)|{F1})/uM);
-     perm := join({2*n-2, 2*n-1}, 
-	         toList(0..n-2), 
-		 flatten apply(n-1, j->{j+n-1, j+2*n})
-		 );
-     H1 := makeTensorProduct G1mods;
-     G2factors := G1mods_perm;
-     G2 := makeTensorProduct G2factors;
-     permMatrix := mutableMatrix(S, rank G2, rank H1);
-     scan(basisList H1, 
-	  J -> 
-	  permMatrix_((toOrdinal G2) J_perm, (toOrdinal H1) J)=1
-     	  );
-     permMap := map(G2, H1, matrix permMatrix);
-     tc12 := permMap*tc1;
-     G2A := G2factors_0;
-     G2L := makeTensorProduct G2factors_(toList(1..n));
-     G2R := makeTensorProduct G2factors_(toList(n+1..#G2factors-1));
-     TC3Rmatrix := fold(tensor, 
-	  apply (n-1, j-> makeSymmetricMultiplication(B_(j+2), b_1, d_(j+1)-b_1))
-	  );
-     TC3R := map (F0 ,G2R, TC3Rmatrix);
-     tpB := makeTensorProduct apply(n,i->B_(i+1));
-     tarTC3L := makeExteriorPower(tpB, b_1);
-     TC3L := map (tarTC3L, G2L, transpose makeCauchy(b_1, tpB));
-     TC4L := makeMinorsMap(f, makeTensorProduct(G2A, tarTC3L));
-     map(F0, F1**S^{ -b_1 }, ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12)
-     )
-///
+tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
+  -- NOTE: local variables names following the notation from the
+  -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
+  -- 
+  -- f: f: A --> B1** B2** ... Bn
+  -- makes the map F0 <- F1 as above.
+  -- if f is not balanced, we should  be doing something else 
+  if not isBalanced f then error "map is not balanced";
+  S := ring f;  
+  B := {S^0} | underlyingModules target f;
+  A := source f;
+  n := #B-1;
+  b := B / rank; -- {0, b1, b2,..,bn}
+  d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
+  -- source of output map
+  F1 := tensorProduct({exteriorPower(b_1,A), exteriorPower(b_1,B_1)} |
+    apply(toList(2..n), j-> symmetricPower(d_(j-1)-b_1,B_j)));
+  -- target of output map
+  F0 := tensorProduct apply(n-1, j-> symmetricPower(d_(j+1), B_(j+2)));
+  trMap := traceMap tensorProduct apply(toList(2..n), 
+    j -> symmetricPower(b_1,B_j));
+  G1 := tensorProduct(target trMap, F1);
+  g0 := map(G1, F1, trMap ** id_F1); -- tc1
+  G1factors := flatten(
+    ((underlyingModules target trMap) | {F1}) / underlyingModules );
+  -- G2 and G1 are isomorphic as free modules with ordered basis but different
+  -- as labeled modules
+  G2 := tensorProduct G1factors;
+  -- g1 is the map induced by dropping all parentheses in the tensor product  
+  g1 := map(G2, G1, id_(S^(rank G1)));
+  perm := join({2*n-2, 2*n-1}, toList(0..n-2), 
+    flatten apply(n-1, j -> {j+n-1, j+2*n}));
+  G3factors := G1factors_perm;
+  G3 := tensorProduct G3factors;
+  -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
+  -- The reordering is given by the permutation 'perm'  
+  permMatrix := mutableMatrix(S, rank G3, rank G2);
+  for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
+  g2 := map(G3, G2, matrix permMatrix);
+  -- tc12 := permMap*tc1;
+  G3a := G3factors_0;
+  G3b := tensorProduct G3factors_(toList(1..n));
+  G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
+  prodB := tensorProduct apply(n,i -> B_(i+1));  
+  G4b := exteriorPower(b_1, prodB);
+  dualCauchyMap := map (G4b, G3b, transpose cauchyMap(b_1, prodB));
+  g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
+  symMultMap := map(F0, G3c, tensorProduct apply(n-1, 
+      j -> symmetricMultiplication(B_(j+2),b_1,d_(j+1)-b_1)));
+  minMap := minorsMap(f, tensorProduct(G3a, G4b));
+  g4 := minMap ** symMultMap;
+  map(F0, F1 ** labeledModule S^{ -b_2}, g4 * g3 * g2 * g1 * g0))
+
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
 --------------------------------------------------------------------------------
@@ -659,9 +677,17 @@ uninstallPackage "LabeledModules"
 installPackage "LabeledModules"
 check "LabeledModules"
 
-kk=ZZ/101
-S = kk[a,b,c]
-M = labeledModule S^1
+kk = ZZ/101;
+f = flattenedGenericTensor({4,2,2},kk)
+f = flattenedGenericTensor({4,1,2,1},kk)
+g = tensorComplex1 f
+betti res coker matrix g
+cokermatrix f
+
+S = ZZ/101[a,b,c];
+M = labeledModule S^2
+tensorProduct(4 :id_M)
+
 N =  labeledModule S^2
 map(N,M,matrix{{a,b}})
 map(N,M,{{a,b}})

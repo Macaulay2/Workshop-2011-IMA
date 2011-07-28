@@ -67,6 +67,9 @@ export {
 	outputTexPoset,
 	displayPoset,
 	SuppressLabels,
+	setPartitions,
+	partitionRefinementPairs,
+	partitionLattice,
     PDFViewer
        }
 
@@ -845,6 +848,68 @@ displayPoset(Poset):=opts->(P)->(
      outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
      run concatenate("pdflatex ",name);
      run concatenate(opts.PDFViewer, " ", replace("/tmp/","",name),".pdf");
+     )
+
+----------------------------------------
+--New Code for Partition Lattice:
+--Move to appropriate location in package later.
+----------------------------------------
+
+setPartition=method()
+
+setPartition ZZ := n ->(
+     L:={{{1}}};
+     for i from 2 to n do (
+	  L=flatten for lambda in L list (
+	       lambdaparts := apply(#lambda, l-> for k to #lambda-1 list if k=!=l then lambda_k else continue);
+     	       append(apply(#lambda, p-> lambdaparts_p | {lambda_p | {i}}), join(lambda,{{i}}))
+	       );
+	  );
+     apply(L,sort)
+     )
+
+
+setPartition List := S ->(
+     L:={{{first S}}};
+     for s in drop(S,1) do (
+	  L=flatten for lambda in L list(
+	       dropPart := apply(#lambda, i-> drop(lambda,{i,i}));
+	       protoLevelSet := apply(#lambda, l-> join(dropPart_l,{lambda_l|{s}}));
+     	       join(protoLevelSet, {lambda|{{s}}})
+	       );
+	  );
+     apply(L,sort)
+     )
+
+partitionRefinementPairs = method()
+
+partitionRefinementPairs List := (L)-> (
+     m:=unique apply(L, l-> #l);
+     M:=local M;
+     N:=local N;
+     MM:=apply(m, i-> (symbol M)_i);
+     NN:=apply(m, i-> (symbol N)_i);
+     for i in m do (
+	  subS := subsets toList(0..i-1);
+	  M_i = take(subS,{1,#subS-2});
+    	  N_i = unique apply(M_i, r-> sort {r, select(toList(0..i-1), k-> not member(k,r))});
+     );
+     dropPart := apply(#L, i-> drop(L,{i,i}));
+     coverSet := flatten for i from 0 to #L-1 list(
+	  splitPairs:=apply(N_(#L_i), m-> {(L_i)_(first m),(L_i)_(last m)});
+     	  apply(splitPairs, j-> sort join(dropPart_i,j))
+	  );
+ --    coverSet/ print;
+     apply(coverSet, i-> {L,i})--/print
+     )
+
+partitionLattice = method()
+
+partitionLattice ZZ := n -> (
+     L:=toList (1..n);
+     G:=setPartition L;
+     R:=flatten apply(G, i-> partitionRefinementPairs i);
+     poset(G,R)
      )
 
 ----------------------------------

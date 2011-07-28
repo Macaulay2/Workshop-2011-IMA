@@ -537,10 +537,11 @@ gtc = (D,kk)->(
      L := {last D,first D}|apply(#D-1, i->D_(i+1)-D_i);
      genericTensorComplex(L,kk))
 
-EN=(a,c) -> (f:=flattenedGenericTensor({a,c}|apply(a-c, i-> 1),kk);
+EN=(a,c,kk) -> (f:=flattenedGenericTensor({a,c}|apply(a-c, i-> 1),kk);
 	     f1 := tensorComplex1(ring f,f);
 	     betti res coker f1)
-     
+
+leadMap = p -> map(target p, source p, (i,j) -> leadTerm(p_(i,j)))     
 ///
 
 restart
@@ -548,7 +549,9 @@ path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "TensorComplexes.m2"
 kk=ZZ/101
 timing betti gtc({2,4,5},kk)
-
+timing betti gtc1({2,4,5},kk)
+timing betti res coker leadMap gtc1({2,4,5},kk)
+timing betti EN(6,2,kk)
 timing betti(f1 = gtc1({1,4,6,7},kk))
 --timing betti F
 timing betti gtc({1,3,4,6,7},kk)

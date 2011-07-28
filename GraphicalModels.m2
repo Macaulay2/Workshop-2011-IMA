@@ -1507,6 +1507,10 @@ doc ///
       G = graph({{a,b},{b,c},{c,d},{a,d}})
       R = gaussianRing G
       gens R
+    Text
+      Recovering the graph from the gaussian ring
+    Example
+      R#gaussianRing  
       covarianceMatrix(R,G)
       undirectedEdgesMatrix(R,G)
         

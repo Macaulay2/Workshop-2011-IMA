@@ -206,22 +206,15 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      S.GroupActing = opts.GroupActing;
      dim S := s -> dimSchur(s);
      dim(Thing,S) := (n,s) -> dimSchur(n, s);
---     S ** RingElement := RingElement ** S := (f1,f2) -> internalProduct(f1,f2);
      S @ RingElement := RingElement @ S := (f1,f2) -> plethysmGL(f1,f2);
      S @@ RingElement := RingElement @@ S := (f1,f2) -> plethysmSn(f1,f2);
      if opts.GroupActing == "GL" then
      (
-{*     	  S ** S := (f1,f2) -> internalProduct(f1,f2);*}
 	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "outer");
 	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "outer");
 	  )
      else if opts.GroupActing == "Sn" then
      (
---     	  oldmult := lookup(symbol *,S,S);
-{*	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then oldmult(promote(f,S), g);
-	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then oldmult(f, promote(g,S));
-	  Number ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then oldmult(promote(f,S), g);
-	  S ** Number := (f,g) -> if member(ring g,S.baseRings | {S}) then oldmult(f, promote(g,S));*}
      	  S ** S := (f1,f2) -> new S from raw f1 * raw f2;
 	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
 	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
@@ -479,6 +472,7 @@ plethysmGL(RingElement,RingElement) := (f,g) -> (
      if issy then pl else toS pl
 )
 
+
 plethysmSn = method()
 plethysmSn(RingElement,RingElement) := (f,g) ->
 (
@@ -487,11 +481,32 @@ plethysmSn(RingElement,RingElement) := (f,g) ->
 
 plethysm = method(Options => {PlethysmType => "outer"}) --alternative is Group => "inner"
 
-plethysm(RingElement,RingElement) := opts -> (f,g) ->
+{*plethysm(RingElement,RingElement) := opts -> (f,g) ->
 (
      if opts.PlethysmType == "outer" then plethysmGL(f,g)
         else if opts.PlethysmType == "inner" then plethysmSn(f,g)
 	else error"Invalid option"
+     )
+*}
+
+plethysm(RingElement,RingElement) := opts -> (f,g) ->
+(
+     Rg := ring g;
+     Rf := ring f;
+     if schurLevel Rf > 1 then error"Undefined plethysm operation";
+     sLg := schurLevel Rg;
+     
+     pl := local pl;
+     if Rg.GroupActing == "GL" then pl = plethysmGL else
+     if Rg.GroupActing == "Sn" then pl = plethysmSn else
+     error "Invalid plethysm option";
+     
+     if sLg == 1 then return pl(f,g)
+     else
+     (
+     	  lF := listForm g;
+	  return sum for t in lF list plethysm(f,last t) * pl(f,Rg_(first t))
+	  );
      )
 
 plethysm(BasicList,RingElement) := opts -> (lambda,g) -> (
@@ -3571,7 +3586,7 @@ for i from 2 to 4 do
 (
     T_i = schurRing(T_(i-1),value concatenate("t",toString i),2);
     l = l | {(T_i)_{1}};
-)
+)f
 rep = product l
 
 mods = new MutableList;
@@ -3590,8 +3605,14 @@ resol = schurResolution(rep,M,d)
 resol/(i->(sum apply(i,j->dim(last j))))				    						  											    																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																													 											    
 
 restart
+uninstallPackage"SchurRings"
+installPackage"SchurRings"
+check SchurRings
 debug loadPackage"SchurRings"
 S = schurRing(s,5,GroupActing => "Sn")
+R = symmetricRingOf S
+
+
 
 s_2 * s_2
 s_2 * s_2
@@ -3604,28 +3625,18 @@ R = symmetricRingOf S
 f = 2*h_1^5-4*h_1*h_2^2+h_1^2*h_3+h_2*h_3
 toS f
 
-debug loadPackage"SchurRings"
-
-n = 5;
-
-     S = schurRing(QQ,s,n,GroupActing => "Sn");
-
-     rep = s_n + s_{n-1,1};
-
-     M = {s_n}
-
-     schurResolution(rep,M,n)    
-
 restart
 debug loadPackage"SchurRings"
+S = schurRing(s,3,GroupActing=>"Sn")
+T = schurRing(S,t,4)
 
-S = schurRing(s,3)
-T = schurRing(S,t,4,GroupActing=>"Sn")
+a = s_2 * t_2
+plethysm(s_2,a)
 
+a*a
 plethysm({2},s_2 * 1_T)
-
-symmetricPower(2,s_2*1_T)
-
+symmetricPower(2,s_2*t_2)
+symmetricPower(2,s_2)
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"

@@ -45,7 +45,11 @@ newPackage(
 
 -- This implementation is based on the algorithm given in
 -- H.M. Thompson's paper: "Multiplier Ideals of Monomial Space
--- Curves."
+-- Curves." arXiv:1006.1915v4 [math.AG] 
+-- 
+-- http://arxiv.org/abs/1006.1915
+
+
 
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
@@ -65,6 +69,7 @@ export {
 
 needsPackage "Normaliz"
 needsPackage "MonomialMultiplierIdeals"
+needsPackage "ReesAlgebra"
 
 
 ----------------------------------------------------------------------------------------------------
@@ -134,7 +139,7 @@ ord = (mm,p) -> (
      );
 
 
--- sortedff
+-- sortedGens
 --
 -- Compute the minimal generators of the defining ideal of the monomial curve parametrized
 -- by t->(t^a1,t^a2,t^a3,...) and return the list of generators in order of increasing values
@@ -148,7 +153,7 @@ ord = (mm,p) -> (
 -- The ring R should be a polynomial ring over a field. Currently this is not checked.
 -- The integers {a1,a2,a3,...} should be positive. Currently this is not checked.
 
-sortedff = (R,nn) -> (
+sortedGens = (R,nn) -> (
      KK := coefficientRing R;
      genList := flatten entries gens trim affineMonomialCurveIdeal(R,nn);
      L := sort apply(genList, i -> {ord(nn,i), i});
@@ -174,7 +179,7 @@ sortedff = (R,nn) -> (
 
 exceptionalDivisorValuation = (nn,mm,p) -> (
      R := ring p;
-     ff := sortedff(R,nn);
+     ff := sortedGens(R,nn);
      n := 0;
      while p % ff_0 == 0 do (p = p//ff_0; n = n+1;);
      n*ord(mm,ff_1) + ord(mm,p)
@@ -221,7 +226,8 @@ exceptionalDivisorDiscrepancy = (mm,ff) -> (
 --   Only read rows whose entry in the c'th column is equal to d. Ignore c'th column.
 --
 -- This code was copied from Zach Teitler's package
--- MonomialMultiplierIdeals.m2, which in turn borrows from Normaliz.m2.
+-- MonomialMultiplierIdeals.m2 (v. 0.6.1), which in turn borrows from
+-- Normaliz.m2.
 -- 
 
 intmat2monomIdeal = method();
@@ -375,7 +381,7 @@ intersectionIndexSet = (ff) -> (
 monomialSpaceCurveMultiplierIdeal = method()
 monomialSpaceCurveMultiplierIdeal(Ring, List, QQ) :=
 monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
-     ff := sortedff(R,nn);
+     ff := sortedGens(R,nn);
      curveIdeal := affineMonomialCurveIdeal(R,nn);
      
      indexList := intersectionIndexSet(ff);
@@ -390,6 +396,192 @@ monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
      
      intersect(symbpow,term,validl)
      );
+
+
+
+
+-- monomialSpaceCurveLCT
+--
+-- Compute log canonical threshold of the defining ideal of a monomial
+-- space curve, ie., a curve in affine 3-space parametrized by
+-- monomials, t->(t^a,t^b,t^c).
+--
+-- Input:
+--  * ring R
+--  * list of integers {a,b,c}, the exponents in the parametrization
+-- Output:
+--  * a rational number
+
+monomialSpaceCurveLCT = method()
+monomialSpaceCurveLCT(Ring,List) := (R, nn) -> monomialSpaceCurveLCT(sortedGens(R,nn));
+monomialSpaceCurveLCT(List) := ff -> (
+     indexList  := intersectionIndexSet(ff);
+     curveIdeal := ideal ff;
+     lctTerm    := monomialLCT(termIdeal(curveIdeal));
+     min (2, lctTerm, 
+	  min(
+	       apply(indexList, mm -> 
+		    (exceptionalDivisorDiscrepancy(mm,ff)+1)/ord(mm,ff_1)
+		    )
+	       )
+	  )
+     );
+ 
+
+
+
+-- Qinterval (copied from MonomialMultiplierIdeals v. 0.6.1)
+-- give all rational numbers k/denom in the interval [a, b]
+Qinterval = method();
+Qinterval ( ZZ , Number , Number ) := ( denom, a, b ) -> (
+  start := ceiling(denom*a);
+  end := floor(denom*b);
+  
+  L := apply(start..end , k -> promote(k/denom,QQ));
+  
+  return toList L;
+);
+
+
+-- JumpingDenominators gives potential denominators for jumping
+-- numbers
+-- Input: List of gens for the curve ideal
+-- Output: List of distinct integers 
+jumpingDenominators = method();
+jumpingDenominators (List) := ff -> (
+     indexList  := intersectionIndexSet(ff);
+     unique({1} | apply(indexList, m -> ord(m,ff_1)))
+     );
+
+
+
+-- keynumber: 'key number' of an ideal,
+-- a la Hochster-Huneke:
+-- should be keynumber=min(ambient dimension, numgens I, analyticSpread I) = analyticSpread I
+-- (copied from MonomialMultiplierIdeals v. 0.6.1)
+keynumber = (I) -> (
+--  return numColumns vars ring I;
+  return analyticSpread(I); -- defined in package 'ReesAlgebra'
+);
+
+
+
+-- potentialJumpingNumbers
+-- give a sorted list of all potential jumping numbers
+-- in the interval [a,b]
+-- Default: [a,b] = [monomialSpaceCurveLCT(I),keynumber(I)]
+potentialJumpingNumbers = method();
+potentialJumpingNumbers (List) := (ff) -> potentialJumpingNumbers(ff,monomialSpaceCurveLCT(ff),keynumber ideal ff);
+potentialJumpingNumbers ( List , Number , Number ) := (ff , Left, Right) -> (
+  
+  a := max(Left, monomialSpaceCurveLCT ff);
+  b := Right;
+  
+  -- empty interval?
+  if ( a > b ) then (
+    return { };
+  );
+  
+  denoms := jumpingDenominators(ff);
+  jnList := set {};
+  
+  local i;
+  for i from 0 to (#denoms-1) do (
+    jnList = jnList + set Qinterval( denoms#i , a , b );
+  );
+  
+  jnList = sort toList jnList;
+  
+  return jnList;
+);
+
+
+
+
+-- monomialJumpingNumbers
+-- return a list {jumpingNumbers, multiplierIdeals}
+-- where for jumpingNumbers#i <= c < jumpingNumbers#(i+1), J(I^c) = multiplierIdeals#i
+-- Finds jumping numbers in interval [a,b]
+-- Default: [a,b] = [monomialLCT(I),keynumber(I)]
+monomialJumpingNumbers = method();
+monomialJumpingNumbers ( MonomialIdeal ) := (I) -> monomialJumpingNumbers(I,monomialLCT I,keynumber I);
+monomialJumpingNumbers ( MonomialIdeal , ZZ , ZZ ) := (I,a,b) -> monomialJumpingNumbers(I,promote(a,QQ),promote(b,QQ));
+monomialJumpingNumbers ( MonomialIdeal , QQ , ZZ ) := (I,a,b) -> monomialJumpingNumbers(I,promote(a,QQ),promote(b,QQ));
+monomialJumpingNumbers ( MonomialIdeal , ZZ , QQ ) := (I,a,b) -> monomialJumpingNumbers(I,promote(a,QQ),promote(b,QQ));
+
+monomialJumpingNumbers ( MonomialIdeal , QQ , QQ ) := (I , Left , Right) -> (
+  
+  R := ring I;
+  use R;
+  
+  lct := monomialLCT(I);
+  
+  pjn := potentialJumpingNumbers(I, Left, Right);
+  
+  -- Empty list?
+  if ( #pjn == 0 ) then (
+    return { { }, { } }; -- no jumping numbers, no multiplier ideals
+  );
+  
+  local prev;
+  local next;
+  local jumpingNumbers;
+  local multiplierIdeals;
+  
+  -- Figure out whether pjn#0 is a jumping number:
+  -- We know pjn#0 >= lct.
+  -- If pjn#0 == lct, then it's definitely a jumping number
+  -- Otherwise, need to actually check:
+  -- we want to compare J(I^p) and J(I^(p-epsilon)) (where p=pjn#0)
+  -- We don't know how small epsilon needs to be,
+  -- so find the greatest potential jumping number less than p
+  -- and use that for p-epsilon
+  if ( (pjn#0) == lct ) then (
+    jumpingNumbers = { lct };
+    prev = monomialMultiplierIdeal(I,lct);
+    next = prev;
+    multiplierIdeals = { prev };
+  ) else (
+    pjn2 := potentialJumpingNumbers(I, lct, pjn#0 );
+    -- pjn2#-1 = pjn#0
+    -- The greatest potential jumping number less than p is pjn2#-2
+    prev = monomialMultiplierIdeal(I,pjn2#-2);
+    next = monomialMultiplierIdeal(I,pjn#0);
+    if ( prev != next ) then (
+      -- yes it is a jumping number
+      jumpingNumbers = { pjn#0 };
+      multiplierIdeals = { next };
+    ) else (
+      -- no it is not a jumping number
+      jumpingNumbers = { };
+      multiplierIdeals = { };
+    );
+  );
+  
+  -- Now check whether rest of pjn's are jumping numbers:
+  
+  for i from 1 to (#pjn-1) do (
+    
+    prev = next;
+    next = monomialMultiplierIdeal(I,pjn#i);
+    
+    if ( prev != next ) then (
+      jumpingNumbers = append( jumpingNumbers , pjn#i );
+      multiplierIdeals = append( multiplierIdeals , next );
+    );
+  );
+  
+  return {jumpingNumbers, multiplierIdeals};
+);
+
+
+
+
+
+
+
+
+
 
 
 ----------------------------------------------------------------------------------------------------
@@ -444,19 +636,13 @@ Description
 end
 
 
-
-restart
-installPackage"SpaceCurvesMultiplierIdeals"
-viewHelp SpaceCurvesMultiplierIdeals
-
-
 restart
 debug loadPackage"SpaceCurvesMultiplierIdeals"
 loadPackage "Dmodules"
 R = QQ[x,y,z];
 nn = {2,3,4};
 I = affineMonomialCurveIdeal(R,nn)
-ff = sortedff(R,nn)
+ff = sortedGens(R,nn)
 
 time A = monomialSpaceCurveMultiplierIdeal(R,nn,20/7)
 time B = multiplierIdeal(I,20/7)
@@ -497,7 +683,7 @@ test = (nn,t) -> (
 
 -- only use G={nn}, don't bother computing the rest of it
 quick = (R,nn,t) -> (
-     ff := sortedff(R,nn);
+     ff := sortedGens(R,nn);
      I := affineMonomialCurveIdeal(R,nn);
      valnn := floor(t*ord(nn,ff_1)-exceptionalDivisorDiscrepancy(nn,ff));
      
@@ -518,3 +704,13 @@ test2 = (nn,t) -> (
      );
 
 (0..50) / (i -> (<< i; test2({2,3,5},i/7);));
+
+
+restart
+debug loadPackage"SpaceCurvesMultiplierIdeals"
+R = QQ[x,y,z]
+monomialSpaceCurveLCT(R,{2,3,4})
+nn = {2,3,4};
+ff = sortedGens(R,nn)
+jumpingDenominators(ff)
+potentialJumpingNumbers(ff, 5,10)

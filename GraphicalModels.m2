@@ -805,7 +805,7 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      g := G;
      if not R#?graph then (
-     if not toList 1..R#gaussianRing#0 === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
+     if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
      )
      else(
      if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
@@ -1981,13 +1981,13 @@ doc///
    Headline
      the trek separation statements of a mixed graph 
    Usage
-     trek = trekSeparation(G)
+     trekSeparation(G)
    Inputs
      G:MixedGraph
        mixed graph with directed and bidirected edges
    Outputs
-     trek:List
-        of lists \{A,B,CA,CB\}, where (CA,CB) trek separates A from B
+     :List
+        of lists \{A,B,CA,CB\}, where (CA,CB) trek-separates A from B
    Description 
      Text
        A trek between vertices i and j in a mixed graph G with directed and bidirected edges is a triple 
@@ -2014,6 +2014,66 @@ doc///
 --------New Documentations July 27--------------
 --------------------------------------------------------------------------------------
 
+
+--------------------------------------------
+-- Documentation conditionalIndependenceIdeal
+--------------------------------------------
+
+doc///
+   Key
+     conditionalIndependenceIdeal
+     (conditionalIndependenceIdeal, Ring, Graph)
+     (conditionalIndependenceIdeal, Ring, List)
+   Headline
+     the ideal of CI relations for a given graph or a given list of CI statements
+   Usage
+     conditionalIndependenceIdeal(R,G)
+     conditionalIndependenceIdeal(R,S)
+   Inputs
+     R:Ring
+       which must be a gaussianRing or a markovRing (error will be returned otherwise)
+     G:Graph
+       undirected graph
+     S:List
+       of conditional independence statements
+   Outputs
+     :Ideal
+       of CI relations
+   Description 
+     Text
+       If a Graph is passed to the method, it calculates the CI ideal based on global markov statements. 
+       PROBLEM: this should be globalMarkov but it is currently localMarkob b/c we didn't yet fix globalMarkov :(
+     Example
+       G = graph({{a,b},{b,c},{c,d},{d,a}})
+       R=gaussianRing G 
+       I=conditionalIndependenceIdeal (R,G)
+     Text
+       We can also compute the CI ideal of a set of statements:
+     Example
+       G = graph({{a,b},{b,c},{c,d},{d,a}})
+       R=gaussianRing G 
+       S={{{a},{c},{b,d}}}
+       I=conditionalIndependenceIdeal (R,S)              
+     Text
+       If the gaussianRing was created without a graph, this still works:
+     Example
+       R=gaussianRing 5
+       S={{{1},{2},{3,4}}}
+       I=conditionalIndependenceIdeal (R,S)       
+     Text
+       However, the set of labels on the graph nodes should match those used in the statements:
+     Example
+       R=gaussianRing 4
+       G = graph({{a,b},{b,c},{c,d},{d,a}})
+       -- I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
+     Text
+       TO DO : the method needs to merge old code from markovIdeal to also handle the discrete case.
+     Example
+       G = graph({{a,b},{b,c},{c,d},{d,a}})
+       -- R=markovRing G
+   SeeAlso
+///
+
 --------------------------------------------
 -- Documentation undirectedEdgesMatrix------
 --------------------------------------------
@@ -2025,14 +2085,14 @@ doc///
    Headline
      the matrix corresponding to the edges of an undirected graph
    Usage
-     M = undirectedEdgesMatrix(R,G)
+     undirectedEdgesMatrix(R,G)
    Inputs
      R:Ring
        which should be a gaussianRing
      G:Graph
        undirected graph
    Outputs
-     M:Matrix
+     :Matrix
        the n x n symmetric matrix ... 
    Description 
      Text
@@ -2059,15 +2119,14 @@ doc ///
    Headline
      correlation ideal of a Bayesian network of joint Gaussian variables
    Usage
-     I = gaussianVanishingIdeal(R,G)
+     gaussianVanishingIdeal(R,G)
    Inputs
      R:Ring
        created with @TO gaussianRing@
      G:Graph
        an undirected graph
-     
    Outputs
-     I:Ideal
+     :Ideal
         in R, of the relations in the correlations of the random variables implied by the independence statements 
 	of the graph G, or the list of independence statements G
    Description
@@ -2083,7 +2142,7 @@ doc ///
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R=gaussianRing G 
        J = gaussianVanishingIdeal(R,G) 
-     
+       --the code is not smart and it is super-slow for any larger example, unfortunately.
    SeeAlso
      globalMarkov
      localMarkov

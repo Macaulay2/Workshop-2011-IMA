@@ -2,6 +2,8 @@ restart
 installPackage "Graphs"
 installPackage "GraphicalModels"
 
+viewHelp "GraphicalModels"
+
 ------------------------------------------------------------
 ---gaussianRing:
 gaussianRing 3 
@@ -52,6 +54,12 @@ globalMarkov G
 
 R=QQ[a,b]
 gaussianVanishingIdeal(R,G) --demonstrating the error message. :)
+
+
+
+G = graph({{a,b},{b,c},{c,d},{d,a}})
+R=gaussianRing G 
+I=conditionalIndependenceIdeal (R,G)
 
 ------------------------------------------------------------
 ---gaussianMatrices:

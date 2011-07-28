@@ -206,16 +206,36 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      S.GroupActing = opts.GroupActing;
      dim S := s -> dimSchur(s);
      dim(Thing,S) := (n,s) -> dimSchur(n, s);
-     S ** RingElement := RingElement ** S := (f1,f2) -> internalProduct(f1,f2);
+--     S ** RingElement := RingElement ** S := (f1,f2) -> internalProduct(f1,f2);
      S @ RingElement := RingElement @ S := (f1,f2) -> plethysmGL(f1,f2);
      S @@ RingElement := RingElement @@ S := (f1,f2) -> plethysmSn(f1,f2);
      if opts.GroupActing == "GL" then
      (
+{*     	  S ** S := (f1,f2) -> internalProduct(f1,f2);*}
 	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "outer");
 	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "outer");
 	  )
      else if opts.GroupActing == "Sn" then
      (
+--     	  oldmult := lookup(symbol *,S,S);
+{*	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then oldmult(promote(f,S), g);
+	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then oldmult(f, promote(g,S));
+	  Number ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then oldmult(promote(f,S), g);
+	  S ** Number := (f,g) -> if member(ring g,S.baseRings | {S}) then oldmult(f, promote(g,S));*}
+     	  S ** S := (f1,f2) -> new S from raw f1 * raw f2;
+	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
+	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
+	  Number ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
+	  S ** Number := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
+
+     	  S * S := (f1,f2) -> 
+	  (
+	       --print("multSn");
+	       cS := coefficientRing S;
+	       if liftable(f1,cS) or liftable(f2,cS) then f1 ** f2 else
+	       if f1 == 0 or f2 == 0 then 0_S else
+	       internalProduct(f1,f2)
+	       );
 	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "inner");
 	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "inner");
 	  );
@@ -248,16 +268,20 @@ symmRing (Ring,ZZ) := opts -> (A,n) -> (
        	  R.hVariable = (i) -> if 1 <= i and i <= n then R_(2*n+i-1) else error"Invalid index";
      	  R.GroupActing = opts.GroupActing;
      	  R.dim = n;
-     	  R ** RingElement := RingElement ** R := (f1,f2) -> internalProduct(f1,f2);
+	  R ** R := (f1,f2) -> internalProduct(f1,f2);
+--     	  R ** RingElement := RingElement ** R := (f1,f2) -> internalProduct(f1,f2);
      	  R @ RingElement := RingElement @ R := (f1,f2) -> plethysmGL(f1,f2);
      	  R @@ RingElement := RingElement @@ R := (f1,f2) -> plethysmSn(f1,f2);
      	  if opts.GroupActing == "GL" then
      	  (
+--     	       R ** R := (f1,f2) -> internalProduct(f1,f2);
 	       symmetricPower(ZZ,R) := (n,s) -> plethysm({n},s,PlethysmType => "outer");
 	       exteriorPower(ZZ,R) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "outer");
 	       )
      	  else if opts.GroupActing == "Sn" then
      	  (
+--     	       R ** R := lookup(symbol *,R,R);
+--     	       R * R := (f1,f2) -> internalProduct(f1,f2);
 	       symmetricPower(ZZ,R) := (n,s) -> plethysm({n},s,PlethysmType => "inner");
 	       exteriorPower(ZZ,R) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "inner");
 	       );
@@ -624,7 +648,9 @@ toS(RingElement) := (f) -> (
      	       if spl == {} then null else last spl
      	       );
      	  retFcn = (pl) -> toS lift(pl,(coefficientRing ring pl));
-     	  recTrans(toH(f))*1_S
+--	  error"debug";
+--    	  recTrans(toH(f))*1_S
+     	  promote(recTrans(toH f),S)
 	  )
      )
 
@@ -663,6 +689,7 @@ recTrans = method()
 recTrans (RingElement) := (pl) ->
 (
      lead := leadTermFcn pl;
+     isSn := (ring pl).GroupActing == "Sn";
      if lead === null then retFcn pl else
      (
 	  (ex,coe) := coefficients(pl,Variables=>{lead});
@@ -676,15 +703,19 @@ recTrans (RingElement) := (pl) ->
 	       while (cdeg>fdeg+1) do
 	       (
 		    cdeg = cdeg - 1;
-		    rez = rez*mappingFcn(lead);
+		    if isSn then rez = rez**mappingFcn(lead) else
+		    	 rez = rez*mappingFcn(lead);
 		    );
-	       rez = rez*mappingFcn(lead)+recTrans(coe#i);
+--	       if rez == 0 then rez = recTrans(coe#i) else --this is bad
+	       if isSn then rez = rez**mappingFcn(lead)+recTrans(coe#i)
+	       else rez = rez*mappingFcn(lead)+recTrans(coe#i);
 	       cdeg = cdeg - 1;
 	       );
 	  while cdeg>0 do 
 	       (
 		    cdeg = cdeg - 1;
-		    rez = rez*mappingFcn(lead);
+		    if isSn then rez = rez**mappingFcn(lead) else
+		    	 rez = rez*mappingFcn(lead);
 		    );
 	  rez
      	  )
@@ -793,9 +824,9 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
      plets#0 = 1_T;
      for i from 1 to d do plets#i = symmetricPower(i,rep);
      
-     auxProd := method();
-     if T.GroupActing == "GL" then auxProd(RingElement,RingElement) := (f,g) -> f*g
-     else auxProd(RingElement,RingElement) := (f,g) -> internalProduct(f,g);
+--     auxProd := method();
+--     if T.GroupActing == "GL" then auxProd(RingElement,RingElement) := (f,g) -> f*g
+--     else auxProd(RingElement,RingElement) := (f,g) -> internalProduct(f,g);
      
      mods := new MutableList from (M | toList((d+1-#M):0));
      notdone := true;
@@ -811,7 +842,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 	  (
      	       mo = 0_T;	       
 	       for sy in syzy#k do
-	       	    if sy#0 <= i then mo = mo + auxProd(sy#1, plets#(i-sy#0))
+	       	    if sy#0 <= i then mo = mo + sy#1 * plets#(i-sy#0)--auxProd(sy#1, plets#(i-sy#0))
 		    else break;
 	       mo = mo - mods#i;
 	       newsyz = recsyz(mo);
@@ -821,7 +852,6 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
      	  if c == 0 then notdone = not (syzy#k == {})
 	  else notdone = (k<c);
      	  k = k + 1;
---	  print k;
 	  syzy#k = {};
  	  );
      select(toList syzy,i-> i != {})
@@ -924,7 +954,7 @@ ClassFunction + ClassFunction := (ch1,ch2)->
      new ClassFunction from clSum
      )
 
-ZZ * ClassFunction := (n,ch) ->
+RingElement * ClassFunction := Number * ClassFunction := (n,ch) ->
 (
      clProd := new MutableHashTable;
      for i in keysCF ch do clProd#i = n*ch#i;
@@ -932,7 +962,8 @@ ZZ * ClassFunction := (n,ch) ->
      new ClassFunction from clProd     
      )
 
-ClassFunction * ZZ := (ch,n) -> n*ch;
+ClassFunction * RingElement := ClassFunction * Number := (ch,n) -> n*ch;
+
 
 ClassFunction - ClassFunction := (ch1,ch2)-> ch1 + (-1)*ch2;
 
@@ -984,6 +1015,8 @@ internalProduct(ClassFunction,ClassFunction) := (ch1,ch2)->
      iProd := new MutableHashTable;
      l1 := sum((keysCF ch1)#0);
      l2 := sum((keysCF ch2)#0);
+     if l1 == 0 then return(ch1#{} * ch2);
+     if l2 == 0 then return(ch2#{} * ch1);
      if l1 != l2 then error("The symmetric functions/characters must have the same degree");
      for i in keysCF(ch1) do
      	  if ch2#?i then iProd#i = ch1#i * ch2#i;
@@ -1463,19 +1496,11 @@ Description
     
     Now {\tt W'} corresponds to the trivial representation of {\tt S_3},
     and {\tt U'} to the sign representation. As such, we can tensor them together using the
-    function @TO internalProduct@, or the binary operator @TO symbol **@.
+    function @TO internalProduct@, or the binary operator @TO symbol *@.
     
   Example
-    W' ** U'
-    
-  Text
-    Note that for the user's convenience we have installed the function @TO internalProduct@
-    and the binary operator @TO symbol **@ also for Schur rings meant to deal with 
-    {\tt GL}-representations:
-    
-  Example
-    W ** U
-    
+    W' * U'
+
   Text
   
     We can generate the class function corresponding to an {\tt S_n}-representation, using
@@ -1500,7 +1525,7 @@ Description
     @TO internalProduct@ of {\tt W'} and {\tt U'}.
     
     We can take exterior and symmetric powers of {\tt S_n}-representations, just as for
-    {\tt GL}-modules (compare to {\tt o16} and {\tt o17}):
+    {\tt GL}-modules (compare to {\tt o15} and {\tt o16}):
     
   Example
     exteriorPower(2,W')
@@ -2625,8 +2650,10 @@ Key
   (symbol +,ClassFunction,ClassFunction)
   (symbol -,ClassFunction,ClassFunction)
   (symbol *,ClassFunction,ClassFunction)
-  (symbol *,ClassFunction,ZZ)
-  (symbol *,ZZ,ClassFunction)
+  (symbol *,ClassFunction,RingElement)
+  (symbol *,RingElement,ClassFunction)
+  (symbol *,ClassFunction,Number)
+  (symbol *,Number,ClassFunction)
   (symbol ==,ClassFunction,ClassFunction)
 Headline
   The class of all Class functions
@@ -2931,7 +2958,7 @@ Description
   Example
      R = symmRing(QQ,6);
      S = schurRing(QQ,s,6);
-     toE(s_{3}**e_3)
+     toE(h_3**e_3)
      Q = schurRing(QQ,q,6);
      internalProduct(s_{3,3},q_{4,2})   
   Text
@@ -3561,6 +3588,44 @@ M = toList mods
 
 resol = schurResolution(rep,M,d)
 resol/(i->(sum apply(i,j->dim(last j))))				    						  											    																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																													 											    
+
+restart
+debug loadPackage"SchurRings"
+S = schurRing(s,5,GroupActing => "Sn")
+
+s_2 * s_2
+s_2 * s_2
+s_2 * s_2
+s_2 ** s_2
+s_2 * s_2
+s_2 ** s_2
+
+R = symmetricRingOf S
+f = 2*h_1^5-4*h_1*h_2^2+h_1^2*h_3+h_2*h_3
+toS f
+
+debug loadPackage"SchurRings"
+
+n = 5;
+
+     S = schurRing(QQ,s,n,GroupActing => "Sn");
+
+     rep = s_n + s_{n-1,1};
+
+     M = {s_n}
+
+     schurResolution(rep,M,n)    
+
+restart
+debug loadPackage"SchurRings"
+
+S = schurRing(s,3)
+T = schurRing(S,t,4,GroupActing=>"Sn")
+
+plethysm({2},s_2 * 1_T)
+
+symmetricPower(2,s_2*1_T)
+
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"

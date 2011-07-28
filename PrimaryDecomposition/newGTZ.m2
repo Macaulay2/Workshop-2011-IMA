@@ -31,6 +31,9 @@ needs "./newGTZGenPos.m2"
 -- radical does not work for ideals over ZZ with nonunit coefficients
 -- cannot factor polynomials with coefficients not in QQ or ZZ/p
 
+eliminationTime = 0_RR
+sepAndSatTime = 0_RR
+
 getHighestDegree = method()
 getHighestDegree(List, RingElement) := (gs, x) ->
 (
@@ -343,7 +346,16 @@ primDecZeroDim(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) ->
 )
 
 newPD = method(Options => {Verbosity => 0, Strategy => {}})
-newPD(Ideal) := opts -> (I) -> first PDWorker(I, ideal 1_(ring I), 0, opts)
+newPD(Ideal) := opts -> (I) -> (
+   eliminationTime = 0_RR;
+   sepAndSatTime = 0_RR;
+   retVal := first PDWorker(I, ideal 1_(ring I), 0, opts);
+   if (opts.Verbosity >= 2) then (
+	<< "Time spent on minpoly elimination : " << eliminationTime << endl;
+	<< "Time spent on sep and sat         : " << sepAndSatTime << endl;
+   );
+   retVal
+)
 
 PDWorker = method(Options => {Verbosity => 0, Strategy => {}})
 PDWorker(Ideal, Ideal, ZZ) := opts -> (I, resultSoFar, callDepth) ->

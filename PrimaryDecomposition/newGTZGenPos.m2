@@ -89,13 +89,14 @@ getMinimalPolynomial(Ideal) := (I) ->
 --          
 -- Output : 
 -- This is a non-fraction field version of the getMinimalPolynomial
+
 getMinimalPolynomial2 = method()
 getMinimalPolynomial2(Ideal,List,RingElement,RingElement) := (I,us,x,y) ->
 (
    J := substitute(I,{x => y});
    elimVars := toList(set gens ring I - set us - set {x});
-   -- time this thing!
-   elimJ := eliminate(J, elimVars);
+   -- below we are keeping track of the time spent on elimination.
+   eliminationTime = eliminationTime + first timing (elimJ := eliminate(J, elimVars));
    --error "debug";
    --if (numgens elimJ == 0 and isSubset(ideal elimVars,J)) then y
    if numgens elimJ != 1 then error "Could not find minimal polynomial."
@@ -146,8 +147,10 @@ g*f
 splitZeroDimensionalIdeal = method()
 splitZeroDimensionalIdeal(Ideal,List,RingElement,RingElement) := (I, us, x, y) ->
 (
-   mySep := first getSeparator(I,us);
-   Isat := saturate(I,mySep);
+   --mySep := first getSeparator(I,us);
+   --Isat := saturate(I,mySep);
+   -- the below command is the same as the previous two combined, except from the trim.
+   sepAndSatTime = sepAndSatTime + first timing (Isat := sepAndSat(I,us));
    myMap := map(ring I, ring I, {x => y});
    -- using this since myMap^(-1) is not implemented yet
    myMapInverse := invertLinearRingMap(myMap);
@@ -156,7 +159,9 @@ splitZeroDimensionalIdeal(Ideal,List,RingElement,RingElement) := (I, us, x, y) -
    << "Factor List:" << endl;
    << netList factorList << endl;
    idealList := apply(factorList, fac -> ideal (myMapInverse fac#0)^(fac#1) + I);
-   idealList = apply(idealList, J -> time sepAndSat(J,us));
+   idealList = apply(idealList, J -> (sepSatTiming := timing sepAndSat(J,us);
+	                              sepAndSatTime = sepAndSatTime + first sepSatTiming;
+				      last sepSatTiming));
    --error "debug";
    apply(idealList, J -> trim ideal gens gb J)
 )
@@ -179,7 +184,8 @@ I = ideal(
 independentSets I
 mySep = first getSeparator(I,{c})
 Isat = saturate(I,mySep)
-time splitZeroDimensionalIdeal(Isat,{c},h,a+7*b+13*d+5*e+9*h)
+time splitZeroDimensionalIdeal(Isat,{c},h,a+7*b+13*d+5*e+9*h);
+time newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 ///
 
 -- Input  : A list xs, and a function f on the elements of xs.  The return value of f should be a tuple,
@@ -303,15 +309,20 @@ getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
 isPrimaryZeroDim = method()
 isPrimaryZeroDim(Ideal) := (I) ->
 (
+   -- null so that unless I is homogeneous, nothing is used in the Hilbert option in the GB computation below.
+   hilbI := null;
    R := ring I;
    independentVars := support first independentSets I;
    fiberVars := reverse sort toList (set gens R - set independentVars);
+   isIHomogeneous := isHomogeneous I;
    
    -- order according to fiberVars | independentVars
    -- compute a basis in GRevLex with nicely sorted variables will speed up computing lex order later
    ROrdered  := (coefficientRing R)[ independentVars | fiberVars]; 
    psiOrdered := map(ROrdered, R);
-   I = gens gb psiOrdered I;
+   --I = gens gb psiOrdered I;
+   if isIHomogeneous then hilbI = poincare psiOrdered I;
+   
    (phi,phiInverse,lastVar) := getCoordChange(ring I,independentVars); 
    
    RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,GRevLex=>#independentVars}];
@@ -319,12 +330,11 @@ isPrimaryZeroDim(Ideal) := (I) ->
    -- try using the fraction field here?
    
    J := phi I;
-   psi := map(RLex,ROrdered);
+   psi := map(RLex,R);
    J = psi(J);
-   fiberVars = fiberVars / psiOrdered;
    fiberVars = fiberVars / psi;
    
-   G := flatten entries gens gb J;
+   G := flatten entries gens gb(J,Hilbert=>hilbI);
    gs := getVariablePowerGenerators(G,fiberVars);
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
    getLinearPowers(G,gs,fiberVars)
@@ -360,7 +370,6 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 									   if (testHi^(deggi) != gi) then error "Not a linear power!";
 									   newI := ideal S + sub(testHi,Q);
 									   S = Q/newI;
-									   print testHi;
 									   testHi));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.

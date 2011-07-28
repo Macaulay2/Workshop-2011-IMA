@@ -72,35 +72,20 @@ invertVariables(List,List,Ring) := opts -> (baseVars, fiberVars, R) ->
    mapRtoNewR
 )
 
--- Input  : I, a zero dimensional ideal in kk[x_1,...,x_n] (note that kk could have variables too)
--- Output : The 'minimal polynomial' of x_n modulo I.
-getMinimalPolynomial = method()
-getMinimalPolynomial(Ideal) := (I) ->
-(
-   -- both these lines, and the lines following are the hold up in computations (usually)
-   --newR = newRing(ring I, MonomialOrder => Lex)
-   --gbI := first entries gens gb I;
-   --f := first select(gbI, i -> support(i) == {last gens ring I});
-   elimI := trim eliminate(I, take(gens ring I,(#gens ring I)-1));
-   first flatten entries gens elimI
-)
-
 -- Input  : 
 --          
 -- Output : 
 -- This is a non-fraction field version of the getMinimalPolynomial
-
-getMinimalPolynomial2 = method()
-getMinimalPolynomial2(Ideal,List,RingElement,RingElement) := (I,us,x,y) ->
+getMinimalPolynomial = method()
+getMinimalPolynomial(Ideal,List) := (I,independentVars) ->
 (
-   J := substitute(I,{x => y});
-   elimVars := toList(set gens ring I - set us - set {x});
+   fiberVars := reverse sort toList(set gens ring I - set independentVars);
+   x := last fiberVars;
+   elimVars := toList(set gens ring I - set independentVars - set {x});
    -- below we are keeping track of the time spent on elimination.
-   eliminationTime = eliminationTime + first timing (elimJ := eliminate(J, elimVars));
-   --error "debug";
-   --if (numgens elimJ == 0 and isSubset(ideal elimVars,J)) then y
-   if numgens elimJ != 1 then error "Could not find minimal polynomial."
-   else elimJ_0
+   eliminationTime = eliminationTime + first timing (elimI := eliminate(I, elimVars));
+   if numgens elimI != 1 then error "Could not find minimal polynomial."
+   else elimI_0
 )
 
 TEST ///
@@ -117,9 +102,9 @@ I = ideal(
 independentSets I
 mySep = first getSeparator(I,{c})
 Isat = saturate(I,mySep)
-getMinimalPolynomial2(Isat,{c},d,d)
+getMinimalPolynomial(Isat,{c},d,d)
 phi = (getCoordChange(R))_0
-getMinimalPolynomial2(Isat,{c},h,phi(h))
+getMinimalPolynomial(Isat,{c},h,phi(h))
 ///
 
 -- Input  :
@@ -145,30 +130,20 @@ g*f
 -- Output : A list of ideals of the form (I,phiInverse(h_i)) where the h_i are powers of irred polys
 --          such that prod {h_i} is the minimal polynomial of y over I after a change of coords in last variable
 splitZeroDimensionalIdeal = method()
-splitZeroDimensionalIdeal(Ideal,List,RingElement,RingElement) := (I, us, x, y) ->
+splitZeroDimensionalIdeal(Ideal,List) := (I, independentVars) ->
 (
-   --mySep := first getSeparator(I,us);
-   --Isat := saturate(I,mySep);
    -- the below command is the same as the previous two combined, except from the trim.
-   sepAndSatTime = sepAndSatTime + first timing (Isat := sepAndSat(I,us));
-   myMap := map(ring I, ring I, {x => y});
-   -- using this since myMap^(-1) is not implemented yet
-   myMapInverse := invertLinearRingMap(myMap);
-   factorList := apply(toList factor getMinimalPolynomial2(Isat, us, x, y), toList);
+   sepAndSatTime = sepAndSatTime + first timing (Isat := sepAndSat(I,independentVars));
+   factorList := apply(toList factor getMinimalPolynomial(Isat, independentVars), toList);
    factorList = select(factorList, fac -> first degree fac#0 > 0);
    << "Factor List:" << endl;
    << netList factorList << endl;
-   idealList := apply(factorList, fac -> ideal (myMapInverse fac#0)^(fac#1) + I);
-   idealList = apply(idealList, J -> (sepSatTiming := timing sepAndSat(J,us);
+   idealList := apply(factorList, fac -> ideal (fac#0)^(fac#1) + I);
+   idealList = apply(idealList, J -> (sepSatTiming := timing sepAndSat(J,independentVars);
 	                              sepAndSatTime = sepAndSatTime + first sepSatTiming;
 				      last sepSatTiming));
    --error "debug";
    apply(idealList, J -> trim ideal gens gb J)
-)
-splitZeroDimensionalIdeal(Ideal,List) := (I,us) ->
-(
-   (phi,phiInverse,lastVar) := getCoordChange(ring I,us);
-   splitZeroDimensionalIdeal(I, us, lastVar, phi(lastVar))
 )
 TEST ///
 restart
@@ -219,7 +194,8 @@ primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) -
    (
       isInGenPos := all (genPosList, i -> i);
       if (not isInGenPos) then (
-	 error "Uhoh.";
+	 -- add a change of coordinates!!!
+	 error "Not in general position.  Need a coordinate change";
          -- try again?
 	 compList = primDecZeroDimField(I, variables, resultSoFar, opts);
       );

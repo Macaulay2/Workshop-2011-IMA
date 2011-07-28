@@ -395,7 +395,7 @@ PDWorker(Ideal, Ideal, ZZ) := opts -> (I, resultSoFar, callDepth) ->
       );
       if (not isSubset(resultSoFar,Isat)) then
       (
-	 (comps,newResultSoFar) = primDecZeroDim(Isat, variables, resultSoFar,opts);
+	 (comps,newResultSoFar) = primDecZeroDim(Isat, variables, resultSoFar, opts);
 	 if opts.Verbosity >= 2 then (
             << "Components Found : " << netList comps << endl;
 	 );

@@ -180,6 +180,9 @@ source LabeledModuleMap := f->f.source
 target LabeledModuleMap := f->f.target
 matrix LabeledModuleMap := o-> f->f.matrix
 
+
+
+
 map(LabeledModule, LabeledModule, Matrix) := o-> (E,F,f) ->
 new LabeledModuleMap from {
   symbol ring => ring F,
@@ -211,6 +214,7 @@ LabeledModuleMap#{Standard,AfterNoPrint} = f -> (
   << " " << target f << " <--- " << source f;
   << endl;)
 
+coker LabeledModuleMap := Module => f -> coker matrix f
 rank LabeledModuleMap := ZZ => f -> rank matrix f
 transpose LabeledModuleMap := LabeledModuleMap => f ->
 map(source f,target f, transpose matrix f)
@@ -680,15 +684,29 @@ check "LabeledModules"
 kk = ZZ/101;
 f = flattenedGenericTensor({4,2,2},kk)
 f = flattenedGenericTensor({4,1,2,1},kk)
+
 g = tensorComplex1 f
+
 betti res coker matrix g
 cokermatrix f
 
-S = ZZ/101[a,b,c];
-M = labeledModule S^2
-tensorProduct(4 :id_M)
 
-N =  labeledModule S^2
-map(N,M,matrix{{a,b}})
-map(N,M,{{a,b}})
-map(N,M,(i,j) -> (i+j)_S)
+S = ZZ/101[a,b,c,d];
+L = {6,2,2,2};
+Blist = apply(#L, i-> labeledModule S^(L_i));
+B = tensorProduct apply(#L-1, i -> Blist_(i+1));     
+f = map(B, Blist_0, (i,j) -> random(1,S))
+g = tensorComplex1 f;
+time betti res coker matrix g
+
+EN = (a,c,kk) -> (
+  f:=flattenedGenericTensor({a,c} | apply(a-c, i-> 1), kk);
+  f1 := tensorComplex1 f;
+  betti res coker f1)
+EN(10,3,ZZ/101)
+
+a = 10
+c = 3
+f = flattenedGenericTensor({a,c} | apply(a-c, i-> 1), kk);
+time eagonNorthcott matrix f
+?eagonNorthcott

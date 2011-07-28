@@ -685,12 +685,14 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
     R#numberOfEliminationVariables = m;
     R#gaussianRing = {#vv,s,k};
+    R#graph = g;
     R)
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
      bb := graph g;
      vv := sort vertices g;
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      n := R#gaussianRing#0; --number of vertices
      p := value R#gaussianRing#2;-- this p is actually k in this case (in name).
      PM := mutableMatrix(R,n,n);
@@ -701,6 +703,7 @@ undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
 
 covarianceMatrix (Ring,Graph) := (R,g) -> (
      vv := sort vertices g;
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      n := R#gaussianRing#0;
      s := value R#gaussianRing#1;
      SM := mutableMatrix(R,n,n);
@@ -758,6 +761,18 @@ globalMarkov Graph := List => (G) ->(
      --removeRedundants  statements --- MIIIIIKE!! HEEEEEELP!!!!!
      statements
      ) 
+ 
+ 
+conditionalIndependenceIdeal=method()
+conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     
+     )
+--trekIdeal (Ring,MixedGraph,List) := Ideal => (R,g,Stmts) -> (
+--     vv := sort vertices g;
+--     SM := covarianceMatrix(R,g);	
+--     sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x))))))
+
  
  
 ----------------------------------------------------------------------------------

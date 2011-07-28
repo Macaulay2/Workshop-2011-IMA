@@ -1,50 +1,56 @@
 needsPackage("Posets", FileName=>"/home/math dept/workshops/IMA-2011/Posets/Posets.m2");
 --needsPackage"Posets"
 
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-distributivePoset = method();
-distributivePoset Poset := P ->(
+--Finished
+distributiveLattice = method();
+distributiveLattice (Poset):=P->(
 	L:=apply(subsets(P.GroundSet),i->i);
-	G:={};
 	J:={};
+	G:={};
 	R:={};
-	K:={};
-	--Q:=poset(flatten {P.GroundSet,0^}
+	Q:={};
 	for i to #L-1 do(
-		for j to #L_i-1 do (
-			K=append(K,apply(minimalElements P, p->closedInterval(P,p,L_i_j)));
-		);
-		if K != {} then{
+		if L_i != {} then{
+		K:=apply(L_i, p->orderIdeal(P,p));
 		for k to #K-1 do(
 			if k == 0 then{
-				Q=first K_0;
+				Q=K_k;
 			};
-			Q=mergePoset(Q,first K_k);
+			Q=join(Q,K_k);
 		);
+		Q=unique flatten Q;
 		J=append(J,Q);
 		};
-		K={};
-	);  
+	);
 	for i to #J-1 do(
-		if not member(sort (J_i).GroundSet,G) then{
-			G=append(G,sort (J_i).GroundSet);
+		if not member(sort (J_i),G) then{
+			G=append(G,sort (J_i));
 		};
 	);
-	J=apply(G,j->subPoset(P,j));
 	for i to #G-1 do(
 		for j to #G-1 do(
 			if j!=i then{	
-			if isSubset(G_i,G_j) then{
-				R=append(R,(G_i,G_j));
-			};
+				if isSubset(G_i,G_j) then{
+					R=append(R,(G_i,G_j));
+				};
 			};
 		);
 	);
 	POI:=poset(G,R);
 	POI.cache.OriginalPoset=P;
-	POI	
+	POI		
 );
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Needs Checking
+--baseDistributiveLattice = method ();
+--baseDistributiveLattice (Poset) := P->(
+--	subPoset(P,meetIrreducibles(P))
+--); 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 

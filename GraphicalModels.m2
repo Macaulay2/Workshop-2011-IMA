@@ -734,13 +734,30 @@ pairMarkov Graph := List => (G) -> (
 )
 
 localMarkov Graph := List =>  (G) -> (
-     -- Given a digraph G, return a list of triples {A,B,C}
+     -- Given a graph G, return a list of triples {A,B,C}
      -- of the form {v, nonneighbors of v, all other vertices }
      removeRedundants apply(sort vertices G, v -> (
-	   {set {v}, nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
+	   {set {v},  nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
 		    )
 	       )
 	  )
+
+globalMarkov Graph := List => (G) ->(
+     -- Given a graph G, return a list of triples {A,B,C}
+     -- of the form {A,B,C} if C separates A and B in the graph.
+     AX := subsets vertices G;
+     AX = drop(AX,1); -- drop the empty set
+     AX = drop(AX,-1); -- drop the entire set
+     -- product should apply * to entire list and * of sets is intersection!
+     statements:=apply(AX,A->( 
+	  B:=product apply(A, v-> nonneighbors(G,v) ); --this is the list of all B's 
+     	  C:= (vertices G) - set A - B ;
+     	 {set A,  B, set C}
+	 )
+	 );
+     removeRedundants statements
+     ) 
+ 
  
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------

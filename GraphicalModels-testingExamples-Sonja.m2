@@ -47,6 +47,15 @@ localMarkov G
 
 
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
+
+globalMarkov G
+ subsets vertices G 
+A=oo_10
+AX
+apply(AX,A->( apply(A, v-> nonneighbors(G,v) ) ))
+	       B:= product apply(A, v->  nonneighbors(G,v) );  --this should apply * to entire list and * of sets is intersection!
+B
+
 ------------------------------------------------------------
 ---gaussianMatrices:
 --needs to be able to only take as input only a ring R and a set of CI statements S, 

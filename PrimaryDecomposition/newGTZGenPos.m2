@@ -282,8 +282,8 @@ I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+
        	  -c*h^2*l^2-8001*d^2*l^3+2*d*g^3-2*c*g^2*h+16000*c*d*g*l+c^2*h*l-8001*c^3,d*f*h*l^2-b*h^2*l^2-8001*d^2*k*l^2+2*d*f*g^2-2*b*g^2*h+16001*c*d*g*k+16001*c*d*f*l+16001*b*d*g*l+b*c*h*l-8001*b*c^2,
        	  d*f*h*k*l-b*h^2*k*l-8001*d^2*k^2*l+2*d*f^2*g-2*b*f*g*h+16001*c*d*f*k+16001*b*d*g*k-16001*b*c*h*k+16001*b*d*f*l-16001*b^2*h*l-8001*b^2*c,d*f*h*k^2-b*h^2*k^2-8001*d^2*k^3+2*d*f^3-2*b*f^2*h+
        	  16000*b*d*f*k+b^2*h*k-8001*b^3)
-set gens R - set support first independentSets I
-I = ideal gens gb I
+--set gens R - set support first independentSets I
+--I = ideal gens gb I
 --describe ring I
 time isPrimaryZeroDim(I)
 
@@ -358,11 +358,9 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
   linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
 									   xi := fiberVars#i;
 	    	      	   	     	       	    	      	   	   deggi := degree(sub(xi,S),gi);
-									   error "err";
+									   --error "err";
 									   -- find coeffs with respect to xi
-									   (mons,coeffs) := coefficients(gi,Variables=>{sub(xi,S)});
-									   coeffRow := position(flatten entries mons, m -> m == (sub(xi,S))^(deggi-1));
-									   degGiMinusOneCoeff := if coeffRow === null then 0 else (flatten entries coeffs)#coeffRow;
+									   degGiMinusOneCoeff := contract((sub(xi,S))^(deggi-1),gi-sub(xi^deggi,S));
 									   -- use binomial formula to guess linear factor
 									   linearFactor := (sub(xi,S) + deggi^(-1)*degGiMinusOneCoeff);
 									   if (linearFactor^(deggi) != gi) then error "Not a linear power!";

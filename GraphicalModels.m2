@@ -1056,18 +1056,32 @@ doc ///
 doc ///
   Key
     pairMarkov
+    (pairMarkov,Graph)
     (pairMarkov,Digraph)
   Headline
     Pairwise Markov statements for a directed graph.
   Usage
     pairMarkov G
   Inputs
-    G:Digraph 
+    G: 
+      @ofClass {Graph,Digraph,MixedGraph}@
   Outputs
     L:List
       whose entries are triples {A,B,C} representing pairwise Markov  conditional independence statements of the form
       ''A is independent of B given C'' that hold for G.
   Description
+  
+    Text
+      Given an undirected graph G, pairwise Markov statements are statements of the form \{v,w,nondescendents(G,v)-w\} 
+      for each vertex v of G. In other words, for every vertex v of G and all nondescendents w of v, 
+      v is independent of w given all other nondescendents. 
+      
+      For example, for the digraph D on $4$ vertices with edges a->b, a->c, b->c, and b->d, 
+      we get the following pairwise Markov statements:
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+      L = pairMarkov G
+      
     Text
       Given a directed graph G, pairwise Markov statements are statements of the form \{v,w,nondescendents(G,v)-w\} 
       for each vertex v of G. In other words, for every vertex v of G and all nondescendents w of v, 

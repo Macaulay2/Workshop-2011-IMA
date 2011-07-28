@@ -4,8 +4,8 @@ needsPackage "Graphs"
 
 newPackage(
      "GraphicalModels",
-     Version => "0.1.1",
-     Date => "July 27, 2011",
+     Version => "0.3",
+     Date => "July 28, 2011",
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
@@ -17,12 +17,15 @@ newPackage(
 	   Email=> "",
 	   HomePage=>""}
 	  },
-     Headline => "A package for discrete and Gaussian statistical graphical models",
+     Headline => "A package for discrete and Gaussian graphical models",
      DebuggingMode => true
      )
 
 ------------------------------------------
 -- ADDING gaussian undirected stuff during the IMA-2011 workshop...
+-- we have tried to comment most changes in the code. some minor (but fundamental) changes to other methods have 
+-- been thorougly documented on the WIKI!
+
 
 ------------------------------------------
 -- Algebraic Statistics in Macaulay2
@@ -2064,8 +2067,7 @@ doc///
        However, the set of labels on the graph nodes should match those used in the statements:
      Example
        R=gaussianRing 4
-       G = graph({{a,b},{b,c},{c,d},{d,a}})
-       -- I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
+       G = graph({{a,b},{b,c},{c,d},{d,a}})  -- I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
      Text
        TO DO : the method needs to merge old code from markovIdeal to also handle the discrete case.
      Example
@@ -2117,7 +2119,7 @@ doc ///
      gaussianVanishingIdeal
      (gaussianVanishingIdeal,Ring,Graph)
    Headline
-     correlation ideal of a Bayesian network of joint Gaussian variables
+     the vanishing ideal of the gaussian graphical model 
    Usage
      gaussianVanishingIdeal(R,G)
    Inputs
@@ -2127,10 +2129,11 @@ doc ///
        an undirected graph
    Outputs
      :Ideal
-        in R, of the relations in the correlations of the random variables implied by the independence statements 
-	of the graph G, or the list of independence statements G
+        in R, of polynomial relations on the covariance matrices of a graphical model for G
    Description
      Text
+       FIX ME!!!
+       
        The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
        are disjoint lists of integers in the range 1..n (n is the number of random variables)
        is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
@@ -2141,8 +2144,7 @@ doc ///
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R=gaussianRing G 
-       J = gaussianVanishingIdeal(R,G) 
-       --the code is not smart and it is super-slow for any larger example, unfortunately.
+       J = gaussianVanishingIdeal(R,G) --the code is not smart and it is super-slow for any larger example, unfortunately.
    SeeAlso
      globalMarkov
      localMarkov

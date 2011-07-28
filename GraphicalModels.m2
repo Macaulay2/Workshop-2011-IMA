@@ -1114,7 +1114,7 @@ doc ///
     localMarkov G
   Inputs
     G:
-      @ofClass {Graph,Digraph,DiGraph}@ 
+      @ofClass {Graph,DiGraph,DiGraph}@ 
   Outputs
     L:List
       whose entries are triples {A,B,C} representing local Markov  conditional independence statements of the form

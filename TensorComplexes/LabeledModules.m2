@@ -49,7 +49,6 @@ export {
   "fromOrdinal",
   "toOrdinal",
   "multiSubsets",
-  "tensorFold",
   "tensorProduct",
   "symmetricMultiplication",
   "cauchyMap",
@@ -138,22 +137,6 @@ productList = L -> (
   else if n === 2 then flatten table(L#0, L#1, (i,j) -> {i} | {j})
   else flatten table(productList drop(L,-1), last L, (i,j) -> i | {j}))
 
-tensorFold = method(TypicalValue => LabeledModule)
-     --this is the tensor product of labeled modules. 
-     --Rename when M2's tensorProduct works for (at least) pairs of modules.
-tensorFold List := L -> (
-  n := #L;
-  if n < 0 then error "-- expected a nonempty list";
-  S := ring L#0;
-  if n === 0 then labeledModule S
-  else (
-    if any(L, l -> ring l =!= S) then error "expected modules over the same ring";
-    new LabeledModule from {
-      symbol module => S^(product apply(L, l -> rank l)),
-      symbol underlyingModules => L,
-      symbol basisList => productList apply(L, l -> basisList l),
-      symbol cache => new CacheTable}))
-
 -- This code probably belongs in the core of Macaulay2
 tensorProduct = method(Dispatch => Thing)
 tensorProduct List := args -> tensorProduct toSequence args
@@ -171,7 +154,6 @@ tensorProduct Sequence := args -> (
     if y =!= null then y#key = S;
     S))
 tensor(Matrix, Matrix) := Matrix => options -> (f,g) -> f**g;
-
 
 LabeledModule.tensorProduct = T -> (
   L := toList T;
@@ -196,29 +178,33 @@ source LabeledModuleMap := f->f.source
 target LabeledModuleMap := f->f.target
 matrix LabeledModuleMap := o-> f->f.matrix
 
-map(LabeledModule, LabeledModule, Matrix) := o-> (E,F,f)->
-    new LabeledModuleMap from {
-       symbol ring => ring F,
-       symbol source => F,
-       symbol target => E,
-       symbol matrix => map(module E,module F,f)
-       }
-map(LabeledModule, LabeledModule, Function) := o-> (E,F,f)->
-    new LabeledModuleMap from {
-       symbol ring => ring F,
-       symbol source => F,
-       symbol target => E,
-       symbol matrix => map(module E,module F,f)
-       }
-map(LabeledModule, LabeledModule, List) := o-> (E,F,L)->
-    new LabeledModuleMap from {
-       symbol ring => ring F,
-       symbol source => F,
-       symbol target => E,
-       symbol matrix => map(module E,module F,L)
-       }
+map(LabeledModule, LabeledModule, Matrix) := o-> (E,F,f) ->
+new LabeledModuleMap from {
+  symbol ring => ring F,
+  symbol source => F,
+  symbol target => E,
+  symbol matrix => map(module E,module F,f)}
+map(LabeledModule, LabeledModule, Function) := o-> (E,F,f) ->
+new LabeledModuleMap from {
+  symbol ring => ring F,
+  symbol source => F,
+  symbol target => E,
+  symbol matrix => map(module E,module F,f)}
+map(LabeledModule, LabeledModule, List) := o-> (E,F,L) ->
+new LabeledModuleMap from {
+  symbol ring => ring F,
+  symbol source => F,
+  symbol target => E,
+  symbol matrix => map(module E,module F,L)}
 net LabeledModuleMap := g -> net matrix g
+LabeledModuleMap#{Standard,AfterPrint} = 
+LabeledModuleMap#{Standard,AfterNoPrint} = f -> (
+  << endl;				  -- double space
+  << concatenate(interpreterDepth:"o") << lineNumber << " : Matrix";
+  << " " << target f << " <--- " << source f;
+  << endl;)
 
+rank LabeledModuleMap := ZZ => f -> rank matrix f
 transpose LabeledModuleMap := LabeledModuleMap => o-> f->
      map(source f,target f, transpose matrix f)
 
@@ -240,18 +226,16 @@ monomialToMultiset = (l,e) -> flatten apply(#e, i -> toList(e#i:l#i))
 
 symmetricMultiplication = method(TypicalValue => LabeledModuleMap)
 symmetricMultiplication (LabeledModule,ZZ,ZZ) := (F,d,e) -> (
-     --make the map Sym^d(F)\otimes Sym^e F \to Sym^(d+e) F
-     --Caveat: for large examples it would probably be better to make this as a sparse matrix!
-     S := ring F;
-     Sd := symmetricPower(d,F);
-     Se := symmetricPower(e,F);
-     Sde := symmetricPower(d+e,F);
-     SdSe := tensorFold {Sd,Se};
-     map(Sde,SdSe , (i,j) -> if
-       fromOrdinal (i,Sde) == sort flatten fromOrdinal(j, SdSe)
-            		    then 1_S else 0_S
-	)
-     )
+  --make the map Sym^d(F)\otimes Sym^e F \to Sym^(d+e) F
+  --Caveat: for large examples it would probably be better to make this as a sparse matrix!
+  S := ring F;
+  Sd := symmetricPower(d,F);
+  Se := symmetricPower(e,F);
+  Sde := symmetricPower(d+e,F);
+  SdSe := tensorProduct {Sd,Se};
+  map(Sde,SdSe, 
+    (i,j) -> if fromOrdinal (i,Sde) == sort flatten fromOrdinal(j, SdSe) 
+    then 1_S else 0_S))
 
 cauchyMap = method(TypicalValue => LabeledModuleMap)
 cauchyMap (ZZ, LabeledModule) := (b,E) -> (
@@ -260,7 +244,7 @@ cauchyMap (ZZ, LabeledModule) := (b,E) -> (
   L10 := {exteriorPower(b,L#0)};
   L11 := apply(#L-1, j -> symmetricPower(b,L#(j+1)));
   L = L10 | L11;
-  targ := tensorFold L;
+  targ := tensorProduct L;
   M := mutableMatrix(ring E, rank targ, rank sour);
   local j;
   for i in basisList sour do (
@@ -280,14 +264,12 @@ flattenedGenericTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
      --make generic tensor (flattened)
      Blist := apply(#L, i->labeledModule S^(L_i));
      --B = tensor product of all but Blist_0
-     B := tensorFold apply(#L-1,i-> Blist_(i+1));     
+     B := tensorProduct apply(#L-1,i-> Blist_(i+1));     
      f := map(B,Blist_0,(i,j)->(
 	       x_(toSequence({fromOrdinal(j, Blist_0)}|
 			     fromOrdinal(i, B)
 			     ))))
      )
-
-
 
 minorsMap = method()
 minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
@@ -453,7 +435,7 @@ TEST ///
 S = ZZ/101[a,b,c];
 F = labeledModule S^2
 assert(matrix symmetricMultiplication(F,1,1) == matrix{{1_S,0,0,0},{0,1,1,0},{0,0,0,1}})
-assert(rank matrix symmetricMultiplication(F,2,1) == 4)
+assert(rank symmetricMultiplication(F,2,1) == 4)
 assert(matrix symmetricMultiplication(F,2,0) == id_(S^3))
 ///
 
@@ -464,7 +446,7 @@ F2 = labeledModule S^2;
 F3 = labeledModule S^3;
 F5 = labeledModule S^5;
 F30 = tensorProduct {F2,F3,F5}
-assert(rank matrix cauchyMap(2,F30)== 90)
+assert(rank cauchyMap(2,F30)  == 90)
 F2' =  tensorProduct {F2, labeledModule S^1}
 assert(matrix cauchyMap(1,F2') == id_(S^2))
 ///

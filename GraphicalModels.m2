@@ -755,7 +755,8 @@ globalMarkov Graph := List => (G) ->(
      	 {set A,  B, set C}
 	 )
 	 );
-     removeRedundants statements
+     --removeRedundants  statements --- MIIIIIKE!! HEEEEEELP!!!!!
+     statements
      ) 
  
  

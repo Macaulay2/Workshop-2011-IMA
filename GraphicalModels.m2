@@ -1424,7 +1424,7 @@ doc ///
     n:ZZ
       the number of random variables
     G:Digraph
-      a directed acyclic graph, 
+      @ofClass Graph@ or a directed acyclic graph, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
     R:Ring
@@ -1438,6 +1438,16 @@ doc ///
       R = gaussianRing 5;
       gens R
       covarianceMatrix R
+      
+    Text
+      For undirected graphs, ...
+    Example
+      G = graph({{a,b},{b,c},{c,d},{a,d}})
+      R = gaussianRing G
+      gens R
+      covarianceMatrix(R,G)
+      undirectedEdgesMatrix(R,G)
+        
     Text
       For mixed graphs, there is a variable $l_{(i,j)}$ for
       each directed edge i->j, a variable $w_{(i,i)}$ for each node i, and a variable $w_{(i,j)}$ 

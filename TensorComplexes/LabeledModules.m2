@@ -663,12 +663,10 @@ assert(matrix cauchyMap(1,F2') == id_(S^2))
 
 --test 6
 TEST///
-kk=ZZ/101
-f=flattenedGenericTensor({6,2,2,2},kk)
-S=ring f
-E = tensorProduct(exteriorPower(2,source f), exteriorPower(2,target f))
-g = minorsMap(matrix f,E)
-
+kk=QQ;
+f=flattenedGenericTensor({4,1,2,1},kk);
+R=kk[a,b,c];
+assert(betti res coker matrix tensorComplex1 f==betti res coker random(R^2,R^{4:-1}))
 ///
 
 end

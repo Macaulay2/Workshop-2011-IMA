@@ -19,7 +19,7 @@ newPackage(
   "LabeledModules",
   AuxiliaryFiles => false,
   Version => "1.0",
-  Date => "27 July 2011",
+  Date => "28 July 2011",
   Authors => {
     {	 
       Name => "David Eisenbud", 
@@ -50,6 +50,7 @@ export {
   "toOrdinal",
   "multiSubsets",
   "tensorFold",
+  "tensorProduct",
   "symmetricMultiplication",
   "cauchyMap",
   "traceMap",
@@ -146,14 +147,47 @@ tensorFold List := L -> (
   S := ring L#0;
   if n === 0 then labeledModule S
   else (
-    if any(L, l -> ring l =!= S) then error "-- expected modules over the same ring";
+    if any(L, l -> ring l =!= S) then error "expected modules over the same ring";
     new LabeledModule from {
       symbol module => S^(product apply(L, l -> rank l)),
       symbol underlyingModules => L,
       symbol basisList => productList apply(L, l -> basisList l),
       symbol cache => new CacheTable}))
-LabeledModule ** LabeledModule := LabeledModule => (E,F) -> tensorFold {E,F}
-tensor(LabeledModule,LabeledModule) := options -> (E,F) -> tensorFold {E,F}
+
+-- This code probably belongs in the core of Macaulay2
+tensorProduct = method(Dispatch => Thing)
+tensorProduct List := args -> tensorProduct toSequence args
+tensorProduct Sequence := args -> (
+  if #args === 0 then error "expected more than 0 arguments";
+  y := youngest args;
+  key := (tensorProduct, args);
+  if y =!= null and y#?key then y#key else (
+    type := apply(args, class);
+    if not same type then error "incompatible objects in tensor product";
+    type = first type;
+    meth := lookup(symbol tensorProduct, type);
+    if meth === null then error "no method for tensor product";
+    S := meth args;
+    if y =!= null then y#key = S;
+    S))
+tensor(Matrix, Matrix) := Matrix => options -> (f,g) -> f**g;
+
+
+LabeledModule.tensorProduct = T -> (
+  L := toList T;
+  num := #L;
+  if num < 0 then error "expected a nonempty list";
+  S := ring L#0;
+  if num === 0 then labeledModule S
+  else (
+    if any(L, l -> ring l =!= S) then error "expected modules over the same ring";
+    new LabeledModule from {
+      symbol module => S^(product apply(L, l -> rank l)),
+      symbol underlyingModules => L,
+      symbol basisList => productList apply(L, l -> basisList l),
+      symbol cache => new CacheTable}))
+LabeledModule ** LabeledModule := tensorProduct
+tensor(LabeledModule, LabeledModule) := LabeledModule => o -> (F,E) -> F ** E
 
 LabeledModuleMap = new Type of HashTable
 LabeledModuleMap.synonym = "map of labeled modules"
@@ -275,16 +309,15 @@ minorsMap(Matrix, LabeledModule):= LabeledModuleMap => (f,E)->(
              	                )))
       )
 
-minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap(ff,E) ->
+minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap => (ff,E) ->
      minorsMap(matrix ff, E)
 
 
-tensor(Matrix, Matrix) := Matrix => options -> (m,n) -> m**n;
 tensor(LabeledModuleMap,LabeledModuleMap) := LabeledModuleMap => options -> (m,n) -> 
      map((target m)**(target n), (source m)**(source n), (matrix m)**(matrix n))
 
 isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
-
+///
 ----TO FIX:
 tensorComplex1 = method()
 tensorComplex1(Ring, Matrix) := (S,f) ->(
@@ -333,7 +366,7 @@ tensorComplex1(Ring, Matrix) := (S,f) ->(
      TC4L := makeMinorsMap(f, makeTensorProduct(G2A, tarTC3L));
      map(F0, F1**S^{ -b_1 }, ((TC4L * (id_G2A ** TC3L))**TC3R)*tc12)
      )
-
+///
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
 --------------------------------------------------------------------------------
@@ -401,13 +434,13 @@ F1 = labeledModule S^2
 F2 = labeledModule S^3
 F3 = labeledModule S^5
 assert(tensor(F1,F2) == F1 ** F2)
-E = tensorFold {F1,F2,F3}
+E = tensorProduct {F1,F2,F3}
 assert(rank E == product {rank F1, rank F2, rank F3})
 assert(basisList E == sort basisList E)
 assert((underlyingModules E)#0 == F1)
 assert((underlyingModules E)#1 == F2)
 assert((underlyingModules E)#2 == F3)
-F = tensorFold {labeledModule S^1, F2}
+F = tensorProduct {labeledModule S^1, F2}
 assert(F != F2)
 assert((underlyingModules F)#0 == labeledModule S^1)
 assert((underlyingModules F)#1 == F2)
@@ -430,9 +463,9 @@ S = ZZ/101[a,b,c];
 F2 = labeledModule S^2;
 F3 = labeledModule S^3;
 F5 = labeledModule S^5;
-F30 = tensorFold {F2,F3,F5}
+F30 = tensorProduct {F2,F3,F5}
 assert(rank matrix cauchyMap(2,F30)== 90)
-F2' =  tensorFold {F2, labeledModule S^1}
+F2' =  tensorProduct {F2, labeledModule S^1}
 assert(matrix cauchyMap(1,F2') == id_(S^2))
 ///
 
@@ -441,9 +474,7 @@ TEST///
 kk=ZZ/101
 f=flattenedGenericTensor({6,2,2,2},kk)
 S=ring f
-E = tensorFold(
-     {exteriorPower(2,source f), 
-     exteriorPower(2,target f)})
+E = tensorProduct(exteriorPower(2,source f), exteriorPower(2,target f))
 g = minorsMap(matrix f,E)
 
 ///

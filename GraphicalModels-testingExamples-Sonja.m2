@@ -1,6 +1,6 @@
 restart
 installPackage "Graphs"
-installPackage "GraphicalModels"
+installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 
 viewHelp "GraphicalModels"
 

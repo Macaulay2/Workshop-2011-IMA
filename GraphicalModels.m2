@@ -1448,7 +1448,6 @@ doc ///
       the function @TO markovRing@
   SeeAlso
     markovRing
-    tVariableName
 ///
 
 ------------------------------------
@@ -1535,11 +1534,14 @@ doc ///
     (gaussianRing,Digraph)
     (gaussianRing,MixedGraph)
     [gaussianRing, Coefficients]
-    [gaussianRing, VariableName]
+    [gaussianRing, sVariableName,lVariableName,pVariableName,kVariableName]
   Headline
     ring of gaussian correlations on n random variables
   Usage
-    R = gaussianRing n or R = gaussianRing G or gaussianRing(n,Coefficients=>Ring) or gaussianRing(n,Variable=>Symbol)
+    gaussianRing n 
+    gaussianRing G 
+    gaussianRing(n,Coefficients=>Ring) 
+    gaussianRing(n,Variable=>Symbol)
   Inputs
     n:ZZ
       the number of random variables
@@ -1547,7 +1549,7 @@ doc ///
       @ofClass Graph@, or a directed acyclic graph, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
-    R:Ring
+    :Ring
       a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
       additionally $l_{(i,j)}, w_{(i,j)}$ for mixed graphs
   Description
@@ -2016,9 +2018,61 @@ doc///
      trekIdeal
 ///
 --------------------------------------------------------------------------------------
---------New Documentations July 27--------------
+--------New Documentations July 27, 28--------------
 --------------------------------------------------------------------------------------
 
+------------------------------------
+-- Documentation sVariableName     --
+------------------------------------
+
+doc ///
+  Key
+    sVariableName
+  Headline
+    Optional input to choose the letter for the variable name.
+  Description
+    Text
+      Put {\tt sVariableName => stilde} for a choice of a symbol s as an argument in 
+      the function @TO gaussianRing@
+  SeeAlso
+    gaussianRing
+///
+doc ///
+  Key
+    lVariableName
+  Headline
+    Optional input to choose the letter for the variable name.
+  Description
+    Text
+      Put {\tt lVariableName => ltilde} for a choice of a symbol l as an argument in 
+      the function @TO gaussianRing@
+  SeeAlso
+    gaussianRing
+///
+doc ///
+  Key
+    pVariableName
+  Headline
+    Optional input to choose the letter for the variable name.
+  Description
+    Text
+      Put {\tt pVariableName => ptilde} for a choice of a symbol p as an argument in 
+      the function @TO gaussianRing@
+  SeeAlso
+    gaussianRing
+///
+doc ///
+  Key
+    kVariableName
+  Headline
+    Optional input to choose the letter for the variable name.
+  Description
+    Text
+      Put {\tt kVariableName => ktilde} for a choice of a symbol k as an argument in 
+      the function @TO gaussianRing@
+  SeeAlso
+    gaussianRing
+///
 
 --------------------------------------------
 -- Documentation conditionalIndependenceIdeal

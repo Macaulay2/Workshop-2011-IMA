@@ -36,6 +36,12 @@ export {
 --protect Append
 
 protect StartSystem, protect StartSolutions, protect gamma
+protect MPTYPE, protect PRECISION, protect ODEPREDICTOR, protect TRACKTOLBEFOREEG, protect TRACKTOLDURINGEG
+protect FINALTOL, protect MAXNORM, protect MINSTEPSIZEBEFOREEG, protect MINSTEPSIZEDURINGEG, protect IMAGTHRESHOLD
+protect COEFFBOUND, protect DEGREEBOUND, protect CONDNUMTHRESHOLD, protect RANDOMSEED, protect SINGVALZEROTOL
+protect ENDGAMENUM, protect USEREGENERATION, protect SECURITYLEVEL, protect SCREENOUT, protect OUTPUTLEVEL
+protect STEPSFORINCREASE, protect MAXNEWTONITS, protect MAXSTEPSIZE, protect MAXNUMBERSTEPS, protect MAXCYCLENUM
+protect REGENSTARTLEVEL, protect runType, protect deg, protect dimen, protect numpts, protect tol, protect pts
 
 needsPackage "NAGtypes"
 
@@ -59,108 +65,94 @@ needsPackage "SimpleDoc"
 -- need to include proper attribution each time Bertini is run...how to do???
 -- (license calls for a line in the output that states which Bertini version was used)
 
-
 -- The following six methods are just front ends for various Bertini functions.
 -- Each just calls bertiniSolve() with the appropriate input data and toggle (corresp. to the type of run).
 -- bertiniSolve then does all the work of building the input file, calling bertini, and calling the appropriate output parser. 
 
-bertiniZeroDimSolve = method(TypicalValue => List)
-bertiniZeroDimSolve (List,HashTable) := List => (F,o) -> (  
---F is the list of polynomials; o is the hash table of options.
-         local runopts;
-         runopts = new HashTable;
-         bertiniSolve(F,0,runopts,o)
+bertiniZeroDimSolve = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1})
+bertiniZeroDimSolve List := o -> F -> (  
+--F is the list of polynomials.
+         L := {runType=>0};
+         o2 := new OptionTable from L;
+         o3 := o ++ o2;
+         bertiniSolve(F,o3)
          ) 
 
-bertiniParameterHomotopy = method(TypicalValue => List)
-bertiniParameterHomotopy (List,HashTable) := List => (F,o) -> (
---F is the list of polynomials; o is the hash table of options (including start system, start solutions).
-         local runopts;
-         runopts = new HashTable;
-         bertiniSolve(F,1,runopts,o)
+bertiniParameterHomotopy = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1})
+bertiniParameterHomotopy List := o -> F -> (
+--F is the list of polynomials
+         L := {runType=>1};
+         o2 := new OptionTable from L;
+         o3 := o ++ o2;
+         bertiniSolve(F,o3)
          )
 
 --  The following will NOT be funcitonal until we have (and include as output) a numerical irreducible decomposition data type. 
-bertiniPosDimSolve = method(TypicalValue => List)
-bertiniPosDimSolve (List,HashTable) := List => (F,o) -> (  
---F is the list of polynomials; o is the hash table of options.
-         local runopts;
-         runopts = new HashTable;
-         bertiniSolve(F,2,runopts,o)
+bertiniPosDimSolve = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1})
+bertiniPosDimSolve List := o -> F -> (  
+--F is the list of polynomials
+         L := {runType=>2};
+         o2 := new OptionTable from L;
+         o3 := o ++ o2;
+         bertiniSolve(F,o3)
          ) 
 
-bertiniSample = method(TypicalValue => List)
-bertiniSample (List,ZZ,ZZ,HashTable) := List => (F,dim,compnum,o) -> (  
---F is the list of polynomials; dim is the dimension of the component we wish to sample; compnum is the index of the component in the given dimension; o is the hash table of options.
-         local runopts;
-         runopts = new HashTable;
-         runopts#dim = dim;
-         runopts#compnum = compnum;
-         bertiniSolve(F,3,runopts,o)
+bertiniSample = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,dimen=>-1,deg=>-1,numpts=>-1})
+bertiniSample List := o -> F -> (  
+--F is the list of polynomials
+         L := {runType=>3};
+         o2 := new OptionTable from L;
+         o3 := o ++ o2;
+         bertiniSolve(F,o3)
          ) 
 
 --  The following will NOT be functional until we have (and include in the arg list) a numerical irreducible decomposition data type.
-bertiniComponentMemberTest = method(TypicalValue => List)
-bertiniComponentMemberTest (List,List,HashTable) := List => (F,pts,o) -> (  
---F is the list of polynomials; pts is the list of pts to check; o is the hash table of options.
-         local runopts;
-         runopts = new HashTable;
-         runopts#pts = pts;
-         bertiniSolve(F,4,runopts,o)
+bertiniComponentMemberTest = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,pts=>{}})
+bertiniComponentMemberTest List := o -> F -> (  
+--F is the list of polynomials.
+         L := {runType=>4};
+         o2 := new OptionTable from L;
+         o3 := o ++ o2;
+         bertiniSolve(F,o3)
          ) 
 
-bertiniRefineSols = method(TypicalValue => List)
-bertiniRefineSols (List,List,RR,HashTable) := List => (F,pts,tol,o) -> (  
---F is the list of polynomials; pts is the set of points to be refined; tol is the number of digits (not bits) to which we want them refined; o is the hash table of options.
-         local runopts;
-         runopts = new HashTable;
-         runopts#pts = pts;
-         runopts#tol = tol;
-         bertiniSolve(F,5,runopts,o)
+bertiniRefineSols = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,pts=>{},tol=>-1})
+bertiniRefineSols List := o -> F -> ( 
+--F is the list of polynomials.
+         L := {runType=>5};
+         o2 := new OptionTable from L;
+         o3 := o ++ o2;
+         bertiniSolve(F,o3)
          ) 
 
 
+---------------------------------------------------
+-- bertiniSolve: This is the main control function:
+---------------------------------------------------
 
--- Here is the main control function:
+bertiniSolve = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,dimen=>-1,deg=>-1,numpts=>-1,pts=>{},tol=>-1,runType=>0})
 
-bertiniSolve = method(TypicalValue => List)
-
-bertiniSolve (List,ZZ,HashTable,HashTable) := List => (F,n,p,o) -> (  
--- F is the list of polynomials; n is the type of run (see front ends to see which is which);
--- p.dim and p.deg are only used for component sampling (n=3);
--- p.pts is only used in membership testing and refining of solutions (n=4,5);
--- p.tol is only used in refining of solutions (n=5); 
--- o is the hash table of options to be passed on to makeBertiniInput.
-  	  dir := makeBertiniInput F;  -- creates the input file 
+bertiniSolve List := o -> F -> (  -- F is the list of polynomials
+  	  dir := makeBertiniInput(F,o);   -- creates the input file 
   	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
 	  readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
-  )
-
+          )
 
 
 -- DAN PLAN (7/26/11)
---   build several user-accessible front ends (bertiniX, with X=ZerodimSolve, PosdimSolve, ComponentSample, ComponentMembershipTest, RefineEndpoints, etc.)
---     (these need to allow many different options)
+--   allow many different options
 --   these front ends funnel into a general input file maker, each sending the appropriate options to set the configs appropriately for the desired run
 --   there is then a very basic call to run Bertini (done by Anton) 
 --   then the output is read into M2 data types (still deciding on those), with each sort of run feeding into a different output file parser, since different sorts of runs yield different output files 
 --   provide more flexibility for users, allowing them to exclude options for each of the front ends
 
 
--- Useful lines when I add the options:
--- Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1})
---protect MPTYPE, protect PRECISION, protect ODEPREDICTOR, protect TRACKTOLBEFOREEG, protect TRACKTOLDURINGEG
---protect FINALTOL, protect MAXNORM, protect MINSTEPSIZEBEFOREEG, protect MINSTEPSIZEDURINGEG, protect IMAGTHRESHOLD
---protect COEFFBOUND, protect DEGREEBOUND, protect CONDNUMTHRESHOLD, protect RANDOMSEED, protect SINGVALZEROTOL
---protect ENDGAMENUM, protect USEREGENERATION, protect SECURITYLEVEL, protect SCREENOUT, protect OUTPUTLEVEL
---protect STEPSFORINCREASE, protect MAXNEWTONITS, protect MAXSTEPSIZE, protect MAXNUMBERSTEPS, protect MAXCYCLENUM
---protect REGENSTARTLEVEL
-
-
 
 -- protect StartSolutions, protect StartSystem (Anton/Jan suggested that perhaps we shouldn't be protecting any names???) 
-makeBertiniInput = method(TypicalValue=>Nothing, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii}) -- need to greatly increase the list of options here!!!
+makeBertiniInput = method(TypicalValue=>Nothing, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,dimen=>-1,deg=>-1,numpts=>-1,pts=>{},tol=>-1,runType=>0})  
+--makeBertiniInput = method(TypicalValue=>Nothing)
 makeBertiniInput List := o -> T -> (
+--makeBertiniInput (List,MutableHashTable,MutableHashTable) := (T,p,o) -> (
 -- IN:
 --	T = polynomials of target system
 --      o.StartSystem = start system
@@ -221,6 +213,7 @@ makeBertiniInput List := o -> T -> (
 		 ));
        close f;
        );
+  stdio << dir;
   dir
   )
 
@@ -276,7 +269,7 @@ readSolutionsBertini (String,String) := (dir,f) -> (  -- dir=directory holding t
   )
 
 trackBertini = method(TypicalValue => List)
-trackBertini (List,List,List,HashTable) := List => (S,T,solsS,o) -> (
+trackBertini (List,List,List,MutableHashTable) := List => (S,T,solsS,o) -> (
      -- tempdir := temporaryFileName() | "NumericalAlgebraicGeometry-bertini";
      -- mkdir tempdir; 	  
      dir := makeBertiniInput(T, StartSystem=>S, StartSolutions=>solsS, gamma=>o.gamma);

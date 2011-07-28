@@ -468,7 +468,7 @@ doc ///
       Example
          ---- Simple Schubert Problem
        	 k = 3
-	 n = 7
+	 			 n = 7
        	 l = {2,1,0}
        	 m = {1,1,0}
        	 ----  Generate random flags G----

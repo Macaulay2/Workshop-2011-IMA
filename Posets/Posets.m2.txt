@@ -54,6 +54,37 @@ distributiveLattice (Poset):=P->(
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+isConnected = method();
+isConnected (Poset):= P->(
+	J:=(maximalChains P)_0;
+	counter:=1;
+	answer=false;
+	while counter != 0 do(
+	counter=0;
+	for i to #P.GroundSet-1 do(
+		if not member(P.GroundSet_i,J) then{
+		for j to #P.Relations-1 do(
+			if P.GroundSet_i == P.Relations_j_0 and member(P.Relations_j_1,J) then{
+				J=append(J,P.GroundSet_i); 
+				counter = counter + 1;
+			};
+			if P.GroundSet_i == P.Relations_j_1 and member(P.Relations_j_0,J) then{
+				J=append(J,P.GroundSet_i); 
+				counter = counter + 1;
+			};
+		);
+		};
+	);
+	);
+	J=unique J;
+	if #J == #P.GroundSet then{
+			answer=true; 	
+	};
+	answer
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 R=QQ[x_1..x_100];
 P=poset({x_1,x_2,x_3,x_4},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4)});

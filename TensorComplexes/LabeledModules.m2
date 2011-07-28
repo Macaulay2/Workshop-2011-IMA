@@ -55,7 +55,8 @@ export {
   "traceMap",
   "flattenedGenericTensor",
   "minorsMap",
-  "tensorComplex1"
+  "tensorComplex1",
+  "flattenedESTensor"
   }
 
 --------------------------------------------------------------------------------
@@ -325,7 +326,7 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   -- NOTE: local variables names following the notation from the
   -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
   -- 
-  -- f: f: A --> B1** B2** ... Bn
+  -- f: A --> B1** B2** ... Bn
   -- makes the map F0 <- F1 as above.
   -- if f is not balanced, we should  be doing something else 
   if not isBalanced f then error "map is not balanced";
@@ -333,10 +334,12 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   B := {S^0} | underlyingModules target f;
   A := source f;
   n := #B-1;
-  if n === 0 or n === 1 then f
+  b := B / rank; -- {0, b1, b2,..,bn}
+  d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
+  if n === 0 then f
+  else if n === 1 then 
+    map(exteriorPower(B_1,b_1),exteriorPower(A,b_1)**labeledModule(S^{-d_1}),det f)
   else(
-    b := B / rank; -- {0, b1, b2,..,bn}
-    d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
     -- source of output map
     F1 := tensorProduct({exteriorPower(b_1,A), exteriorPower(b_1,B_1)} |
       apply(toList(2..n), j-> symmetricPower(d_(j-1)-b_1,B_j)));
@@ -375,6 +378,26 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
     minMap := minorsMap(f, tensorProduct(G3a, G4b));
     g4 := minMap ** symMultMap;
     map(F0, F1 ** labeledModule S^{ -b_2}, g4 * g3 * g2 * g1 * g0)))
+
+
+
+flattenedESTensor = method()
+flattenedESTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
+  --make ring of generic tensor
+  if #L === 0 then error "expected a nonempty list";
+  if #L === 1 then error "expected a balanced tensor";
+  n:=#L-1;
+  x:=symbol x;
+  S:=kk[x_0..x_(n-1)];
+  Blist := apply(#L, i->labeledModule S^(L_i));
+  --B = tensor product of all but Blist_0
+  B := tensorProduct apply(#L-1, i -> Blist_(i+1));     
+  map(B, Blist_0, 
+      (i,j) -> if 0<=j-sum fromOrdinal(i,B) then if j-sum fromOrdinal(i,B)<n 
+      then x_(j-sum fromOrdinal(i,B)) else 0 else 0)
+ )
+
+
 
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -674,6 +697,8 @@ kk=ZZ/101;
 f=flattenedGenericTensor({4,1,2,1},kk);
 BD=new BettiTally from {(0,{0},0) => 2, (1,{1},1) => 4, (2,{3},3) => 4, (3,{4},4) => 2};
 assert(betti res coker matrix tensorComplex1 f==BD)
+f=flattenedESTensor({4,1,2,1},kk);
+assert(betti res coker matrix tensorComplex1 f==BD)
 f=flattenedGenericTensor({3,3},kk)
 
 ///
@@ -689,7 +714,13 @@ installPackage "LabeledModules"
 check "LabeledModules"
 
 kk = ZZ/101;
-f = flattenedGenericTensor({},kk)
+f=flattenedESTensor({4,2,2},kk)
+tensorComplex1 f
+betti res coker tensorComplex1 f
+
+f=flattenedESTensor({7,1,2,1,2,1},kk)
+betti res coker tensorComplex1 f
+
 
 f = flattenedGenericTensor({4,1,2,1},kk)
 

@@ -1424,7 +1424,7 @@ doc ///
     n:ZZ
       the number of random variables
     G:Digraph
-      @ofClass Graph@ or a directed acyclic graph, 
+      @ofClass Graph@, or a directed acyclic graph, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
     R:Ring

@@ -1,11 +1,10 @@
 needsPackage("Posets", FileName=>"/home/math dept/workshops/IMA-2011/Posets/Posets.m2");
 --needsPackage"Posets"
 
-
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 distributivePoset = method();
-distributivePoset (Poset):=P->(
+distributivePoset Poset := P ->(
 	L:=apply(subsets(P.GroundSet),i->i);
 	G:={};
 	J:={};

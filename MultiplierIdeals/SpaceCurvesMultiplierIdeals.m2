@@ -58,7 +58,9 @@ newPackage(
 ----------------------------------------------------------------------------------------------------
 
 export {
-     monomialSpaceCurveMultiplierIdeal    
+     monomialSpaceCurveMultiplierIdeal,
+     monomialSpaceCurveJumpingNumbers,
+     monomialSpaceCurveLCT    
      }
 
 ----------------------------------------------------------------------------------------------------
@@ -502,9 +504,9 @@ potentialJumpingNumbers ( List , Number , Number ) := (ff , Left, Right) -> (
 -- return a list {jumpingNumbers, multiplierIdeals}
 -- where for jumpingNumbers#i <= c < jumpingNumbers#(i+1), J(I^c) = multiplierIdeals#i
 -- Finds jumping numbers in interval [a,b]
--- Default: [a,b] = [monomialSpaceCurveLCT(R,nn),keynumber(affineMonomialSpaceCurveIdeal(R,nn))]
+-- Default: [a,b] = [monomialSpaceCurveLCT(R,nn),keynumber(affineMonomialCurveIdeal(R,nn))]
 monomialSpaceCurveJumpingNumbers = method();
-monomialSpaceCurveJumpingNumbers ( Ring, List ) := (R, nn) -> monomialSpaceCurveJumpingNumbers(R, nn, monomialSpaceCurveLCT(R, nn),keynumber affineMonomialSpaceCurveIdeal(R,nn));
+monomialSpaceCurveJumpingNumbers ( Ring, List ) := (R, nn) -> monomialSpaceCurveJumpingNumbers(R, nn, monomialSpaceCurveLCT(R, nn),keynumber affineMonomialCurveIdeal(R,nn));
 monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , ZZ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , ZZ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , QQ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
@@ -711,3 +713,4 @@ nn = {2,3,4};
 ff = sortedGens(R,nn)
 jumpingDenominators(ff)
 potentialJumpingNumbers(ff, 5,10)
+monomialSpaceCurveJumpingNumbers(R,nn,2,4)

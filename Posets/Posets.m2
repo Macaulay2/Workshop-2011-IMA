@@ -846,8 +846,8 @@ displayPoset(Poset):=opts->(P)->(
     if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
      name:=temporaryFileName();
      outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
-     run concatenate("pdflatex ",name);
-     run concatenate(opts.PDFViewer, " ", replace("/tmp/","",name),".pdf");
+     run concatenate("pdflatex -output-directory /tmp ",name);
+     run concatenate(opts.PDFViewer, " ", name,".pdf");
      )
 
 ----------------------------------------

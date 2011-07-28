@@ -111,7 +111,7 @@ export {bidirectedEdgesMatrix,
        pairMarkov, 
        trekIdeal, 
        trekSeparation,
-       VariableName,--this should be deleted
+       VariableName,-- used in markovRing
        sVariableName,
        kVariableName,
        lVariableName,
@@ -524,12 +524,13 @@ prob = (R,s) -> (
 
 -- TO DO: 26JULY2011 
 -- make all gaussianRing methods take specific variablenames as optional inputs, NOT as one long list.
-gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",
-	  VariableName=>{getSymbol "s",getSymbol "l",getSymbol "p", getSymbol "k"}})
+--DONE 28july2011 ---sonja.
+gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
+	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
-     s := if instance(opts.VariableName,Symbol) then opts.VariableName else opts.VariableName#0;
+     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
      kk := opts.Coefficients;
      w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
      v := apply (w, ij -> s_ij);
@@ -545,7 +546,8 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      -- Input is a Digraph G, 
      -- we read off the list of labels from the vertices.
      -- This is done to avoid any ordering confusion. 
-     s := if instance(opts.VariableName,Symbol) then opts.VariableName else opts.VariableName#0;
+     --s := if instance(opts.VariableName,Symbol) then opts.VariableName else opts.VariableName#0;
+     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
      kk := opts.Coefficients;
      vv := sort vertices G; 
      w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
@@ -554,6 +556,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R#gaussianRing = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
+     R.digraph = G; ---THIS IS NEW --- TO BE MERGED FOR FUNCTIONALITY! --- sonja 28july2011
      R
      )
 
@@ -858,9 +861,9 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      dd := graph G#Digraph;
      bb := graph G#Bigraph;
      vv := sort vertices g;
-     s := opts.VariableName#0;
-     l := opts.VariableName#1;
-     p := opts.VariableName#2;
+     s := opts.sVariableName;
+     l := opts.lVariableName;
+     p := opts.pVariableName;
      kk := opts.Coefficients;
      sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
      lL := delete(null, flatten apply(vv, x-> apply(toList dd#x, y->l_(x,y))));	 
@@ -1431,7 +1434,7 @@ doc ///
 ///
 
 ------------------------------------
--- Documentation variableName     --
+-- Documentation VariableName     --
 ------------------------------------
 
 doc ///
@@ -1442,11 +1445,10 @@ doc ///
   Description
     Text
       Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
-      the function @TO markovRing@ or @TO gaussianRing@ for digraphs, and 
-      {\tt VariableName => \{s,l,w\}} in @TO gaussianRing@ for mixed graphs
+      the function @TO markovRing@
   SeeAlso
     markovRing
-    gaussianRing
+    tVariableName
 ///
 
 ------------------------------------

@@ -1510,7 +1510,8 @@ doc ///
     Text
       Recovering the graph from the gaussian ring
     Example
-      R#gaussianRing  
+      R#gaussianRing
+      R#graph  
       covarianceMatrix(R,G)
       undirectedEdgesMatrix(R,G)
         

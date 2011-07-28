@@ -411,7 +411,7 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
      v = v-1;
      -- R := ring presentation A;
      p := i -> A.markovVariables#i;
-     if not R#?markov then error "expected a ring created with markovRing";
+     if not A#?markov then error "expected a ring created with markovRing";
      d := A.markov;
      e := drop(d, {v,v});
      S := markovRing (e);

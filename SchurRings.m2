@@ -208,8 +208,29 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      dim(Thing,S) := (n,s) -> dimSchur(n, s);
      S @ RingElement := RingElement @ S := (f1,f2) -> plethysmGL(f1,f2);
      S @@ RingElement := RingElement @@ S := (f1,f2) -> plethysmSn(f1,f2);
+     S^ZZ := (f,n) -> product apply(n,i->f);
+     
      if opts.GroupActing == "GL" then
      (
+	  oldmult := method();
+	  oldmult(S,S) := (f1,f2) -> new S from raw f1 * raw f2;
+	  oldmult(RingElement, S) := (f1,f2) -> if member(ring f1,S.baseRings | {S}) then oldmult(promote(f1,S),f2);
+	  oldmult(S, RingElement) := (f1,f2) -> if member(ring f2,S.baseRings | {S}) then oldmult(f1,promote(f2,S));
+	  oldmult(Number, S) := (f1,f2) -> if member(ring f1,S.baseRings | {S}) then oldmult(promote(f1,S),f2);
+	  oldmult(S, Number) := (f1,f2) -> if member(ring f2,S.baseRings | {S}) then oldmult(f1,promote(f2,S));
+
+       	  S * S := (f1,f2) ->
+	        if schurLevel S == 1 then oldmult(f1,f2)
+	  	else
+		  (
+		       lF1 := listForm f1;
+		       lF2 := listForm f2;
+		       sum flatten for p1 in lF1 list
+		       	    for p2 in lF2 list
+			    	 (
+				      oldmult((last p1) * (last p2), oldmult(S_(first p1),S_(first p2)))
+				      )
+		       );
 	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "outer");
 	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "outer");
 	  )
@@ -220,15 +241,25 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
 	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
 	  Number ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
 	  S ** Number := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
-
-     	  S * S := (f1,f2) -> 
-	  (
-	       --print("multSn");
-	       cS := coefficientRing S;
-	       if liftable(f1,cS) or liftable(f2,cS) then f1 ** f2 else
-	       if f1 == 0 or f2 == 0 then 0_S else
-	       internalProduct(f1,f2)
-	       );
+	       	  
+       	  S * S := (f1,f2) ->
+	        if schurLevel S == 1 then
+	  	  (
+	       	       cS := coefficientRing S;
+	       	       if liftable(f1,cS) or liftable(f2,cS) then f1 ** f2 else
+	       	       if f1 == 0 or f2 == 0 then 0_S else
+	       	       internalProduct(f1,f2)
+	       	       )
+	  	else
+		  (
+		       lF1 := listForm f1;
+		       lF2 := listForm f2;
+		       sum flatten for p1 in lF1 list
+		       	    for p2 in lF2 list
+			    	 (
+				      ((last p1) * (last p2)) ** internalProduct(S_(first p1),S_(first p2))
+				      )
+		       );
 	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "inner");
 	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "inner");
 	  );
@@ -3608,6 +3639,8 @@ restart
 uninstallPackage"SchurRings"
 installPackage"SchurRings"
 check SchurRings
+viewHelp SchurRings
+
 debug loadPackage"SchurRings"
 S = schurRing(s,5,GroupActing => "Sn")
 R = symmetricRingOf S
@@ -3630,8 +3663,11 @@ debug loadPackage"SchurRings"
 S = schurRing(s,3,GroupActing=>"Sn")
 T = schurRing(S,t,4)
 
-a = s_2 * t_2
-plethysm(s_2,a)
+t_2 * t_2
+
+a = s_2 * t_3
+a * a
+plethysm(s_{1,1},a)
 
 a*a
 plethysm({2},s_2 * 1_T)

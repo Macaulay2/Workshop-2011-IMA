@@ -388,6 +388,7 @@ marginMap = method()
 marginMap(ZZ,Ring) := RingMap => (v,R) -> (
      -- R should be a Markov ring
      v = v-1;
+     if not R#?markov then error "expected a ring created with markovRing";
      d := R.markov;
      -- use R; -- Dan suggested to delete this line
      p := i -> R.markovVariables#i;
@@ -410,6 +411,7 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
      v = v-1;
      -- R := ring presentation A;
      p := i -> A.markovVariables#i;
+     if not R#?markov then error "expected a ring created with markovRing";
      d := A.markov;
      e := drop(d, {v,v});
      S := markovRing (e);
@@ -442,6 +444,7 @@ markovMatrices(Ring,Digraph,List) := (R,G,Stmts) -> (
      -- and Stmts is a list of
      -- independence statements
      d := R.markov;
+     if not R#?markov then error "expected a ring created with markovRing";
      flatten apply(Stmts, stmt -> (
      	       Avals := possibleValues(d,getPositionOfVertices(G,stmt#0)); 
      	       Bvals := possibleValues(d,getPositionOfVertices(G,stmt#1)); 
@@ -610,7 +613,7 @@ gaussianIdeal(Ring,Digraph) := Ideal =>  (R,G) -> gaussianIdeal(R,G,globalMarkov
 ----------------------
 
 --in case user just wants to see the matrix instead of the minors.
--- this function is not imported, it is called from gaussianMatrices
+-- this function is not exported, it is called from gaussianMatrices
 gaussianMatrix = method()
 gaussianMatrix(Ring,Digraph,List) := List =>  (R,G,s) -> (
      -- the list s is a statement of the form {A,B,C}.
@@ -766,7 +769,7 @@ globalMarkov Graph := List => (G) ->(
 conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";
-     
+
      )
 --trekIdeal (Ring,MixedGraph,List) := Ideal => (R,g,Stmts) -> (
 --     vv := sort vertices g;

@@ -280,7 +280,8 @@ coveringRelations Poset := P -> (
 	if P.cache.?coveringRelations then return P.cache.coveringRelations;
     	P.cache.coveringRelations = if #P.Relations === 0 then {} else (
        	     edgeset := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
-	     if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} else continue;
+         if P.RelationMatrix_i_j == 1 then {P.GroundSet_j, P.GroundSet_i} else
+         if P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} else continue;
 	     testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
      	     nonCovers:=apply(testpairs, p-> {first first p, last last p});
      	     select(edgeset, p-> not member(p,nonCovers))
@@ -414,9 +415,7 @@ maximalChains Poset := P -> (
 	if P.cache.?maximalChains then return P.cache.maximalChains;
 	nonMaximalChains := apply(minimalElements(P), x -> {x});
 	maxChains := {};
-	n := #P.GroundSet;
-	i := 0;
-	while #nonMaximalChains =!= 0 and i <= n do (
+	while #nonMaximalChains =!= 0 do (
 		nonMaximalChains = flatten apply(nonMaximalChains, c -> (
 			nexts := select(coveringRelations P, r -> first r == last c);
 			if #nexts == 0 then maxChains = append(maxChains, c);

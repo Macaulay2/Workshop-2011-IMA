@@ -13,8 +13,17 @@ newPackage(
 
 export {firstFunction}
 
-firstFunction = method(TypicalValue => String)
-firstFunction ZZ := String => n -> if n == 1 then "Hello World!" else "D'oh!"
+separators = method(TypicalValue => String)
+separators Graph := G -> (
+     S:=new MutableList from apply (# vertices G,i-> {});
+     Size:=new MutableList from apply (# vertices G, i->0);
+     alpha:=new MutableList from apply (# vertices G, i->0);
+     ainverse:=new MutableList from apply (# vertices G, i->0);
+     S#0:=vertices G;
+     j:=0
+     for i from 1 to n do
+     	   
+      
 
 beginDocumentation()
 

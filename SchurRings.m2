@@ -55,7 +55,7 @@ export {schurRing, SchurRing, symmRing,
      ClassFunction, schurLevel,
      schurResolution,
      
-     Memoize, Schur, EorH, GroupActing, PlethysmType,
+     Memoize, Schur, EorH, GroupActing,
      eVariable, pVariable, hVariable --, getSchur
 --     cauchy, wedge, preBott, bott, doBott, weyman
      }
@@ -209,6 +209,8 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      S @ RingElement := RingElement @ S := (f1,f2) -> plethysmGL(f1,f2);
      S @@ RingElement := RingElement @@ S := (f1,f2) -> plethysmSn(f1,f2);
      S^ZZ := (f,n) -> product apply(n,i->f);
+     symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s);
+     exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s);
      
      if opts.GroupActing == "GL" then
      (
@@ -231,8 +233,6 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
 				      oldmult((last p1) * (last p2), oldmult(S_(first p1),S_(first p2)))
 				      )
 		       );
-	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "outer");
-	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "outer");
 	  )
      else if opts.GroupActing == "Sn" then
      (
@@ -260,8 +260,6 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
 				      ((last p1) * (last p2)) ** internalProduct(S_(first p1),S_(first p2))
 				      )
 		       );
-	  symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s,PlethysmType => "inner");
-	  exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "inner");
 	  );
 
      t := new SchurRingIndexedVariableTable from p;
@@ -296,19 +294,8 @@ symmRing (Ring,ZZ) := opts -> (A,n) -> (
 --     	  R ** RingElement := RingElement ** R := (f1,f2) -> internalProduct(f1,f2);
      	  R @ RingElement := RingElement @ R := (f1,f2) -> plethysmGL(f1,f2);
      	  R @@ RingElement := RingElement @@ R := (f1,f2) -> plethysmSn(f1,f2);
-     	  if opts.GroupActing == "GL" then
-     	  (
---     	       R ** R := (f1,f2) -> internalProduct(f1,f2);
-	       symmetricPower(ZZ,R) := (n,s) -> plethysm({n},s,PlethysmType => "outer");
-	       exteriorPower(ZZ,R) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "outer");
-	       )
-     	  else if opts.GroupActing == "Sn" then
-     	  (
---     	       R ** R := lookup(symbol *,R,R);
---     	       R * R := (f1,f2) -> internalProduct(f1,f2);
-	       symmetricPower(ZZ,R) := (n,s) -> plethysm({n},s,PlethysmType => "inner");
-	       exteriorPower(ZZ,R) := opts -> (n,s) -> plethysm(splice{n:1},s,PlethysmType => "inner");
-	       );
+     	  symmetricPower(ZZ,R) := (n,r) -> plethysm({n},r);
+     	  exteriorPower(ZZ,R) := opts -> (n,r) -> plethysm(splice{n:1},r);
      	  	  
 	  degsEHP := toList(1..n);
      	  blocks := {toList(0..(n-1)),toList(n..(2*n-1)),toList(2*n..(3*n-1))};
@@ -510,7 +497,7 @@ plethysmSn(RingElement,RingElement) := (f,g) ->
      symmetricFunction(plethysm(f,classFunction g), ring g)
      )
 
-plethysm = method(Options => {PlethysmType => "outer"}) --alternative is Group => "inner"
+plethysm = method()
 
 {*plethysm(RingElement,RingElement) := opts -> (f,g) ->
 (
@@ -520,7 +507,7 @@ plethysm = method(Options => {PlethysmType => "outer"}) --alternative is Group =
      )
 *}
 
-plethysm(RingElement,RingElement) := opts -> (f,g) ->
+plethysm(RingElement,RingElement) := (f,g) ->
 (
      Rg := ring g;
      Rf := ring f;
@@ -540,14 +527,14 @@ plethysm(RingElement,RingElement) := opts -> (f,g) ->
 	  );
      )
 
-plethysm(BasicList,RingElement) := opts -> (lambda,g) -> (
+plethysm(BasicList,RingElement) := (lambda,g) -> (
      d := sum toList lambda;
      Rf := symmRing(QQ,d);
      f := jacobiTrudi(lambda,Rf);
-     plethysm(f,g,opts)
+     plethysm(f,g)
      )
 
-plethysm(RingElement,ClassFunction) := opts -> (f,cF) ->
+plethysm(RingElement,ClassFunction) := (f,cF) ->
 (
      R := ring(cF#(first keys cF));
      pf := toP f;
@@ -572,7 +559,7 @@ plethysm(RingElement,ClassFunction) := opts -> (f,cF) ->
      new ClassFunction from newHT
      )
 
-plethysm(BasicList,ClassFunction) := opts -> (lambda,cF) -> (
+plethysm(BasicList,ClassFunction) := (lambda,cF) -> (
      d := sum toList lambda;
      Rf := symmRing(QQ,d);
      f := jacobiTrudi(lambda,Rf);
@@ -1504,16 +1491,6 @@ Description
    
   Text
     
-    By default, the function @TO plethysm@ computes outer pletyhsm of symmetric functions.
-    In the case of {\tt GL}-representations, this corresponds to composition of Schur functors.
-    In order to compute inner plethysm, one has to set the option @TO PlethysmType@ to "inner".
-    Its default value is "outer".
-    
-  Example
-     plethysm(W+U,W+U,PlethysmType => "inner")
-      
-  Text
-    
     Alternatively, we can use the binary operator @TO symbol \@ @ to compute outer plethysm:
   
   Example
@@ -2350,7 +2327,7 @@ Description
   Text
     Given two symmetric functions  {\tt f} and {\tt g}, the method computes their
     plethystic composition. The result of this operation will be an element of
-    the ring of {\tt g}. The option @TO PlethysmType@ specifies which type
+    the ring of {\tt g}. The option {\tt PlethysmType} specifies which type
     of plethysm is computed: inner or outer. Most commonly, outer plethysm is
     interpreted as composition of Schur functors of {\tt GL}-representations. Inner
     plethysm corresponds to applying Schur functors to {\tt S_n}-representations.
@@ -2364,7 +2341,7 @@ Description
     toS pl
     S = schurRing(QQ,q,3);
     h_2 @ q_{2,1}
-    plethysm(q_{2,1},q_{2,1},PlethysmType => "inner")
+    plethysm(q_{2,1},q_{2,1})
     q_{1,1} @@ q_{2,1}
     
 ///
@@ -2389,13 +2366,13 @@ Description
     
     The method computes the inner/outer plethysm of {\tt s_{\lambda}} with {\tt g}, where
     {\tt \lambda} is a partition and {\tt g} a symmetric function. This is the most 
-    commonly used form of plethysm. The option @TO PlethysmType@ specifies which type
+    commonly used form of plethysm. The option {\tt PlethysmType} specifies which type
     of plethysm is computed: inner or outer.
 
   Example
     R = symmRing(QQ,3)
     S = schurRing(QQ,q,3)
-    toE plethysm({2,1},e_1*e_2-e_3,PlethysmType => "inner")
+    toE plethysm({2,1},e_1*e_2-e_3)
     plethysm({2,1,1},q_{1,1}) 
 ///
 
@@ -3153,24 +3130,6 @@ Description
     second symmetric power of the sign representation of the symmetric group {\tt S_2}.
 ///
 
-doc ///
-Key
-  PlethysmType
-  [plethysm,PlethysmType]
-Headline
-  Specifies which type of plethysm (inner/outer) to be computed
-Description
-  Text
-    This is an optional argument for the @TO plethysm@ function. It specifies which of the
-    inner or outer plethysm operations is to be computed. Its possible values are
-    {\tt "inner"} and {\tt "outer"}, with the latter being the default.
-  
-  Example
-    S = schurRing(s,4);
-    plethysm(s_3,s_{1,1})
-    plethysm(s_3,s_{1,1},PlethysmType => "inner")
-
-///
 
 --------------------
 -- test Jacobi-Trudi

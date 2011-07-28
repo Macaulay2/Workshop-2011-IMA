@@ -535,7 +535,7 @@ gtc1 = (D,kk) ->(
 gtc = (D,kk)->(
      --produces pure resolution of type (0,D_0, D_1, ...)
      L := {last D,first D}|apply(#D-1, i->D_(i+1)-D_i);
-     tensorComplex(L,kk))
+     genericTensorComplex(L,kk))
 
 EN=(a,c) -> (f:=flattenedGenericTensor({a,c}|apply(a-c, i-> 1),kk);
 	     f1 := tensorComplex1(ring f,f);
@@ -547,6 +547,7 @@ restart
 path = append(path, "~/src/IMA-2011/TensorComplexes/")
 load "TensorComplexes.m2"
 kk=ZZ/101
+timing betti gtc({2,4,5},kk)
 
 timing betti(f1 = gtc1({1,4,6,7},kk))
 --timing betti F

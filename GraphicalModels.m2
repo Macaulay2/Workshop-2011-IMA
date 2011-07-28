@@ -1064,7 +1064,7 @@ doc ///
     pairMarkov G
   Inputs
     G: 
-      @ofClass {Graph,digraph}@
+      @ofClass {Graph,Digraph}@
   Outputs
     L:List
       whose entries are triples {A,B,C} representing pairwise Markov  conditional independence statements of the form
@@ -1114,7 +1114,7 @@ doc ///
     localMarkov G
   Inputs
     G:
-      @ofClass {Graph,digraph}@ 
+      @ofClass {Graph,Digraph}@ 
   Outputs
     L:List
       whose entries are triples {A,B,C} representing local Markov  conditional independence statements of the form

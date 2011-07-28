@@ -507,24 +507,34 @@ plethysm = method()
      )
 *}
 
-plethysm(RingElement,RingElement) := (f,g) ->
+auxplet = method()
+auxplet(RingElement,RingElement) := (f,g) ->
 (
      Rg := ring g;
-     Rf := ring f;
-     if schurLevel Rf > 1 then error"Undefined plethysm operation";
-     sLg := schurLevel Rg;
-     
      pl := local pl;
      if Rg.GroupActing == "GL" then pl = plethysmGL else
-     if Rg.GroupActing == "Sn" then pl = plethysmSn else
-     error "Invalid plethysm option";
+     if Rg.GroupActing == "Sn" then pl = plethysmSn;
+     sLg := schurLevel Rg;
      
-     if sLg == 1 then return pl(f,g)
-     else
+     if sLg == 1 then return pl(f,g) else
      (
      	  lF := listForm g;
-	  return sum for t in lF list plethysm(f,last t) * pl(f,Rg_(first t))
+	  return sum for t in lF list auxplet(f,last t) * pl(f,Rg_(first t))
 	  );
+     )
+
+plethysm(RingElement,RingElement) := (f,g) ->
+(
+     pf := toP f;
+     Rf := ring pf;
+     if schurLevel Rf > 1 then error"Undefined plethysm operation";
+     
+     pls := new MutableHashTable from {};
+     lpf := listForm pf;
+     m := (ring pf).dim;
+     sum for t in lpf list ((last t) * product select(apply(splice{0..m-1}, i -> (ex := (first t)#(m+i);
+     	       if ex > 0 then (if pls#?i then (pls#i)^ex else 
+	        (pls#i = auxplet(Rf.pVariable(i+1),g);(pls#i)^ex)))),j -> j =!= null))
      )
 
 plethysm(BasicList,RingElement) := (lambda,g) -> (
@@ -3600,6 +3610,7 @@ installPackage"SchurRings"
 check SchurRings
 viewHelp SchurRings
 
+
 debug loadPackage"SchurRings"
 S = schurRing(s,5,GroupActing => "Sn")
 R = symmetricRingOf S
@@ -3633,6 +3644,27 @@ plethysm({2},s_2 * 1_T)
 symmetricPower(2,s_2*t_2)
 symmetricPower(2,s_2)
 
+restart
+debug loadPackage"SchurRings"
+
+R = symmRing 10
+time toS plethysm(h_5,h_6);
+
+
+S = schurRing(s,3)--,GroupActing => "Sn")
+T = schurRing(S,t,2)
+
+exteriorPower(2,S_1 * T_1)
+
+rep = (s_3 + s_{2,1}) * t_1
+M = {s_3 * 1_T}
+schurResolution(rep,M,8)
+
+exteriorPower(2,rep)
+symmetricPower(3,rep)
+
+methods schurResolution
+code o8#1
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"
 -- End:

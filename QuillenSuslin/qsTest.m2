@@ -41,7 +41,40 @@ load "QuillenSuslin.m2"
 R = ZZ[x,y]
 f = matrix{{x^3,3*y+1,y^3+2*x*y^2}}
 f = matrix{{x^2,2*y+1,y+x^5*y^2}} -- Seems like a good example.
+C = completeMatrix f
+D = inverse C
 P = ker f
+G = gens P
+C1 = submatrix(C,{1,2},)
+D1 = submatrix(D,,{1,2})
+
+
+
+computeFreeBasis P
+image C1
+
+syz f
+G = mingens P
+S = syz mingens P
+C = completeMatrix S
+C = transpose completeMatrix transpose S
+C1 = submatrix(C,,{1,2})
+G*C1
+G = gens P
+S = syz G
+N = transpose(map(target transpose S,target transpose S,1_R) // (transpose S))
+N*S
+computeFreeBasis P
+computeFreeBasis image f
+
+
+
+C = transpose completeMatrix transpose syz G
+C = submatrix(C,,{2,3})
+
+
+ker mingens P
+computeFreeBasis P
 syz mingens P
 
 isUnimodular f

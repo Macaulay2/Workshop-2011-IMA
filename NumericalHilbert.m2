@@ -18,6 +18,8 @@ export {
      BM,
      GB1,
      GB2,
+     DZS1,
+     DZS2,
      DZSmatrix,
      deflation,
      Size,
@@ -66,10 +68,17 @@ dualBasis (Matrix, ZZ) := o -> (igens, d) -> (
 --Algorithm choices: Dayton-Zeng, Stetter-Thallinger find the dual space; GB1, GB2 use a Groebner Basis.
 dualHilbert = method(TypicalValue => List, Options => {Point => {}, Strategy => DZ})
 dualHilbert (Matrix, ZZ) := o -> (igens, d) -> (
-     if      o.Strategy == DZ then dualHilbertDZST(igens, d, Point => o.Point)
-     else if o.Strategy == ST then dualHilbertDZST(igens, d, Point => o.Point, Strategy => ST)
-     else if o.Strategy == GB1 then apply(0..d, i->hilbertB(igens,i))
-     else if o.Strategy == GB2 then apply(0..d, i->hilbertC(igens,i))
+     R := ring igens;
+     if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
+     if      o.Strategy == DZ then dualHilbertDZST(igens, d)
+     else if o.Strategy == ST then dualHilbertDZST(igens, d, Strategy => ST)
+     else if o.Strategy == GB1 then apply(0..d, i->hilbertB(flatten entries gens gb igens,i))
+     else if o.Strategy == GB2 then apply(0..d, i->hilbertC(flatten entries gens gb igens,i))
+     else if o.Strategy == DZS1 or o.Strategy == DZS2 then (
+     	  sbElements := sbReduce (DZSmatrix igens)#0;
+     	  if o.Strategy == DZS1 then apply(0..d, i->hilbertB(sbElements,i))
+	  else                       apply(0..d, i->hilbertC(sbElements,i))
+	  )
      else error "unrecognized strategy"
      );
 
@@ -124,8 +133,8 @@ dualBasisBM (Matrix, ZZ) := o -> (igens, d) -> (
      newbetas := {1_R}; --new generators
      npairs := subsets(n,2);
      M := map(R^(m),R^0,0); --the main matrix
-     E := map(R^0,R^n,0); --stores evaluation of each dual generator on each ideal generator
-     bvectors := map(R^1,R^0,0);
+     E := map(R^0,R^n,0); --stores evaluation of each dual generator integral on each ideal generator
+     bvectors := map(R^1,R^0,0); --vectors of derivative coefficients of new generators (basis of kernel of M)
      buildVBlock := v -> ( --function to build new blocks to add to M
  	  Vb := mutableMatrix(R,#npairs,n);
     	  for i from 0 to #npairs-1 do (
@@ -305,21 +314,19 @@ STmatrix (Matrix, ZZ) := o -> (igens, d) -> (
      );
 
 --checks each monomial of degree d and counts ones in the monomial basis of the quotient space.
-hilbertB = method(TypicalValue => ZZ, Options => {Point => {}})
-hilbertB (Matrix, ZZ) := o -> (igens, d) -> (
-     R := ring igens;
-     if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     G := (flatten entries gens gb igens) / leadMonomial;
+hilbertB = method(TypicalValue => ZZ)
+hilbertB (List, ZZ) := (sbElements, d) -> (
+     R := ring first sbElements;
+     G := sbElements / leadMonomial;
      #select(first entries basis(d,R), m->(#select(G, g->isDivisible(m,g)) == 0))
      );
 
 --takes alternating sum of number of all monomials, number that are a multiple of the lead term of
 --each Groebner basis element, number in each pair-wise intersection, etc.
-hilbertC = method(TypicalValue => ZZ, Options => {Point => {}})
-hilbertC (Matrix, ZZ) := o -> (igens, d) -> (
-     R := ring igens;
-     if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     G := apply(flatten entries gens gb igens, g->(listForm g)#0#0); --store lead monomials as n-tuples of integers
+hilbertC = method(TypicalValue => ZZ)
+hilbertC (List, ZZ) := (sbElements, d) -> (
+     R := ring first sbElements;
+     G := sbElements / leadMonomial; --store lead monomials as n-tuples of integers
      bin := (n,k) -> (if n >= 0 then binomial(n,k) else 0);
      listFormLCM := (a,b) -> apply(#a, i->(max {a#i,b#i}));
      recurC := (m, gIndex, coef) -> ( --for each subset S of G add or subtract # of d monomials that are divisible by lcm of S
@@ -398,6 +405,14 @@ rowReduce = (M,epsilon) -> (
   );
   M = new Matrix from M
 );
+
+sbReduce = L -> (
+     L = L / first;
+     Lgood := select(#L, i->(
+     	  all(#L, j->(j == i or not isDivisible(L#i,L#j)))
+	  ));
+     new List from apply(Lgood, i->L#i)
+     );
 
 --generates a vector of specified length of random complex numbers with unit modulus
 randomVector = (dimension) -> (
@@ -510,5 +525,7 @@ R = RR[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = QQ[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = (ZZ/101)[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 M = matrix {{x^2-x*y^2,x^3}}
+M = matrix {{x*y}}
 DZSmatrix(M)
+dualHilbert(M,25, Strategy => DZS1)
 

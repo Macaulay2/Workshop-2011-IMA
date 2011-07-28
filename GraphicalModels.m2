@@ -560,6 +560,9 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 
 covarianceMatrix = method()
 covarianceMatrix(Ring) := Matrix => (R) -> (
+       --this is used when the gaussianRing has no graph attached to it; i.e. it was created using 
+       -- gaussianRing ZZ
+       if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
        n := R#gaussianRing; 
        genericSymmetricMatrix(R,n))
 covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> covarianceMatrix R
@@ -591,6 +594,8 @@ gaussianMinors(Digraph,Matrix,List) :=  Ideal => (G,M,Stmt) -> (
 -- gaussianMinors(G,M,D)
 -- ///
 
+
+-- THIS WILL BE CHANGED TO MATCH CONDITIONALINDEPENDENCEIDEAL! -- 28.july2011.
 ---------------------
 --- gaussianIdeal ---
 ---------------------
@@ -804,7 +809,9 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      )
      else(
      if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
-     Stmts := pairMarkov G;
+     Stmts := pairMarkov G; 
+     -- TO DO HERE::::
+     -- the line above should be globalMarkov but that is not finished yet b/c it does not remove redundancies correctly!!!
      conditionalIndependenceIdeal (R,Stmts))
      )
 

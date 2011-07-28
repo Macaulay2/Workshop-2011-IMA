@@ -50,7 +50,8 @@ G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 
 globalMarkov G
 
-
+R=QQ[a,b]
+gaussianVanishingIdeal(R,G) --demonstrating the error message. :)
 
 ------------------------------------------------------------
 ---gaussianMatrices:

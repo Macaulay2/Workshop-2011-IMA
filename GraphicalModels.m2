@@ -115,7 +115,8 @@ export {bidirectedEdgesMatrix,
        pVariableName,
        gaussianVanishingIdeal,
        undirectedEdgesMatrix,
-       numberOfEliminationVariables --entry stored inside gaussianRing
+       numberOfEliminationVariables, --entry stored inside gaussianRing
+       conditionalIndependenceIdeal
 	} 
      
 needsPackage "Graphs"
@@ -386,9 +387,9 @@ markovRing Sequence := Ring => opts -> d -> (
 
 marginMap = method()
 marginMap(ZZ,Ring) := RingMap => (v,R) -> (
+     if (not R#?markov) then error "expected a ring created with markovRing";
      -- R should be a Markov ring
      v = v-1;
-     if not R#?markov then error "expected a ring created with markovRing";
      d := R.markov;
      -- use R; -- Dan suggested to delete this line
      p := i -> R.markovVariables#i;
@@ -768,9 +769,34 @@ globalMarkov Graph := List => (G) ->(
  
 conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
-
+     if not (R#?gaussianRing or R#?markovRing) then error "expected a ring created with gaussianRing or markovRing";
+     if R#?gaussianRing then (
+        g := R#graph;
+        vv := sort vertices g;
+        SM := covarianceMatrix(R,g);
+        sum apply(Stmts, s -> minors(#s#2+1, 
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+        )
+        else (
+	     -- Add material that will compute the conditional independence
+	     -- ideal of a list of statements
+	     -- this will come from what is currently markovIdeal(R,G,Stmts)
+	     -- but I would like that command changed so that 
+	     )
      )
+
+
+conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     g := G;
+     if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
+     Stmts := pairMarkov G;
+     conditionalIndependenceIdeal (R,Stmts)
+     )
+
+
+
 --trekIdeal (Ring,MixedGraph,List) := Ideal => (R,g,Stmts) -> (
 --     vv := sort vertices g;
 --     SM := covarianceMatrix(R,g);	

@@ -662,7 +662,16 @@ runGfanCommand = (cmd, opts, data) -> (
 	args := concatenate apply(keys opts, key -> gfanArgumentToString(cmd, key, opts#key));
 	ex := gfanPath | cmd | args | " < " | tmpFile | " > " | tmpFile | ".out" | " 2> " | tmpFile | ".err";
 	if gfanVerbose then << ex << endl;
-	run ex;
+	returnvalue := run ex;
+     	if(not returnvalue == 0) then
+	(
+	     print "GFAN returned an error message.\n";
+	     print "COMMAND:" | ex |"\n";
+	     print "INPUT:\n";
+	     print get(tmpFile);
+	     print "ERROR:\n";
+	     print get(tmpFile |".err");
+	     );
 	out := get(tmpFile | ".out");
 	gfanRemoveTemporaryFile tmpFile;
 	gfanRemoveTemporaryFile(tmpFile | ".out");

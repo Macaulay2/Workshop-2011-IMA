@@ -307,7 +307,9 @@ getFileName = () -> (
 	)
 
 --GAPexe ="/Applications/gap4r4/bin/./gap.sh";	
-GAPexe := "gap";
+--GAPexe := "gap";
+-- With GAP's workspace (ultrafast)
+GAPexe := "gap -L /Applications/gap4r4/bin/wsgap4";
 
 isFullSymmetric = method(TypicalValue => Boolean)
 isFullSymmetric(List) := (perms)->(

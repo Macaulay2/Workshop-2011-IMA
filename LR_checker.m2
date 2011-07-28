@@ -40,6 +40,25 @@ partition2bracket(List,ZZ,ZZ) := (l, k, n) -> (
 partition2bracket(l,k,n)
 partition2bracket({2,1},3,7)
 partition2bracket({1,1},3,7)
+partition2bracket({1},3,7)
+
+--combine all these functions to make only
+-- partition -> checkers and viceversa
+bracket2input = method(TypicalValue => List)
+bracket2input(List,ZZ) := (br,n) ->(
+     inp := for i to n-1 list 99;
+     inp = new MutableList from inp;
+     apply(br, b-> inp#(b-1) = b-1);
+     toList inp
+)
+bracket2input({4,6,7},7)
+
+output2bracket = method(TypicalValue=>List)
+output2bracket List := outp -> (
+     br := select(outp, x-> x!=99);
+     apply(br, x-> x=x+1)
+) 
+output2bracket({99, 99, 99, 3, 99, 5, 6})
 
 bracket2partition = method(TypicalValue => List)
 bracket2partition(List,ZZ) := (l, n) -> (
@@ -48,15 +67,13 @@ bracket2partition(List,ZZ) := (l, n) -> (
 )
 bracket2partition({2,4,6},6)
 
+-- change this method to be between checkers
 redChkrPos = method(TypicalValue => List)
 redChkrPos(List,List,ZZ,ZZ) := (l,m,k,n) -> (
      -- input the Schubert conditions l and m
      --     as bracket
      -- input the Grassmannian G(k,n)
      m = reverse m;
-     --redPos := new MutableHashTable from {};
-     --apply(#l, j-> redPos#(l#j) = m#j);
-     --redPos = new HashTable from redPos
      board = for i to n-1 list 99;
      print board;
      redPos = new MutableList from board;
@@ -146,5 +163,26 @@ moveCheckers = method(TypicalValue => List)
 moveCheckers(List,List,ZZ) := (blackposition, redposition, n) ->(
      splitcount:=0;
      -- determine the columns of the descending and ascending black checkers
-     
+     desccol := 1 + position(blackposition, x->x == n-1);
+     asccol := position(blackposition, x-> x == 1+blackposition#desccol);
+     for blackdown1 from desccol to n-1 do(
+	  if blackdown1 == desccol+1 then asccol=0;
+	  for blackup1 from asccol to blackdown1-1 do(
+	       blackup2 := n-blackdown1+blackup1;
+	       blackdown2 := blackup2-1;
+	       (redposition,copies) = toSequence moveRed({blackup1,blackup2},{blackdown1,blackdown2}, redposition,n);
+	       blackposition = new MutableList from blackposition;
+	       blackposition#blackup1 = blackposition#blackup1 - 1;
+	       blackposition#blackdown1 = blackposition#blackdown1 + 1;
+	       if copies == 1 then (
+		    blackposition = join(blackposition,blackposition);
+		    splitcount = splitcount + 1;
+	       );
+	  );
+     );
+     {toList(blackposition), toList(redposition), splitcount}
 )
+moveCheckers({3,5,4,2,1,0},{3,99,99,5,99,1},6)
+
+playCheckers = method(TypicalValue => List);
+

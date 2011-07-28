@@ -203,6 +203,7 @@ gradePoset Poset := P->(
 	);
 	P.cache.grading = J
 );
+
 ----------------------------------------------------------------------------------
 -- NORMAL CODE
 ----------------------------------------------------------------------------------
@@ -751,7 +752,7 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 -----------------------------------
 
 cleanName=(name)->(
-     namep:=replace("\\}","",replace("\\{","",toString name));
+     namep:=replace("\\}","\\}",replace("\\{","\\{",toString name));
      nameb:=replace("\\(","",replace("\\)","",namep));
      namec:=replace("\\_","",replace("\\*","",nameb));
      replace(", ","-",namec)
@@ -763,8 +764,9 @@ cleanName=(name)->(
 texPoset = method(Options => {symbol SuppressLabels => true});
 
 texPoset(Poset):= opts -> (P)->(
-     C:=maximalChains P;
-     edgelist:=apply(coveringRelations P, r-> concatenate(cleanName first r,"/",cleanName last r));
+     C := maximalChains P;
+     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
+     edgelist := apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
      L:=max apply(C, c-> #c)-1;
      heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
      protoH:=partition(g-> last g, heightpairs);
@@ -779,14 +781,14 @@ texPoset(Poset):= opts -> (P)->(
      if opts.SuppressLabels then (
      	  for i from 0 to L do (
      	       for j from 0 to levelsets_i do (
-	       	    fn << concatenate("\\node [vertices] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+	       	    fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
      	       	    )
      	       );
 	  )
      else (
      	  for i from 0 to L do (
      	       for j from 0 to levelsets_i do (
-	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (", toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
      	       	    )
      	       );
      	  );
@@ -802,8 +804,9 @@ texPoset(Poset):= opts -> (P)->(
 outputTexPoset = method(Options => {symbol SuppressLabels => true});
 
 outputTexPoset(Poset,String):= opts -> (P,name)->(
-     C:=maximalChains P;
-     edgelist:=apply(coveringRelations P, r-> concatenate(cleanName first r,"/",cleanName last r));
+     C := maximalChains P;
+     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
+     edgelist := apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
      L:=max apply(C, c-> #c)-1;
      heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
      protoH:=partition(g-> last g, heightpairs);
@@ -820,14 +823,14 @@ outputTexPoset(Poset,String):= opts -> (P,name)->(
      if opts.SuppressLabels then (
      	  for i from 0 to L do (
      	       for j from 0 to levelsets_i do (
-	       	    fn << concatenate("\\node [vertices] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+	       	    fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
      	       	    )
      	       );
 	  )
      else (
      	  for i from 0 to L do (
      	       for j from 0 to levelsets_i do (
-	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",cleanName(values H)_i_j,") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+	       	    fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
      	       	    )
      	       );
      	  );
@@ -2153,3 +2156,54 @@ assert( ((closedInterval(P2,c,g)).Relations) === {(c,c),(c,e),(c,f),(c,g),(e,e),
 --assert( (B.RelationMatrix) === map(ZZ^4,ZZ^4,{{1, 1, 1, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}, {0, 0, 0, 1}}) )
 --assert( toString (B.Relations) === toString {(1,1),(1,x_2),(1,x_1),(1,x_1*x_2),(x_2,x_2),(x_2,x_1*x_2),(x_1,x_1),(x_1, x_1*x_2),(x_1*x_2,x_1*x_2)} )
 --///
+
+
+----------------------------------------
+--New Code for Partition Lattice:
+----------------------------------------
+
+setPartition=method()
+
+setPartition ZZ := n ->(
+     L={{{1}}};
+     for i from 2 to n do (
+	  L=flatten for lambda in L list (
+	       lambdaparts := apply(#lambda, l-> for k to #lambda-1 list if k=!=l then lambda_k else continue);
+     	       append(apply(#lambda, p-> lambdaparts_p | {lambda_p | {i}}), join(lambda,{{i}}))
+	       );
+	  );
+     L
+     )
+
+
+setPartition List := S ->(
+     L:={{{first S}}};
+     for s in drop(S,1) do (
+	  L=flatten for lambda in L list(
+	       dropPart := apply(#lambda, i-> drop(lambda,{i,i}));
+	       protoLevelSet := apply(#lambda, l-> join(dropPart_l,{lambda_l|{s}}));
+     	       join(protoLevelSet, {lambda|{{s}}})
+	       );
+	  );
+     L
+     )
+
+partitionRefinementPairs = method()
+
+partitionRefinementPairs List := (L)-> (
+     m:=unique apply(L, l-> #l);
+     MM:=apply(m, i-> (symbol M)_i);
+     NN:=apply(m, i-> (symbol N)_i);
+     for i in m do (
+	  subS := subsets toList(0..i-1);
+	  M_i = take(subS,{1,#subS-2});
+    	  N_i = unique apply(M_i, r-> sort {r, select(toList(0..i-1), k-> not member(k,r))});
+     );
+     dropPart := apply(#L, i-> drop(L,{i,i}));
+     coverSet := flatten for i from 0 to #L-1 list(
+	  splitPairs:=apply(N_(#L_i), m-> {(L_i)_(first m),(L_i)_(last m)});
+     	  apply(splitPairs, j-> sort join(dropPart_i,j))
+	  );
+ --    coverSet/ print;
+     apply(coverSet, i-> {L,i})--/print
+     )

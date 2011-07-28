@@ -290,8 +290,8 @@ time isPrimaryZeroDim(I)
 restart
 load "newGTZ.m2"
 debug newGTZ
-R = QQ[a,b,c,d]
-I = ideal apply(1 .. 4, i -> random(3,R))
+R = QQ[a,b,c,d,e]
+I = ideal apply(1 .. 5, i -> random(3,R))
 time(isPrimaryZeroDim I)
 ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 ///
@@ -334,6 +334,7 @@ isPrimaryZeroDim(Ideal) := (I) ->
    
    G := flatten entries gens gb(J,Hilbert=>hilbI);
    gs := getVariablePowerGenerators(G,fiberVars);
+   if all(#gs-1, i -> degree(fiberVars#i,gs#i) == 1) then return true;
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
    getLinearPowers(G,gs,fiberVars)
 )
@@ -346,27 +347,26 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
   R := ring first G;
   kk := coefficientRing R;
   independentVars := sort toList (set gens R - set fiberVars);
-  --S := R/radical ideal last gs;
   Q := frac (kk[independentVars])[fiberVars,MonomialOrder=>Lex];
-  --error "err";
-  S := Q/sub(radical ideal last gs, Q);
-  --S := Q/sub(ideal last gs, Q);
-  -- compute degree of the image of gs in S to see if all one, so that we don't have to try to factor later
-  gsInS := take(apply(gs, f -> sub(f,S)), #gs-1);
-  if all(apply(#gsInS, i -> degree(fiberVars#i,gsInS#i)), i -> i == 1) then return true;
-  -- need to pass to the fraction field first, since the polynomial may not be monic yet.
-  linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   gi := first (trim ideal substitute(gs#i,S))_*;
-									   xi := fiberVars#i;
-	    	      	   	     	       	    	      	   	   deggi := degree(sub(xi,S),gi);
-									   --error "err";
-									   -- find coeffs with respect to xi
-									   degGiMinusOneCoeff := contract((sub(xi,S))^(deggi-1),gi-sub(xi^deggi,S));
-									   -- use binomial formula to guess linear factor
-									   linearFactor := (sub(xi,S) + deggi^(-1)*degGiMinusOneCoeff);
-									   if (linearFactor^(deggi) != gi) then error "Not a linear power!";
-									   newI := ideal S + sub(linearFactor,Q);
-									   S = Q/newI;
-									   linearFactor));
+  -- below where reductions are done, sometimes one does not need the full reduction of a polynomial mod an ideal
+  -- is there a way to do this in M2?
+  quotIdeal := sub(radical ideal last gs,Q);
+  gs = apply(gs, g -> sub(g,Q));
+  fiberVars = apply(fiberVars, x -> sub(x,Q));
+  linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   
+	    gi := gs#i % quotIdeal;
+	    xi := fiberVars#i;
+	    d := degree(xi,gi);
+	    a := leadCoefficient gi;
+	    -- find coeffs of xi^(d-1)
+	    b := contract(xi^(d-1),gi-xi^d);
+	    -- use binomial formula to guess linear factor
+	    linearFactor := (a*d*xi + b);
+	    gi = gi*(d^d)*(a^(d-1));
+            -- here is where we could speed up by not fully reducing the difference.
+	    if (gi - linearFactor^d) % quotIdeal != 0_Q then error "Not a linear power!";
+	    quotIdeal = quotIdeal + ideal linearFactor;
+	    linearFactor));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.
   -- we should return the linear factor list.  However, before doing this, we need to clear denominators and put the linear forms

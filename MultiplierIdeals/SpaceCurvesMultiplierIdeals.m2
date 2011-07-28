@@ -382,7 +382,7 @@ intersectionIndexSet = (ff) -> (
 
 monomialSpaceCurveMultiplierIdeal = method()
 monomialSpaceCurveMultiplierIdeal(Ring, List, QQ) :=
-monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := Ideal => (R, nn, t) -> (
+monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
      ff := sortedGens(R,nn);
      curveIdeal := affineMonomialCurveIdeal(R,nn);
      
@@ -415,8 +415,10 @@ monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := Ideal => (R, nn, t) -> (
 --  * a rational number
 
 monomialSpaceCurveLCT = method()
-monomialSpaceCurveLCT(Ring,List) := (R, nn) -> monomialSpaceCurveLCT(sortedGens(R,nn));
-monomialSpaceCurveLCT(List) := QQ => ff -> (
+monomialSpaceCurveLCT(Ring,List) := (R, nn) -> monomialSpaceCurveLCTFromSortedGens(sortedGens(R,nn));
+
+monomialSpaceCurveLCTFromSortedGens = method()
+monomialSpaceCurveLCTFromSortedGens(List) :=  ff -> (
      indexList  := intersectionIndexSet(ff);
      curveIdeal := ideal ff;
      lctTerm    := monomialLCT(termIdeal(curveIdeal));
@@ -473,10 +475,10 @@ keynumber = (I) -> (
 -- in the interval [a,b]
 -- Default: [a,b] = [monomialSpaceCurveLCT(I),keynumber(I)]
 potentialJumpingNumbers = method();
-potentialJumpingNumbers (List) := (ff) -> potentialJumpingNumbers(ff,monomialSpaceCurveLCT(ff),keynumber ideal ff);
+potentialJumpingNumbers (List) := (ff) -> potentialJumpingNumbers(ff,monomialSpaceCurveLCTFromSortedGens(ff),keynumber ideal ff);
 potentialJumpingNumbers ( List , Number , Number ) := (ff , Left, Right) -> (
   
-  a := max(Left, monomialSpaceCurveLCT ff);
+  a := max(Left, monomialSpaceCurveLCTFromSortedGens ff);
   b := Right;
   
   -- empty interval?
@@ -511,7 +513,7 @@ monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , ZZ ) := (R, nn,a,b) -> mono
 monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , ZZ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 monomialSpaceCurveJumpingNumbers ( Ring, List , ZZ , QQ ) := (R, nn,a,b) -> monomialSpaceCurveJumpingNumbers(R, nn,promote(a,QQ),promote(b,QQ));
 
-monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := List => (R, nn , Left , Right) -> (
+monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := (R, nn , Left , Right) -> (
   ff  := sortedGens(R,nn);
   lct := monomialSpaceCurveLCT(R,nn);
   
@@ -570,7 +572,7 @@ monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := List => (R, nn , Le
     );
   );
   
-  return {jumpingNumbers, multiplierIdeals};
+  return (jumpingNumbers, multiplierIdeals);
 );
 
 
@@ -591,6 +593,15 @@ monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := List => (R, nn , Le
 
 beginDocumentation()
 
+
+document { 
+  Key => SpaceCurvesMultiplierIdeals,
+  Headline => "A package for computing multiplier ideals of monomial space curves",
+  "This implementation is based on the algorithm given in
+   H.M. Thompson's paper: ", EM "Multiplier Ideals of Monomial Space Curves. ",  
+   HREF{"http://arxiv.org/abs/1006.1915","arXiv:1006.1915v4"}, " [math.AG]"
+}
+
 doc ///
 Key
   monomialSpaceCurveMultiplierIdeal
@@ -599,10 +610,11 @@ Key
 Headline
   multiplier ideal of monomial space curve
 Usage
-  I = monomialSpaceCurveMultiplierIdeal(R,nn,t)
+  I = monomialSpaceCurveMultiplierIdeal(R,n,t)
 Inputs
   R:Ring
-  nn:List
+  n:List
+     three integers
   t:QQ
 Outputs
   I:Ideal
@@ -619,48 +631,93 @@ Description
   
   Example
     R = QQ[x,y,z];
-    nn = {2,3,4};
+    n = {2,3,4};
     t = 5/2;
-    I = monomialSpaceCurveMultiplierIdeal(R,nn,t)
+    I = monomialSpaceCurveMultiplierIdeal(R,n,t)
 
 ///
+
 
 doc ///
 Key
   monomialSpaceCurveJumpingNumbers
-  (monomialSpaceCurveJumpingNumbers Ring, List)
-  (monomialSpaceCurveJumpingNumbers Ring, List, ZZ, ZZ)
-  (monomialSpaceCurveJumpingNumbers Ring, List, QQ, ZZ)
-  (monomialSpaceCurveJumpingNumbers Ring, List, ZZ, QQ)
-  (monomialSpaceCurveJumpingNumbers Ring, List, QQ, QQ)
+  (monomialSpaceCurveJumpingNumbers, Ring, List)
+  (monomialSpaceCurveJumpingNumbers, Ring, List, ZZ, ZZ)
+  (monomialSpaceCurveJumpingNumbers, Ring, List, QQ, ZZ)
+  (monomialSpaceCurveJumpingNumbers, Ring, List, ZZ, QQ)
+  (monomialSpaceCurveJumpingNumbers, Ring, List, QQ, QQ)
     
 Headline
   jumping numbers and corresponding multiplier ideals of monomial space curves
 Usage
- -- (jn,mi) = monomialSpaceCurveJumpingNumbers(R,nn)
+  (jn,mi) = monomialSpaceCurveJumpingNumbers(R,n)
+  (jn,mi) = monomialSpaceCurveJumpingNumbers(R,n,min,max)  
 Inputs
-  R:
-  nn:
+  R:Ring
+  n:List 
+   three integers
 Outputs
-  L:
+  jn:List 
+   the jumping numbers 
+  mi:List
+   the corresponding multiplier ideals 
 Description
   Text
   
-    Given a monomial space curve {\tt C} and a parameter {\tt t}, the function 
-    {\tt monomialSpaceCurveMultiplierIdeal} computes the multiplier ideal associated to the embedding of {\tt C}
-    in {\tt 3}-space and the parameter {\tt t}.
+    The function {\tt monomialSpaceCurveJumpingNumbers} computes the
+    jumping numbers and corresponding multiplier ideals of the space
+    curve. This curve is defined via {\tt n = (a,b,c)} through the
+    embedding {\tt u\to(u^a,u^b,u^c)}.
     
-    More precisely, we assume that {\tt R} is a polynomial ring in three variables, {\tt n = \{a,b,c\}}
-    is a sequence of positive integers of length three, and that {\tt t} is a rational number. The corresponding
-    curve {\tt C} is then given by the embedding {\tt u\to(u^a,u^b,u^c)}.
+  Example
+    R = QQ[x,y,z];
+    n = {2,3,4};
+    (jn,mi) = monomialSpaceCurveJumpingNumbers(R,n)
+
+  Text
+     By default, the jumping numbers are searched for in the closed
+     interval bounded by the log canonical threshold and the analytic
+     spread. However, the user may change these bounds via the
+     optional arguments min and max:
   
   Example
     R = QQ[x,y,z];
-    nn = {2,3,4};
-    t = 5/2;
-    I = monomialSpaceCurveMultiplierIdeal(R,nn,t)
+    n = {2,3,4};
+    (jn,mi) = monomialSpaceCurveJumpingNumbers(R,n,2,3)
 
 ///
+
+
+doc ///
+Key
+  monomialSpaceCurveLCT
+  (monomialSpaceCurveLCT, Ring, List)
+    
+Headline
+  log canonical threshold of monomial space curves
+Usage
+  lct = monomialSpaceCurveLCT(R,n)
+Inputs
+  R:Ring
+  n:List 
+   three integers
+Outputs
+  lct:QQ 
+
+Description
+  Text
+  
+    The function {\tt monomialSpaceCurveLCT} computes the log
+    canonical threshold of a space curve. This curve is defined via
+    {\tt n = (a,b,c)} through the embedding {\tt u\to(u^a,u^b,u^c)}.
+    
+  Example
+    R = QQ[x,y,z];
+    n = {2,3,4};
+    lct = monomialSpaceCurveLCT(R,n)
+///
+
+
 
 
 ----------------------------------------------------------------------------------------------------
@@ -675,10 +732,11 @@ end
 
 
 restart
-debug loadPackage"SpaceCurvesMultiplierIdeals"
 installPackage "SpaceCurvesMultiplierIdeals"
-uninstallPackage "SpaceCurvesMultiplierIdeals"
 viewHelp "SpaceCurvesMultiplierIdeals"
+uninstallPackage "SpaceCurvesMultiplierIdeals"
+debug loadPackage"SpaceCurvesMultiplierIdeals"
+
 R = QQ[x,y,z]
 monomialSpaceCurveLCT(R,{2,3,4})
 nn = {2,3,4};

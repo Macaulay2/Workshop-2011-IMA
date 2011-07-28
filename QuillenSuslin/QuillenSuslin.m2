@@ -15,17 +15,6 @@
 -- GNU General Public License for more details.
 --------------------------------------------------------------------------
 
-{*
-Immediate goals:
-1. Finish optimizing/commenting existing code.
-2. Finalize documentation.
-3. Finish paper.
-
-Known issues: 
-
-Search TODO for pieces of code that need to be fixed/optimized.
-*}
-
 newPackage(
 	"QuillenSuslin",
     	Version => "1.0", 
@@ -43,7 +32,7 @@ export {
 -- Helper methods
 --     "coeffVarFF",
 --     "commonDenom",
---     "degVar",
+     "degVar",
 --     "factorList",
 --     "findAlmostMonicPoly",
 --     "isAlmostMonic",
@@ -51,6 +40,7 @@ export {
 --     "isMonic",
      "isProjective", -- Test 0
      "isUnimodular", -- Test 1
+     "laurentNormalize",
 --     "leadCoeffVar",
 --     "leadCoeffVarFF",
      "maxMinors", -- Test 2
@@ -61,11 +51,13 @@ export {
      "changeVar", -- Test 3
      "computeFreeBasis",
      "completeMatrix",
+     "completeMatrixLaurent",
 --     "getLocalSolutions",
      "getMaxIdeal",
      "horrocks",
 --     "monicPolySubs",
      "patch",
+     "parkAlgorithm",
      "qsAlgorithm"
 --     "qsAlgorithmPID",
 --     "qsAlgorithmRow",
@@ -289,6 +281,136 @@ isProjective(Module) := P -> (
 isUnimodular = method()
 isUnimodular(Matrix) := M -> (
      return minors(min(numcols M,numrows M),M) == ideal(1_(ring M));
+)
+
+
+-- Method: laurentCoeffList
+-- Input: (RingElement,RingElement) - (polynomial,variable)
+-- Output: List - List of lists of the form {deg in var, coefficient}
+-- Description:
+-- For a Laurent polynomial, this method returns a list of lists
+-- {{i,coeff(var^i)}} of degrees of the given variable that appear
+-- in f and also the corresponding coefficients.
+laurentCoeffList = method()
+laurentCoeffList(RingElement,RingElement) := (f,var) -> (
+     local coeff; local coeffDenom; local coeffList; local degreeList;
+     local denom; local denomDeg; local num; local R;
+     
+     R = frac((coefficientRing ring f)[flatten entries vars ring f]);
+     f = sub(f,R);
+     var = sub(var,R);
+     num = numerator(f);
+     denom = denominator(f);
+     denomDeg = degVar(denom,var);
+     coeffDenom = denom*(var^(-denomDeg)); -- Get rid of the variable from the denominator.
+     coeff = coefficients(num,Variables => {var});
+     degreeList = apply(reverse flatten entries (coeff)#0, i -> degVar(i,var) - denomDeg);
+     coeffList = apply(reverse flatten entries transpose (coeff)#1, i -> i*(coeffDenom)^-1);
+     return apply(#degreeList, i -> {degreeList#i,coeffList#i});
+)
+
+
+-- Method: laurentNormalize
+-- Input: (Matrix,RingElement) - (matrix,variable to normalize with respect to)
+-- Output: (Matrix,Matrix,Matrix) - (an invertible matrix of Laurent polynomials,
+--         change of variables, inverse change of variables.)
+-- Description:
+-- Given a matrix over a Laurent polynomial ring, this method computes
+-- an invertible matrix of Laurent polynomials and an invertible change
+-- of variables so that multiplying by the matrix and applying the change
+-- of variables makes the original matrix into a matrix with polynomial
+-- entries.
+
+laurentNormalize = method()
+laurentNormalize(Matrix,RingElement) := (f,var) -> (
+     local D; local degSeqList; local denom; local denomDegSeq;
+     local dotList; local E; local Etemp; local f2; local f3; local j;
+     local invSubList; local invSubs; local invSubs1; local invSubs2;
+     local l; local leastDegTerm; local lVector; local minCoeff;
+     local minExp; local minSolList; local numDegSeq; local numTerms;
+     local R; local S; local subList; local subMatrix; local subs;
+     local subs1; local subs2; local usedVars; local varList;
+     
+     R = ring f;
+     S = frac((coefficientRing ring f)[flatten entries vars ring f]);
+     f = sub(f,S);
+     var = sub(var,S);
+     varList = flatten entries vars S;
+     usedVars = unique support f_(0,0); -- Need to use 'unique support' since for a rational function, the 'support' command returns the concatenation of the support of the numerator and the support of the denominator.
+     if not member(var,usedVars) then error "Error: Expected the given variable to be in the support of the first polynomial.";
+     if numcols f < 2 then error "Error: Expected the given row to have at least 2 columns.";
+     -- The following code creates a list of lists where each interior list is the degree vector of a term of
+     -- the Laurent polynomial f_(0,0).
+     numTerms = terms numerator f_(0,0);
+     denom = denominator(f_(0,0));
+     denomDegSeq = apply(#numTerms, i -> apply(varList, j -> degVar(denom,j)));
+     numDegSeq = apply(numTerms, i -> apply(varList, j -> degVar(i,j)));
+     degSeqList = numDegSeq - denomDegSeq;
+     lVector = matrix{apply(#usedVars, i -> 1)};
+     dotList = apply(degSeqList, i -> (matrix{i}*transpose lVector)_(0,0)); -- Create a list of the dot product of the current lVector with each degree vector.
+     l = 1;
+     while dotList != unique dotList do (
+	  l = l+1;
+	  lVector = matrix{apply(#usedVars, i -> l^i)};
+	  dotList = apply(degSeqList, i -> (matrix{i}*transpose lVector)_(0,0)); -- Create a list of the dot product of the current lVector with each degree vector.
+     );
+     -- Once we exit the while loop, the terms of f_(0,0) will have all distinct powers of var with Laurent monomial coefficients.
+     -- Now we construct the appropriate change of variables.
+     subList = flatten entries vars ring f;
+     invSubList = flatten entries vars ring f;
+     j = 1;
+     scan(subList, i -> if member(i,usedVars) and i != var then (
+	  i = i*var^(l^j);
+     	  j = j+1;
+     ));
+     j = 1;
+     scan(invSubList, i -> if member(i,usedVars) and i != var then (
+	  i = i*var^(-l^j);
+     	  j = j+1;
+     ));
+     subs1 = matrix{subList};
+     invSubs1 = matrix{invSubList};
+     f2 = sub(f,subs1); -- Now each term of f2_(0,0) has a unique power of var.
+     minCoeff = (laurentCoeffList(f2_(0,0),var))#0; -- Get the smallest power of var occuring in f2_(0,0) and also its coefficient.
+     D = mutableIdentity(ring f,numcols f);
+     -- Need numcols f >= 2 here.
+     D_(0,0) = (sub(minCoeff#1,S) * var^(minCoeff#0))^-1;
+     D_(1,1) = (sub(minCoeff#1,S) * var^(minCoeff#0));
+     f3 = f2*matrix(D); -- Now f3_(0,0) has constant term 1 in var and only positive powers of var. (ie. it's a polynomial in var whose coefficients are Laurent polynomials in the other variables.)
+     -- Since the constant term of f3_(0,0) is 1, we can use elementary column operations to make all other polynomials have strictly positive degree in var.
+     E = matrix mutableIdentity(ring f,numcols f);
+     scan(1..(numcols f - 1), i -> (
+	  leastDegTerm = (laurentCoeffList(f3_(0,i),var))#0;
+	  while leastDegTerm#0 < 1 do (
+	       Etemp = mutableIdentity(ring f,numcols f);
+	       Etemp_(0,i) = -sub(leastDegTerm#1,S) * var^(leastDegTerm#0); -- Make an elementary matrix to kill the lowest degree term in f3_(0,i).
+	       Etemp = matrix Etemp;
+	       f3 = f3*Etemp;
+     	       E = E*Etemp;
+	       leastDegTerm = (laurentCoeffList(f3_(0,i),var))#0;
+	  );
+     ));
+     -- After this scan, every entry of f3 except the first has strictly positive degree in var.	       
+     -- Now we construct the invertible change of variables which makes f3 become a matrix of polynomials.
+     usedVars = delete(var,usedVars);
+     if #usedVars > 0 then (
+     	  minSolList = {};
+     	  scan(drop(laurentCoeffList(f3_(0,0),var),1), i -> 
+	       minSolList = minSolList|apply(usedVars, j -> -(((laurentCoeffList(i#1,j))#0)#0)/(i#0))
+     	  );
+          scan(1..(numcols f - 1), i ->
+	       scan(laurentCoeffList(f3_(0,i),var), j ->
+	       	    minSolList = minSolList|apply(usedVars, k -> -(((laurentCoeffList(j#1,k))#0)#0)/(j#0))
+	      )
+     	  );
+          minExp = max(ceiling max minSolList,0);
+     ) else minExp = 0;
+     subMatrix = vars ring f;
+     subs2 = sub(subMatrix,{var => var*(product usedVars)^minExp});
+     invSubs2 = sub(subMatrix,{var => var*(product usedVars)^-minExp});
+     subs = sub(subs1,subs2);
+     invSubs = sub(invSubs2,invSubs1);
+     return(sub(sub(matrix(D)*E,invSubs1),R),sub(subs,R),sub(invSubs,R));
 )
 
 
@@ -679,6 +801,26 @@ changeVar(Matrix, List) := opts -> (f,varList) -> (
 )
 
 
+-- Method: completeMatrix
+-- Input: Matrix - a unimodular m x n matrix over a polynomial ring (m \leq n).
+-- Output: Matrix - a completion of the matrix to a square invertible matrix over the polynomial ring.
+-- Description:
+-- This method just computes the inverse of the matrix returned by qsAlgorithm, which is an extension of
+-- the given matrix to a square invertible matrix.
+
+completeMatrix = method(Options => {Verbose => 0})
+completeMatrix(Matrix) := opts -> M -> (
+     return inverse qsAlgorithm(M,Verbose => opts.Verbose);
+)
+
+completeMatrixLaurent = method()
+completeMatrixLaurent(Matrix) := f -> (
+     local R;
+     R = ring f;
+     return sub(inverse sub(parkAlgorithm f,frac((coefficientRing R)[flatten entries vars R])),R);
+)
+
+
 -- Method: computeFreeBasis
 -- Input: Module -- projective module over a supported polynomial ring.
 -- Output: Matrix -- free generating set for the given module.
@@ -692,8 +834,16 @@ computeFreeBasis(Module) := opts -> M -> (
      local nrowU; local p; local R; local tA; local U; local V;
      local verbosity;
      
-     if not isProjective M then error "Error: The given module is not projective.";
+     local G; local K; local C; local C1;
      
+     if not isProjective M then error "Error: The given module is not projective.";
+     {*
+     G = gens M;
+     K = syz G;
+     C = transpose completeMatrix transpose K;
+     C1 = submatrix(C,,{numcols K..(numrows K-1)});
+     return G*C1;
+     *}
      verbosity = opts.Verbose;
           
      if syz gens M == 0 then return gens M;
@@ -767,19 +917,6 @@ getLocalSolutions(Matrix,List,RingElement) := opts -> (f,ringVars,currVar) -> (
      );
 
      return localSolutions;
-)
-
-
--- Method: completeMatrix
--- Input: Matrix - a unimodular m x n matrix over a polynomial ring (m \leq n).
--- Output: Matrix - a completion of the matrix to a square invertible matrix over the polynomial ring.
--- Description:
--- This method just computes the inverse of the matrix returned by qsAlgorithm, which is an extension of
--- the given matrix to a square invertible matrix.
-
-completeMatrix = method(Options => {Verbose => 0})
-completeMatrix(Matrix) := opts -> M -> (
-     return inverse qsAlgorithm(M,Verbose => opts.Verbose);
 )
 
 
@@ -1320,6 +1457,61 @@ monicPolySubs(RingElement,List) := opts -> (f,varList) -> (
      );
      
      return (matrix tempSub,matrix tempInvSub);
+)
+
+
+-- Method: parkAlgorithm
+-- Input: Matrix
+-- Output: Matrix - Solves the unimodular matrix problem for the given
+--         matrix if it is unimodular, returns an error otherwise.
+-- Description:
+-- This algorithm iteratively uses Park's causal conversion algorithm
+-- and the methods of QuillenSuslin for polynomial rings to solve the
+-- unimodular matrix problem for a unimodular matrix of Laurent polynomials.
+
+parkAlgorithm = method()
+parkAlgorithm(Matrix) := f -> (
+     local cols; local E; local NList; local invSubList; local R;
+     local rows; local S; local T; local temp; local tempInvSub;
+     local tempN; local tempSub; local tempU; local U; local UList;
+     local V; local varList;
+     
+     R = ring f;
+     S = frac((coefficientRing R)[flatten entries vars R]);
+     T = (coefficientRing R)[flatten entries vars R];
+     varList = flatten entries vars S;
+     f = sub(f,S);
+     rows = numrows f;
+     cols = numcols f;
+     -- First handle the case where f has only 1 column (and hence only 1 row since we are assuming rows <= cols).
+     -- The matrix is unimodular over the Laurent polynomial ring if and only if the entry is a unit (Laurent monomial).
+     if cols == 1 then (
+	  if #(terms numerator f) == 1 then return matrix{{(f_(0,0))^-1}} else error "Error: The given matrix is not unimodular.";
+     );
+     NList = {};
+     UList = {};
+     invSubList = {};
+     scan(rows, i -> (
+	  temp = submatrix(f,{i},toList(i..(cols-1)));
+          (tempN,tempSub,tempInvSub) = laurentNormalize(temp,first varList);
+     	  
+     -- TODO: Possible optimization.  May want to choose the 'best' variable
+     -- to normalize with respect to at each inductive step of the algorithm.
+     
+          NList = NList|{map(R^i,R^i,1_R)++sub(tempN,R)};
+     	  invSubList = invSubList|{sub(tempInvSub,S)};
+     	  temp = sub(sub(temp*tempN,tempSub),T); -- Now temp is a polynomial row vector which is unimodular if and only if the first row of f is.
+     	  if not isUnimodular temp then error "The given matrix was not unimodular over the Laurent polynomial ring.";
+     	  tempU = map(R^i,R^i,1_R)++sub(qsAlgorithm temp,R);
+     	  UList = UList|{tempU};
+     	  f = f*sub(NList#i,S)*sub(UList#i,tempInvSub); -- Now the i-th row of f has 1 on the diagonal and 0's to the right of the diagonal.
+     ));
+     U = map(R^cols,R^cols,1_R);
+     scan(#NList, i -> U = U*(sub(NList#i,R))*sub(sub(UList#i,invSubList#i),R)); 
+     if rows == 1 then return U; -- If f only has 1 row then f*U = [1 0 ... 0].
+     V = prune image f;
+     E = (sub(gens V,R) // map(R^rows,R^cols,sub(f,R)))|(map(R^rows,R^(cols-rows),0_R)||map(R^(cols-rows)));
+     return U*E;
 )
 
 

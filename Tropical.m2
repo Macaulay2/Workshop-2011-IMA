@@ -248,11 +248,12 @@ end
 
 restart
 --loadPackage "gfanInterface"
+uninstallPackage "gfanInterface2"
 installPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2", MakeDocumentation => true)
 installPackage ("Polymake", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Polymake.m2", MakeDocumentation => true)
 installPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Tropical.m2")
 
-loadPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2")
+loadPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2",LoadDocumentation => true)
 loadPackage ("Tropical", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/Tropical.m2", Reload => true)
 
 needsPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2",  DebuggingMode =>true)
@@ -317,15 +318,26 @@ viewHelp toPolymakeFormat
 viewHelp SRdeformations
 
 
+-- resultants
+
+restart
+loadPackage ("gfanInterface2", FileName => "/Users/bb/Documents/math/M2codes/IMA-2011/gfanInterface2.m2",LoadDocumentation => true, DebuggingMode => true)
+
+
+A = {{0,1},{0,1}}
+QQ[x,y]
+gfanResultantFan ({1+x+y,1+x+y,1+x+y}, "special" => {0,1,1,0,1,1,0,1,1})
+
+
 ----- Making non-acyclic vector configurations for experimentation with secondary fans
 
 needsPackage "Polyhedra"
 
-d=4;n=8;
+d=3;n=7;
 (select( apply(1..100, a-> unique(
 		    ((entries map(ZZ^d))/toSequence) | 
 		    apply(toList(1..n-d), i->(apply(1..d, j -> random(-4,4))))/(l->(l/(a->a//gcd(l)))) 
 		    ) 
-       	       ), L -> (print L; C = posHull transpose matrix(L/toList); C#"dimension of lineality space" == d)   
+       	       ), L -> (C := posHull transpose matrix(L/toList); ldim := C#"dimension of lineality space"; 0 < ldim )   
 	  )
      )/print

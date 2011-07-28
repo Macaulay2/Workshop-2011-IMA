@@ -78,6 +78,7 @@ export {
 	gfanParsePolyhedralFan, -- for external use
 	gfanRingToString, -- to make gfan input
 	gfanPolynomialListToString,  -- to make gfan input
+	gfanVectorToString, -- to make gfan input
 	gfanVectorListToString, -- to make gfan input
 	gfanVectorListListToString, -- to make gfan input
 	gfanVersion,
@@ -665,12 +666,12 @@ runGfanCommand = (cmd, opts, data) -> (
 	returnvalue := run ex;
      	if(not returnvalue == 0) then
 	(
-	     print "GFAN returned an error message.\n";
-	     print "COMMAND:" | ex |"\n";
-	     print "INPUT:\n";
-	     print get(tmpFile);
-	     print "ERROR:\n";
-	     print get(tmpFile |".err");
+	     << "GFAN returned an error message.\n";
+	     << "COMMAND:" << ex << endl;
+	     << "INPUT:\n";
+	     << get(tmpFile);
+	     << "ERROR:\n";
+	     << get(tmpFile |".err");
 	     );
 	out := get(tmpFile | ".out");
 	gfanRemoveTemporaryFile tmpFile;

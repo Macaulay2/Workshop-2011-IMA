@@ -101,3 +101,46 @@ j=0
 peek(alpha)
 peek(ainverse)
 vertices G
+
+
+G=graph {{a,b},{b,c},{c,d},{d,a}}
+
+
+--Start by assuming that the graph is chordal
+chordal=1
+for v from 0 to n-1 do (
+     nbrV = toList nbr(v);
+     indNbrV= indNbr(v,toList sigma);
+     
+     --(graph G)#(Gvers_v);
+     --indNbrV = apply(#nbrV, i->pos(toList sigma,nbrV_i));
+     --minus one denotes null
+     w=-1;
+     if select(indNbrV,j->j<pos(toList sigma,v))!={} then posw = max(select(indNbrV,j->j<pos(toList sigma,v)));
+     w=sigma#posw;
+     print w;
+     print indNbrV;
+     --while indNbrV!={} and w==null do if max indNbrV<v then w=max
+--indNbrV else delete(max indNbrV, indNbrV);
+     if w == -1 then continue;
+     if w!=-1 then
+     	  (
+	       --finding the earlier neighbors of v excluding w
+	       earlyNbrV = select(indNbrV,j->j< pos(toList sigma,v));
+	       earlyNbrV = delete(w,earlyNbrV);
+	       --finding the earlier neighbors of w
+	       nbrW = toList nbr(w);
+     	       indNbrW = indNbr(w,toList sigma);
+	       print earlyNbrV;
+	       earlyNbrW = select(indNbrW,j->j< pos(toList sigma,w));
+	       print indNbrW;
+	       print earlyNbrW;
+	       -- if earlyNbrV is not a subset of earlyNbrW then the graph is not a chordal
+	       if isSubset(earlyNbrV,earlyNbrW) == false then
+		  (	
+		    chordal = 0;
+		    break;
+		   )	
+	     )
+	)			
+chordal		--if w is not null and the loop exits, then it is a chordal graph

@@ -10,12 +10,11 @@ newPackage(
     	DebuggingMode => true
     	)
 
+export {segreClass, chernClass, segreClassList, chernClassList}
 
 -- internal commenting!!!
--- write documentation
 -- test all functions
 
-export {segreClass}
 segreClass = method(TypicalValue => RingElement);
 segreClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
      (segreList, ambientDim) := internalSegreClassList I;
@@ -33,10 +32,7 @@ segreClass ProjectiveVariety := projectiveVar -> (
      I := projectiveVar.ring.ideal;
      return segreClass I
      )
-     
 
-     
-export {segreClassList}
 segreClassList = method(TypicalValue => List);
 segreClassList Ideal := I -> (
      (segreList, ambientDim) := internalSegreClassList I;
@@ -55,7 +51,6 @@ internalSegreClassList = I -> (
      )
 
 
-export {chernClass}
 chernClass = method(TypicalValue => RingElement);
 chernClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
      (chernList, ambientDim) := internalChernClassList I;
@@ -74,10 +69,7 @@ chernClass ProjectiveVariety := projectiveVar -> (
      return chernClass I
      )
 
-     
-
-     
-export {chernClassList}
+ 
 chernClassList = method(TypicalValue => List);
 chernClassList Ideal := I -> (
      (chernList, ambientDim) := internalChernClassList I;
@@ -221,60 +213,137 @@ output = (segreList,ambientDim,hyperplaneClass) -> (
 
 
 beginDocumentation()
-document { 
-	Key => ChernSegre,
-	Headline => "Computations of degrees of Chern and Segre classes of projective schemes",
-	EM "ChernSegre", " computes degrees of Chern and Segre classes"
-	}
-document {
-	Key => {segreClass, (segreClass,Ideal), (segreClass, ProjectiveVariety), (segreClass, Ideal, Symbol), (segreClass, ProjectiveVariety, Symbol)},
-	Headline => "computes degrees of the Segre classes",
-	Usage => "segreClass I",
-	Inputs => { "I" },
-	Outputs => {{ "a list with degrees of Segre classes {deg s_0, ... , deg s_n} of the projective scheme given by the ideal", TT "I" }},
-        -- sourceCode ??
-	SourceCode => {(segreClass,Ideal)},
-	EXAMPLE {
-	     -- get lines \\\
-	"1+1"
- --       segreClass ideal(x)
-      	   }     	  
-	}
-document {
-	Key => {chernClass, (chernClass,Ideal), (chernClass, ProjectiveVariety), (chernClass, Ideal, Symbol), (chernClass, ProjectiveVariety, Symbol)},
-	Headline => "computes degrees of the Chern classes",
-	Usage => "chernClass I",
-	Inputs => { "I" },
-	Outputs => {{ "a list with degrees of Chern classes {deg c_0, ... , deg c_n} of the projective scheme given by the ideal", TT " I" }},
-        SourceCode => {(chernClass,Ideal)},
-	EXAMPLE {
-	     "1+1"
-	     }
-	}
- document {
-	Key => {segreClassList, (segreClassList,Ideal), (segreClassList, ProjectiveVariety)},
-	Headline => "computes degrees of the Segre classes",
-	Usage => "segreClass I",
-	Inputs => { "I" },
-	Outputs => {{ "a list with degrees of Segre classes {deg s_0, ... , deg s_n} of the projective scheme given by the ideal", TT "I" }},
-        SourceCode => {(segreClass,Ideal)},
-	EXAMPLE {
-	"1+1"
- --       segreClass ideal(x)
-      	   }     	  
-	}
-document {
-	Key => {chernClassList, (chernClassList,Ideal), (chernClassList, ProjectiveVariety)},
-	Headline => "computes degrees of the Chern classes",
-	Usage => "chernClass I",
-	Inputs => { "I" },
-	Outputs => {{ "a list with degrees of Chern classes {deg c_0, ... , deg c_n} of the projective scheme given by the ideal", TT " I" }},
-        SourceCode => {(chernClass,Ideal)},
-	EXAMPLE {
-	     "1+1"
-	     }
-	}
-	
+
+doc ///
+     Key
+     	  ChernSegre
+     Headline
+     	  Degrees of Chern and Segre classes
+     Description
+     	  Text
+	       The package ChernSegre provides commands to compute the degrees of the Chern and Segre classes of subvarieties and subschemes of projective space. 
+	       Equivalently, it computes the pushforward to projective space of the Chern and Segre classes.
+	       
+	       Let X be an n-dimensional subscheme of projective space P^k, with embedding i: X -> P^k. If X is smooth, then by definition the Chern classes of X are the Chern classes c_0(T_X), ..., c_n(T_X) of the tangent bundle T_X. The Chern classes are cycles in the Chow ring of X, i.e. linear combinations of subvarieties of X modulo rational equivalence. For a subvariety V of X, the degree of the cycle [V] is defined as the degree of the variety V. This extends linearly to linear combinations of subvarieties. Computing the degrees of the Chern classes of X is equivalent to computing the pushforward of the Chern classes to the Chow ring of P^k, which is the ring ZZ[H]/(H^{k+1}), with H the hyperplane class. Also by definition, the Segre classes of the projective scheme X are the Segre classes s_0(X,P^k), ..., s_n(X,P^k) of X in P^k. For definition of the concepts used here, see e.g. W. Fulton "Intersection Theory".
+	       
+	       The functions in this package can have two different kinds of output. The functions chernClass and segreClass give back the pushforward of the total Chern class to the Chow ring of P^k, whereas chernClassList and segreClassList give a list of the degrees of the Chern or Segre classes, respectively. The scheme X can be given as either a homogeneous ideal in a polynomial ring over a field, or as projective variety.
+	       
+	       This implementation uses the algorithm given in the  articles "Chern Numbers of Smooth Varieties via Homotopy Continuation and Intersection Theory" (Sandra Di Rocco, David Eklund, Chris Peterson, Andrew J. Sommese) and "A method to compute Segre classes" (David Eklund, Christine Jost, Chris Peterson).
+	       
+      
+///
+
+doc ///
+     Key
+     	  segreClass
+	  (segreClass,Ideal)
+	  (segreClass, ProjectiveVariety)
+	  (segreClass, Ideal, Symbol)
+	  (segreClass, ProjectiveVariety, Symbol)	  
+     Headline
+     	  Degrees of the Segre classes
+     Usage
+     	  segreClass I
+	  segreClass P
+     Inputs
+     	  I:Ideal
+	    a homogeneous ideal in a polynomial ring over a field, defining a subscheme X of P^k
+	  P:ProjectiveVariety
+	    a projective variety X
+     Outputs
+     	  :RingElement
+	   the pushforward of the total Segre class of the scheme X to the Chow ring ZZ[H]^(H^{k+1}) of projective space P^k.
+     Description
+     	  Text
+	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Segre class of X in P^k to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Segre classes s_0(X,P^k),...,s_n(X,P^k) as coefficients.
+	  Example
+	       R = QQ[x,y,z]
+	       segreClass ideal (x*z - y^2)	  
+	  Text
+	       So the degrees of the Segre classes of the plane curve C = {x*z-y^2 = 0} are deg s_0(C,P^2) = 2 and deg s_1(X,P^2) = -4. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
+	  Example
+	       segreClass( ideal( x*z - y^2), symbol t )  
+///
+     
+doc ///
+     Key
+     	  chernClass
+	  (chernClass,Ideal)
+	  (chernClass, ProjectiveVariety)
+	  (chernClass, Ideal, Symbol)
+	  (chernClass, ProjectiveVariety, Symbol)	  
+     Headline
+     	  computes degrees of the Chern classes
+     Usage
+     	  chernClass I
+	  chernClass P
+     Inputs
+          I:Ideal
+	    a homogeneous ideal in a polynomial ring over a field, defining a projective scheme X
+	  P:ProjectiveVariety
+	    a projective variety X
+     Outputs
+     	  :RingElement
+	   the pushforward of the total Chern class of the scheme X to the Chow ring ZZ[H]^(H^{k+1}) of projective space P^k.
+     Description
+     	  Text
+	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Chern class of X to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Chern classes c_0(T_X),...,c_n(T_X) as coefficients.
+	  Example
+	       R = QQ[x,y,z]
+	       chernClass ideal (x*z - y^2)	  
+	  Text
+	       So the degrees of the Chern classes of the plane curve C = {x*z-y^2 = 0} are deg s_0(C,P^2) = 2 and deg s_1(X,P^2) = 2. This agrees with the theoretical results stating that deg s_0(C,P^2) is the degree and deg s_1(C,P^2) the Euler characteristic 2-2g of C. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
+	  Example
+	       chernClass( ideal( x*z - y^2), symbol t ) 
+///
+
+doc ///
+     Key
+     	  segreClassList
+	  (segreClassList, Ideal)
+	  (segreClassList, ProjectiveVariety)
+     Headline
+     	  computes degrees of the Segre classes
+     Usage
+     	  segreClassList I
+	  segreClassList P
+     Inputs
+          I:Ideal
+	    a homogeneous ideal in a polynomial ring over a field, defining a subscheme X of P^k
+	  P:ProjectiveVariety
+	    a projective variety X
+     Outputs
+     	  :List
+	   A list \{ deg s_0(X,P^k),..., deg s_n(X,P_K) \} of the degrees of the Segre classes of X in P^k
+     Description
+     	  Text
+	       This function does the same as the function segreClass, but provides an output that is easier to read for a computer.
+///
+
+
+
+doc ///
+     Key
+     	  chernClassList
+	  (chernClassList, Ideal)
+	  (chernClassList, ProjectiveVariety)
+     Headline
+     	  degrees of Chern classes
+     Usage
+     	  chernClassList I
+	  chernClassList P
+     Inputs
+          I:Ideal
+	    a homogeneous ideal in a polynomial ring over a field, defining a projective scheme X
+	  P:ProjectiveVariety
+	    a projective variety X
+     Outputs
+     	  :List
+	   A list \{ deg c_0(T_X),..., deg c_n(T_X) \} of the degrees of the Chern classes of X
+     Description
+     	  Text
+	       This function does the same as the function chernClass, but provides an output that is easier to read for a computer.
+///
    
 
 TEST ///

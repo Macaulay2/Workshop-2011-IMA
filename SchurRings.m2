@@ -36,8 +36,6 @@ newPackage(
 --symmRing(coefficientRing) -- options -> names of e,h,p variables
 --     	    	      	    -- maybe coefficientRing is an option
 
---plethysm should work for tensor products of schurRings, or symmRings
-
 --longer names for
 --toE => 
 --toH =>
@@ -422,27 +420,15 @@ plethysmMap = (d,maxg,R) -> (
      -- R is symmRing n
      -- returns the map p_d : R --> R
      --    which sends p_i to p_(i*d).
-     auxS := R;
-     lev := schurLevel R;
-     fs := {};
-     local nS;
-     local nSd;
-     while lev > 0 do
-     (
-     	  nS = auxS.dim;
-          nSd = nS//d; 
-     	  fs = join(fs,splice{nS:0_auxS});
-	  topf := min(maxg#(lev-1),nSd);
-          fs = join(fs, apply(1..topf, j -> auxS_(nS-1+d*j)));
-	  if maxg#(lev-1)>nSd then fs = join(fs, apply(topf+1..maxg#(lev-1),j-> auxS.mapFromE auxS.PtoETable#(d*j)));
-          fs = join(fs, 2*nS-maxg#(lev-1):0_auxS);
-	  auxS = coefficientRing auxS;
-	  lev = schurLevel auxS;
-	  );
-	 map(R,R,fs)
---         R.plethysmMaps#d = map(R,R,fs);
---	 );
---     R.plethysmMaps#d
+     nS := R.dim;
+     nSd := nS // d;
+     fs := splice{nS:0_R};
+     topf := min(maxg,nSd);
+     fs = join(fs, apply(1..topf, j -> R.pVariable(d*j)));
+     if maxg > nSd then 
+        fs = join(fs, apply(topf+1..maxg,j-> R.mapFromE R.PtoETable#(d*j)));
+     fs = join(fs, 2*nS-maxg:0_R);
+     map(R,R,fs)
      )
 
 plethysmGL = method()
@@ -467,19 +453,9 @@ plethysmGL(RingElement,RingElement) := (f,g) -> (
      auxS := SRg;
      nS := auxS.dim;
      lev := schurLevel auxS;
-     maxg := {};
      spg := support(pg)/index;
-     local ma;
-     while lev>0 do
-     (
-     	  ma = max(select(spg,i->i<3*nS)//max-nS+1,0);
-	  if maxf*ma >= #auxS.PtoETable then PtoE(maxf*ma,auxS);
-	  maxg = join({ma},maxg);
-	  spg = select(spg,i->i>=3*nS)/(j->j-3*nS);
-     	  auxS = coefficientRing auxS;
-	  nS = auxS.dim;
-	  lev = schurLevel auxS;
-	  );
+     maxg := max(select(spg,i->i<3*nS)//max-nS+1,0);
+     if maxf*maxg >= #auxS.PtoETable then PtoE(maxf*maxg,auxS);
      phi := map(SRg,SRf,flatten splice {nf:0_SRg,
 	       apply(1..nf, j -> (if j<=maxf then (plethysmMap(j,maxg,SRg))pg else 0_SRg)),
 	       nf:0_SRg});
@@ -547,12 +523,8 @@ plethysm(RingElement,ClassFunction) := (f,cF) ->
 	  sublist := for i from 1 to k list
 	  (
 	       pct := powerCycleType(i,sig);     
---	       if cF#?pct then pvars i => cF#pct else pvars i => 0
 	       if cF#?pct then cF#pct else 0
 	       );
-	  --newv := sub(pf,sublist);
-	  --newv := (map(R,ring pf,splice{k:0} | sublist | splice{k:0})) pf;
-	  --if newv != 0 then newHT#sig = lift(newv,QQ);
 	  newHT#sig = (map(R,ring pf,splice{k:0} | sublist | splice{k:0})) pf;
 	  );
      new ClassFunction from newHT
@@ -999,7 +971,6 @@ symmetricFunction(ClassFunction,Ring) := (ch,S)->
      	  rez = rez + ch#lam * (product for i from 0 to #lam-1 list R.pVariable(lam#i)) / centralizerSize(seqToMults lam);
      if instance(S, SchurRing) then toS rez else rez
      )
---symmetricFunction(ClassFunction) := (ch) -> symmetricFunction(ch,ch.Ring)
 
 scalarProduct = method()
 scalarProduct(ClassFunction,ClassFunction) := (ch1,ch2)->
@@ -1462,42 +1433,6 @@ Description
     schurResolution(rep,M,n)
 ///
 
-{*
-document {
-     Key => "SchurRings",
-     Headline => "rings representing irreducible representations of GL(n)",
-     "This package makes computations in the representation rings of general linear groups and symmetric groups possible.",
-     PARA{},
-     "Given a positive integer ", TT "n", ", 
-     we may define a polynomial ring in ", TT "n", " variables over an arbitrary base ring , whose
-     monomials correspond to the irreducible representations of GL(n), and where 
-     multiplication is given by the decomposition of the tensor product of representations",
-     PARA{},
-     "We create such a ring in Macaulay2 using the ", TO schurRing, " function:",
-     EXAMPLE "R = schurRing(QQ,s,4);",
-     "A monomial represents the irreducible representation with a given highest weight. 
-     The standard 4 dimensional representation is",
-     EXAMPLE "V = s_{1}",
-     "We may see the dimension of the corresponding irreducible representation using ", TO "dim",
-     ":",
-     EXAMPLE "dim V",
-     "The third symmetric power of V is obtained by",
-     EXAMPLE {
-	  "W = s_{3}",
-     	  "dim W"},
-     "and the third exterior power of V can be obtained using",
-     EXAMPLE {
-	  "U = s_{1,1,1}",
-	  "dim U"},
-     "Multiplication of elements corresponds to tensor product of representations.  The 
-     value is computed using a variant of the Littlewood-Richardson rule.",
-     EXAMPLE {
-	  "V * V",
-	  "V^3"},
-     "One cannot make quotients of this ring, and Groebner bases and related computations
-     do not work, but I'm not sure what they would mean..."
-     }
-*}
 doc ///
 Key
   SchurRing
@@ -1570,30 +1505,7 @@ Description
 SeeAlso
   schurRing
 ///
-{*
-document {
-     Key => {SchurRing, (symbol _,SchurRing,List), (symbol _,SchurRing,Sequence), (symbol _,SchurRing,ZZ)},
-     Headline => "The class of all Schur rings",
-     "A Schur ring is the representation ring for the general linear group of 
-     n by n matrices, and one can be constructed with ", TO schurRing, ".",
-     EXAMPLE "R = schurRing(QQ, s, 4)",
-     "The element corresponding to the Young diagram ", TT "{3,2,1}", " is
-     obtained as follows.",
-     EXAMPLE "s_{3,2,1}",
-     "Alternatively, we can use a ", TO Sequence, " instead of a ", TO List, " as the index of a Schur function",
-     EXAMPLE "s_(3,2,1)",
-     "For Young diagrams with only one row one can use positive integers as subscripts",
-     EXAMPLE "s_4",
-     "The name of the Schur ring can be used with a subscript to describe a symmetric function",
-     EXAMPLE "R_{2,2}",
-     EXAMPLE "R_5",
-     "The dimension of the underlying virtual ", TT "GL", "-representation can be obtained
-     with ", TO "dim", ".",
-     EXAMPLE "dim s_{3,2,1}",
-     "Multiplication in the ring comes from tensor product of representations.",
-     EXAMPLE "s_{3,2,1} * s_{1,1}",
-     SeeAlso => {schurRing}}
-*}
+
 doc ///
 Key
   schurRing

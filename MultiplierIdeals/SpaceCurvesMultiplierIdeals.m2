@@ -733,9 +733,11 @@ Description
 
 --FirstPackage#"test values" 
 
---TEST ///
---assert ( firstFunction 2 == "D’oh!" )
---///
+TEST ///
+assert (
+     monomialSpaceCurveMultiplierIdeal
+     )
+///
 
 
 
@@ -758,3 +760,5 @@ ff = sortedGens(R,nn)
 jumpingDenominators(ff)
 potentialJumpingNumbers(ff, 5,10)
 monomialSpaceCurveJumpingNumbers(R,nn,2,4)
+
+code monomialCurveIdeal

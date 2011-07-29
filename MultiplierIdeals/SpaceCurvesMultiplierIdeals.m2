@@ -907,15 +907,5 @@ restart
 installPackage "SpaceCurvesMultiplierIdeals"
 check SpaceCurvesMultiplierIdeals
 viewHelp "SpaceCurvesMultiplierIdeals"
-uninstallPackage "SpaceCurvesMultiplierIdeals"
 debug loadPackage"SpaceCurvesMultiplierIdeals"
 
-R = QQ[x,y,z]
-monomialSpaceCurveLCT(R,{2,3,4})
-nn = {2,3,4};
-ff = sortedGens(R,nn)
-jumpingDenominators(ff)
-potentialJumpingNumbers(ff, 5,10)
-monomialSpaceCurveJumpingNumbers(R,nn,2,4)
-
-code monomialCurveIdeal

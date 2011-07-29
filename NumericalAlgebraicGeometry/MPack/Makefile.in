@@ -1,0 +1,118 @@
+# @configure_input@
+include ../../include/config.Makefile
+VPATH = @srcdir@
+SRCDIR = @srcdir@
+DEPENDS = yes
+
+PRE.cc   = $(COMPILE.cc) -E 
+
+include @srcdir@/Makefile.files
+include Makefile.common
+CPPFLAGS := -I. -I@srcdir@ -I../e-includes $(CPPFLAGS) -I../d -I@srcdir@/../c
+CPPFLAGS += -I/usr/local/include/mpack
+
+.PHONY : tags
+
+###################################################################
+## Targets ##
+#############
+
+ifneq (@ETAGS@,)
+all: tags
+endif
+tags:: @srcdir@/TAGS
+@srcdir@/TAGS: Makefile.in @srcdir@/*.hpp @srcdir@/*.h @srcdir@/*.cpp @srcdir@/*.c \
+		 @srcdir@/f4/*.hpp @srcdir@/f4/*.cpp \
+		 @srcdir@/../e-includes/statuscodes
+	cd @srcdir@ && @ETAGS@ -o TAGS $(patsubst @srcdir@/%, %, $^)
+
+# overflows
+LDLIBS = @GC_LIBS@
+
+all: run-overflow-test
+run-overflow-test : overflow-test
+	./$^ sub 2>/dev/null || echo test succeeded
+	./$^ minus 2>/dev/null || echo test succeeded
+	./$^ mult 2>/dev/null || echo test succeeded
+	./$^ div 2>/dev/null || echo test succeeded
+	./$^ add 2>/dev/null || echo test succeeded
+	touch $@
+clean :: ; rm -f run-overflow-test
+pi overflow-test : overflow.o ../d/debug.o
+clean :: ; rm -f overflow-test
+pi : pi.h
+
+all:; $(MAKE) -C f4
+
+ifeq "$(SHARED)" "yes"
+all: @pre_librariesdir@/libengine.so
+else
+all: $(ENGINE_OFILES)
+endif
+
+%.ii: %.cpp; $(PRE.cc)        $< $(OUTPUT_OPTION)
+%.s : %.cpp; $(COMPILE.cc) -S $< $(OUTPUT_OPTION)
+%.ii: %.cc; $(PRE.cc)        $< $(OUTPUT_OPTION)
+%.s : %.cc; $(COMPILE.cc) -S $< $(OUTPUT_OPTION)
+%.ss : %.s ; demangle <$< >$@
+
+%.lo : %.c  ; $(COMPILE.c)  -fPIC $< $(OUTPUT_OPTION)
+%.lo : %.cc ; $(COMPILE.cc) -fPIC $< $(OUTPUT_OPTION)
+%.lo : %.cpp; $(COMPILE.cc) -fPIC $< $(OUTPUT_OPTION)
+@pre_librariesdir@/libengine.so : $(LOFILES); @CC@ -shared $^ $(OUTPUT_OPTION)
+
+MORE_OPTIONS = -Wno-cast-qual
+COMPILE.c += $(MORE_OPTIONS)
+COMPILE.cc += $(MORE_OPTIONS)
+
+clean::
+	rm -f *.lo *.o *.rpo LOGFILE
+	$(MAKE) -C f4 $@
+Makefile : Makefile.in; cd ../..; ./config.status Macaulay2/e/Makefile
+all: Makefile.common
+Makefile.common : Makefile.common.in; cd ../..; ./config.status Macaulay2/e/Makefile.common
+Makefile.include : Makefile.include.in; cd ../..; ./config.status Macaulay2/e/Makefile.include
+clean::; rm -f *.dep dep-*.tmp typecode.db
+ifeq "$(DEPENDS)" "yes"
+include $(ENGINE_CFILES:.c=.dep) $(ENGINE_CCFILES:.cpp=.dep)
+endif
+
+# this requires gnu sort and gnu uniq commands
+NMFLAGS = -o
+ifeq (@NM_DEMANGLES@,yes)
+NMFLAGS += --demangle
+endif
+dups-tmp: $(ENGINE_OBJFILES)
+	nm $(NMFLAGS) $(ENGINE_OBJFILES) |grep ' T ' |sort -k 2 |uniq -2 -d |tee dups-tmp
+dups-okay: dups-tmp
+	@if [ -s $< ]; then echo "Multiple definitions found:"; cat $<; exit 1; \
+	 else touch $@; fi
+doxygen : ; cd @srcdir@ && doxygen
+distclean: clean; rm -f Makefile @srcdir@/TAGS
+
+pi-demangled.s pi-test.s pi-test.o pi.s pi.E pi.o : pi.h pi-masks.h
+pi-test : exceptions.o overflow.o
+# check :: pi-test-run
+pi-test-run : pi-test ; ./pi-test
+pi-masks.h : pi-genmask
+	./$^ >$@
+
+pm-test.o : pm.hpp
+
+SCCFLAGS += -I../d
+
+# a stand-alone program made from test.dd
+# test : ../c/scc-core.o
+test : complex.o
+test : LDFLAGS += -L../d -lmpfr -lmpir -lfac -lcf -lcfmem
+test : LDLIBS += -ld
+
+test.o : CXXFLAGS += -Wno-unused -Wno-uninitialized -Wno-cast-qual
+
+clean :: ; rm -f pi-demangled.s pi-test.s pi-test.o pi.s pi.E pi.o pi-test pi-test-run pi-masks.h
+clean :: ; rm -rf *.dSYM
+
+# Local Variables:
+# compile-command: "make -C $M2BUILDDIR/Macaulay2/e DEPENDS=no initialize && make -C $M2BUILDDIR/Macaulay2/e "
+# End:
+

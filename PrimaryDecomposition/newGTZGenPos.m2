@@ -29,17 +29,36 @@ phiInverse*phi
 -- Input  : an ideal and a subset of variables
 -- Output : A GB of I in a block order, where the fiberVars are bigger than any variable in the complement
 --          (the independentVars) and the fiberVars block is in Lex order.  independentVars is done in GRevLex order (it will be an option later)
+quickGB = method()
+quickGB Ideal := I -> (
+  R := ring I;
+  monOrder := (options monoid R).MonomialOrder;
+  monOrder = drop(take(monOrder,#monOrder-1),1);
+  if first toList first monOrder === Lex then computeLexGB I else gb I
+)
+
+TEST ///
+restart
+loadPackage "newGTZ"
+debug newGTZ
+R = QQ[a,b,c,d,e,MonomialOrder=>{Lex=>2,GRevLex=>3}]
+quickGB ideal vars R
+///
+
 computeLexGB = method()
-computeLexGB (Ideal,List) := (I,fiberVars) -> (
+computeLexGB Ideal := (I) -> (
+  -- warning: we assume that ring I has the correct lex block order on input.
   T := symbol T;
   R := ring I;
-  independentVars := toList (set gens ring I - set fiberVars);
+  gensR := gens R;  
+  monOrder := (options monoid R).MonomialOrder;
+  numLexGens := (toList(monOrder#1))#1;
   
   -- define the rings that we need to perform the computation.  One Grevlex, one Block Lex, and then a homogenized version of each. 
-  grevLexR := (coefficientRing R)[fiberVars | independentVars, MonomialOrder=>GRevLex];
-  grevLexHomogR := (coefficientRing R)[fiberVars | independentVars,T, MonomialOrder=>GRevLex];
-  lexR := (coefficientRing R)[fiberVars | independentVars, MonomialOrder=>{Lex=>#fiberVars,GRevLex=>#independentVars}];
-  lexHomogR := (coefficientRing R)[fiberVars | independentVars,T, MonomialOrder=>{Lex=>#fiberVars,GRevLex=>#independentVars+1}];
+  grevLexR := (coefficientRing R)[gensR, MonomialOrder=>GRevLex];
+  grevLexHomogR := (coefficientRing R)[gensR,T, MonomialOrder=>GRevLex];
+  lexR := (coefficientRing R)[gensR, MonomialOrder=>{Lex=>numLexGens,GRevLex=>(#gensR-numLexGens)}];
+  lexHomogR := (coefficientRing R)[gensR,T, MonomialOrder=>{Lex=>numLexGens,GRevLex=>(#gensR-numLexGens+1)}];
   
   grevLexGB := gens gb sub(I,grevLexR);
   homogGRevLexGB := homogenize(sub(grevLexGB,grevLexHomogR),sub(T,grevLexHomogR));
@@ -47,8 +66,8 @@ computeLexGB (Ideal,List) := (I,fiberVars) -> (
   homogLexI := sub(homogGRevLexGB,lexHomogR);
   homogLexGB := gens gb(homogLexI,Hilbert=>hilbI);
   lexGB := sub(homogLexGB, {sub(T,lexHomogR) => 1});
-  lexGB = gens forceGB lexGB;
-  sub(lexGB,R)
+  lexGB = forceGB sub(lexGB,R);
+  lexGB
 )
 
 TEST ///
@@ -63,7 +82,7 @@ I = ideal(
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
 time(Igb = flatten entries gens gb I);
-time(newIGb = flatten entries computeLexGB(I,gens R));
+time(newIGb = flatten entries gens computeLexGB(I));
 netList Igb
 netList newIGb
 #Igb - #newIGb
@@ -270,9 +289,18 @@ load "newGTZ.m2"
 debug newGTZ
 R = ZZ/32003[a,b,c,d,e,f,g,h,i, MonomialOrder=>Lex]
 I = ideal(i,h,g,e+d,c,b*d+a*e)
-I = ideal gens gb I
-support first independentSets I
-isPrimaryZeroDim(I)
+independentVars = support first independentSets I
+mySep = first getSeparator(I,independentVars)
+Isat = saturate(I,mySep)
+isPrimaryZeroDim(Isat)
+Iother = trim ideal (I,mySep)
+isPrimaryZeroDim(Iother)
+
+mySep = first getSeparator(Isat,independentVars)
+Isat = saturate(Isat,mySep)
+
+isPrimary I
+primaryDecomposition I
 ///
 
 TEST ///
@@ -311,7 +339,6 @@ time isPrimaryZeroDim(I)
 time(Igb = gens gb I);
 time(newIGb = computeLexGB(I,gens R));
 
-
 restart
 load "newGTZ.m2"
 debug newGTZ
@@ -331,45 +358,50 @@ getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
 
 -- This function should be called only on ideals before a change of coordinates have been applied.
 isPrimaryZeroDim = method()
-isPrimaryZeroDim(Ideal) := (I) ->
+
+isPrimaryZeroDim Ideal := I -> isPrimaryZeroDim(I,false)
+
+isPrimaryZeroDim(Ideal,Boolean) := (I,changeCoordinates) ->
 (
    -- null so that unless I is homogeneous, nothing is used in the Hilbert option in the GB computation below.
    hilbI := null;
+   local J;
    R := ring I;
+   -- pass around the independent variables, or recompute them?
    independentVars := support first independentSets I;
    fiberVars := reverse sort toList (set gens R - set independentVars);
+   lexR := (coefficientRing R)[fiberVars | independentVars,MonomialOrder=>{Lex=>#fiberVars,GRevLex=>#independentVars}];
+   if changeCoordinates then
+   (
+      -- change coordinates before computing with I.
+       << "Changed coordinates." << endl;
+      (phi,phiInverse,lastVar) := getCoordChange(R,independentVars);
+      J = phi I;
+   )
+   else J = I;
+   lexJ := sub(J,lexR);
+   fiberVars = fiberVars / map(lexR,R);
    
-   -- order according to fiberVars | independentVars
-   -- compute a basis in GRevLex with nicely sorted variables will speed up computing lex order later
-   ROrdered  := (coefficientRing R)[ independentVars | fiberVars]; 
-   psiOrdered := map(ROrdered, R);
-   --I = gens gb psiOrdered I;
-   if isHomogeneous I then hilbI = poincare psiOrdered I;
-   
-   (phi,phiInverse,lastVar) := getCoordChange(ring I,independentVars); 
-   
-   RLex := (coefficientRing R)[fiberVars | independentVars, MonomialOrder => {Lex=>#fiberVars,GRevLex=>#independentVars}];
-   
-   -- try using the fraction field here?
-   
-   J := phi I;
-   psi := map(RLex,R);
-   J = psi(J);
-   fiberVars = fiberVars / psi;
-   
-   G := flatten entries gens gb(J,Hilbert=>hilbI);
+   G := flatten entries gens computeLexGB lexJ;
+   --G := flatten entries gens gb lexJ;
+     
    gs := getVariablePowerGenerators(G,fiberVars);
    if all(#gs-1, i -> degree(fiberVars#i,gs#i) == 1) then return true;
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
-   getLinearPowers(G,gs,fiberVars)
+   retVal := getLinearPowers(gs,fiberVars);
+   if not retVal then (
+      if not changeCoordinates then isPrimaryZeroDim(I,true)
+      else error "Not in general position after a change of coordinates"
+   )
+   else retVal
 )
 
 -- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
 -- Should return the linear powers that appear in GTZ Prop 7.3 (or DGP algorithm 8, pg 11)
 getLinearPowers = method()
-getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
+getLinearPowers(List,List) := (gs, fiberVars) ->
 (
-  R := ring first G;
+  R := ring first gs;
   kk := coefficientRing R;
   independentVars := sort toList (set gens R - set fiberVars);
   Q := frac (kk[independentVars])[fiberVars,MonomialOrder=>Lex];
@@ -389,7 +421,7 @@ getLinearPowers(List,List,List) := (G, gs, fiberVars) ->
 	    linearFactor := (a*d*xi + b);
 	    gi = gi*(d^d)*(a^(d-1));
             -- here is where we could speed up by not fully reducing the difference.
-	    if (gi - linearFactor^d) % quotIdeal != 0_Q then error "Not a linear power!";
+	    if (gi - linearFactor^d) % quotIdeal != 0_Q then return false;
 	    quotIdeal = quotIdeal + ideal linearFactor;
 	    linearFactor));
   linearFactorList = reverse linearFactorList;

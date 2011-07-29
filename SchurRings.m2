@@ -499,14 +499,6 @@ plethysmSn(RingElement,RingElement) := (f,g) ->
 
 plethysm = method()
 
-{*plethysm(RingElement,RingElement) := opts -> (f,g) ->
-(
-     if opts.PlethysmType == "outer" then plethysmGL(f,g)
-        else if opts.PlethysmType == "inner" then plethysmSn(f,g)
-	else error"Invalid option"
-     )
-*}
-
 auxplet = method()
 auxplet(RingElement,RingElement) := (f,g) ->
 (
@@ -700,14 +692,6 @@ toS(RingElement) := (f) -> (
 toS(Thing) := (f) -> f
 undocumented(toS,Thing)
 
-{*
-toS(RingElement,SchurRing) := (f, T) ->
-(
-     fS := toS f;
-     dimT := numgens T;
-     (listForm fS)/(i-> if #i#0<=dimT then T_(i#0)*i#1 else 0_T)//sum
-     )
-*}
 toS(Thing,Ring) := (f,T) -> try(lift(f,T)) else f
 undocumented(toS,Thing,Ring)
 
@@ -849,15 +833,6 @@ schurResolution(RingElement,List) := (rep,M) ->
      schurRes(rep,M,#M-1,0)
      )
 
-{*auxProd = method(Options => options schurResolution)
-auxProd(RingElement,RingElement) := opts -> (f,g) ->
-(
-     if opts.GroupActing == "GL" then f*g else
-     if opts.GroupActing == "Sn" then internalProduct(f,g) else
-     error"Invalid option"
-     )
-*}
-
 schurRes = method()
 schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 (
@@ -866,11 +841,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
      plets := new MutableList;
      plets#0 = 1_T;
      for i from 1 to d do plets#i = symmetricPower(i,rep);
-     
---     auxProd := method();
---     if T.GroupActing == "GL" then auxProd(RingElement,RingElement) := (f,g) -> f*g
---     else auxProd(RingElement,RingElement) := (f,g) -> internalProduct(f,g);
-     
+
      mods := new MutableList from (M | toList((d+1-#M):0));
      notdone := true;
      k := 0;
@@ -885,7 +856,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 	  (
      	       mo = 0_T;	       
 	       for sy in syzy#k do
-	       	    if sy#0 <= i then mo = mo + sy#1 * plets#(i-sy#0)--auxProd(sy#1, plets#(i-sy#0))
+	       	    if sy#0 <= i then mo = mo + sy#1 * plets#(i-sy#0)
 		    else break;
 	       mo = mo - mods#i;
 	       newsyz = recsyz(mo);
@@ -940,7 +911,6 @@ centralizerSize(List) := lambda ->
      )
 
 keysCF := method()
---keysCF(ClassFunction) := (cF) -> drop(keys cF,1)
 keysCF(ClassFunction) := (cF) -> keys cF
 
 degree(ClassFunction) := ch ->
@@ -1063,7 +1033,6 @@ internalProduct(ClassFunction,ClassFunction) := (ch1,ch2)->
      if l1 != l2 then error("The symmetric functions/characters must have the same degree");
      for i in keysCF(ch1) do
      	  if ch2#?i then iProd#i = ch1#i * ch2#i;
- --    iProd.Ring = ch2.Ring;
      new ClassFunction from iProd
      )
 
@@ -1152,177 +1121,6 @@ partitions(Set,BasicList) := (S,L)->
 
 ---------------------------------------------------------------
 --------End partitions-related functions-----------------------
----------------------------------------------------------------
-
-
----------------------------------------------------------------
---------Old stuff----------------------------------------------
----------------------------------------------------------------
-{*
-restart
-loadPackage"SchurRings"
-----wedge powers over GL(V) x GL(W)
-S = schurRing(a,5)
-T = schurRing(b,5)
-cauchy(3,a_{1},b_{1})
-wedge(2,{(a_{1},b_{1}),(a_{3}+a_{2,1},b_{2,2})})
-wedge(2,{(a_{1},b_{1}),(a_{1},b_{1})})
-
-r = 3
-L = {(a_{1},b_{1}), (a_{3}+a_{2,1},b_{2,2})}
-
-----end wedge powers
-*}
-
-{*cauchy := method(Options => {SymmOrSkew => Symmetric}) --Symmetric, Skewsymmetric
-cauchy(ZZ,RingElement,RingElement) := opts -> (i,f,g) -> (
-     -- f and g are elements of Schur rings (possibly different)
-     -- compute the i th exterior power of the representation f ** g
-     P := partitions i;
-     result := apply(P, lambda -> (
-	       (
-		   a := plethysm(lambda,f);
-		   if a == 0 then null
-		   else (
-			b := plethysm(if opts.SymmOrSkew == Symmetric then lambda else conjugate lambda, g);
-			if b == 0 then null else (a,b)
-		    ))));
-     select(result, x -> x =!= null)
-     )
-
-compositions1 = (r,n) -> (
-     -- return a list of all of the n-compositions of r.
-     -- i.e. ways to write r as a sum of n nonnegative integers
-     if n === 1 then {{r}}
-     else if r === 0 then {toList(n:0)}
-     else (
-	  flatten for i from 0 to r list (
-	       w := compositions1(r-i,n-1);
-	       apply(w, w1 -> prepend(i,w1)))))
-
-
-pairProduct = L -> (
-     -- L is a list of lists of (f,g), f,g both in Schur/symmetric rings.
-     -- result: a list of pairs (f,g).
-     if #L === 1 then first L
-     else (
-	  L' := drop(L,1);
-	  P' := pairProduct L';
-	  flatten apply(L#0, fg -> (
-	       (f,g) := fg;
-	       apply(P', pq -> (
-		    (p,q) := pq;
-		    (f*p, g*q)))))
-     ))
-----e.g. L = {{(h_2,e_3)},{(h_1,e_3),(p_2,e_2)}}
-----pairProduct L = {(h_1*h_2,e_3^2), (p_2*h_2,e_2*e_3)}
-
-wedge = method(Options => options cauchy) 
-wedge(List,List) := opts -> (C,L) -> (
-     -- C is a composition of 0..n-1, n == #L
-     -- form the product of the exterior powers of the corresponding representations.
-     result := {}; -- each entry will be of the form (f,g)
-     C0 := positions(C, x -> x =!= 0);
-     wedgeL := apply(C0, i -> cauchy(C#i,L#i#0,L#i#1,opts));
-     pairProduct wedgeL
-     )
-
-wedge(ZZ,List) := opts -> (r,L) -> (
-     -- r is an integer >= 1
-     -- L is a list of pairs (f,g), f,g are in (possibly different) Schur rings.
-     -- returns wedge(r)(L), as a sum of representations of GL(m) x GL(n)
-     n := #L;
-     p := compositions1(r,n);
-     flatten apply(p, x -> wedge(x,L,opts))
-     )
---this computes the r-th wedge power of the direct sum of
---V_i\tensor W_i where V_i, W_i are GL(V) and GL(W) (virtual) modules
---corresponding to pairs of (virtual) characters (f_i,g_i)
-preBott = method()
-preBott(ZZ,List) := (i,L) -> (
-     R1 := ring L#0#0;
-     R2 := ring L#0#1;
-     dimQ := numgens R1; -- for general bundles we will need to know the ranks concerned
-     dimR := numgens R2;
-     x := flatten wedge(i,L);
---     x = apply(x, x0 -> (toS x0#0, toS x0#1)); --x is already an S-function
-     B := new MutableHashTable;
-     for uv from 0 to #x-1 do
-     (
-	       (u,v) := x#uv;
-     	       (uPar,uCoe) := coefficients u;
-	       uPar = apply(flatten entries uPar,j->last j);
-	       uCoe = apply(flatten entries uCoe,j->lift(j,coefficientRing R1));
-     	       (vPar,vCoe) := coefficients v;
-	       vPar = apply(flatten entries vPar,j->last j);
-	       vCoe = apply(flatten entries vCoe,j->lift(j,coefficientRing R2));
-     	       lu := #uPar-1;lv := #vPar-1;
-	       for j from 0 to lu do
-	       	    for k from 0 to lv do
-		    (
-     	       	    	 pQ := value toString uPar#j; --partitions
-			 pR := value toString vPar#k; --partitions			 
-  		       	 if #pQ < dimQ then
-			    pQ = join(pQ,toList((dimQ-#pQ):0));
-			 if #pR < dimR then
-			    pR = join(pR,toList((dimR-#pR):0));
-			 b := join(pQ,pR);
-			 c := uCoe#j * vCoe#k; --coefficients
-			 if B#?b then B#b = B#b + c else B#b = c;
-			 );
-	  );
-     B)
-
-bott = method()
-bott (List) := (QRreps) -> (
-     -- returns a list of either: null, or (l(w), w.((Qrep,Rrep)+rho) - rho)
-     s := QRreps; -- join(Qrep,Rrep);
-     rho := reverse toList(0..#s-1);
-     s = s + rho;
-     len := 0;
-     s = new MutableList from s;
-     n := #s;
-     for i from 0 to n-2 do
-     	  for j from 0 to n-i-2 do (
-	       if s#j === s#(j+1) then return null;
-	       if s#j < s#(j+1) then (
-		    tmp := s#(j+1);
-		    s#(j+1) = s#j;
-		    s#j = tmp;
-		    len = len+1;
-		    )
-	       );
-     (len, toList s - rho)
-     )
-
-doBott = method()
-doBott(ZZ,HashTable) := (nwedges,B) -> (
-     -- B is the output of preBott
-     kB := keys B;
-     if kB == {} then {}
-     else
-     (
-     s := symbol s;
-     S := schurRing(s,(#(first kB)));
-     apply(keys B, x -> (
-	       b := bott x;
-	       if b === null then null
-	       else (
-		    glb := b#1;
-		    d := B#x * dim s_(b#1);
-		    (b#0, nwedges - b#0, b#1, B#x, d))))))
-
---b#0 -> which cohomology is nonzero
---nwedges -> which wedge power we're taking
---b#1 -> partition corresponding to the Schur functor representing the global sections of the pushed forward bundle
---d -> dimension 
-weyman = method()
-weyman (ZZ,List) := (i,L) -> (
-     B := preBott(i,L);
-     doBott(i,B))
-*}
----------------------------------------------------------------
---------End old stuff----------------------------------------------
 ---------------------------------------------------------------
 
 --------------------------------
@@ -3270,14 +3068,6 @@ assert(dim(5,sch) == 14280)
 --------------------------------------------------------------
 ----- test characters of symmetric groups, scalarProd, intProd
 --------------------------------------------------------------
-{*TEST ///
-assert(chi({2,1,1,1},{2,1,1,1}) == -2)
-assert(chi({3,1,1},{1,1,1,1,1}) == 6)
-assert(chi({3,2},{3,1,1}) == -1)
-assert(chi({2,2,1},{3,1,1}) == -1)
-assert(chi({3,1,1},{2,2,1}) == -2)
-///
-*}
 TEST ///
 R = symmRing(QQ,20)
 S = schurRing(QQ,o,20)

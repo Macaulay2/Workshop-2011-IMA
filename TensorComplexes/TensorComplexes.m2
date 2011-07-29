@@ -601,7 +601,7 @@ doc ///
     Text
       A $b_1\times \cdots\times  b_n$ tensor with coefficients in a ring S may 
       be thought of as a multilinear linear form on 
-      $X := Proj(Spec S \times \mathbb P^{b_0-1}\times \cdots \times \mathbb P^{b_n-1})$.
+      $X := Proj(Spec S \times \mathbb P^{b_1-1}\times \cdots \times \mathbb P^{b_n-1})$.
       (If $S$ is graded, we may replace $Spec S$ by $Proj S$.)
          
       This package provides a family of definitions around the notion of {\it LabeledModule} 
@@ -642,17 +642,60 @@ doc ///
       the construction of the first map of the pure resolutions of Eisenbud-Schreyer, 
       and the first map in the much larger family of generic pure resolutions of BEKS.
 
---   Subnodes
---   Caveat
---   SeeAlso
+
 ///
+doc ///
+   Key 
+    tensorComplex1
+    (tensorComplex1, LabeledModuleMap, List)
+    (tensorComplex1, LabeledModuleMap)
+   Headline
+    computes the first map of the tensor complex
+   Usage
+    tensorComplex1(f,w)
+    tensorComplex1 f
+   Inputs
+    f: LabeledModuleMap
+    w: List 
+       of ZZ
+   Outputs
+    : LabeledModuleMap
+   Description
+    Text
+      Let $X := Proj(Spec S \times \mathbb P^{b_1-1}\times \cdots \times \mathbb P^{b_n-1})$,
+      and let
+      $$
+      \mathbf K := \cdots \wedge^2 \oplus_1^a O_X(-1,\dots, -1) \to  O_X  \to 0
+      $$
+      be the Koszul complex of the multilinear forms corresponding to f, on $X$.
+      The output of {\tt tensorComplex1(f,w)} is the first map of the complex obtained
+      by pushing $\mathbf K \otimes {\mathcal O}_X(w_1,\dots,w_n)$ down to $Spec S$. 
 
+      This script implements the construction of tensor complexes from the paper 
+      ``Tensor Complexes: Multilinear free resolutions constructed from higher tensors''
+      of Berkesch, Erman, Kummini and Sam (BEKS).
+      
+      The program requires that $f$ is a flattened tensor, 
+      that is, a map $A \to B_1\otimes\cdots\otimes B_n$.
+      Returns the first map in the tensor complex $F(f,w)$ of BEKS, requiring
+      that $w$ satisfies:
+      $$
+      w_0 = 0, w_1 \geq 0, w_2 \geq w_1+b_1, \ {\rm and }\  w_i>w_{i-1} \ {\rm for }\ i\geq 2.
+      $$
+      
+      When $a=\sum (b_i-1)+1$ we are in the ``balanced case'' discussed in Section 3 of BEKS. In
+      this case giving a weight vector is unnecessary, and one can use the format
+      {\tt tensorComplex1 f}.
+    Example
+      
+   SeeAlso
+    flattenedGenericTensor
+    flattenedESTensor
+    hyperdeterminant
+    hyperdeterminantMatrix
+///
+--print docTemplate
 {*beginDocumentation()
-
-document { 
-  Key => 
-  Headline => "multilinear algebra with labeled basis",
-  "Tensors and Tensor Complexes",
 
 document { 
   Key => LabeledModule,

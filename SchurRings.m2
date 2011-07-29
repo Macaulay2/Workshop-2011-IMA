@@ -206,8 +206,7 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      S.GroupActing = opts.GroupActing;
      dim S := s -> dimSchur(s);
      dim(Thing,S) := (n,s) -> dimSchur(n, s);
-     S @ RingElement := RingElement @ S := (f1,f2) -> plethysmGL(f1,f2);
-     S @@ RingElement := RingElement @@ S := (f1,f2) -> plethysmSn(f1,f2);
+     S @ RingElement := RingElement @ S := (f1,f2) -> plethysm(f1,f2);
      S^ZZ := (f,n) -> product apply(n,i->f);
      symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s);
      exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s);
@@ -291,9 +290,7 @@ symmRing (Ring,ZZ) := opts -> (A,n) -> (
      	  R.GroupActing = opts.GroupActing;
      	  R.dim = n;
 	  R ** R := (f1,f2) -> internalProduct(f1,f2);
---     	  R ** RingElement := RingElement ** R := (f1,f2) -> internalProduct(f1,f2);
-     	  R @ RingElement := RingElement @ R := (f1,f2) -> plethysmGL(f1,f2);
-     	  R @@ RingElement := RingElement @@ R := (f1,f2) -> plethysmSn(f1,f2);
+     	  R @ RingElement := RingElement @ R := (f1,f2) -> plethysm(f1,f2);
      	  symmetricPower(ZZ,R) := (n,r) -> plethysm({n},r);
      	  exteriorPower(ZZ,R) := opts -> (n,r) -> plethysm(splice{n:1},r);
      	  	  
@@ -1313,22 +1310,16 @@ Description
    
   Text
     
-    Alternatively, we can use the binary operator @TO symbol \@ @ to compute outer plethysm:
+    Alternatively, we can use the binary operator @TO symbol \@ @ to compute plethysm:
   
   Example
     s_2 @ s_3
-
-  Text
-  
-    and the binary operator @TO symbol \@\@ @ to compute inner plethysm:
-    
-  Example
-    (W+U) @@ (W+U)
+    (W+U) @ (W+U)
 
   Text
   
     All the above calculations assume that we're dealing with representations of {\tt GL(4)}.
-    But {\tt W} and {\tt U}, having degree {\tt 3}, can be thought as characters of the
+    But as symmetric functions of degree three, {\tt W} and {\tt U}, can be thought of as characters of the
     symmetric group {\tt S_3}. Let us first ``move'' these symmetric functions into a Schur ring
     designed to deal with characters of symmetric groups (like the ring {\tt Q} defined
     above):
@@ -2136,7 +2127,6 @@ Headline
 Usage
   pl = plethysm(f,g)
   pl = f @ g
-  pl = f @@ g
 Inputs
   f:RingElement
     element of Symmetric ring or Schur ring
@@ -2164,7 +2154,6 @@ Description
     S = schurRing(QQ,q,3);
     h_2 @ q_{2,1}
     plethysm(q_{2,1},q_{2,1})
-    q_{1,1} @@ q_{2,1}
     
 ///
 
@@ -2186,10 +2175,9 @@ Outputs
 Description
   Text
     
-    The method computes the inner/outer plethysm of {\tt s_{\lambda}} with {\tt g}, where
+    The method computes the plethysm of {\tt s_{\lambda}} with {\tt g}, where
     {\tt \lambda} is a partition and {\tt g} a symmetric function. This is the most 
-    commonly used form of plethysm. The option {\tt PlethysmType} specifies which type
-    of plethysm is computed: inner or outer.
+    commonly used form of plethysm.
 
   Example
     R = symmRing(QQ,3)

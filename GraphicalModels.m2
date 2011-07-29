@@ -5,7 +5,7 @@ needsPackage "Graphs"
 newPackage(
      "GraphicalModels",
      Version => "0.3",
-     Date => "July 28, 2011",
+     Date => "July 29, 2011",
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
@@ -13,9 +13,15 @@ newPackage(
 	  {Name => "Mike Stillman",
 	   Email => "mike@math.cornell.edu",
 	   HomePage => "http://www.math.cornell.edu/~mike/"},
-          {Name=> "contributing authors: Seth, Sonja, David -- during IMA-2011 workshop", 
+          {Name=> "Seth Sullivant", 
 	   Email=> "",
-	   HomePage=>""}
+	   HomePage=>""},
+          {Name=> "Sonja Petrovic", 
+	   Email=> "",
+	   HomePage=>""},
+          {Name=> "Contributing authors and collaborators: Alexander Diaz, Shaowei Lin, David Murrugarra", 
+	   Email=> "",
+	   HomePage=>""}      
 	  },
      Headline => "A package for discrete and Gaussian graphical models",
      DebuggingMode => true
@@ -26,6 +32,7 @@ newPackage(
 -- ADDING gaussian undirected stuff during the IMA-2011 workshop...
 -- we have tried to comment most changes in the code. some minor (but fundamental) changes to other methods have 
 -- been thorougly documented on the WIKI!
+--     	    	      Sonja & Seth
 ------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------
 
@@ -603,7 +610,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 covarianceMatrix = method()
 covarianceMatrix(Ring) := Matrix => (R) -> (
        if not R#?gaussianRing then error "expected a ring created with gaussianRing";    
-       if R#?graph then (covarianceMatrixUndirected(R,R#graph);)
+       if R.?graph then (covarianceMatrixUndirected(R,R.graph))
        else (
 	    n:=R#gaussianRing; 
 	    genericSymmetricMatrix(R,n)
@@ -619,6 +626,21 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
 ------ QUESTION: how come this method IGNORES the digraph!? 
 -------        What if the digraph g is a proper subgraph of R.digraph???? is the answer then wrong? YES- SEE EXAMPLE FILE!
 ------	   	     ---Sonja (28-29july2011)
+------------------------------------------------------------------------------------------------------------------------------
+
+covarianceMatrixUndirected=method()
+covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names accordingly everywhere!!! added "undirected"
+     vv := sort vertices g;
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     n := R#gaussianRing#0;
+     s := value R#gaussianRing#1;
+     SM := mutableMatrix(R,n,n);
+     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
+     matrix SM) 
+------------------------------------------------------------------------------------------------------------------------------
+     --QUESTION: CAN this matrix SM not be obtained via generic symmetric matrix command as in the digraph case???
+     --	    	 Sonja 29july2011
+     -- yes it can, but need to specify correct starting variable (i.e. omit the k's use only s's).
 ------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -753,7 +775,7 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
     R#numberOfEliminationVariables = m;
     R#gaussianRing = {#vv,s,k};
-    R#graph = g;
+    R.graph = g;
     gaussianRingList#((kk,s,k,bb)) = R;); 
     gaussianRingList#((kk,s,k,bb))
     )
@@ -769,21 +791,6 @@ undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
      scan(vv,i->PM_(pos(vv,i),pos(vv,i))=p_(i,i));
      scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then p_(i,j) else p_(j,i)));
      matrix PM) 
-
-covarianceMatrixUndirected=method()
-covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names accordingly everywhere!!! added "undirected"
-     vv := sort vertices g;
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
-     n := R#gaussianRing#0;
-     s := value R#gaussianRing#1;
-     SM := mutableMatrix(R,n,n);
-     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
-     matrix SM) 
-------------------------------------------------------------------------------------------------------------------------------
-     --QUESTION: CAN this matrix SM not be obtained via generic symmetric matrix command as in the digraph case???
-     --	    	 Sonja 29july2011
-     -- yes it can, but need to specify correct starting variable (i.e. omit the k's use only s's).
-------------------------------------------------------------------------------------------------------------------------------
 
 gaussianVanishingIdeal=method()
 gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
@@ -1655,7 +1662,7 @@ doc ///
       Recovering the graph from the gaussian ring
     Example
       R#gaussianRing
-      R#graph  
+      R.graph  
       covarianceMatrix R
       undirectedEdgesMatrix(R,G)
         

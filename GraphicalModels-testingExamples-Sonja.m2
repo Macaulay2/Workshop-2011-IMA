@@ -112,6 +112,6 @@ sub(M,R1) --this returns the matrix for G but in the ring R1, even though it liv
 
 g = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
 r=gaussianRing g
-covarianceMatrix (r,g)
+covarianceMatrix r
 --OMG THIS IS JUST like:
-genericSymmetricMatrix (r,r#gaussianRing#0)  --!!!!exit
+genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k variables!

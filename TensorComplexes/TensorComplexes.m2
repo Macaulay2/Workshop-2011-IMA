@@ -26,7 +26,7 @@ functoriality
 
 
 newPackage(
-  "TensorComplexes"
+  "TensorComplexes",
   AuxiliaryFiles => false,
   Version => "1.0",
   Date => "29 July 2011",
@@ -593,38 +593,58 @@ pureResES (List,Ring):=ChainComplex => (d,kk)->(
 -- DOCUMENTATION
 --------------------------------------------------------------------------------
 doc ///
-   Key TensorComplexes
-   Headline multilinear algebra for the construction of tensor complexes
+   Key 
+      TensorComplexes
+   Headline 
+      multilinear algebra for the construction of tensor complexes
    Description
     Text
-      A $b_1\times \cdots b_n$ tensor with coefficients in a ring S may be thought of as a multilinear  linear form on $X := Proj(Spec S \times P^{b_0-1}\times \cdots \times P^{b_n-1})$, and if $S$ is graded
-      then we may replace $Spec S$ by $ Proj S$; for example, if $S$ is the polynomial ring in $n+1$ variables this amounts to taking
-      $X = P^n \times P^{b_1-1}\times \cdots$.  
+      A $b_1\times \cdots\times  b_n$ tensor with coefficients in a ring S may 
+      be thought of as a multilinear linear form on 
+      $X := Proj(Spec S \times \mathbb P^{b_0-1}\times \cdots \times \mathbb P^{b_n-1})$.
+      (If $S$ is graded, we may replace $Spec S$ by $Proj S$.)
+         
+      This package provides a family of definitions around the notion of {\it LabeledModule} 
+      that makes it convenient to manipulate complicated multilinear constructions with tensors. 
+      We implement one such construction, that of Tensor Complexes, from the paper 
+      ``Tensor Complexes: Multilinear free resolutions constructed from higher tensors''
+      of Berkesch, Erman, Kummini and Sam (BEKS), which extends the construction of 
+      pure resolutions in the paper ``Betti numbers of graded modules and cohomology of vector bundles''
+      of Eisenbud and Schreyer. This itself is an instance of the technique of ``collapsing homogeneous
+      vector bundles'' developed by Kempf and described, for example, in the book ``Cohomology of
+      vector bundles and syzygies'' of Weyman. 
+      
+      Tensor complexes specialize to several well-known constructions including: the Eagon-Northcott 
+      and Buchsbaum-Rim complexes, and the others in this family described by Eisenbud and Buchsbaum 
+      (Eisenbud ``Commutative algebra with a view towards algebraic geometry'', A2.6), 
+      and the {\it hyperdeterminants} of Weyman and Zelevinsky.
   
-      This package provides a family of definitions around the notion of \emph{LabeledModule} that makes it convenient to manipulate complicated
-      multilinear constructions with tensors. We implement one such construction, that of Tensor Complexes, from the paper **** of Erman, Berkesch, Kummini and Sam (EBKS), which extends the construction of 
-      pure resolutions in *** of Eisenbud and Schreyer. (This itself is an instance of the technique of ``collapsing homogeneous vector bundles'' developed by Kempf and described, for example,
-      in the book ****of Weyman. Special cases are the Eagon-Northcott and Buchsbaum-Rim complexes, and the others in this family described by Eisenbud and Buchsbaum (Eisenbud 1995, appendix ***),
-      and the \emph{hyperdeterminants} of Weyman and Zelevinsky.
-  
-      A collection of $a$ tensors may be regarded as a map $O_X^a(-1,-1,\dots,-1) \to O_X$; eqivalently, we may think of this as a single $a \times b_1 \times \cdots \times b_n$ tensor.
-      Let $O_X(d, e_1,\dots e_n)$ be the tensor product of the pull-backs to $X$ 
-      of the  line bundles $O_{P^n}(d)$ and  $O_{P^{b_i-1}(-1)$.  If we define $E$ to be the direct sum of line bundles bundle $E:=\bigoplus_1^a O_X(-1,\dots, -1)$ on $X$ (with $n$ factors) 
-      then such a collection of tensors may
-      equally well be thought of as a map $E\to O_X$.
+      A collection of $a$ tensors of type $b_1\times \dots \times b_n$ 
+      may be regarded as a map $\mathcal O_X^a(-1,-1,\dots,-1) \to \mathcal O_X$ (with $X$ as above). 
+      Equivalently, we may think of this as a single $a \times b_1 \times \cdots \times b_n$ tensor.
+      We let $\mathcal O_X(d, e_1,\dots e_n)$ be the tensor product of the pull-backs to $X$ 
+      of the line bundles $\mathcal O_{\mathbb P^n}(d)$ and  $\mathcal O_{\mathbb P^{b_i-1}}(-1)$.  
+      If we define $E$ to be the direct sum of line bundles $E:=\oplus_1^a \mathcal O_X(-1,\dots, -1)$ 
+      on $X$ then such a collection of tensors may equally well be thought of as a map $E\to O_X$.
 
       One important construction is the Koszul complex 
       $$
-      KK := \cdots \wedge^2 \bigoplus_1^a O_X(-1,\dots, -1) \to  O_X  \to 0
+      \mathbf K := \cdots \wedge^2 \oplus_1^a O_X(-1,\dots, -1) \to  O_X  \to 0
       $$
-      derived from such a map. If we twist this complex by $O_X(0, -w_1, \dots -w_n)$ and then push it forward to $P^n$ we get the tensor complex **** of EBKS. Each map $\Phi_i$ in this complex 
-      could be defined by
-      a rather involved construct in multilinear algebra, and this construction is given by EBKS explicitly in a large range of cases. This package implements the construction of $\Phi_1$, which
-      includes the hyperdeterminant, the construction of the first map of the pure resolutions of Eisenbud-Schreyer, and the first map in the much larger family of generic pure resolutions of EBKS.
+      derived from such a map. If we twist this complex by $O_X(0, -w_1, \dots -w_n)$ 
+      and then push it forward to $Spec S$ we get the tensor complex 
+      $F(\phi,w)$ of BEKS. Each map $\partial_i$ in this complex can be defined by
+      a rather involved construct in multilinear algebra, and this construction is given 
+      by BEKS explicitly in a large range of cases. This package implements the 
+      construction of $\partial_1$ in the range of cases described explicitly in BEKS 
+      (see Sections 4 and 12 of BEKS).
+      This range includes the hyperdeterminants of boundary format, 
+      the construction of the first map of the pure resolutions of Eisenbud-Schreyer, 
+      and the first map in the much larger family of generic pure resolutions of BEKS.
 
-   Subnodes
-   Caveat
-   SeeAlso
+--   Subnodes
+--   Caveat
+--   SeeAlso
 ///
 
 {*beginDocumentation()
@@ -945,9 +965,10 @@ end
 --------------------------------------------------------------------------------
 
 restart
-uninstallPackage "LabeledModules"
-installPackage "LabeledModules"
-check "LabeledModules"
+uninstallPackage "TensorComplexes"
+installPackage "TensorComplexes"
+viewHelp TensorComplexes
+check "TensorComplexes"
 
 kk=ZZ/101;
 f = flattenedGenericTensor({4,2,2,2},kk)
@@ -977,3 +998,8 @@ g = tensorComplex1 f
 betti res coker matrix g
 cokermatrix f
 
+restart
+uninstallPackage "TensorComplexes"
+installPackage "TensorComplexes"
+viewHelp "TensorComplexes"
+check "TensorComplexes"

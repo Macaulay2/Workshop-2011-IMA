@@ -2,11 +2,6 @@ restart
 loadPackage "SpaceCurvesMultiplierIdeals"
 debug SpaceCurvesMultiplierIdeals
 
-R = QQ[x,y,z];
-I = affineMonomialCurveIdeal(R,{2,3,4})
-gens gb I
-
-
 -- From Thomas Kahle's package Binomials.m2
 isPureDifference = I -> (
      ge := flatten entries gens I;
@@ -18,29 +13,32 @@ isPureDifference = I -> (
 	  return false;
 	  );
      return true;
-     )
+     );
 
 
 findExponents = I -> (
      if not isPureDifference I then error "expected a pure difference ideal";
+     R  := ring I;
+     KK := coefficientRing R;
      grobnerBasis := flatten entries gens gb I;
-     M := map(ZZ^0,ZZ^(numgens ring I),{});     
+     M := map(ZZ^0,ZZ^(numgens R),{});
      for i in grobnerBasis do (
      	  u := exponents i;
      	  M = M || matrix{u_0-u_1};
 	  );
-     K := ker M;
-     if rank K =!= 1 then error "check ideal defines a curve";
-     apply(flatten entries gens K, i -> abs i)
+     KM := ker M;
+     if rank KM =!= 1 then error "check ideal defines a curve";
+     exps := apply(flatten entries gens KM, i -> abs i);
+     t = getSymbol("t");
+     if ( ker map(KK[t],R,apply(exps, i->t^i)) =!= I ) then error "incomplete generators of curve ideal";
+     return exps;
      );
 
-nn = {3,47,192}; K = findExponents affineMonomialCurveIdeal(QQ[x_1..x_(#nn)],nn)
+nn = {3,4,5}; K = findExponents affineMonomialCurveIdeal(QQ[x_1..x_(#nn)],nn)
+
+I = affineMonomialCurveIdeal(QQ[x_1..x_3],{3,4,5})
+J = ideal(I_0,I_1)
+findExponents(J)
+J == affineMonomialCurveIdeal(ring J, findExponents(J))
 
 
- K
-rank K
-findExponents ideal(x+y)
-
-isPureDifference I
-g = x-y-z
-sort flatten entries (coefficients g)#1

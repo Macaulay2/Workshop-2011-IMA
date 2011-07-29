@@ -110,8 +110,9 @@ poset(List,List,Matrix) := (I,C,M) -> (
 -------------------------------------------
 isDistributive = method();
 isDistributive (Poset) := P->(
+	if P.cache.?isDistributive then return P.cache.isDistributive;
 	if not isLattice P then error "Poset must be a lattice";
-    all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
+    P.cache.isDistributive = all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
 );
 
 antichains = method();
@@ -128,6 +129,7 @@ fvector (Poset) := P-> apply(gradePoset P, G -> #G);
 
 isConnected = method();
 isConnected (Poset):= P->(
+	if P.cache.?isConnected then return P.cache.isConnected;
 	J := first maximalChains P;
 	counter := 1;
 	while counter != 0 do (
@@ -144,7 +146,7 @@ isConnected (Poset):= P->(
             )
         );
     );
-    #unique J == #P.GroundSet
+    P.cache.isConnected = (#unique J == #P.GroundSet)
 );
 
 incomparabilityGraph = method();

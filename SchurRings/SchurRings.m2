@@ -1338,9 +1338,9 @@ hooklengths = (lambda) -> (
 	       ))
      )
 
-dimSchur = method()
-dimSchur(Thing,List) := (n,lambda) -> dimSchur(n, new Partition from lambda)
-dimSchur(Thing,Partition) := (n, lambda) -> (
+dimSchur = method(Options => {GroupActing => "GL"})
+dimSchur(Thing,List) := opts -> (n,lambda) -> dimSchur(n, new Partition from lambda)
+dimSchur(Thing,Partition) := opts -> (n, lambda) -> (
      -- lambda is a list {a0,a1,...,a(r-1)}, a0 >= a1 >= ... >= a(r-1) > 0
      -- n can be a number or a symbol
 --     powers := new MutableList from toList(lambda#0 + #lambda - 1 : 0);
@@ -1350,40 +1350,54 @@ dimSchur(Thing,Partition) := (n, lambda) -> (
        for j from 0 to lambda#i-1 do
        	    powers#(j-i-base) = powers#(j-i-base) + 1;
      if not instance(n,ZZ) then n = hold n;
-     num := product for s from 0 to #powers-1 list (n + (base+s))^(powers#s);
      -- now get the hook lengths
-     answer := num/hooklengths lambda;
-     if instance(answer,QQ) then lift(answer,ZZ) else answer
+     answer := local answer;
+     if opts.GroupActing == "GL" then
+     (
+	  num := product for s from 0 to #powers-1 list (n + (base+s))^(powers#s);
+     	  answer = num/hooklengths lambda;
+	  )
+     else if opts.GroupActing == "Sn" then answer = n! / hooklengths lambda;
+--     if instance(answer,QQ) then lift(answer,ZZ) else answer
+     answer
      )
-dimSchur(Thing,RingElement) := (n, F) -> (
+dimSchur(Thing,RingElement) := opts -> (n, F) -> (
      -- assumption: F is an element in a SchurRing
      L := listForm F;
      sum apply(L, p -> (
 	       lambda := new Partition from p#0;
-	       if p#1 == 1 then dimSchur(n,lambda) else p#1 * dimSchur(n,lambda)))
+	       if p#1 == 1 then dimSchur(n,lambda,opts) else p#1 * dimSchur(n,lambda,opts)))
      )
-dimSchur(List,RingElement) := (ns, F) -> (
+dimSchur(List,List,RingElement) := opts -> (ns, ng, F) -> (
      -- assumption: F is an element in a SchurRing
      L := listForm F;
      n := ns#0;
+     gr := ng#0;
      lev := schurLevel ring F;
      if lev =!= #ns then error ("expected Schur ring of level "|lev);
      if lev > 1 then (
 	  n1 := drop(ns,1);
-	  L = apply(L, p -> (p#0, dimSchur(n1,p#1)));
+	  ng1 := drop(ng,1);
+	  L = apply(L, p -> (p#0, dimSchur(n1,ng1,p#1)));
 	  );
      sum apply(L, p -> (
 	       lambda := new Partition from p#0;
-	       if p#1 === 1 then dimSchur(n,lambda) else p#1 * dimSchur(n,lambda)))
+	       if gr == "GL" then (if p#1 === 1 then dimSchur(n,lambda,GroupActing=>gr) else p#1 * dimSchur(n,lambda,GroupActing=>gr))
+     	       else (if p#1 === 1 then dimSchur(sum toList lambda,lambda,GroupActing=>gr) else p#1 * dimSchur(sum toList lambda,lambda,GroupActing=>gr))))
      )
-dimSchur(RingElement) := (F) -> (
+dimSchur(RingElement) := opts -> (F) -> (
      schurdims := (S) -> (
 	  if schurLevel S === 0 then {}
 	  else prepend(numgens S, schurdims coefficientRing S));
+     groupsacting := (S) -> (
+	  if schurLevel S === 0 then {}
+	  else prepend(S.GroupActing, groupsacting coefficientRing S));
      ns := schurdims ring F;
+     ng := groupsacting ring F;
      if any(ns, i -> not instance(i,ZZ))
      then error "expected finitely generated Schur rings";
-     dimSchur(ns,F)
+     dS := dimSchur(ns,ng,F);
+     if liftable(dS,ZZ) then lift(dS,ZZ) else dS
      )
 ---------------------------------------------------------------
 --------End dimension----------------------------------------------
@@ -3609,50 +3623,6 @@ uninstallPackage"SchurRings"
 installPackage"SchurRings"
 check SchurRings
 viewHelp SchurRings
-
-
-debug loadPackage"SchurRings"
-S = schurRing(s,5,GroupActing => "Sn")
-R = symmetricRingOf S
-
-
-
-s_2 * s_2
-s_2 * s_2
-s_2 * s_2
-s_2 ** s_2
-s_2 * s_2
-s_2 ** s_2
-
-R = symmetricRingOf S
-f = 2*h_1^5-4*h_1*h_2^2+h_1^2*h_3+h_2*h_3
-toS f
-
-restart
-debug loadPackage"SchurRings"
-S = schurRing(s,3,GroupActing=>"Sn")
-T = schurRing(S,t,4)
-
-t_2 * t_2
-
-a = s_2 * t_3
-a * a
-plethysm(s_{1,1},a)
-
-a*a
-plethysm({2},s_2 * 1_T)
-symmetricPower(2,s_2*t_2)
-symmetricPower(2,s_2)
-
-restart
-debug loadPackage"SchurRings"
-
-S = schurRing(s,3,GroupActing => "Sn")
-T = schurRing(S,t,2)
-
-rep = (s_3 + s_{2,1}) * t_1
-M = {s_3 * 1_T}
-schurResolution(rep,M,8)
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"

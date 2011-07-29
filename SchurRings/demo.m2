@@ -23,8 +23,8 @@ sR = schurResolution(rep,M,d)
 S = schurRing(s,3,GroupActing => "Sn")
 T = schurRing(S,t,2)
 rep = (s_3 + s_{2,1}) * t_1
+d = dim rep
 M = {s_3 * 1_T}
-d = 7
 sR = schurResolution(rep,M,d)
 exteriorPower(3,rep)
 sR#3
@@ -44,6 +44,10 @@ S = schurRing(s,3)
 T = schurRing(S,t,4)
 rep = s_1 * t_1
 
+--Cauchy's formula
+symmetricPower(3,rep)
+exteriorPower(3,rep)
+
 --2x2 minors
 M = {1_T} | apply(splice{1..8},i -> s_i * t_i)
 schurResolution(rep,M)
@@ -59,6 +63,6 @@ d = 8 --d-th Veronese embedding
 k = 3 --dim(V) = k (should be 3)
 r = 0 --twist of structure sheaf
 time load"veroneseP2.m2"
-time mat = matrix(toList koz / (i -> (toList i / (j-> if j != 0 then dim j else 0))))
 koz#(3*d-2)#2
 koz#(3*d-3)#2
+time mat = matrix(toList koz / (i -> (toList i / (j-> if j != 0 then dim j else 0))))

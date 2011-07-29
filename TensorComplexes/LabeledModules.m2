@@ -836,7 +836,7 @@ end
 restart
 uninstallPackage "LabeledModules"
 installPackage "LabeledModules"
---check "LabeledModules"
+check "LabeledModules"
 
 f = flattenedGenericTensor({3,3},kk)
 betti res coker tensorComplex1 (f, {0,0})

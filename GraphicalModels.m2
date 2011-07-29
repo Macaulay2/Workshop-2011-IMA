@@ -449,8 +449,8 @@ markovMatrices(Ring,Digraph,List) := (R,G,Stmts) -> (
      -- R should be a markovRing, G a digraph 
      -- and Stmts is a list of
      -- independence statements
+     if not R.?markov then error "expected a ring created with markovRing";
      d := R.markov;
-     if not R#?markov then error "expected a ring created with markovRing";
      flatten apply(Stmts, stmt -> (
      	       Avals := possibleValues(d,getPositionOfVertices(G,stmt#0)); 
      	       Bvals := possibleValues(d,getPositionOfVertices(G,stmt#1)); 
@@ -752,6 +752,7 @@ covarianceMatrix (Ring,Graph) := (R,g) -> (
 ------------------------------------------------------------------------------------------------------------------------------
      --QUESTION: CAN this matrix SM not be obtained via generic symmetric matrix command as in the digraph case???
      --	    	 Sonja 29july2011
+     -- yes it can, but need to specify correct starting variable (i.e. omit the k's use only s's).
 ------------------------------------------------------------------------------------------------------------------------------
 
 gaussianVanishingIdeal=method()

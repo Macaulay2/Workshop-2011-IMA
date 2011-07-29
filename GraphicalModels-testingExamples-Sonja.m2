@@ -106,5 +106,5 @@ sub(M,R1) --this returns the matrix for G but in the ring R1, even though it liv
 g = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
 r=gaussianRing g
 covarianceMatrix (r,g)
---OMG THIS IS JUST:
-genericSymmetricMatrix (r,r#gaussianRing#0)  --!!!!
+--OMG THIS IS JUST like:
+genericSymmetricMatrix (r,r#gaussianRing#0)  --!!!!exit

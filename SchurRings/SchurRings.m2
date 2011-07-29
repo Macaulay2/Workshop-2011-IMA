@@ -26,8 +26,7 @@ newPackage(
 	     {Name => "Claudiu Raicu", Email => "claudiu@math.berkeley.edu", HomePage => "http://math.berkeley.edu/~claudiu/"}
 	     },
     	Headline => "representation rings of general linear groups and of symmetric groups",
-    	DebuggingMode => true,
-	AuxiliaryFiles => true
+    	DebuggingMode => true
     	)
 
 --schurRing(coefficientRing)

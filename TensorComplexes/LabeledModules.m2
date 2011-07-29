@@ -370,10 +370,14 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   -- NOTE: local variables names following the notation from the
   -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
   -- 
-  -- f: A --> B1** B2** ... Bn
-  -- makes the map F0 <- F1 as above.
-  -- if f is not balanced, we should  be doing something else 
-  if not isBalanced f then error "map is not balanced";
+  -- The input is f: A --> B1** B2** ... Bn, where f corresponds to 'phi^{\flat}'
+  -- from the BEKS paper.
+  --
+  -- The output is the first map F0 <- F1 of the balanced tensor complex.
+  -- If f is not balanced this outputs an error.  
+  -- In the non-balanced case, there should be a weight vector as a second input.
+  if not isBalanced f then error "The map f is not a balanced tensor.  
+                                 Need to add a weight vector as a second input.";
   S := ring f;  
   B := {S^0} | underlyingModules target f;
   A := source f;
@@ -396,23 +400,31 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
     G1factors := flatten(
       ((underlyingModules target trMap) | {F1}) / underlyingModules );
     -- G2 and G1 are isomorphic as free modules with ordered basis but different
-    -- as labeled modules
+    -- as labeled modules.  G2 is obtained from G1 by dropping parentheses in 
+    -- the tensor product.
     G2 := tensorProduct G1factors;
-    -- g1 is the map induced by dropping all parentheses in the tensor product  
+    -- g1 is the isomorphism induced by dropping all parentheses in the tensor product.
+    -- Due to indexing conventions, matrix(g1) is just an identity matrix.
     g1 := map(G2, G1, id_(S^(rank G1)));
     perm := join({2*n-2, 2*n-1}, toList(0..n-2), 
       flatten apply(n-1, j -> {j+n-1, j+2*n}));
     G3factors := G1factors_perm;
     G3 := tensorProduct G3factors;
-    -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
-    -- The reordering is given by the permutation 'perm'  
+    -- G3 is obtained from G2 by reordering the factors in the tensor product.
+    -- g2 is the isomorphism induced by reordering the factors of the tensor product.
+    -- The reordering is given by the permutation 'perm'.  
     permMatrix := mutableMatrix(S, rank G3, rank G2);
     for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
     g2 := map(G3, G2, matrix permMatrix);
+    --  G3=G3a**G3b**G3c. The map g3: G3->G4 is defined as the tensor product of 3 maps.
     G3a := G3factors_0;
     G3b := tensorProduct G3factors_(toList(1..n));
     G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
     prodB := tensorProduct apply(n,i -> B_(i+1));  
+    -- G4=G3a**G4b**G3c.
+    -- We omit the isomorphism of G4 with (G3a**G4b)**G3c, since this corresponds to
+    -- the identity matrix.  In other words target(g3) does not equal source (g4)
+    -- as labeledModules.
     G4b := exteriorPower(b_1, prodB);
     dualCauchyMap := map (G4b, G3b, transpose cauchyMap(b_1, prodB));
     g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
@@ -547,6 +559,10 @@ pureResTC (List,Ring):=ChainComplex => (d,kk)->(
      res coker matrix pureResTC1(d,kk)
      ) 
 
+
+--  This code takes a degree sequence and a base field as an input, and
+--  it outputs the first map of the Eisenbud-Schreyer pure resolution 
+--  corresponding to that degree sequence.
 pureResES1=method()     
 pureResES1 (List,Ring) := LabeledModuleMap =>(d,kk)->(
      b := apply(#d-1,i-> d_(i+1)-d_i);

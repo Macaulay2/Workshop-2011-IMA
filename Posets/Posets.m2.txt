@@ -1,7 +1,6 @@
 needsPackage("Posets", FileName=>"/home/math dept/workshops/IMA-2011/Posets/Posets.m2");
 --needsPackage"Posets"
 
-
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Finished
@@ -46,72 +45,6 @@ distributiveLattice (Poset):=P->(
 	POI		
 );
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Needs Checking
---baseDistributiveLattice = method ();
---baseDistributiveLattice (Poset) := P->(
---	subPoset(P,meetIrreducibles(P))
---); 
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Finished
-isConnected = method();
-isConnected (Poset):= P->(
-	J:=(maximalChains P)_0;
-	counter:=1;
-	answer=false;
-	while counter != 0 do(
-	counter=0;
-	for i to #P.GroundSet-1 do(
-		if not member(P.GroundSet_i,J) then{
-		for j to #P.Relations-1 do(
-			if P.GroundSet_i == P.Relations_j_0 and member(P.Relations_j_1,J) then{
-				J=append(J,P.GroundSet_i); 
-				counter = counter + 1;
-			};
-			if P.GroundSet_i == P.Relations_j_1 and member(P.Relations_j_0,J) then{
-				J=append(J,P.GroundSet_i); 
-				counter = counter + 1;
-			};
-		);
-		};
-	);
-	);
-	J=unique J;
-	if #J == #P.GroundSet then{
-			answer=true; 	
-	};
-	answer
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Finished
-isDistributive = method();
-isDistributive (Poset) := P->(
-	if not isLattice P then error "Poset must be a lattice";
-	J:=subsets(P.GroundSet);
-	G:={};
-	answer:=true;
-	for i to #J-1 do(
-		if #J_i == 3 then{
-			G=append(G,J_i);
-		};
-	);
-	for i to #G-1 do(
-		if answer!=false then{
-			if posetMeet(P,G_i_0,first posetJoin(P,G_i_1,G_i_2))!=posetJoin(P,first posetMeet(P,G_i_0,G_i_1),first posetMeet(P,G_i_0,G_i_2)) then{
-				answer=false;
-			};
-		};
-	);
-	answer
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 --Note: Poset must be properly labeled. Ground Set should look like {grade level, numerical label, monomial label}
 --Signs not implemented
@@ -140,46 +73,6 @@ cellularResolution (Poset):= P->(
 		Maps=append(Maps,M);
 	);
 	Maps
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Finished
-antichains = method();
-antichains (Poset) := P->(
-	L:=subsets(P.GroundSet);
-	G:={};
-	for i to #L-1 do(
-		if isAntichain(P,L_i) then G=append(G,L_i);
-	);
-	G
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-flagPoset = method();
-flagPoset (Poset,List) := (P,L)->(
-	G:=gradePoset(P);
-	Q:={};
-	for i to #L-1 do(
-		Q=append(Q,G_(L_i));
-	);
-	subPoset(P,flatten Q)
-);
-
-flagChains = method();
-flagChains (Poset,List):= (P,L)->(
-	maximalChains(flagPoset(P,L))
-);
-
-fvector = method();
-fvector (Poset) := P->(
-	G:=gradePoset(P);
-	v:={};
-	for i to #G-1 do(
-		v=append(v,#G_i);
-	);
-	v
 );
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 

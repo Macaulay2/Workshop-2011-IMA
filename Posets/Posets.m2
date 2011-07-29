@@ -22,6 +22,7 @@ export {
 	poset,
 	transitiveClosure,
 --
+    isConnected, isDistributive, antichains, flagPoset, flagChains, fvector,
     dualPoset, 
     gradeLattice, 
     isGraded, 
@@ -99,6 +100,103 @@ poset(List,List,Matrix) := (I,C,M) -> (
 	  }
 );
      
+-------------------------------------------
+-- UNDOCUMENTED NEW CODE: NEEDS CLEANING
+-------------------------------------------
+
+isConnected = method();
+isConnected (Poset):= P->(
+	J:=(maximalChains P)_0;
+	counter:=1;
+    answer:=false;
+	while counter != 0 do(
+	counter=0;
+	for i to #P.GroundSet-1 do(
+		if not member(P.GroundSet_i,J) then{
+		for j to #P.Relations-1 do(
+			if P.GroundSet_i == P.Relations_j_0 and member(P.Relations_j_1,J) then{
+				J=append(J,P.GroundSet_i); 
+				counter = counter + 1;
+			};
+			if P.GroundSet_i == P.Relations_j_1 and member(P.Relations_j_0,J) then{
+				J=append(J,P.GroundSet_i); 
+				counter = counter + 1;
+			};
+		);
+		};
+	);
+	);
+	J=unique J;
+	if #J == #P.GroundSet then{
+			answer=true; 	
+	};
+	answer
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Finished
+isDistributive = method();
+isDistributive (Poset) := P->(
+	if not isLattice P then error "Poset must be a lattice";
+	J:=subsets(P.GroundSet);
+	G:={};
+	answer:=true;
+	for i to #J-1 do(
+		if #J_i == 3 then{
+			G=append(G,J_i);
+		};
+	);
+	for i to #G-1 do(
+		if answer!=false then{
+			if posetMeet(P,G_i_0,first posetJoin(P,G_i_1,G_i_2))!=posetJoin(P,first posetMeet(P,G_i_0,G_i_1),first posetMeet(P,G_i_0,G_i_2)) then{
+				answer=false;
+			};
+		};
+	);
+	answer
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Finished
+antichains = method();
+antichains (Poset) := P->(
+	L:=subsets(P.GroundSet);
+	G:={};
+	for i to #L-1 do(
+		if isAntichain(P,L_i) then G=append(G,L_i);
+	);
+	G
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+flagPoset = method();
+flagPoset (Poset,List) := (P,L)->(
+	G:=gradePoset(P);
+	Q:={};
+	for i to #L-1 do(
+		Q=append(Q,G_(L_i));
+	);
+	subPoset(P,flatten Q)
+);
+
+flagChains = method();
+flagChains (Poset,List):= (P,L)->(
+	maximalChains(flagPoset(P,L))
+);
+
+fvector = method();
+fvector (Poset) := P->(
+	G:=gradePoset(P);
+	v:={};
+	for i to #G-1 do(
+		v=append(v,#G_i);
+	);
+	v
+);
+
 -------------------------------------------
 -- UNDOCUMENTED NEW CODE 
 -------------------------------------------
@@ -292,7 +390,7 @@ coveringRelations Poset := P -> (
 hasseDiagram = method();
 hasseDiagram Poset := P -> (
     cr := coveringRelations P;
-    digraph hashTable apply(P.GroundSet,v->v=>set apply(select(cr,e->e_0==v),e->e_1))
+    digraph hashTable apply(P.GroundSet,v->v=>set apply(select(cr,e->e_0===v),e->e_1))
 )
 
 --G = digraph(apply(P.GroundSet, elt-> {elt, apply(select(P.cache.coveringRelations, rel -> rel#1 == elt), goodrel-> goodrel#0)})) 
@@ -358,9 +456,7 @@ meetIrreducibles Poset := P -> (
 
 adjoinMax = method()
 
-adjoinMax Poset := P -> (
-     adjoinMax(P,{1})
-     )
+adjoinMax Poset := P -> adjoinMax(P,{1});
 
 adjoinMax (Poset,Thing):= (P,a)->(
      G:=P.GroundSet | {a};
@@ -370,9 +466,7 @@ adjoinMax (Poset,Thing):= (P,a)->(
 
 adjoinMin = method()
 
-adjoinMin Poset := P -> (
-     adjoinMin(P,{0})
-     )
+adjoinMin Poset := P -> adjoinMin(P,{0});
 
 adjoinMin (Poset,Thing):= (P,a)->(
      G:=P.GroundSet | {a};

@@ -13,3 +13,17 @@ This can be called by specifying an optional argument in the function solve in t
 
 7/29/11
 Henry Duong
+
+
+Based on:
+URL: svn://svn.macaulay2.com/Macaulay2/trunk/M2
+Repository Root: svn://svn.macaulay2.com/Macaulay2
+Repository UUID: a8012f80-5f13-0410-8dc0-eb77bd940c0d
+Revision: 13313
+Node Kind: directory
+Schedule: normal
+Last Changed Author: dan
+Last Changed Rev: 13313
+Last Changed Date: 2011-07-04 14:24:15 -0400 (Mon, 04 Jul 2011)
+
+

@@ -504,6 +504,37 @@ doc ///
 ///;
 
 -----------------------------------
+-----------  FACTOR  --------------
+-----------------------------------
+
+doc ///
+  Key
+    phcFactor
+    (phcFactor,WitnessSet)
+  Headline
+    applies monodromy to factor a witness set into irreducible components
+  Usage
+    L = phcFactor(w)
+  Inputs
+    w:WitnessSet
+      properly embedded with slack variables
+  Outputs
+    L:List
+      a lists of witness sets, every element of the list is irreducible
+  Description
+    Text
+      A witness set is irreducible if there exists a path not passing
+      through a singularity between any two of its generic points.
+
+      We illustrate the factorization via the twisted cubic and a line.
+    Example
+      R = CC[x,y,z]; f = {(x^2-y)*(x-1), x^3 - z};
+      (w,ns) = topWitnessSet(f,1);
+      degree(w)
+      L = phcFactor(w)
+///;
+
+-----------------------------------
 -- cascade
 -----------------------------------
 

@@ -56,6 +56,7 @@ distributiveLattice (Poset):=P->(
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--Finished
 isConnected = method();
 isConnected (Poset):= P->(
 	J:=(maximalChains P)_0;
@@ -87,6 +88,7 @@ isConnected (Poset):= P->(
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--Finished
 isDistributive = method();
 isDistributive (Poset) := P->(
 	if not isLattice P then error "Poset must be a lattice";
@@ -140,6 +142,45 @@ cellularResolution (Poset):= P->(
 	Maps
 );
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Finished
+antichains = method();
+antichains (Poset) := P->(
+	L:=subsets(P.GroundSet);
+	G:={};
+	for i to #L-1 do(
+		if isAntichain(P,L_i) then G=append(G,L_i);
+	);
+	G
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+flagPoset = method();
+flagPoset (Poset,List) := (P,L)->(
+	G:=gradePoset(P);
+	Q:={};
+	for i to #L-1 do(
+		Q=append(Q,G_(L_i));
+	);
+	subPoset(P,flatten Q)
+);
+
+flagChains = method();
+flagChains (Poset,List):= (P,L)->(
+	maximalChains(flagPoset(P,L))
+);
+
+fvector = method();
+fvector (Poset) := P->(
+	G:=gradePoset(P);
+	v:={};
+	for i to #G-1 do(
+		v=append(v,#G_i);
+	);
+	v
+);
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

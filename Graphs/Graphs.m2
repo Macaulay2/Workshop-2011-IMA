@@ -42,9 +42,9 @@ export {Graph,
      foreFathers,     
      displayGraph,
      drawGraph,
-     showTikZ,
-     tikzGraph,
-     outTikzGraph,
+     showTikZ,--required DOT
+     texGraph,
+     outputTexGraph,
      simpleGraph,      
      removeNodes, 
      inducedSubgraph,
@@ -61,7 +61,8 @@ export {Graph,
      incidenceMatrix,
      reachable,
      floydWarshall,
-     collateVertices
+     collateVertices,
+     PDFViewer
      }
 exportMutable {dotBinary,jpgViewer}
 
@@ -489,36 +490,21 @@ showTikZ(Digraph) := opt -> G -> (
      get output
      )
 
-cleanName=(name)->(
-     namep:=replace("\\}","",replace("\\{","",toString name));
-     nameb:=replace("\\(","",replace("\\)","",namep));
-     replace("\\_","",replace("\\*","",nameb))
-     )
+texGraph = method();
 
-edgeLists=(L)->(
-     if any(L, l-> #l=!=2) then (
-	  error "Not a set of edges."
-	  )
-     else (
-	  apply(L, i-> concatenate(cleanName(first i),"/",cleanName(last i)))
-	  )
-     )
-
-
-tikzGraph = method();
-
-tikzGraph(Graph):=String=>(G)->(
-     V:=apply(vertices G, v-> cleanName(v));
+texGraph(Graph):=String=>(G)->(
+     V:=vertices G;
+     idx:=hashTable apply(#V, v-> V_v=> v);
      vertnum:=#V;
-     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
-     edgepairs:=apply(edges G,toList);
-     edgelist:=edgeLists(edgepairs);
+     vertpos:=apply(#V, i-> concatenate("(",toString (360*i/(#V)),":",toString 4,")"));
+     edgesG := apply(edges G, e-> toList e);
+     edgelist := apply(edgesG, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
      name:=temporaryFileName();
      fn:=openOut name;
      fn << "\\begin{tikzpicture}" << endl;
      fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
-           for v in toList(0..vertnum-1) do (
-     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+           for v in toList(0..#V-1) do (
+     		fn << concatenate("\\node [vertices] (",toString idx#(V_v),") at ",toString vertpos_v,"{};") << endl;
 	  	);
      fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
      fn << "      \\draw [-] (\\to)--(\\from);" << endl;
@@ -529,18 +515,19 @@ tikzGraph(Graph):=String=>(G)->(
      s
      )
 
-tikzGraph(Digraph):=String=>(G)->(
-     V:=apply(vertices G, v-> cleanName(v));
+texGraph(Digraph):=String=>(G)->(
+     V:=vertices G;
+     idx:=hashTable apply(#V, v-> V_v=> v);
      vertnum:=#V;
-     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
-     edgepairs:=apply(edges G,toList);
-     edgelist:=edgeLists(edgepairs);
+     vertpos:=apply(#V, i-> concatenate("(",toString (360*i/(#V)),":",toString 4,")"));
+     edgesG := apply(edges G, e-> toList e);
+     edgelist := apply(edgesG, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
      name:=temporaryFileName();
      fn:=openOut name;
      fn << "\\begin{tikzpicture}" << endl;
      fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
-           for v in toList(0..vertnum-1) do (
-     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+           for v in toList(0..#V-1) do (
+     		fn << concatenate("\\node [vertices] (",toString idx#(V_v),") at ",toString vertpos_v,"{};") << endl;
 	  	);
      fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
      fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
@@ -552,116 +539,77 @@ tikzGraph(Digraph):=String=>(G)->(
      )
 
 
-outTikzGraph = method();
+outputTexGraph = method();
 
-outTikzGraph(Graph,String):=String=>(G,name)->(
-     V:=apply(vertices G, v-> cleanName(v));
+
+outputTexGraph(Graph,Thing,Thing,String):=(G,r,s,name)->(
+     V:=vertices G;
+     idx:=hashTable apply(#V, v-> V_v=> v);
      vertnum:=#V;
-     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
-     edgepairs:=apply(edges G,toList);
-     edgelist:=edgeLists(edgepairs);
+     vertpos:=apply(#V, i-> concatenate("(",toString (360*i/(#V)),":",toString s,")"));
+     edgesG := apply(edges G, e-> toList e);
+     edgelist := apply(edgesG, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
      fn:=openOut name;
      fn << "\\documentclass[12pt]{article}"<< endl;
      fn << "\\usepackage{tikz}" << endl;
      fn << "\\begin{document}" << endl;
-     fn << "\\begin{tikzpicture}" << endl;
-     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
-           for v in toList(0..vertnum-1) do (
-     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
-	  	);
-     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
-     fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
-     fn << "\\end{tikzpicture}" << endl;
-     fn << "\\end{document}" << endl;
-     close fn;
-     get name
-     )
-
-outTikzGraph(Digraph,String):=String=>(G,name)->(
-     V:=apply(vertices G, v-> cleanName(v));
-     vertnum:=#V;
-     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString 4,")"));
-     edgepairs:=apply(edges G,toList);
-     edgelist:=edgeLists(edgepairs);
-     fn:=openOut name;
-     fn << "\\documentclass[12pt]{article}"<< endl;
-     fn << "\\usepackage{tikz}" << endl;
-     fn << "\\usetikzlibrary{arrows}" << endl;
-     fn << "\\begin{document}" << endl;
-     fn << "\\begin{tikzpicture}" << endl;
-     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
-           for v in toList(0..vertnum-1) do (
-     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
-	  	);
-     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
-     fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
-     fn << "\\end{tikzpicture}" << endl;
-     fn << "\\end{document}" << endl;
-     close fn;
-     get name
-     )
-
-
-outTikzGraph(Graph,Thing,Thing,String):=(G,r,s,name)->(
-     V:=apply(vertices G, v-> cleanName(v));
-     vertnum:=#V;
-     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString s,")"));
-     edgepairs:=apply(edges G,toList);
-     edgelist:=edgeLists(edgepairs);
-     fn:=openOut name;
-     fn << "\\documentclass[12pt]{article}"<< endl;
-     fn << "\\usepackage{tikz}"<< endl;
-     fn << "\\begin{document}"<< endl;
      fn << "\\begin{tikzpicture}" << endl;
      fn << concatenate("[scale=",toString r, ", vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
-           for v in toList(0..vertnum-1) do (
-     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+           for v in toList(0..#V-1) do (
+     		fn << concatenate("\\node [vertices] (",toString idx#(V_v),") at ",toString vertpos_v,"{};") << endl;
 	  	);
      fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
      fn << "      \\draw [-] (\\to)--(\\from);" << endl;
      fn << "\\end{tikzpicture}" << endl;
-     fn << "\\end{document}"<< endl;
+     fn << "\\end{document}" << endl;
      close fn;
      get name
      )
 
-outTikzGraph(Digraph,Thing,Thing,String):=(G,r,s,name)->(
-     V:=apply(vertices G, v-> cleanName(v));
+outputTexGraph(Digraph,Thing,Thing,String):=(G,r,s,name)->(
+     V:=vertices G;
+     idx:=hashTable apply(#V, v-> V_v=> v);
      vertnum:=#V;
-     vertpos:=apply(vertnum, i-> concatenate("(",toString (360*i/(# vertices G)),":",toString s,")"));
-     edgepairs:=apply(edges G,toList);
-     edgelist:=edgeLists(edgepairs);
+     vertpos:=apply(#V, i-> concatenate("(",toString (360*i/(#V)),":",toString s,")"));
+     edgesG := apply(edges G, e-> toList e);
+     edgelist := apply(edgesG, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
      fn:=openOut name;
      fn << "\\documentclass[12pt]{article}"<< endl;
-     fn << "\\usepackage{tikz}"<< endl;
-     fn << "\\usetikzlibrary{arrows}" << endl;
-     fn << "\\begin{document}"<< endl;
+     fn << "\\usepackage{tikz}" << endl;
+     fn << "\\begin{document}" << endl;
      fn << "\\begin{tikzpicture}" << endl;
      fn << concatenate("[scale=",toString r, ", vertices/.style={draw, fill=black, circle, inner sep=1pt}]") << endl;
-           for v in toList(0..vertnum-1) do (
-     		fn << concatenate("\\node [vertices] (",toString V_v,") at ",toString vertpos_v,"{};") << endl;
+           for v in toList(0..#V-1) do (
+     		fn << concatenate("\\node [vertices] (",toString idx#(V_v),") at ",toString vertpos_v,"{};") << endl;
 	  	);
      fn << concatenate("\\foreach \\to/\\from in ",toString edgelist) << endl;
      fn << "      \\draw [->, very thick] (\\to)--(\\from);" << endl;
      fn << "\\end{tikzpicture}" << endl;
-     fn << "\\end{document}"<< endl;
+     fn << "\\end{document}" << endl;
      close fn;
      get name
      )
 
-drawGraph=method()
-drawGraph(Graph):=(G)->(
-     name:=temporaryFileName();
-     outTikzGraph(G,1,4,concatenate(name,".tex"));
-     run concatenate("pdflatex ",name);
-     run concatenate("open ", replace("/tmp/","",name),".pdf");
+outputTexGraph(Graph,String):=String=>(G,name)->(
+     outputTexGraph(G,1,4,name)
      )
 
-drawGraph(Digraph):=(G)->(
+outputTexGraph(Digraph,String):=String=>(G,name)->(
+     outputTexGraph(G,1,4,name)
+     )
+
+drawGraph=method(Options =>{symbol PDFViewer=>"open"})
+
+drawGraph(Graph):=opts -> (G)->(
+     if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
      name:=temporaryFileName();
-     outTikzGraph(G,1,4,concatenate(name,".tex"));
-     run concatenate("pdflatex ",name);
-     run concatenate("open ", replace("/tmp/","",name),".pdf");
+     outputTexGraph(G,concatenate(name,".tex"));
+     run concatenate("pdflatex -output-directory /tmp ",name, " 1>/dev/null");
+     run concatenate(opts.PDFViewer," ", name,".pdf");
+     )
+
+drawGraph(Digraph):=opts -> (G)->(
+     drawGraph G
      )
 
 ------------------

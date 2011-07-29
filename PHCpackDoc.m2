@@ -480,6 +480,15 @@ doc ///
       and three generic points.  Observe that the value for the last
       coordinate of all points equals (or is close to) zero.
       This last coordinate corresponds to the added slack variable.
+ 
+      Often the solution of the embedded system leads to solutions
+      with nonzero slack variables as illustrated in the next example.
+    Example
+      R = CC[x,y,z]; f = { (x^2-y)*(x-1), (x^3 - z)*(y-1), (x*y - z)*(z-1) }
+      w = topWitnessSet(f,1)
+    Text
+      The example is constructed to contain not only the twisted cubic,
+      but also at least one isolated point.
 ///;
 
 -----------------------------------

@@ -86,7 +86,7 @@ Poset = new Type of HashTable
 
 poset = method()
 poset(List,List) := (I,C) ->( 
-    if (rank(transitiveClosure(I,C)) == #I) then
+    if (rank(transitiveClosure(I,C)) === #I) then
          (new Poset from {
 	      symbol GroundSet => I,
 	      symbol Relations => C,
@@ -1068,6 +1068,10 @@ intersectionLattice(List,Ring):=(L,R)-> (
      rel:=hyperplaneInclusions(G,R);
      poset(G,rel)
      )
+
+--In theory, should work on arrangements
+--of hypersurfaces.  In practice, throws an
+--error saying "antisymmetry fails."
 
 ----------------------------------------
 --Projectivize Arrangement

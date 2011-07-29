@@ -736,10 +736,15 @@ divisorPoset RingElement := Poset => m -> (
 --first element should divide second:
 
 divisorPoset (RingElement,RingElement):= Poset =>(m,n) -> (
-     P:=divisorPoset(n);
-     closedInterval(P,m,n)
+     if ring m === ring n then (
+	  if n % m === sub(0, ring m) then (
+     	       P:=divisorPoset(n);
+     	       closedInterval(P,m,n)
+     	       )
+	  else error "First monomial does not divide second."
+	  )
+     else error "Monomials must be in same ring."
      )
-
 
 makeMonomialFromDegree = (R, d) -> product apply(numgens R, i-> R_i^(d#i));
 

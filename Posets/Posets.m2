@@ -730,6 +730,17 @@ divisorPoset RingElement := Poset => m -> (
 	poset (Ground, Rels, RelsMatrix)
 	)
 
+--This should be fixed to compute this more cleverly, without computing
+--the entire poset.
+
+--first element should divide second:
+
+divisorPoset (RingElement,RingElement):= Poset =>(m,n) -> (
+     P:=divisorPoset(n);
+     closedInterval(P,m,n)
+     )
+
+
 makeMonomialFromDegree = (R, d) -> product apply(numgens R, i-> R_i^(d#i));
 
 allMultiDegreesLessThan = d -> (

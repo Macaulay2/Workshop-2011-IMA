@@ -24,8 +24,8 @@
 
 newPackage(
 	"SpaceCurvesMultiplierIdeals",
-    	Version => "0.1", 
-    	Date => "July 27, 2011",
+    	Version => "0.2", 
+    	Date => "July 29, 2011",
     	Authors => {
 	     {Name => "Zach Teitler"},
 	     {Name => "Bart Snapp"},
@@ -829,6 +829,7 @@ assert( (termIdeal(ideal{0_R})) == monomialIdeal 0_R )
 assert( (termIdeal(ideal{1_R})) == monomialIdeal 1_R )
 ///
 
+
 ---Test 7 - symbolicPowerCurveIdeal
 TEST ///
 needsPackage"SpaceCurvesMultiplierIdeals";
@@ -845,8 +846,8 @@ assert( (symbolicPowerCurveIdeal(I,0)) == ideal 1_R )
 assert( (symbolicPowerCurveIdeal(J,-1)) == ideal 1_R )
 ///
 
-----Test 8 - monomialSpaceCurveMultiplierIdeal 
 
+----Test 8 - monomialSpaceCurveMultiplierIdeal 
 TEST ///
 needsPackage"SpaceCurvesMultiplierIdeals";
 needsPackage"Dmodules"
@@ -861,32 +862,46 @@ I = affineMonomialCurveIdeal(R,{2,3,4})
 assert(monomialSpaceCurveMultiplierIdeal(R,{2,3,4},3/2) == multiplierIdeal(I,3/2))
 ///
 
-end
 
--- Test 1
--- Test some of the underlying routines
--- jumpingDenominators
--- potentialJumpingNumbers
+
+----Test 9 - Qinterval and potentialJumpingNumbers 
 TEST ///
-  needsPackage "Normaliz";
-  needsPackage "MonomialMultiplierIdeals";
-  debug MonomialMultiplierIdeals;
-  assert ( Qinterval( 3 , 4 , 5 ) === { 4/1 , 13/3 , 14/3 , 5/1 } );
-  assert ( Qinterval( 3 , 4.5 , 5 ) === { 14/3 , 5/1 } );
-  
-  R := QQ[x,y];
-  I := monomialIdeal( y^3 , y*x^2 , x^5 ) ;
-  assert ( sort jumpingDenominators(I) === { 3 , 5 } );
-  
-  assert ( potentialJumpingNumbers(I) === {2/3, 4/5, 1/1, 6/5, 4/3, 7/5, 8/5, 5/3, 9/5, 2/1} );
-  assert ( potentialJumpingNumbers(I , 3 , 4) === {3/1, 16/5, 10/3, 17/5, 18/5, 11/3, 19/5, 4/1} );
-  
-  -- A couple of "edge cases"
-  assert ( potentialJumpingNumbers(I , 0 , 1/2) === {} );
-  assert ( potentialJumpingNumbers(I , 1 , 1) === {1/1} );
+needsPackage "SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+assert ( Qinterval( 3 , 4 , 5 ) === { 4/1 , 13/3 , 14/3 , 5/1 } );
+assert ( Qinterval( 3 , 4.5 , 5 ) === { 14/3 , 5/1 } );
+R = QQ[x,y,z];
+assert( (jumpingDenominators sortedGens(R,{2,3,6})) === {1} )
+assert( (jumpingDenominators sortedGens(R,{4,5,11})) === {1,16} )
+assert( (potentialJumpingNumbers sortedGens(R,{2,3,6}) ) === {2/1} )
+assert( (potentialJumpingNumbers(sortedGens(R,{2,3,6}),1,5)) === {2/1,3/1,4/1,5/1} )
+assert( (potentialJumpingNumbers(sortedGens(R,{2,3,6}),1,1)) === {} )
+assert( (potentialJumpingNumbers sortedGens(R,{4,5,11})) === {21/16,11/8,23/16,3/2,25/16,13/8,27/16,7/4,29/16,15/8,31/16,2/1,33/16,17/8,35/16,9/4,37/16,19/8,39/16,5/2,41/16,21/8,43/16,11/4,45/16,23/8,47/16,3/1} )
 ///
 
-viewHelp assert
+
+----Test 10 - monomialSpaceCurveLCT
+TEST ///
+needsPackage "SpaceCurvesMultiplierIdeals";
+R = QQ[x,y,z];
+assert( (monomialSpaceCurveLCT(R,{2,3,4})) === 11/6 )
+assert( (monomialSpaceCurveLCT(R,{3,4,5})) === 13/9 )
+assert( (monomialSpaceCurveLCT(R,{3,4,11})) === 19/12 )
+///
+
+
+
+
+----Test 11 - monomialSpaceCurveJumpingNumbers
+TEST ///
+needsPackage "SpaceCurvesMultiplierIdeals";
+R = QQ[x,y,z];
+assert( (monomialSpaceCurveJumpingNumbers(R,{2,3,4})) == ({11/6,2/1},{ideal(z,y,x,x^2-z),ideal(-y^2+x*z,-x^2+z)}) )
+assert( (monomialSpaceCurveJumpingNumbers(R,{3,4,5})) == ({13/9,16/9,17/9,2/1,22/9,23/9,25/9,26/9,3/1},{ideal(z,y,x),ideal(z,y,x^2),ideal(z,y^2,x*y,x^2),ideal(-y^2+x*z,-y^2*z+x*z^2,x*y^2-x^2*z,-x^2*y+z^2,-x^3+y*z),ideal(-y^2*z+x*z^2,-y^3+x*y*z,-x*y^2+x^2*z,-x^2*y+z^2,-y^2*z^2+x*z^3,x*y^2*z-x^2*z^2,-x^2*y*z+z^3,-x^3*z+y*z^2,-x^3*z+y*z^2,-x^4+x*y*z),ideal(-y^2*z+x*z^2,-y^3+x*y*z,-x*y^2+x^2*z,y^2*z^2-x*z^3,x*y^2*z-x^2*z^2,-x^2*y*z+z^3,-x^3*z+y*z^2,-x^3*z+y*z^2,-x^3*y+x*z^2,-x^4+x*y*z),ideal(-y^2*z+x*z^2,-y^3+x*y*z,y^2*z^2-x*z^3,-x^2*y*z+z^3,-x^3*z+y*z^2,-x^2*y^2+y*z^2,-x^3*y+x*z^2,-x^2*y*z^2+z^4,-x^3*z^2+y*z^3,-x^5+z^3),ideal(-y^2*z+x*z^2,y^2*z^2-x*z^3,-x^2*y*z+z^3,-x^3*z+y*z^2,-y^4+x^2*z^2,-x*y^3+z^3,-x^2*y^2+y*z^2,-x^2*y*z^2+z^4,x^3*z^2-y*z^3,-x^4*y+x^2*z^2,-x^5+z^3),ideal(-y^4+2*x*y^2*z-x^2*z^2,-y^4*z+2*x*y^2*z^2-x^2*z^3,x*y^4-2*x^2*y^2*z+x^3*z^2,-x^2*y^3+x^3*y*z+y^2*z^2-x*z^3,-x^3*y^2+x^4*z+y^3*z-x*y*z^2,-x^5*z-x*y^3*z+3*x^2*y*z^2-z^4,-x^5*y-x*y^4+3*x^2*y^2*z-y*z^3,-x^6-x^2*y^3+3*x^3*y*z-x*z^3)}) )
+assert( (monomialSpaceCurveJumpingNumbers(R,{3,4,5},3/2,5/2)) == ({16/9,17/9,2/1,22/9},{ideal(z,y,x^2),ideal(z,y^2,x*y,x^2),ideal(-y^2+x*z,-y^2*z+x*z^2,x*y^2-x^2*z,-x^2*y+z^2,-x^3+y*z),ideal(-y^2*z+x*z^2,-y^3+x*y*z,-x*y^2+x^2*z,-x^2*y+z^2,-y^2*z^2+x*z^3,x*y^2*z-x^2*z^2,-x^2*y*z+z^3,-x^3*z+y*z^2,-x^3*z+y*z^2,-x^4+x*y*z)}) )
+///
+
+end
 
 restart
 installPackage "SpaceCurvesMultiplierIdeals"

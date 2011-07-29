@@ -85,26 +85,19 @@ needsPackage "Graphs"
 Poset = new Type of HashTable
 
 poset = method()
-poset(List,List) := (I,C) ->( 
-    if (rank(transitiveClosure(I,C)) === #I) then
-         (new Poset from {
-	      symbol GroundSet => I,
-	      symbol Relations => C,
-     	      symbol RelationMatrix => transitiveClosure(I,C),
-	      symbol cache => new CacheTable
-	      })
-    else error "antisymmetry fails"
-    )
+poset(List,List) := (I,C) -> poset(I, C, transitiveClosure(I, C));
 
 -- in case you actually have M to begin with 
 --used in LCMLattices   
-poset(List,List,Matrix) := (I,C,M) ->
+poset(List,List,Matrix) := (I,C,M) -> (
+    if rank M =!= #I then error("Antisymmetry fails");
      new Poset from {
 	  symbol GroundSet => I,
 	  symbol Relations => C,
 	  symbol RelationMatrix => M,
 	  symbol cache => new CacheTable
 	  }
+);
      
 -------------------------------------------
 -- UNDOCUMENTED NEW CODE 

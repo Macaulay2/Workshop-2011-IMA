@@ -2,7 +2,7 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.06", 
+  Version => "1.07", 
   Date => "29 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
@@ -254,14 +254,32 @@ pointsToFile (List,Ring,String) := o -> (S,R,name) -> (
   close file;
 ) 
 
+dimEmbedding = method(TypicalValue => ZZ)
+dimEmbedding (List) := (system) -> (
+  -- IN: embedded system with slack variables.
+  -- OUT: returns the number of slack variables = the dimension.
+  eR := ring first system;
+  v := vars eR;
+  slack := v_(#v-2)_0;
+  zz := toString(slack);
+  ds := substring(2,#zz-1,zz);
+  dimension := value(ds);
+  return dimension;
+)
+
 witnessSetFromFile = method(TypicalValue => WitnessSet)
 witnessSetFromFile (String) := (name) -> (
   -- IN: file name which contains a witness set in PHCpack format
   -- OUT: a witness set
-  f := systemFromFile(name); 
-  w := witnessSet(f,{},{});
+  e := systemFromFile(name); 
+  d := dimEmbedding(e);
+  witnessPointsFile := temporaryFileName() | "PHCwitnessPoints";
+  run(PHCexe|" -z " | name | " "|witnessPointsFile);
+  eR := ring first e;
+  g := parseSolutions(witnessPointsFile,eR);
+  w := witnessSet(ideal(take(e,{0,#e-d-1})),ideal(take(e,{#e-d,#e-1})),g);
   return w;
-);
+)
 
 -----------------------------
 ---  conversion to Point  ---
@@ -759,13 +777,15 @@ phcFactor (WitnessSet ) := w -> (
   stdio << "output of phc -f is in file " << PHCoutputFile << endl;
   -- counting the number of factors
   count := 0;
+  result := new MutableList from {};
   name := PHCinputFile | "_f" | toString(count+1);
   while (fileExists name) do (
+    result = append(result,witnessSetFromFile(name));
     count = count + 1;
     name = PHCinputFile | "_f" | toString(count+1);
   );
   stdio << "found " << count << " irreducible factors " << endl;
-  return {w}
+  return toList(result);
 )
 
 -----------------------------------------------

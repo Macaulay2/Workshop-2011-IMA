@@ -629,7 +629,7 @@ time m2PD = primaryDecomposition I;
 --- UNKNOWN - Takes a very long time.
 restart
 load "newGTZ.m2"
-R = ZZ/32003[a,b,c,d,e,f,h]
+R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
 I = ideal(
          a+b+c+d+e+f,
 	 a*b+b*c+c*d+d*e+e*f+a*f,
@@ -673,7 +673,7 @@ debug newGTZ
 path = prepend("~/M2/Macaulay2/packages", path)
 load "~/M2/Macaulay2/packages/ExampleIdeals.m2"
 loadPackage "ExampleIdeals"
-R = ZZ/32003[vars(0..8)];
+R = ZZ/32003[vars(0..8),MonomialOrder=>Lex];
 I = permanents(2, genericMatrix(R,3,3))
 time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 I = ideal flatten entries gens I
@@ -725,13 +725,14 @@ time m2PD = primaryDecomposition I;
 -- The GeneralPosition one does indeed run a lot faster though
 restart
 load "newGTZ.m2"
-R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
+R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l,MonomialOrder=>Lex]
 I = ideal "-2hjk + 4ef + bj + ak,
            -2hjl + 4eg + cj + al,
            -4fhj - 4ehk - djk + 2be + 2af,
            -4ghj - 4ehl - djl + 2ce + 2ag,
            -2dfj - 2dek + ab,
            -2dgj - 2del + ac"
+gens gb I
 time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 I = ideal flatten entries gens I
 time ourPD = newPD(I,Verbosity => 2);
@@ -746,7 +747,7 @@ time m2PD = primaryDecomposition I;
 TEST ///
 restart
 load "newGTZ.m2"
-R = ZZ/32003[x,y,z,t]
+R = ZZ/32003[x,y,z,t,MonomialOrder=>Lex]
 I = ideal(
    y^2*z+2*x*y*t-2*x-z,
    -x^3*z+4*x*y^2*z+4*x^2*y*t+2*y^3*t+4*x^2-10*y^2+4*x*z-10*y*t+2,

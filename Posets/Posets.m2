@@ -721,6 +721,7 @@ lcmLatticeProduceGroundSet = G -> (
 -- output: lattice of all monomials dividing m (and contained in I)
 
 divisorPoset = method()
+
 divisorPoset RingElement := Poset => m -> (
 	d := flatten exponents m;
 	Ground := apply(allMultiDegreesLessThan d, e -> makeMonomialFromDegree(ring m, e));
@@ -733,6 +734,7 @@ divisorPoset RingElement := Poset => m -> (
 --This should be fixed to compute this more cleverly, without computing
 --the entire poset.
 
+--This method takes a pair of monomials:
 --first element should divide second:
 
 divisorPoset (RingElement,RingElement):= Poset =>(m,n) -> (
@@ -745,6 +747,18 @@ divisorPoset (RingElement,RingElement):= Poset =>(m,n) -> (
 	  )
      else error "Monomials must be in same ring."
      )
+
+--This method takes a pair of exponent vectors a,b and computes divisorPoset x^a,x^b
+
+divisorPoset (List, List, PolynomialRing):= Poset => (m,n,R) -> (
+     if #m === #n and #n === numgens R then (
+	  M:=makeMonomialFromDegree(R,m);
+	  N:=makeMonomialFromDegree(R,n);
+	  divisorPoset(M,N)
+	  )
+     else error "Wrong number of variables in first or second entry."
+     )
+
 
 makeMonomialFromDegree = (R, d) -> product apply(numgens R, i-> R_i^(d#i));
 

@@ -22,7 +22,12 @@ export {
 	poset,
 	transitiveClosure,
 --
-    isConnected, isDistributive, antichains, flagPoset, flagChains, fvector,
+    isConnected,
+    isDistributive, 
+    antichains, 
+    flagPoset, 
+    flagChains, 
+    fvector,
     dualPoset, 
     gradeLattice, 
     isGraded, 
@@ -54,6 +59,7 @@ export {
 	minimalElements,
 	adjoinMax,
 	adjoinMin,
+    augmentPoset,
 	dropElements,
 	maximalChains,
 	orderComplex,
@@ -83,7 +89,8 @@ needsPackage "Graphs"
 
 Poset = new Type of HashTable
 
-poset = method()
+poset = method();
+poset List := C -> poset(unique flatten C, C);
 poset(List,List) := (I,C) -> poset(I, C, transitiveClosure(I, C));
 
 -- in case you actually have M to begin with 
@@ -98,106 +105,48 @@ poset(List,List,Matrix) := (I,C,M) -> (
 	  }
 );
      
+------------------------------------------
+-- UNDOCUMENTED NEW CODE 
 -------------------------------------------
--- UNDOCUMENTED NEW CODE: NEEDS CLEANING
--------------------------------------------
-
-isConnected = method();
-isConnected (Poset):= P->(
-	J:=(maximalChains P)_0;
-	counter:=1;
-    answer:=false;
-	while counter != 0 do(
-	counter=0;
-	for i to #P.GroundSet-1 do(
-		if not member(P.GroundSet_i,J) then{
-		for j to #P.Relations-1 do(
-			if P.GroundSet_i == P.Relations_j_0 and member(P.Relations_j_1,J) then{
-				J=append(J,P.GroundSet_i); 
-				counter = counter + 1;
-			};
-			if P.GroundSet_i == P.Relations_j_1 and member(P.Relations_j_0,J) then{
-				J=append(J,P.GroundSet_i); 
-				counter = counter + 1;
-			};
-		);
-		};
-	);
-	);
-	J=unique J;
-	if #J == #P.GroundSet then{
-			answer=true; 	
-	};
-	answer
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Finished
 isDistributive = method();
 isDistributive (Poset) := P->(
 	if not isLattice P then error "Poset must be a lattice";
-	J:=subsets(P.GroundSet);
-	G:={};
-	answer:=true;
-	for i to #J-1 do(
-		if #J_i == 3 then{
-			G=append(G,J_i);
-		};
-	);
-	for i to #G-1 do(
-		if answer!=false then{
-			if posetMeet(P,G_i_0,first posetJoin(P,G_i_1,G_i_2))!=posetJoin(P,first posetMeet(P,G_i_0,G_i_1),first posetMeet(P,G_i_0,G_i_2)) then{
-				answer=false;
-			};
-		};
-	);
-	answer
+    all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
 );
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Finished
 antichains = method();
-antichains (Poset) := P->(
-	L:=subsets(P.GroundSet);
-	G:={};
-	for i to #L-1 do(
-		if isAntichain(P,L_i) then G=append(G,L_i);
-	);
-	G
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
+antichains Poset := P-> select(subsets(P.GroundSet), s -> isAntichain(P, s));
 
 flagPoset = method();
-flagPoset (Poset,List) := (P,L)->(
-	G:=gradePoset(P);
-	Q:={};
-	for i to #L-1 do(
-		Q=append(Q,G_(L_i));
-	);
-	subPoset(P,flatten Q)
-);
+flagPoset (Poset, List) := (P, L)-> subPoset(P, flatten ((gradePoset P)_L));
 
 flagChains = method();
-flagChains (Poset,List):= (P,L)->(
-	maximalChains(flagPoset(P,L))
-);
+flagChains (Poset,List):= (P,L)-> maximalChains flagPoset(P,L);
 
 fvector = method();
-fvector (Poset) := P->(
-	G:=gradePoset(P);
-	v:={};
-	for i to #G-1 do(
-		v=append(v,#G_i);
-	);
-	v
+fvector (Poset) := P-> apply(gradePoset P, G -> #G);
+
+isConnected = method();
+isConnected (Poset):= P->(
+	J := first maximalChains P;
+	counter := 1;
+	while counter != 0 do (
+    	counter = 0;
+        J = join(J, 
+            flatten for v in P.GroundSet list (
+                if not member(v, J) then (
+                    for r in P.Relations list (
+                        if (v === first r and member(last r, J)) or (v === last r and member(first r, J)) then (
+                            counter = counter + 1; v 
+                        ) else continue
+                    )
+                ) else continue
+            )
+        );
+    );
+    #unique J == #P.GroundSet
 );
 
--------------------------------------------
--- UNDOCUMENTED NEW CODE 
--------------------------------------------
 incomparabilityGraph = method();
 incomparabilityGraph Poset := P -> (
     E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
@@ -310,7 +259,7 @@ gradePoset Poset := P->(
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, orderIdeal 
-indexElement := (P,A) -> position(P.GroundSet, i -> i == A);
+indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
 
 -- input:  a list, potentially with nulls
 -- output:  a list w/out nulls
@@ -471,6 +420,10 @@ adjoinMin (Poset,Thing):= (P,a)->(
      R:=P.Relations | apply(P.GroundSet, g-> {a,g});
      poset(G,R)
      )
+
+augmentPoset = method();
+augmentPoset Poset := P -> adjoinMin adjoinMax P;
+augmentPoset(Poset, Thing, Thing) := (P, a, b) -> adjoinMin(adjoinMax(P, b), a);
 
 
 --------------------------------------------------

@@ -135,9 +135,8 @@ affineMonomialCurveIdeal = (S, a) -> (
 
 ord = (mm,p) -> (
      R := ring p;
-     KK := coefficientRing R;
-     A := KK[gens R,Degrees=>mm];
-     min flatten apply(terms p, i -> degree sub(i,A))
+     degs := apply(listForm p, i-> first i);
+     min apply(degs, i -> sum apply(i,mm,times))
      );
 
 
@@ -731,24 +730,125 @@ Description
 ----------------------------------------------------------------------------------------------------
 
 
---FirstPackage#"test values" 
-
+---Test 0 - affineMonomialCurveIdeal
 TEST ///
-assert (
-     monomialSpaceCurveMultiplierIdeal
-     )
+needsPackage"SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+assert( (affineMonomialCurveIdeal(R,{2,3,4})) == ideal(y^2-x*z,x^2-z) )
+assert( (affineMonomialCurveIdeal(R,{5,8})) == ideal(x^8-y^5) )
+assert( (affineMonomialCurveIdeal(R,{1,1,1})) == ideal(y-z,x-z) )
 ///
 
+---Test 1 - ord
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+assert( (ord({2,3,4},z-x^2)) === 4 )
+assert( (ord({1,1,1},z*y+x-x^2)) === 1 )
+assert( (ord({0,0,0},(z*y+x-x^2)^2)) === 0 )
+assert( (ord({2,3,4},1+x)) === 0 )
+///
 
+---Test 2 - sortedGens
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+assert( {x^2-z,y^2-x*z} === (sortedGens(R,{2,3,4})) )
+assert( (sortedGens(R,{1,1,1})) === {y-z,x-z} )
+assert( (try sortedGens(R,{0,0,0}) else oops) === oops )
+///
 
+---Test 3 - exceptionalDivisorValuation
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+assert( (exceptionalDivisorValuation({2,3,4},{1,1,2},x)) === 1 )
+assert( (exceptionalDivisorValuation({2,3,4},{1,1,2},y)) === 1 )
+assert( (exceptionalDivisorValuation({2,3,4},{1,1,2},z)) === 2 )
+assert( (exceptionalDivisorValuation({2,3,4},{1,1,2},z-x^2)) === 2 )
+assert( (exceptionalDivisorValuation({2,3,4},{1,1,2},(z-x^2)^3*(x+y+z))) === 7 )
+assert( (exceptionalDivisorValuation({3,5,11},{7,1,2},x)) === 7 )
+assert( (exceptionalDivisorValuation({3,5,11},{7,1,2},y)) === 1 )
+assert( (exceptionalDivisorValuation({3,5,11},{7,1,2},z)) === 2 )
+assert( (exceptionalDivisorValuation({3,5,11},{7,1,2},x^2*y-z)) === 3 )
+assert( (exceptionalDivisorValuation({3,5,11},{7,1,2},(x^2*y-z)^2 * x * (y + z))) === 14 )
+///
 
+---Test 4 - monomialValuationIdeal
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+needsPackage "Normaliz";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y];
+assert( (monomialValuationIdeal(R,{2,3},6)) == monomialIdeal (x^3,x^2*y,y^2) )
+assert( (monomialValuationIdeal(R,{2,3},1)) == monomialIdeal (x,y) )
+assert( (monomialValuationIdeal(R,{2,3},0)) == monomialIdeal 1_R )
+assert( (monomialValuationIdeal(R,{2,3},-1)) == monomialIdeal 1_R )
+
+S = QQ[x,y,z];
+assert( (monomialValuationIdeal(S,{2,3,4},6)) == monomialIdeal (x^3,x^2*y,y^2,x*z,y*z,z^2) )
+assert( (monomialValuationIdeal(S,{3,4,5},9)) == monomialIdeal (x^3,x^2*y,x*y^2,y^3,x^2*z,y*z,z^2) )
+assert( (monomialValuationIdeal(S,{3,5,11},0)) == monomialIdeal 1_S )
+assert( (monomialValuationIdeal(S,{3,5,11},2)) == monomialIdeal (x,y,z) )
+///
+
+---Test 5 - exceptionalDivisorValuationIdeal
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+needsPackage "Normaliz";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+ff = sortedGens(R,{3,4,5});
+assert( (exceptionalDivisorValuationIdeal(R,ff,{1,1,2},6)) == ideal(z^3,y^2*z^2,x*y*z^2,x^2*z^2,y^3*z,x*y^2*z,y^4,x^3*y*z,x^4*z,x^2*y^3,x^3*y^2,x^5*y,x^6) )
+assert( (exceptionalDivisorValuationIdeal(R,ff,{2,3,4},3)) == ideal(z,y,x^2) )
+S = QQ[x,y,z];
+ff = sortedGens(S,{2,3,4});
+assert( ( exceptionalDivisorValuationIdeal(S,ff,{1,2,2},4)) == ideal(z^2,y*z,y^2,x^2*z,x^2*y,x^3-x*z) )
+assert( ( exceptionalDivisorValuationIdeal(S,ff,{2,3,4},6)) == ideal(z^2,y*z,x*z,y^2,x^2-z) )
+assert( ( exceptionalDivisorValuationIdeal(S,ff,{2,3,4},1)) == ideal(z,y,x) )
+assert( ( exceptionalDivisorValuationIdeal(S,ff,{1,2,2},6)) == ideal(z^3,y*z^2,y^2*z,y^3,x^2*z^2,x^2*y*z,x^3*z-x*z^2,x^2*y^2,x^3*y-x*y*z,x^4-2*x^2*z+z^2) )
+assert( ( exceptionalDivisorValuationIdeal(S,ff,{1,2,2},-1)) == ideal 1_S )
+assert( ( exceptionalDivisorValuationIdeal(S,ff,{1,2,2},0)) == ideal 1_S )
+///
+
+----------
+----Tests for monomialSpaceCurveMultiplierIdeal 
+----------
 
 end
+
+-- Test 1
+-- Test some of the underlying routines
+-- jumpingDenominators
+-- potentialJumpingNumbers
+TEST ///
+  needsPackage "Normaliz";
+  needsPackage "MonomialMultiplierIdeals";
+  debug MonomialMultiplierIdeals;
+  assert ( Qinterval( 3 , 4 , 5 ) === { 4/1 , 13/3 , 14/3 , 5/1 } );
+  assert ( Qinterval( 3 , 4.5 , 5 ) === { 14/3 , 5/1 } );
+  
+  R := QQ[x,y];
+  I := monomialIdeal( y^3 , y*x^2 , x^5 ) ;
+  assert ( sort jumpingDenominators(I) === { 3 , 5 } );
+  
+  assert ( potentialJumpingNumbers(I) === {2/3, 4/5, 1/1, 6/5, 4/3, 7/5, 8/5, 5/3, 9/5, 2/1} );
+  assert ( potentialJumpingNumbers(I , 3 , 4) === {3/1, 16/5, 10/3, 17/5, 18/5, 11/3, 19/5, 4/1} );
+  
+  -- A couple of "edge cases"
+  assert ( potentialJumpingNumbers(I , 0 , 1/2) === {} );
+  assert ( potentialJumpingNumbers(I , 1 , 1) === {1/1} );
+///
 
 viewHelp assert
 
 restart
 installPackage "SpaceCurvesMultiplierIdeals"
+check SpaceCurvesMultiplierIdeals
 viewHelp "SpaceCurvesMultiplierIdeals"
 uninstallPackage "SpaceCurvesMultiplierIdeals"
 debug loadPackage"SpaceCurvesMultiplierIdeals"

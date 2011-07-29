@@ -2,7 +2,7 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.05", 
+  Version => "1.06", 
   Date => "29 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
@@ -43,6 +43,7 @@ export {
   nonZeroFilter,
   phcEmbed,
   topWitnessSet,
+  phcFactor,
   cascade
 }
 
@@ -85,7 +86,9 @@ getFilename = () -> (
 systemToFile = method(TypicalValue => Nothing)
 systemToFile (List,String) := (F,name) -> (
   file := openOut name;
-  file << #F << " " << numgens ring F#0 << endl;
+  if (#F == numgens ring F#0)
+   then file << #F << endl
+   else file << #F << " " << numgens ring F#0 << endl;
   scan(F, f->( 
     L := toExternalString f;
     L = replace("ii", "I", L);
@@ -224,9 +227,36 @@ solutionsToFile (List,Ring,String) := o -> (S,R,name) -> (
   close file;
 ) 
 
-----------------------------------
---- conversion to Point        ---
-----------------------------------
+pointsToFile = method(TypicalValue => Nothing, Options => {Append => false})
+pointsToFile (List,Ring,String) := o -> (S,R,name) -> (
+  -- writes list of points to file in PHCpack format
+  -- IN: S, list of points, e.g.: obtained as points(WitnessSet);
+  --     R, ring (with symbols for the variables);
+  --     name, string with file name.
+  file := if o.Append then openOutAppend name else openOut name;
+  if o.Append then 
+    file << endl << "THE SOLUTIONS :" << endl;
+  file << #S << " " << numgens R << endl << 
+  "===========================================================" << endl;
+  scan(#S, i->( 
+    file << "solution " << i << " :" << endl <<
+    "t :  0.00000000000000E+00   0.00000000000000E+00" << endl <<
+    "m :  1" << endl <<
+    "the solution for t :" << endl;
+     scan(numgens R, v->(
+       L := " "|toString R_v|" :  "|
+       format(0,-1,9,9,realPart toCC S#i#v)|"  "|
+       format(0,-1,9,9,imaginaryPart toCC S#i#v);
+       file << L << endl; 
+    ));
+    file <<  "== err :  0 = rco :  1 = res :  0 ==" << endl;
+  ));
+  close file;
+) 
+
+-----------------------------
+---  conversion to Point  ---
+-----------------------------
 
 outputToPoint = method()
 outputToPoint HashTable := (H)->{
@@ -684,8 +714,41 @@ topWitnessSet (List,ZZ) := (system,dimension) -> (
   ns := nonZeroFilter(s,#e-1,1.0e-10);
   stdio << "... constructing a witness set ... " << endl;
   w := witnessSet(ideal(take(e,{0,#e-dimension-1})),
-                 ideal(take(e,{#e-dimension,#e-1})),g);
+                  ideal(take(e,{#e-dimension,#e-1})),g);
   return (w,ns);
+)
+
+-----------------------------------
+-----------  FACTOR  --------------
+-----------------------------------
+
+phcFactor = method(TypicalValue=>List)
+phcFactor (WitnessSet ) := w -> (
+  -- IN: a witness set properly embedded with slack variables.
+  -- OUT: a list of witness sets, every element is irreducible.
+  PHCinputFile := temporaryFileName() | "PHCinput";
+  PHCoutputFile := temporaryFileName() | "PHCoutput";
+  PHCbatchFile := temporaryFileName() | "PHCbatch";
+  PHCsessionFile := temporaryFileName() | "PHCsession";
+  stdio << "preparing input file to " << PHCinputFile << endl;
+  system := equations(w) | slice(w); 
+  systemToFile(system,PHCinputFile);
+  R := ring first system;
+  L := toList(points(w));
+  pointsToFile(L,R,PHCinputFile,Append=>true);
+  stdio << "preparing batch file to " << PHCbatchFile << endl;
+  s := concatenate("2\n",PHCinputFile); -- option 2 of phc -f
+  s = concatenate(s,"\n",PHCoutputFile);
+  s = concatenate(s,"\n1\n"); -- use monodromy to factor
+  s = concatenate(s,"0\n");   -- default settings of path trackers
+  bat := openOut PHCbatchFile;
+  bat << s;
+  close bat;
+  stdio << "... calling monodromy breakup ..." << endl;
+  run(PHCexe|" -f < " | PHCbatchFile | " > " | PHCsessionFile);
+  stdio << "session information of phc -f is in " << PHCsessionFile << endl;
+  stdio << "output of phc -f is in file " << PHCoutputFile << endl;
+  return {w}
 )
 
 -----------------------------------------------

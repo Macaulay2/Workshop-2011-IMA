@@ -2431,9 +2431,11 @@ P2 = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e
 R = QQ[x,y,z,w];
 I = ideal(x^2, y^2, z^2);
 L = lcmLattice I;
-assert( (coveringRelations P1) === {(h,i),(i,j),(i,k)} )
-assert( (coveringRelations P2) === {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)});
-assert( (coveringRelations L) == {(1,z^2),(1,y^2),(1,x^2),(z^2,y^2*z^2),(z^2,x^2*z^2),(y^2,y^2*z^2),(y^2,x^2*y^2),(y^2*z^2,x^2*y^2*z^2),(x^2,x^2*z^2),(x^2,x^2*y^2),(x^2*z^2,x^2*y^2*z^2),(x^2*y^2,x^2*y^2*z^2)} )
+assert( (coveringRelations P1) === {{h,i},{i,j},{i,k}} )
+assert( (coveringRelations P2) === {{a,b},{a,c},{a,d},{b,e},{c,e},{c,f},{d,f},{e,g},{f,g}} )
+assert( (coveringRelations L) == 
+        {{1,z^2}, {1,y^2}, {1,x^2}, {z^2,y^2*z^2}, {z^2,x^2*z^2}, {y^2,y^2*z^2}, {y^2,x^2*y^2}, {y^2*z^2,x^2*y^2*z^2}, {x^2,x^2*z^2}, {x^2,x^2*y^2},
+        {x^2*z^2,x^2*y^2*z^2}, {x^2*y^2,x^2*y^2*z^2}} )
 ///
 
 -- TEST 13

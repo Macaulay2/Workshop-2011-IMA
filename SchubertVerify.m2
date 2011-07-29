@@ -5,3 +5,11 @@
  T=schubertCycle({1,0,0},F)
  T^7
 T^7* schubertCycle({2,1,0},F)*schubertCycle({1,1,0},F)
+
+
+-----
+restart
+loadPackage "LRcheckergame";
+
+playCheckers({2,1},{1,1},3,6)
+

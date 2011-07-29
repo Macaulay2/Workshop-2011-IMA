@@ -21,11 +21,13 @@ newPackage(
      DebuggingMode => true
      )
 
-------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
 -- ADDING gaussian undirected stuff during the IMA-2011 workshop...
 -- we have tried to comment most changes in the code. some minor (but fundamental) changes to other methods have 
 -- been thorougly documented on the WIKI!
-
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------
 -- Algebraic Statistics in Macaulay2
@@ -111,14 +113,14 @@ export {bidirectedEdgesMatrix,
        pairMarkov, 
        trekIdeal, 
        trekSeparation,
-       VariableName,-- used in markovRing
+       VariableName,-- still used in markovRing; removed from gaussianRing
        sVariableName,
        kVariableName,
        lVariableName,
        pVariableName,
        gaussianVanishingIdeal,
        undirectedEdgesMatrix,
-       numberOfEliminationVariables, --entry stored inside gaussianRing
+       numberOfEliminationVariables, --entry stored inside gaussianRing. not used anywhere. delete?or document?
        conditionalIndependenceIdeal
 	} 
      
@@ -480,8 +482,8 @@ markovIdeal(Ring,Digraph,List) := (R,G,Stmts) -> (
 
 -- NOTE: ALL THE FUNCTIONS BELOW ARE DECLARED GLOBAL INSTEAD OF LOCAL
 -- FOR THE REASON THAT LOCAL DEFINITIONS WOULD INEXPLICABLY 
--- CREATE ERRORS.
-     
+-- CREATE ERRORS. --Amelia? Luis?
+      
 -- cartesian ({d_1,...,d_n}) returns the cartesian product 
 -- of {0,...,d_1-1} x ... x {0,...,d_n-1}
 cartesian = (L) -> (
@@ -522,9 +524,12 @@ prob = (R,s) -> (
 -- gaussianRing    --
 ---------------------
 
--- TO DO: 26JULY2011 
--- make all gaussianRing methods take specific variablenames as optional inputs, NOT as one long list.
---DONE 28july2011 ---sonja.
+
+------------------------------------------------------------------------------------------------------------------------------
+-- QUESTION: how come markovRing is smart, and stores a hashtable markovRingList so as to not re-create rings, 
+-- 	     and gaussianRing does not do that? 
+--     	    Should this be fixed?      	    	 --- Sonja 28jul2011
+ ------------------------------------------------------------------------------------------------------------------------------
 gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
 	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
@@ -546,7 +551,6 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      -- Input is a Digraph G, 
      -- we read off the list of labels from the vertices.
      -- This is done to avoid any ordering confusion. 
-     --s := if instance(opts.VariableName,Symbol) then opts.VariableName else opts.VariableName#0;
      s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
      kk := opts.Coefficients;
      vv := sort vertices G; 
@@ -557,6 +561,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
      R.digraph = G; ---THIS IS NEW --- TO BE MERGED FOR FUNCTIONALITY! --- sonja 28july2011
+     	       	    --merged in covarianceMatrix(Ring,Digraph), 
      R
      )
 
@@ -566,12 +571,30 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 
 covarianceMatrix = method()
 covarianceMatrix(Ring) := Matrix => (R) -> (
-       --this is used when the gaussianRing has no graph attached to it; i.e. it was created using 
-       -- gaussianRing ZZ
        if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
+       --if R#?digraph then (
+	--   D := R#digraph;	   
+	--this should really take the labels from D, right? 
+	--NO: but i don't have to worry about it, because R is assumed to have been created from D. 
+	--no problem here. The problem is in the call with (Ring,Digraph). See below.
+	--   )
+       --else (
+       -- Note that this method also works when 
+       -- the gaussianRing R has no graph attached to it; i.e. it was created using gaussianRing ZZ.
        n := R#gaussianRing; 
-       genericSymmetricMatrix(R,n))
-covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> covarianceMatrix R
+       genericSymmetricMatrix(R,n)--)
+  )
+covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> (-- covarianceMatrix R  --this method needs to be updated to *stop ignoring* g.
+     if not sort vertices R#digraph  === sort vertices g then error "vertex labels of digraph do not match labels in ring"; 
+     --  I DON'T WANT THIS MESSAGE, OR DO I? can't i just embed in a bigger ring? 
+     --if not, then make sure that there is an example in the documentation that explains this.
+     )
+------------------------------------------------------------------------------------------------------------------------------
+------ QUESTION: how come this method IGNORES the digraph!? 
+-------        What if the digraph g is a proper subgraph of R.digraph???? is the answer then wrong? YES- SEE EXAMPLE FILE!
+------	   	     ---Sonja (28-29july2011)
+------------------------------------------------------------------------------------------------------------------------------
+
 
 ----------------------
 --- gaussianMinors ---
@@ -601,7 +624,9 @@ gaussianMinors(Digraph,Matrix,List) :=  Ideal => (G,M,Stmt) -> (
 -- ///
 
 
--- THIS WILL BE CHANGED TO MATCH CONDITIONALINDEPENDENCEIDEAL! -- 28.july2011.
+------------------------------------------------------------------------------------------------------------------------------
+-- THe following WILL BE CHANGED TO MATCH CONDITIONALINDEPENDENCEIDEAL! -- 28.july2011.
+------------------------------------------------------------------------------------------------------------------------------
 ---------------------
 --- gaussianIdeal ---
 ---------------------
@@ -680,8 +705,8 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
 
 
 
-----------------------------------------------------------------------------------
-----------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------
 -- Gaussian undirected graphs  --
@@ -724,6 +749,10 @@ covarianceMatrix (Ring,Graph) := (R,g) -> (
      SM := mutableMatrix(R,n,n);
      scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
      matrix SM) 
+------------------------------------------------------------------------------------------------------------------------------
+     --QUESTION: CAN this matrix SM not be obtained via generic symmetric matrix command as in the digraph case???
+     --	    	 Sonja 29july2011
+------------------------------------------------------------------------------------------------------------------------------
 
 gaussianVanishingIdeal=method()
 gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
@@ -766,7 +795,7 @@ globalMarkov Graph := List => (G) ->(
      AX := subsets vertices G;
      AX = drop(AX,1); -- drop the empty set
      AX = drop(AX,-1); -- drop the entire set
-     -- product should apply * to entire list and * of sets is intersection!
+     -- product should apply * to entire list. note that  * of sets is intersection.
      statements:=apply(AX,A->( 
 	  B:=product apply(A, v-> nonneighbors(G,v) ); --this is the list of all B's 
      	  C:= (vertices G) - set A - B ;
@@ -812,6 +841,8 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      g := G;
      if not R#?graph then (
      if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
+     	  --WAIT A MINUTE: WHAT HAPPENS HERE? if there is no graph in R but labels match, nothing gets executed?!?! what am i missing?
+	  --  	   Sonja 29july2011
      )
      else(
      if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
@@ -821,17 +852,9 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      conditionalIndependenceIdeal (R,Stmts))
      )
 
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
 
-
---trekIdeal (Ring,MixedGraph,List) := Ideal => (R,g,Stmts) -> (
---     vv := sort vertices g;
---     SM := covarianceMatrix(R,g);	
---     sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x))))))
-
- 
- 
-----------------------------------------------------------------------------------
-----------------------------------------------------------------------------------
 
 
 ------------------------------

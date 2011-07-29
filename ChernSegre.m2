@@ -12,26 +12,55 @@ newPackage(
 
 
 export {segreClass}
-segreClass = method(typicalValue => RingElement);
-segreClass Ideal := I -> (
-     
+segreClass = method(TypicalValue => RingElement);
+segreClass Ideal := I -> (     
      checkUserInput I; 
      I = prepare I;
      (s,ambientDim) := internalSegre I;
      out := output (s,ambientDim);
-     
      return out
      )
+segreClass (Ideal, Symbol) := (I,H) -> (
+     checkUserInput I;
+     I = prepare I;
+     (s, ambientDim) := internalSegre I;
+     out := output (s, ambientDim, H);
+     return out
+     )
+segreClass ProjectiveVariety := P -> (
+     I := P.ring.ideal;
+     checkUserInput I; 
+     I = prepare I;
+     (s,ambientDim) := internalSegre I;
+     out := output (s,ambientDim);
+     return out
+     )
+segreClass (ProjectiveVariety,Symbol) := (P,H) -> (
+     I := P.ring.ideal;
+     checkUserInput I;
+     I = prepare I;
+     (s, ambientDim) := internalSegre I;
+     out := output (s, ambientDim, H);
+     return out
+     )
+     
+
+     
 
 
 export {segreClassList}
 segreClassList = method(TypicalValue => List);
 segreClassList Ideal := I -> (
-     
      checkUserInput I;
      I = prepare I;
      (s,ambientDim) := internalSegre I;
-     
+     return s
+     )
+segreClassList ProjectiveVariety := P -> (
+     I := P.ring.ideal;
+     checkUserInput I;
+     I = prepare I;
+     (s,ambientDim) := internalSegre I;
      return s
      )
 
@@ -40,25 +69,54 @@ segreClassList Ideal := I -> (
 export {chernClass}
 chernClass = method(TypicalValue => RingElement);
 chernClass Ideal := I -> (
-     
      checkUserInput I; 
      I = prepare I;
      (c,ambientDim) := internalChern I;
      out := output (c,ambientDim);
-     
      return out
      )
+chernClass (Ideal, Symbol) := (I,H) -> (
+     checkUserInput I;
+     I = prepare I;
+     (c, ambientDim) := internalChern I;
+     out := output (c, ambientDim, H);
+     return out;
+     )
+chernClass ProjectiveVariety := P -> (
+     I := P.ring.ideal;
+     checkUserInput I; 
+     I = prepare I;
+     (c,ambientDim) := internalChern I;
+     out := output (c,ambientDim);
+     return out
+     )
+chernClass (ProjectiveVariety, Symbol) := (P,H) -> (
+     I := P.ring.ideal;
+     checkUserInput I;
+     I = prepare I;
+     (c, ambientDim) := internalChern I;
+     out := output (c, ambientDim, H);
+     return out;
+     )
+
+
 
 export {chernClassList}
 chernClassList = method(TypicalValue => List);
 chernClassList Ideal := I -> (
-     
      checkUserInput I;
      I = prepare I;
-     (c,ambientDim) := internalSegre I;
-     
+     (c,ambientDim) := internalChern I;
      return c
      )
+chernClassList ProjectiveVariety := P -> (
+     I := P.ring.ideal;
+     checkUserInput I;
+     I = prepare I;
+     (c,ambientDim) := internalChern I;
+     return c
+     )
+
 
 
  
@@ -116,6 +174,10 @@ internalSegre = I -> (
      
      )
 
+
+
+
+
 internalChern = I -> (
      
      -- Obtain:
@@ -169,8 +231,9 @@ internalChern = I -> (
 
      return (c,ambientDim);
      
-     
      )
+
+
 
 
 checkUserInput = I -> (
@@ -184,6 +247,8 @@ checkUserInput = I -> (
      -- Is the coefficientRing a field (to make dimension command work)?
      if not isField coefficientRing ring I then error "The coefficient ring needs to be a field.";
      )
+
+
 
 prepare = I -> (
      
@@ -200,13 +265,33 @@ prepare = I -> (
      return I;
      )
 
-output = (s,ambientDim) -> (
+
+
+
+output = method(TypicalValue => RingElement)
+output (List,ZZ) := (s,ambientDim) -> (
      H := symbol H;
-     outputRing := ZZ[H]/H^ambientDim;
+     -- produces the ring ZZ[H]/(H^ambientDim+1)
+     tempRing := ZZ[H];
+     tempIdeal := ideal((tempRing_0)^(ambientDim+1));
+     outputRing := tempRing / tempIdeal;
+     
      dim := #s-1;
      out := sum(0..dim, i -> s_i * H^(ambientDim - dim + i));
      return out
      )
+output (List, ZZ, Symbol) := (s,ambientDim,H) -> (
+     -- produces the ring ZZ[H]/(H^ambientDim+1)
+     tempRing := ZZ[H];
+     tempIdeal := ideal((tempRing_0)^(ambientDim+1));
+     outputRing := tempRing / tempIdeal;
+     
+     dim := #s-1;
+     out := sum(0..dim, i -> s_i * (outputRing_0)^(ambientDim - dim + i));
+     return out
+     )
+
+
 
 
 beginDocumentation()

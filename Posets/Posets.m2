@@ -5,7 +5,7 @@ needsPackage "Graphs"
 
 newPackage(
 	"Posets",
-    	Version => "0.2.1", 
+    	Version => "1.0", 
     	Date => "26. July 2011",
     	Authors => {
 	     {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -21,7 +21,6 @@ export {
 	Poset,
 	poset,
 	transitiveClosure,
---
     isConnected,
     isDistributive, 
     antichains, 

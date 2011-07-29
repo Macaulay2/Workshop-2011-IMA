@@ -597,6 +597,11 @@ toE (RingElement) := (f) -> (
      (
 	  if not R.?schurLevel then f else
 	  if R.schurLevel>1 then terms f/(i->(toE leadCoefficient i*(mapSymToE leadMonomial i)))//sum
+{*	  if R.schurLevel>1 then 
+	  (
+	       f = mapSymToE f;
+	       terms f/(i->(toE leadCoefficient i * leadMonomial i))//sum
+	       )*} -- this is much slower..
 	  else mapSymToE f
 	  )
      )
@@ -612,6 +617,11 @@ toP (RingElement) := (f) -> (
      (
 	  if not R.?schurLevel then f else
 	  if R.schurLevel>1 then terms f/(i->(toP leadCoefficient i*(mapSymToP leadMonomial i)))//sum
+{*	  if R.schurLevel>1 then 
+	  (
+	       f = mapSymToP f;
+	       terms f/(i->(toP leadCoefficient i * leadMonomial i))//sum
+	       )*}
 	  else mapSymToP f
 	  )
      )
@@ -627,6 +637,11 @@ toH (RingElement) := (f) -> (
      (
 	  if not R.?schurLevel then f else
 	  if R.schurLevel>1 then terms f/(i->(toH leadCoefficient i*(mapSymToH leadMonomial i)))//sum
+{*	  if R.schurLevel>1 then 
+	  (
+	       f = mapSymToH f;
+	       terms f/(i->(toH leadCoefficient i * leadMonomial i))//sum
+	       )*}
 	  else mapSymToH f
 	  )
      )
@@ -3314,6 +3329,10 @@ installPackage"SchurRings"
 check SchurRings
 viewHelp SchurRings
 
+restart
+loadPackage"SchurRings"
+time R = symmRing 40
+time toS h_1^40;
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"
 -- End:

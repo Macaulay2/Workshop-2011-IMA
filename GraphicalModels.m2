@@ -830,7 +830,11 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	     -- Add material that will compute the conditional independence
 	     -- ideal of a list of statements
 	     -- this will come from what is currently markovIdeal(R,G,Stmts)
-	     -- but I would like that command changed so that 
+	     -- but I would like that command changed so that the graph is 
+	     -- embedded in the ring, and there could be two versions of the 
+	     -- method, one that takes (R,Stmts) and one the does (R,G), where
+	     -- the graph does not have to match the graph which was used
+	     -- in the definition of the ring
 	     )
      )
 
@@ -839,16 +843,14 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      g := G;
      if not R#?graph then (
-     if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
-     	  --WAIT A MINUTE: WHAT HAPPENS HERE? if there is no graph in R but labels match, nothing gets executed?!?! what am i missing?
-	  --  	   Sonja 29july2011
+     	  if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
+     	  Stmts := globalMarkov G; 
+     	  conditionalIndependenceIdeal (R,Stmts)
      )
      else(
-     if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
-     Stmts := pairMarkov G; 
-     -- TO DO HERE::::
-     -- the line above should be globalMarkov but that is not finished yet b/c it does not remove redundancies correctly!!!
-     conditionalIndependenceIdeal (R,Stmts))
+     	  if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
+     	  Stmts := globalMarkov G; 
+     	  conditionalIndependenceIdeal (R,Stmts))
      )
 
 ------------------------------------------------------------------------------------------------------------------------------

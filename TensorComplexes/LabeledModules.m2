@@ -458,7 +458,7 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
   d1 := if w_1>0 then 1 else b_1;
   r1 := # select(w, wj -> wj < d1);
   if r1>2 then error "r1>2 is a case we can't handle";
-  if n === 0 then return f;
+  if n === 0 or n===1 and r1 ===1 then return f;
   if n === 1 and r1 === 2
       then return map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d1}),{{det matrix f}});
 
@@ -484,7 +484,7 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
     perm := {};
     if r1==2 then perm = join({2*n-2, 2*n-1}, toList(0..n-2), 
       flatten apply(n-1, j -> {j+n-1, j+2*n}))
-    else  perm ={2*n}|toList(0..n-1)|flatten apply(n, j -> {j+n, j+2*n+1}));
+    else  perm ={2*n}|toList(0..n-1)|flatten apply(n, j -> {j+n, j+2*n+1});
     G3factors := G1factors_perm;
     G3 := tensorProduct G3factors;
     -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
@@ -507,7 +507,7 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
 
     minMap := minorsMap(f, tensorProduct(G3a, G4b));
     g4 := minMap ** symMultMap;
-    map(F0, F1 ** labeledModule S^{ -d1}, g4 * g3 * g2 * g1 * g0)))
+    map(F0, F1 ** labeledModule S^{ -d1}, g4 * g3 * g2 * g1 * g0))
 
 hyperdeterminant = method()
 hyperdeterminant LabeledModuleMap := f -> (
@@ -824,7 +824,7 @@ f=flattenedESTensor({4,1,2,1},kk);
 assert(betti res coker matrix tensorComplex1 f==BD)
 f = flattenedGenericTensor({3,3},kk)
 assert( (betti res coker tensorComplex1 f) === new BettiTally from {(1,{3},3) => 1, (0,{0},0) => 1} )
-
+f = flattenedGenericTensor({3,2,2},kk)
 assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1,2}))
 ///
 

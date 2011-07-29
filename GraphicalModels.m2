@@ -591,7 +591,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R#gaussianRing = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
-     R.digraph = G; ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
+     R.graph = G; ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
      gaussianRingList#((kk,s,vv)) = R;); 
      gaussianRingList#((kk,s,vv))
      )
@@ -841,8 +841,8 @@ conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if R#?gaussianRing then (
-        if R#?graph then (
-	   g := R#graph;
+        if R.?graph then (
+	   g := R.graph;
            vv := sort vertices g;
            SM := covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 
@@ -863,7 +863,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	     )
      )
 
----  Need to make a conditional independence ideal command that goes (R,List,List)
+
 
 conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
      if not R.?markov then error "expected a ring created with gaussianRing or markovRing";
@@ -876,16 +876,32 @@ conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
 conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      g := G;
-     if not R#?graph then (
+     if not R.?graph then (
      	  if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
      	  Stmts := globalMarkov G; 
      	  conditionalIndependenceIdeal (R,Stmts)
      )
      else(
-     	  if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
+     	  if not sort (vertices (R.graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
      	  Stmts = globalMarkov G; 
      	  conditionalIndependenceIdeal (R,Stmts))  -- Need to make a pass to the version that goes (R,List,List)
      )
+
+
+conditionalIndependenceIdeal (Ring,Digraph) := Ideal => (R,G) ->(
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     g := G;
+     if not R.?graph then (
+     	  if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
+     	  Stmts := globalMarkov G; 
+     	  conditionalIndependenceIdeal (R,Stmts)
+     )
+     else(
+     	  if not sort (vertices (R.graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
+     	  Stmts = globalMarkov G; 
+     	  conditionalIndependenceIdeal (R,Stmts))  -- Need to make a pass to the version that goes (R,List,List)
+     )
+
 
 ------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------

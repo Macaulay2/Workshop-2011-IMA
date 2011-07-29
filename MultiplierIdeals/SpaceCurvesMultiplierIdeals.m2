@@ -310,9 +310,11 @@ exceptionalDivisorValuationIdeal = (R,ff,mm,val) -> (
 -- Output:
 --  * monomialIdeal
 
-termIdeal = I -> monomialIdeal flatten apply(flatten entries gens I, i -> terms i);
-
-
+termIdeal = I -> (
+     R := ring I;
+     if I == ideal 0_R then return monomialIdeal 0_R else
+     return monomialIdeal flatten apply(flatten entries gens I, i -> terms i)
+     );
 
 -- symbolicPowerCurveIdeal
 --
@@ -815,9 +817,49 @@ assert( ( exceptionalDivisorValuationIdeal(S,ff,{1,2,2},-1)) == ideal 1_S )
 assert( ( exceptionalDivisorValuationIdeal(S,ff,{1,2,2},0)) == ideal 1_S )
 ///
 
-----------
-----Tests for monomialSpaceCurveMultiplierIdeal 
-----------
+---Test 6 - termIdeal
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+assert( (termIdeal(ideal{y^2-x^3})) == monomialIdeal (x^3,y^2) )
+assert( (termIdeal(ideal{y^2-x^3,(x-y)^3})) == monomialIdeal (x^3,x^2*y,y^2) )
+assert( (termIdeal(ideal{y^2-x^3,x*y*z+1})) == monomialIdeal 1_R )
+assert( (termIdeal(ideal{0_R})) == monomialIdeal 0_R )
+assert( (termIdeal(ideal{1_R})) == monomialIdeal 1_R )
+///
+
+---Test 7 - symbolicPowerCurveIdeal
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+debug SpaceCurvesMultiplierIdeals;
+R = QQ[x,y,z];
+I = affineMonomialCurveIdeal(R,{2,3,4})
+J = affineMonomialCurveIdeal(R,{3,4,5})
+assert(symbolicPowerCurveIdeal(I,3) == I^3)
+assert(symbolicPowerCurveIdeal(J,3) != J^3)
+assert(symbolicPowerCurveIdeal(J,1) == J)
+assert( (symbolicPowerCurveIdeal(J,2)) == ideal(y^4-2*x*y^2*z+x^2*z^2,x^2*y^3-x^3*y*z-y^2*z^2+x*z^3,x^3*y^2-x^4*z-y^3*z+x*y*z^2,x^5+x*y^3-3*x^2*y*z+z^3) )
+assert( (symbolicPowerCurveIdeal(J,4)) == ideal(y^8-4*x*y^6*z+6*x^2*y^4*z^2-4*x^3*y^2*z^3+x^4*z^4,x^2*y^7-3*x^3*y^5*z+3*x^4*y^3*z^2-x^5*y*z^3-y^6*z^2+3*x*y^4*z^3-3*x^2*y^2*z^4+x^3*z^5,x^3*y^6-3*x^4*y^4*z+3*x^5*y^2*z^2-x^6*z^3-y^7*z+3*x*y^5*z^2-3*x^2*y^3*z^3+x^3*y*z^4,x^5*y^4-2*x^6*y^2*z+x^7*z^2+x*y^7-5*x^2*y^5*z+7*x^3*y^3*z^2-3*x^4*y*z^3+y^4*z^3-2*x*y^2*z^4+x^2*z^5,x^7*y^3-x^8*y*z-x^4*y^4*z-x^5*y^2*z^2+2*x^6*z^3+y^7*z-4*x*y^5*z^2+8*x^2*y^3*z^3-5*x^3*y*z^4-y^2*z^5+x*z^6,x^8*y^2-x^9*z+x^4*y^5-5*x^5*y^3*z+4*x^6*y*z^2-x*y^6*z+4*x^2*y^4*z^2-2*x^3*y^2*z^3-x^4*z^4-y^3*z^4+x*y*z^5,x^10+2*x^6*y^3-6*x^7*y*z+x^2*y^6-6*x^3*y^4*z+9*x^4*y^2*z^2+2*x^5*z^3+2*x*y^3*z^3-6*x^2*y*z^4+z^6) )
+assert( (symbolicPowerCurveIdeal(I,0)) == ideal 1_R )
+assert( (symbolicPowerCurveIdeal(J,-1)) == ideal 1_R )
+///
+
+----Test 8 - monomialSpaceCurveMultiplierIdeal 
+
+TEST ///
+needsPackage"SpaceCurvesMultiplierIdeals";
+needsPackage"Dmodules"
+debug SpaceCurvesMultiplierIdeals;
+
+R = QQ[x,y,z];
+assert( (monomialSpaceCurveMultiplierIdeal(R,{2,3,4},1)) == ideal 1_R )
+assert( (monomialSpaceCurveMultiplierIdeal(R,{2,3,4},7/6)) == ideal 1_R )
+assert( (monomialSpaceCurveMultiplierIdeal(R,{2,3,4},20/7)) == ideal(y^2*z-x*z^2,x^2*z-z^2,y^3-x*y*z,x*y^2-z^2,x^2*y-y*z,x^3-x*z) )
+assert( (monomialSpaceCurveMultiplierIdeal(R,{3,4,5},11/5)) == ideal(y^2-x*z,x^2*y-z^2,x^3-y*z) )
+I = affineMonomialCurveIdeal(R,{2,3,4})
+assert(monomialSpaceCurveMultiplierIdeal(R,{2,3,4},3/2) == multiplierIdeal(I,3/2))
+///
 
 end
 

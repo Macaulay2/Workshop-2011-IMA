@@ -161,30 +161,25 @@ bertiniSolve List := o -> F -> (  -- F is the list of polynomials
   	  dir := makeBertiniInput(F,o);   -- creates the input file 
           if o.runType == 0 then ( -- ZeroDim 
     	    run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	    readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
             );
           if o.runType == 1 then ( -- param homotopy
     	    run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	    readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
             );
           if o.runType == 2 then ( -- PosDim 
     	    run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	    --readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
             );
           if o.runType == 3 then ( -- Sample 
-            stdio << "Run terminated.  Sampling will be available via this M2/Bertini interface once witness sets are handled correctly in the interface.\n"
+            stdio << "Run terminated.  Sampling will be available via this M2/Bertini interface once witness sets are handled correctly in the interface.\n\n"
     	    --run("cd "|dir|"; "|BERTINIexe|" < sample_script >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	    --readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
             );
           if o.runType == 4 then ( -- Membership  
             stdio << "Run terminated.  Component membership will be available via this M2/Bertini interface once witness sets are handled correctly in the interface.\n"
     	    --run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	    --readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
             );
           if o.runType == 5 then ( -- Refine/Sharpen 
     	    run("cd "|dir|"; "|BERTINIexe|" < sharpen_script >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	    readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
             );
+          readSolutionsBertini(dir,o) -- o contains runType, so we can switch inside readSolutionsBertini
           )
 
 
@@ -364,16 +359,78 @@ cleanupOutput String := s -> (
   t = replace("e\\+","e",t)
   )
 
-readSolutionsBertini = method(TypicalValue=>List)
-readSolutionsBertini (String,String) := (dir,f) -> (  -- dir=directory holding the output files, f=file name from which to grab solutions
+
+-----------------------
+-- readSolutionsBertini
+-----------------------
+
+
+readSolutionsBertini = method(TypicalValue=>List, Options=>{StartSystem=>{},StartSolutions=>{},gamma=>1.0+ii,MPTYPE=>-1,PRECISION=>-1,ODEPREDICTOR=>-1,TRACKTOLBEFOREEG=>-1,TRACKTOLDURINGEG=>-1,FINALTOL=>-1,MAXNORM=>-1,MINSTEPSIZEBEFOREEG=>-1,MINSTEPSIZEDURINGEG=>-1,IMAGTHRESHOLD=>-1,COEFFBOUND=>-1,DEGREEBOUND=>-1,CONDNUMTHRESHOLD=>-1,RANDOMSEED=>-1,SINGVALZEROTOL=>-1,ENDGAMENUM=>-1,USEREGENERATION=>-1,SECURITYLEVEL=>-1,SCREENOUT=>-1,OUTPUTLEVEL=>-1,STEPSFORINCREASE=>-1,MAXNEWTONITS=>-1,MAXSTEPSIZE=>-1,MAXNUMBERSTEPS=>-1,MAXCYCLENUM=>-1,REGENSTARTLEVEL=>-1,dimen=>-1,compnum=>-1,numpts=>-1,pts=>{},digits=>-1,runType=>0})
+
+readSolutionsBertini String := o -> dir -> (  -- dir=directory holding the output files, options are same as bertiniSolve
+
+local pt;
+local coords;
+
   s := {};
-  if f == "finite_solutions" then (
-       --print "implementation unstable: Bertini output format uncertain";
-       l := lines get (dir|"/"|f);
+
+  if (o.runType == 0) then ( --raw_data, for zeroDim -- in development (hence the -1)
+--raw_data output file structure:
+--  #vars (proj!!)
+--  0  
+--  blocks as follows:
+--    path_num
+--    max prec used
+--    coords (proj!!)
+--    fxn resid
+--    cond_num
+--    Newton resid
+--    last Tval
+--    useless here (accuracy estimate -- diff bw last two extrapolations to t=0)
+--    useless here (Tval of first prec increase)
+--    cycle number
+--    success?  (1 for yes)
+--    NOTE:  # paths ending at same point is NOT reported in this file -- needs to be computed...only available in human-readable main_data!!! 
+--  -1 (at end of blocks)
+--  junk at end is the matrix of patch coefficients -- MPTYPE on first line, then number or rows & columns on second, then the coeffs
+
+       l := lines get (dir|"/raw_data"); -- grabs all lines of the file
+       numVars := value(first l);
+       l = drop(l,2);
+       solNum := value(first l);
+       l = drop(l,1);
+       --Now we go through all blocks of solutions (each block contains the coordinates of the solution and a bunch of other stuff.
+       stdio << "Solutions, in homogeneous coordinates:" << endl << endl;
+
+       while solNum > -1 do ( -- -1 in solNum position (top of solution block) is key to end of solutions.
+            maxPrec := value(first l);
+            l = drop(l,1);
+
+            coords = {};
+            for j from 1 to numVars do ( -- grab each coordinate
+              pt = select("[0-9.+-]+e[0-9+-]+", cleanupOutput(first l));  -- use regexp to get the two numbers from the string
+              coords = join(coords, {toCC(53, value(pt#0),value(pt#1))});  -- NOTE: we convert to a 53 bit floating point complex type -- beware that we might be losing data here!!!???
+              l = drop(l,1);
+              );
+            print coords; 
+ 
+            funcResid := value(cleanupOutput(first l)); l=drop(l,1);
+            condNum := value(cleanupOutput(first l)); l=drop(l,1);
+            newtonResid := value(cleanupOutput(first l)); l=drop(l,1);
+            lastT := value(cleanupOutput(first l)); l=drop(l,3);
+            cycleNum := value(first l); l=drop(l,1);
+            success := value(first l); l=drop(l,1);
+            solNum = value(first l);
+            l = drop(l,1); 
+            )
+       )
+
+  else if (o.runType == -1) then ( --if ZeroDim, we actually want to read raw_data, but this works until that is fully implemented. 
+       l = lines get (dir|"/finite_solutions");
        nsols := value first separate(" ", l#0);
        l = drop(l,2);
        while #s < nsols do (	 
-	    coords := {};
+	    coords = {};
 	    while #(first l) > 2 do ( 
 	      	 coords = coords | {(
 		   	   a := separate(" ",  cleanupOutput(first l));	 
@@ -386,8 +443,9 @@ readSolutionsBertini (String,String) := (dir,f) -> (  -- dir=directory holding t
 	    s = s | {{coords}};
 	    );	
        ) 
-  else if f == "raw_solutions" then (
-       l = lines get (dir|"/"|f);
+
+  else if o.runType == 8 then ( --runType is never 8...this block reads in raw_solutions, which I think won't be so important (???).
+       l = lines get (dir|"/raw_solutions");
        while #l>0 and #separate(" ", l#0) < 2 do l = drop(l,1);
        while #l>0 do (
 	    if DBG>=10 then << "------------------------------" << endl;
@@ -403,20 +461,21 @@ readSolutionsBertini (String,String) := (dir,f) -> (  -- dir=directory holding t
             if DBG>=10 then << coords << endl;
 	    s = s | {{coords}};
 	    );     
-    ) else error "unknown output file";
+
+    ) else error "unknown output file";  --need to add witness_data parser???
   s
   )
 
-trackBertini = method(TypicalValue => List)
-trackBertini (List,List,List,MutableHashTable) := List => (S,T,solsS,o) -> (
+--trackBertini = method(TypicalValue => List)
+--trackBertini (List,List,List,MutableHashTable) := List => (S,T,solsS,o) -> (
      -- tempdir := temporaryFileName() | "NumericalAlgebraicGeometry-bertini";
      -- mkdir tempdir; 	  
-     dir := makeBertiniInput(T, StartSystem=>S, StartSolutions=>solsS, gamma=>o.gamma);
-     compStartTime := currentTime();      
-     run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");
-     if DBG>0 then << "Bertini's computation time: " << currentTime()-compStartTime << endl;
-     readSolutionsBertini(dir, "raw_solutions")
-     )
+--     dir := makeBertiniInput(T, StartSystem=>S, StartSolutions=>solsS, gamma=>o.gamma);
+--     compStartTime := currentTime();      
+--     run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");
+--     if DBG>0 then << "Bertini's computation time: " << currentTime()-compStartTime << endl;
+--     readSolutionsBertini(dir, "raw_solutions")
+--     )
 
 
 

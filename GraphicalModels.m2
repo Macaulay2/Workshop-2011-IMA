@@ -866,18 +866,18 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	  )
         )
      else (
-	  
---	  M := markovMatrices(R,G,Stmts);
---     	  sum apply(M, m -> minors(2,m))
-	     -- Add material that will compute the conditional independence
-	     -- ideal of a list of statements
-	     -- this will come from what is currently markovIdeal(R,G,Stmts)
-	     -- but I would like that command changed so that the graph is 
-	     -- embedded in the ring, and there could be two versions of the 
-	     -- method, one that takes (R,Stmts) and one the does (R,G), where
-	     -- the graph does not have to match the graph which was used
-	     -- in the definition of the ring
+	 M := markovMatrices(R,Stmts);
+	 sum apply(M, m -> minors(2,m)) 
 	     )
+     )
+
+---  Need to make a conditional independence ideal command that goes (R,List,List)
+
+conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
+     if not R.?markov then error "expected a ring created with gaussianRing or markovRing";
+     if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
+     M := markovMatrices(R,VarNames,Stmts);
+     sum apply(M, m -> minors(2,m)) 
      )
 
 
@@ -892,7 +892,7 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      else(
      	  if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
      	  Stmts = globalMarkov G; 
-     	  conditionalIndependenceIdeal (R,Stmts))
+     	  conditionalIndependenceIdeal (R,Stmts))  -- Need to make a pass to the version that goes (R,List,List)
      )
 
 ------------------------------------------------------------------------------------------------------------------------------

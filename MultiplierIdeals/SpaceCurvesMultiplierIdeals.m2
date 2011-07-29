@@ -337,7 +337,7 @@ termIdeal = I -> monomialIdeal flatten apply(flatten entries gens I, i -> terms 
 --
 -- We assume the input ideal is indeed prime, and that its unique singular point is the origin.
 
-symbolicPowerCurveIdeal = (I,t) -> saturate(I^(max(0,floor t)));
+symbolicPowerCurveIdeal = (I,t) -> saturate(I^(max(0,t)));
 
 
 -- intersectionIndexSet
@@ -389,7 +389,7 @@ monomialSpaceCurveMultiplierIdeal(Ring, List, ZZ) := (R, nn, t) -> (
      indexList := intersectionIndexSet(ff);
      
      
-     symbpow := symbolicPowerCurveIdeal(curveIdeal , t-1);
+     symbpow := symbolicPowerCurveIdeal(curveIdeal , floor(t-1));
      term    := monomialMultiplierIdeal(termIdeal(curveIdeal) , t);
      
      validl  := intersect apply(indexList ,
@@ -594,13 +594,17 @@ monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := (R, nn , Left , Rig
 beginDocumentation()
 
 
-document { 
-  Key => SpaceCurvesMultiplierIdeals,
-  Headline => "A package for computing multiplier ideals of monomial space curves",
-  "This implementation is based on the algorithm given in
-   H.M. Thompson's paper: ", EM "Multiplier Ideals of Monomial Space Curves, ",  
-   HREF{"http://arxiv.org/abs/1006.1915","arXiv:1006.1915v4"}, " [math.AG]."
-}
+doc /// 
+Key 
+   SpaceCurvesMultiplierIdeals
+Headline
+   multiplier ideals of monomial space curves
+Description
+   Text 
+    This implementation is based on the algorithm given in
+    H.M. Thompson's paper: {\it Multiplier Ideals of Monomial Space Curves}, 
+    @HREF { "http://arxiv.org/abs/1006.1915" , "arXiv:1006.1915v4" } @, [math.AG].
+///
 
 doc ///
 Key

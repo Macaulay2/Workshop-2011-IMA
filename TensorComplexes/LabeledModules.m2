@@ -15,6 +15,16 @@
 -- You should have received a copy of the GNU General Public License along with
 -- this program.  If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------------
+{*Not needed now, but would be nice:
+kk as an optional second argument
+handdling of rings (out put of pairs, so that ring name can be set)
+facility for making tensors
+exterior multiplication and contraction
+Schur Functors
+functoriality 
+*}
+
+
 newPackage(
   "LabeledModules",
   AuxiliaryFiles => false,
@@ -56,7 +66,8 @@ export {
   "flattenedGenericTensor",
   "minorsMap",
   "tensorComplex1",
-  "flattenedESTensor"
+  "flattenedESTensor",
+  "hyperdeterminant"
   }
 
 --------------------------------------------------------------------------------
@@ -144,7 +155,7 @@ productList = L -> (
 tensorProduct = method(Dispatch => Thing)
 tensorProduct List := args -> tensorProduct toSequence args
 tensorProduct Sequence := args -> (
-  if #args === 0 then error "expected more than 0 arguments";
+  if #args === 0 then  error "expected more than 0 arguments"; -- note: can't return, since we don't know the ring!
   y := youngest args;
   key := (tensorProduct, args);
   if y =!= null and y#?key then y#key else (
@@ -322,6 +333,35 @@ minorsMap(LabeledModuleMap, LabeledModule) := LabeledModuleMap => (f,E) ->
 isBalanced = f-> rank source f == sum ((underlyingModules target f)/rank)
 
 tensorComplex1 = method()
+
+
+{*
+FIX: things have a little.
+Make the first map of a generic tensor complex:
+Given (over a ring R)
+free modules Bi of ranks bi\geq 1,
+a free module A, of rank a = sum bi.
+a map A <--- \otimes_j Bj,
+set d = (d0=0, d1=b1, d2 = b1+b2...). 
+
+The desired map is the composite
+
+F1= wedge^b1 A ** wedge^b1 B1* ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
+by "trace" to 
+
+G1=wedge^b1 A ** wedge^b1 B1* ** [ (\otimes_{j\geq 2} S^b1 Bj)* ** (\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
+to (by reassociating)
+
+G2=wedge^b1 A ** [wedge^b1 B1* **  (\otimes_{j\geq 2} S^b1 Bj)*] ** [(\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj]
+to (by the wedge ** sym to wedge map and multiplication in Sym
+
+G3=wedge^b1 A ** [wedge^b1 \wedge_b1(\otimes_{j\geq 1} Bj*] ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
+to (by the minors)
+
+F0=R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
+*}
+
+
 tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   -- NOTE: local variables names following the notation from the
   -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
@@ -338,7 +378,7 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
   if n === 0 then f
   else if n === 1 then 
-    map(exteriorPower(B_1,b_1),exteriorPower(A,b_1)**labeledModule(S^{-d_1}),det f)
+    map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d_1}),{{det matrix f}})
   else(
     -- source of output map
     F1 := tensorProduct({exteriorPower(b_1,A), exteriorPower(b_1,B_1)} |
@@ -365,7 +405,6 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
     permMatrix := mutableMatrix(S, rank G3, rank G2);
     for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
     g2 := map(G3, G2, matrix permMatrix);
-    -- tc12 := permMap*tc1;
     G3a := G3factors_0;
     G3b := tensorProduct G3factors_(toList(1..n));
     G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
@@ -396,6 +435,90 @@ flattenedESTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
       (i,j) -> if 0<=j-sum fromOrdinal(i,B) then if j-sum fromOrdinal(i,B)<n 
       then x_(j-sum fromOrdinal(i,B)) else 0 else 0)
  )
+
+
+tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
+  -- NOTE: local variables names following the notation from the
+  -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
+  -- 
+  -- f: A --> B1** B2** ... Bn
+  -- makes the map F0 <- F1 as above.
+  -- if f is not balanced, we should  be doing something else 
+  -- w = (0,w1,...)
+  if not w_0 == 0 and w_1 >=0 and min apply(toList(2..#w), i-> w_i-w_(i-1)) > 0 then 
+      error "w not of the form (0,non-neg,increasing)";
+  
+  S := ring f;  
+  B := {S^0} | underlyingModules target f;
+  A := source f;
+  a := rank A;
+  n := #B-1;
+  b := B / rank; -- {0, b1, b2,..,bn}
+
+  d1 := if w_1>0 then 1 else b_1;
+  r1 := # select(w, wj -> wj < d1);
+  if r1>2 then error "r1>2 is a case we can't handle";
+  if n === 0 then return f;
+  if n === 1 and r1 === 2
+      then return map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d1}),{{det matrix f}});
+
+    F1 := tensorProduct({exteriorPower(d1,A)}|
+	 apply(toList(1..r1-1),j-> exteriorPower(b_j,B_j)) | -- r1 = 1 or 2
+      apply(toList(r1..n), j-> symmetricPower(w_j-d1,B_j)));
+    -- target of output map
+    F0 := tensorProduct apply(n, j-> symmetricPower(w_(j+1), B_(j+1)));
+    trMap := id_(labeledModule S);
+    if n>1 then trMap = traceMap tensorProduct apply(toList(r1..n), 
+      j -> symmetricPower(d1,B_j));
+    G1 := tensorProduct(target trMap, F1);
+    g0 := map(G1, F1, trMap ** id_F1);
+    G1factors := flatten(
+      ((underlyingModules target trMap) | {F1}) / underlyingModules );
+    -- G2 and G1 are isomorphic as free modules with ordered basis but different
+    -- as labeled modules
+    G2 := tensorProduct G1factors;
+    -- g1 is the map induced by dropping all parentheses in the tensor product  
+
+---
+    g1 := map(G2, G1, id_(S^(rank G1)));
+    perm := {};
+    if r1==2 then perm = join({2*n-2, 2*n-1}, toList(0..n-2), 
+      flatten apply(n-1, j -> {j+n-1, j+2*n}))
+    else  perm ={2*n}|toList(0..n-1)|flatten apply(n, j -> {j+n, j+2*n+1}));
+    G3factors := G1factors_perm;
+    G3 := tensorProduct G3factors;
+    -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
+    -- The reordering is given by the permutation 'perm'  
+    permMatrix := mutableMatrix(S, rank G3, rank G2);
+    for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
+    g2 := map(G3, G2, matrix permMatrix);
+    G3a := G3factors_0;
+    G3b := tensorProduct G3factors_(toList(1..n));
+    G3c := labeledModule S; -- case n==1
+    if n>1 then
+        G3c = tensorProduct G3factors_(toList(n+1..#G3factors-1));
+    prodB := tensorProduct apply(n,i -> B_(i+1));  
+    G4b := exteriorPower(d1, prodB);
+    dualCauchyMap := map (G4b, G3b, transpose cauchyMap(d1, prodB));
+    g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
+--if r1 > n then symMultMap := id
+    symMultMap := map(F0, G3c, tensorProduct apply(toList(r1..n), 
+      	j -> symmetricMultiplication(B_j,d1,w_j-d1)));
+
+    minMap := minorsMap(f, tensorProduct(G3a, G4b));
+    g4 := minMap ** symMultMap;
+    map(F0, F1 ** labeledModule S^{ -d1}, g4 * g3 * g2 * g1 * g0)))
+
+hyperdeterminant = method()
+hyperdeterminant LabeledModuleMap := f -> (
+     --hyperdeterminant of a boundaryformat tensor f
+     --check boundary format
+     b := apply(underlyingModules target f, M -> rank M);
+     if not rank source f == 1 + sum b - #b then
+     	  error"not boundary format!";
+     w := {0,1}|apply(toList(2..#b), i-> sum(toList(0..i-2), j-> b_j)-(i-2));
+     det matrix tensorComplex1 (f,w))
+     
 
 
 
@@ -699,8 +822,10 @@ BD=new BettiTally from {(0,{0},0) => 2, (1,{1},1) => 4, (2,{3},3) => 4, (3,{4},4
 assert(betti res coker matrix tensorComplex1 f==BD)
 f=flattenedESTensor({4,1,2,1},kk);
 assert(betti res coker matrix tensorComplex1 f==BD)
-f=flattenedGenericTensor({3,3},kk)
+f = flattenedGenericTensor({3,3},kk)
+assert( (betti res coker tensorComplex1 f) === new BettiTally from {(1,{3},3) => 1, (0,{0},0) => 1} )
 
+assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1,2}))
 ///
 
 end
@@ -711,7 +836,11 @@ end
 restart
 uninstallPackage "LabeledModules"
 installPackage "LabeledModules"
-check "LabeledModules"
+--check "LabeledModules"
+
+f = flattenedGenericTensor({3,3},kk)
+betti res coker tensorComplex1 (f, {0,0})
+
 
 kk = ZZ/101;
 f=flattenedESTensor({4,2,2},kk)
@@ -722,7 +851,11 @@ f=flattenedESTensor({7,1,2,1,2,1},kk)
 betti res coker tensorComplex1 f
 
 
-f = flattenedGenericTensor({4,1,2,1},kk)
+f = flattenedGenericTensor({3,3},kk)
+betti res coker tensorComplex1 f
+
+f = flattenedGenericTensor({3},kk)
+betti res coker tensorComplex1 f
 
 g = tensorComplex1 f
 

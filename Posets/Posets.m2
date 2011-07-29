@@ -772,6 +772,25 @@ divisorPoset RingElement := Poset => m -> (
 	poset (Ground, Rels, RelsMatrix)
 	)
 
+divisorPoset ZZ :=Poset => m -> (
+     if m < 0 then (
+	  print "Did you mean |m|?";
+	  m=-m;
+	  );
+     M := toList \ toList factor m;
+     p:=local p;
+     Pset := apply(#M, i-> p_i);
+     R := QQ[Pset];
+     numHash := hashTable apply(#M, i-> R_i=>first M_i);
+     P := product apply(#M, p-> R_p^(last M_p));
+     subFunc := apply(pairs numHash, q-> q_0=>q_1);
+     Q := divisorPoset P;
+     G := sort apply(Q.GroundSet, g-> sub(g,subFunc));
+     L := apply(Q.Relations, g-> {sub(first g, subFunc),sub(last g, subFunc)});
+     poset(G,L)
+     )
+
+
 --This should be fixed to compute this more cleverly, without computing
 --the entire poset.
 

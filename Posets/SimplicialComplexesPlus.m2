@@ -1,5 +1,5 @@
-restart
 needsPackage "SimplicialComplexes"
+needsPackage "Graphs"
 --needsPackage "EdgeIdeals"
 needsPackage "Posets"
 
@@ -15,14 +15,9 @@ newPackage(
 	DebuggingMode => true
 )
 
-needsPackage "SimplicialComplexes"
---needsPackage "EdgeIdeals"
-needsPackage "Posets"
-
 export {
 	combJoin,
 	bdcrossPolytope,
-	facePoset,
 	simplex,
 	bdsimplex,
 	sctoGap,
@@ -31,11 +26,14 @@ export {
 	recoverLabels,
 	sdlabel,
 	originalvars,
-	nerveComplex
---     union,
---     indSubcomplex
+	nerveComplex,
+	IsMultigraded
 }
 
+needsPackage "Graphs"
+needsPackage "SimplicialComplexes"
+--needsPackage "EdgeIdeals"
+needsPackage "Posets"
 
 
 cartesianProduct = method();
@@ -126,25 +124,25 @@ testmax(List):=Boolean=>(L)->(
      min apply(L, j->#j) > 1
      )
 
-facePoset=method();
+--facePoset=method();
 
-facePoset(SimplicialComplex):=Poset=>(D)->(
-     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
-     chainheads:=apply(flatten entries facets D, i-> support i);
-     maxchains:=apply(chainheads, i-> {i});
-     while any(maxchains, testmax) do ( 
-     	  nextstage:={};
-     	  holdover:=select(maxchains,c-> not testmax c);
-     	  for m in select(maxchains,testmax) do (
-	       minsize:=min apply(m, i-> #i);
-	       minset:=first select(m, i-> #i== minsize);
-     	       coveredfaces:=subsets(minset,minsize-1);
-	       nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
-	       );
-      	  maxchains = join(nextstage,holdover);
-      	  );    
-     poset(faceset,unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
-     )
+--facePoset(SimplicialComplex):=Poset=>(D)->(
+--     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
+--     chainheads:=apply(flatten entries facets D, i-> support i);
+--     maxchains:=apply(chainheads, i-> {i});
+--     while any(maxchains, testmax) do ( 
+--     	  nextstage:={};
+--     	  holdover:=select(maxchains,c-> not testmax c);
+--     	  for m in select(maxchains,testmax) do (
+--	       minsize:=min apply(m, i-> #i);
+--	       minset:=first select(m, i-> #i== minsize);
+--     	       coveredfaces:=subsets(minset,minsize-1);
+--	       nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
+--	       );
+--      	  maxchains = join(nextstage,holdover);
+--      	  );    
+--     poset(faceset,unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
+--     )
 
 --Subdivisions method:
 sd = method();
@@ -225,10 +223,11 @@ sdlabel(SimplicialComplex):=SimplicialComplex=>(D)->(
       )
  
  
-nerveComplex = method(Options=>{IsMultigraded=>false})
+nerveComplex = method(Options=>{symbol IsMultigraded => false});
 
-nerveComplex(Graph) := opts -> (G) -> (
+nerveComplex(Graph):= opts -> (G) -> (
      m := # edges G;
+     e :=local e;
      S := if not opts.IsMultigraded then (
 	  QQ(monoid[(symbol e)_1..(symbol e)_m])
 	  )
@@ -241,6 +240,7 @@ nerveComplex(Graph) := opts -> (G) -> (
 
 nerveComplex(SimplicialComplex):= opts -> (D)->(
      m := # flatten entries facets D;
+     e := local e;
      kk := coefficientRing ring D;
      S := if not opts.IsMultigraded then (
 	  kk(monoid[(symbol e)_1..(symbol e)_m])

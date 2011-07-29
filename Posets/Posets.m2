@@ -1011,14 +1011,7 @@ partitionLattice ZZ := n -> (
 hyperplaneEquivalence = method()
 
 hyperplaneEquivalence(List,Ring) := (L,R) -> (
-     idealsH:= drop(apply(subsets L, h-> ideal h),1);
-     hyperplanes:= {first idealsH};
-     for P from 1 to #idealsH - 1 do (
-	  if not any(take(idealsH, P-1), s-> s == idealsH_P) and not idealsH_P == sub(ideal 1,R) then (
-	       hyperplanes = append(hyperplanes, idealsH_P);
-	       );
-	  );
-     apply(hyperplanes, h-> sub(h,R))
+     unique drop(apply(subsets L, h-> ideal gens gb ideal h),1)
      )
 
 ----------------------------------------

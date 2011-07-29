@@ -1,14 +1,31 @@
+newPackage(
+     "LRcheckergame",
+     Version => "0.1",
+     Date => "July 25, 2011",
+     Authors =>{Name => "Abraham Martin del Campo", 
+                  Email => "asanchez@math.tamu.edu", 
+                  HomePage => "www.math.tamu.edu/~asanchez"},
+     Headline => "an implementation of Ravi Vakil's gemetric Littlewood-Richardson rule",
+     DebuggingMode => true
+     )
+
+export{
+     verifyLength,
+     partition2bracket,
+     bracket2input,
+     output2bracket,
+     bracket2partition,
+     redChkrPos,
+     moveRed,
+     moveCheckers,
+     playCheckers
+     }
 -- Abraham Martin del Campo
 -- 25/July/2011
 -- ---------------------
 -- This is a file where I implement Ravis LR-decomposition
 -- ---------------------
 
--- Given two partitions, we compute the red checker and black checker position
---
--- input: two partitions, the grassmannian
-
-restart;
 -- ---------------------
 --	verifyLength	--
 --								--
@@ -21,26 +38,28 @@ restart;
 verifyLength = method(TypicalValue => List)
 verifyLength(VisibleList, ZZ) := (l,k) ->(
      x:=new List;
-     if #l < k then x = for i to k-#l-1 list 0;
-     l | x
+     if #l <= k then (
+	  x = for i to k-#l-1 list 0;
+	  l | x
+     ) else "wrong partition size, you need lest boxes"
 )
+--verifyLength({2,1,1,1},3)
 
 
-k=3;
-n=7;
 -- l and m are partitions of n
-l = {2,1};
-m = {1,1};
+-- l = {2,1};
+-- m = {1,1};
 
+-- Dictionaries of different notation
 partition2bracket = method(TypicalValue => List)
 partition2bracket(List,ZZ,ZZ) := (l, k, n) -> (
      l = verifyLength(l, k);
      brackt := for i to #l-1 list (n-k)+(i+1)-l#i
 )
-partition2bracket(l,k,n)
-partition2bracket({2,1},3,7)
-partition2bracket({1,1},3,7)
-partition2bracket({1},3,7)
+--partition2bracket(l,k,n)
+--partition2bracket({2,1},3,7)
+--partition2bracket({1,1},3,7)
+--partition2bracket({1},3,7)
 
 --combine all these functions to make only
 -- partition -> checkers and viceversa
@@ -51,21 +70,21 @@ bracket2input(List,ZZ) := (br,n) ->(
      apply(br, b-> inp#(b-1) = b-1);
      toList inp
 )
-bracket2input({4,6,7},7)
+--bracket2input({4,6,7},7)
 
 output2bracket = method(TypicalValue=>List)
 output2bracket List := outp -> (
      br := select(outp, x-> x!=99);
      apply(br, x-> x=x+1)
 ) 
-output2bracket({99, 99, 99, 3, 99, 5, 6})
+--output2bracket({99, 99, 99, 3, 99, 5, 6})
 
 bracket2partition = method(TypicalValue => List)
 bracket2partition(List,ZZ) := (l, n) -> (
 --     l = reverse sort l;
      partitn := for i to #l-1 list (n-#l)+(i+1)-l#i 
 )
-bracket2partition({2,4,6},6)
+--bracket2partition({2,4,6},6)
 
 -- change this method to be between checkers
 redChkrPos = method(TypicalValue => List)
@@ -75,13 +94,11 @@ redChkrPos(List,List,ZZ,ZZ) := (l,m,k,n) -> (
      -- input the Grassmannian G(k,n)
      m = reverse m;
      board = for i to n-1 list 99;
-     print board;
      redPos = new MutableList from board;
---     print #redPos;
      apply(#l, j -> redPos#(l#j-1) = m#j-1);
      toList redPos
 )
-Red =redChkrPos(partition2bracket(l,k,n),partition2bracket(m,k,n),k,n)
+--Red =redChkrPos(partition2bracket({2,1},3,6),partition2bracket({1,1},3,6),3,6)
 
 --####################
 -- "rtest" moves the red checkers
@@ -154,10 +171,10 @@ moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
 )
 -- TEST THE FUNCTION HERE!!
 
-moveRed({0,3},{3,2},{3,99,99,5,99,1},6) -- this should move the red
-moveRed({2,5},{3,4},{2,99,99,5,99,1},6) -- this shouldn't move the red
-moveRed({0, 2}, {4, 1}, {2, 99, 99, 5, 99, 1},6) --this one should move the red!!
-moveRed({1, 3}, {4, 2}, {1, 99, 99, 5, 99, 2},6) -- and this error is even worse!
+--moveRed({0,3},{3,2},{3,99,99,5,99,1},6) -- this should move the red
+--moveRed({2,5},{3,4},{2,99,99,5,99,1},6) -- this shouldn't move the red
+--moveRed({0, 2}, {4, 1}, {2, 99, 99, 5, 99, 1},6) --this one should move the red!!
+--moveRed({1, 3}, {4, 2}, {1, 99, 99, 5, 99, 2},6) -- and this error is even worse!
 
 moveCheckers = method(TypicalValue => List)
 moveCheckers(List,List,ZZ) := (blackposition, redposition, n) ->(
@@ -182,7 +199,36 @@ moveCheckers(List,List,ZZ) := (blackposition, redposition, n) ->(
      );
      {toList(blackposition), toList(redposition), splitcount}
 )
-moveCheckers({3,5,4,2,1,0},{3,99,99,5,99,1},6)
+--moveCheckers({3,5,4,2,1,0},{3,99,99,5,99,1},6)
 
-playCheckers = method(TypicalValue => List);
+playCheckers = method(TypicalValue => List)
+playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
+     reds:= new List;
+     tree := new List;
+     storeRed:=new List;
+     splitcount := 0;
+     redChkrs:=redChkrPos(partition2bracket(partn1,k,n),partition2bracket(partn2,k,n),k,n);
+     -- we check for red checkers above the diagonal. If one, give a null output
+     --apply(#redChkrs, i->(
+	--  if i+redChkrs#i < n-1 then return({toList(n:99),{}})
+     --));
+     blackChkrs:=new List;
+     counter:=0;
+     blackChkrs = reverse toList (0..(n-1)); --initial black positions.
+     while blackChkrs != {} do (
+	  (blackChkrs, redChkrs, splitcount) = toSequence moveCheckers(blackChkrs, redChkrs,n);
+	  counter = counter+1;
+	  tree=join(tree,toList(splitcount:counter));
+	  storeRed = join(storeRed, take(redChkrs,n));
+	  for i to n do (
+	       blackChkrs = join(blackChkrs,drop(blackChkrs,-1));
+	       redChkrs = join(redChkrs,drop(redChkrs,-1));
+	  );
+     	  blackChkrs = drop(blakChkrs,n-1);
+	  redChkrs = drop(redChkrs,n-1);
+     );
+     -- here call the function makeTree
+     storeRed
+)
+--playCheckers({1,1},{2,1},3,6)
 

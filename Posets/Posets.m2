@@ -70,6 +70,7 @@ export {
 	closedInterval,
 	openInterval,
 	moebiusFunction,
+    isEulerian,
 	isAntichain,
 	meetIrreducibles,
 	texPoset,
@@ -507,7 +508,7 @@ maximalChains Poset := P -> (
 --input:  P a poset
 --output:  length of maximal chain in P
 
-height Poset := Poset => P -> max apply (maximalChains P, s-> #s);
+height Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s);
 
 
 
@@ -851,12 +852,27 @@ moebiusFunction = method();
 moebiusFunction Poset := HashTable => P -> ( 
      if #minimalElements P > 1 then error "this poset has more than one minimal element - specify an interval";
      M := (P.RelationMatrix)^(-1);
-     k := position(P.GroundSet,v->v==(minimalElements P)_0);
+     k := position(P.GroundSet,v->v===(minimalElements P)_0);
      hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
      )
+moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2));
+
+-- ** FIX: Terribly inefficient
+isEulerian = method();
+isEulerian Poset := Boolean => P -> (
+	if P.cache.?isEulerian then return P.cache.isEulerian;
+    if not isGraded P then error "Poset must be graded.";
+    P.cache.isEulerian = all(P.GroundSet, a -> all(P.GroundSet, b -> (
+                if compare(P, a, b) then (
+                    ci := closedInterval(P, a, b);
+                    (moebiusFunction ci)#b === (-1)^(height ci)
+                ) else true
+            )
+        )
+    )
+);
 
 
-moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2))
 
 -----------------------------------
 --Posets

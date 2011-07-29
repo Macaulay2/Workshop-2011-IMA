@@ -219,11 +219,13 @@ I = ideal(
 	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
+J = ideal(a+b+c+d+e,d*e,d^2,c*d-2*b*e-c*e-e^2,b*d,b*c+b*e,b^2,h^5)
+primDecZeroDimField(J,support first independentSets J, ideal 1_R)
 independentSets I
 mySep = first getSeparator(I,{c})
 Isat = saturate(I,mySep)
 time splitZeroDimensionalIdeal(Isat,{c},h,a+7*b+13*d+5*e+9*h);
-time newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
+time ourPD = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
 ///
 
 -- Input  : A list xs, and a function f on the elements of xs.  The return value of f should be a tuple,
@@ -246,25 +248,21 @@ applyUntil(List, Function) := opts -> (xs, f) ->
 primDecZeroDimField = method(Options => {Verbosity => 0})
 primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) ->
 (
-   splitTime := timing (compList := splitZeroDimensionalIdeal(I, variables));
-
+   splitTime := timing (componentList := splitZeroDimensionalIdeal(I, variables));
+   fiberVars := reverse sort toList (set gens ring I - set variables);
+   
    if (opts.Verbosity > 0) then << "Splitting time : " << splitTime#0 << endl;
 
-   -- problem: compList's ideals are not in general position at this point.  I think
-   -- one needs to leave them with coords changed, and then change them back.
-   genPosList := applyUntil(compList, J -> isPrimaryZeroDim(J));
-   if (genPosList != {}) then
-   (
-      isInGenPos := all (genPosList, i -> i);
-      if (not isInGenPos) then (
-	 -- add a change of coordinates!!!
-	 error "Not in general position.  Need a coordinate change";
-         -- try again?
-	 compList = primDecZeroDimField(I, variables, resultSoFar, opts);
-      );
-   )
-   else compList = {};
-   compList
+   genPosList := apply(componentList, J -> isPrimaryZeroDim J);
+   componentList = flatten apply(#genPosList, i -> (
+	     if genPosList#i then {componentList#i}
+	     else (
+	       -- here, this (potential) component is not in general position, so we change coordinates and
+	       -- call primDecZeroDimField on it again.
+     	       (phi,phiInverse,lastVar) := getCoordChange(ring I, variables);
+	       primDecZeroDimField(phi componentList#i, variables, resultSoFar, opts) / phiInverse / trim
+	     )));
+   componentList
 )
 
 -- Input  : A RingElement g in a polynomial ring of the form frac(kk[baseVars])[fiberVars].
@@ -359,41 +357,25 @@ getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
 -- This function should be called only on ideals before a change of coordinates have been applied.
 isPrimaryZeroDim = method()
 
-isPrimaryZeroDim Ideal := I -> isPrimaryZeroDim(I,false)
-
-isPrimaryZeroDim(Ideal,Boolean) := (I,changeCoordinates) ->
+isPrimaryZeroDim Ideal := I ->
 (
    -- null so that unless I is homogeneous, nothing is used in the Hilbert option in the GB computation below.
    hilbI := null;
-   local J;
    R := ring I;
    -- pass around the independent variables, or recompute them?
    independentVars := support first independentSets I;
    fiberVars := reverse sort toList (set gens R - set independentVars);
    lexR := (coefficientRing R)[fiberVars | independentVars,MonomialOrder=>{Lex=>#fiberVars,GRevLex=>#independentVars}];
-   if changeCoordinates then
-   (
-      -- change coordinates before computing with I.
-       << "Changed coordinates." << endl;
-      (phi,phiInverse,lastVar) := getCoordChange(R,independentVars);
-      J = phi I;
-   )
-   else J = I;
-   lexJ := sub(J,lexR);
+   lexI := sub(I,lexR);
    fiberVars = fiberVars / map(lexR,R);
    
-   G := flatten entries gens computeLexGB lexJ;
-   --G := flatten entries gens gb lexJ;
+   G := flatten entries gens computeLexGB lexI;
+   --G := flatten entries gens gb lexI;
      
    gs := getVariablePowerGenerators(G,fiberVars);
    if all(#gs-1, i -> degree(fiberVars#i,gs#i) == 1) then return true;
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
-   retVal := getLinearPowers(gs,fiberVars);
-   if not retVal then (
-      if not changeCoordinates then isPrimaryZeroDim(I,true)
-      else error "Not in general position after a change of coordinates"
-   )
-   else retVal
+   getLinearPowers(gs,fiberVars)
 )
 
 -- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
@@ -410,7 +392,8 @@ getLinearPowers(List,List) := (gs, fiberVars) ->
   quotIdeal := sub(radical ideal last gs,Q);
   gs = apply(gs, g -> sub(g,Q));
   fiberVars = apply(fiberVars, x -> sub(x,Q));
-  linearFactorList := apply(reverse toList (0..(#fiberVars - 2)), i -> (   
+  linearFactorList := {};
+  foundLinearFactors := all(reverse toList (0..(#fiberVars - 2)), i -> (   
 	    gi := gs#i % quotIdeal;
 	    xi := fiberVars#i;
 	    d := degree(xi,gi);
@@ -421,14 +404,15 @@ getLinearPowers(List,List) := (gs, fiberVars) ->
 	    linearFactor := (a*d*xi + b);
 	    gi = gi*(d^d)*(a^(d-1));
             -- here is where we could speed up by not fully reducing the difference.
-	    if (gi - linearFactor^d) % quotIdeal != 0_Q then return false;
+	    if (gi - linearFactor^d) % quotIdeal != 0_Q then (return false);
 	    quotIdeal = quotIdeal + ideal linearFactor;
-	    linearFactor));
+	    linearFactorList = linearFactorList | {linearFactor};
+	    true));
   linearFactorList = reverse linearFactorList;
   -- if we make it through the apply without an error, then all the factors are linear.
   -- we should return the linear factor list.  However, before doing this, we need to clear denominators and put the linear forms
   -- back in the polynomial ring.
-  return true;
+  return foundLinearFactors;
 )
 
 --R = QQ[a,b,c,d]

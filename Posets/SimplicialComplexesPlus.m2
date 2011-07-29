@@ -1,3 +1,4 @@
+restart
 needsPackage "SimplicialComplexes"
 --needsPackage "EdgeIdeals"
 needsPackage "Posets"
@@ -29,7 +30,8 @@ export {
 	sd,
 	recoverLabels,
 	sdlabel,
-	originalvars
+	originalvars,
+	nerveComplex
 --     union,
 --     indSubcomplex
 }
@@ -221,6 +223,35 @@ sdlabel(SimplicialComplex):=SimplicialComplex=>(D)->(
       	  );
       simplicialComplex apply(maxchains, c-> product apply(c, j-> toVarfaces#j))
       )
+ 
+ 
+nerveComplex = method(Options=>{IsMultigraded=>false})
+
+nerveComplex(Graph) := opts -> (G) -> (
+     m := # edges G;
+     S := if not opts.IsMultigraded then (
+	  QQ(monoid[(symbol e)_1..(symbol e)_m])
+	  )
+     else (
+	  QQ(monoid[(symbol e)_1..(symbol e)_m, MonomialSize => 8, Degrees => apply(m, i-> apply(m, j -> if i === j then 1 else 0))])
+     	  );
+     I := apply(vertices G, v -> select(0..(m-1), i -> member(v, toList(edges G)#i)));
+     simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
+)
+
+nerveComplex(SimplicialComplex):= opts -> (D)->(
+     m := # flatten entries facets D;
+     kk := coefficientRing ring D;
+     S := if not opts.IsMultigraded then (
+	  kk(monoid[(symbol e)_1..(symbol e)_m])
+	  )
+     else (
+	  kk(monoid[(symbol e)_1..(symbol e)_m, MonomialSize => 8, Degrees => apply(m, i-> apply(m, j -> if i === j then 1 else 0))])
+     	  );
+     I := apply(gens ring D, v -> select(0..(m-1), i -> member(v, support (flatten entries facets D)#i)));
+     simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
+)
+
 
 
 beginDocumentation();

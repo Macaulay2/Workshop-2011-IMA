@@ -446,9 +446,9 @@ doc ///
     topWitnessSet
     (topWitnessSet,List,ZZ)
   Headline
-    returns a witness set for the top dimensional solution set
+    returns a witness set and nonsolutions for the top dimensional solution set
   Usage
-    w = topWitnessSet(f,k)
+    (w,ns) = topWitnessSet(f,k)
   Inputs
     f:List
       of polynomials expected to have a component of dimension k
@@ -457,6 +457,8 @@ doc ///
   Outputs
     w:WitnessSet
       for the k-dimensional solution set of f
+    ns:List
+      solutions with nonzero value for the slack variable (the nonsolutions)
   Description
     Text
       The method topWitnessSet constructs and embedding for the given
@@ -468,7 +470,7 @@ doc ///
     Example
       R = CC[x,y,z];
       f = { x^2 - y, x^3 - z };
-      w = topWitnessSet(f,1)
+      (w,ns) = topWitnessSet(f,1)
       dim(w)
       degree(w)
       toString equations(w)
@@ -480,15 +482,25 @@ doc ///
       and three generic points.  Observe that the value for the last
       coordinate of all points equals (or is close to) zero.
       This last coordinate corresponds to the added slack variable.
- 
+      Solutions with nonzero value for the slack variable are called
+      nonsolutions.  In the example above, the list of nonsolutions 
+      returned in ns by topWitnessSet was empty.
+     
       Often the solution of the embedded system leads to solutions
       with nonzero slack variables as illustrated in the next example.
     Example
-      R = CC[x,y,z]; f = { (x^2-y)*(x-1), (x^3 - z)*(y-1), (x*y - z)*(z-1) }
-      w = topWitnessSet(f,1)
+      R = CC[x,y,z]; f = { (x^2-y)*(x-2), (x^3 - z)*(y-2), (x*y - z)*(z-2) }
+      (w,ns) = topWitnessSet(f,1);
+      dim(w)
+      degree(w)
+      #ns
     Text
       The example is constructed to contain not only the twisted cubic,
-      but also at least one isolated point.
+      but also at least one isolated point (2,2,2).
+      This is reflected in the list of nonsolutions.
+
+      The nonsolutions may be used as start solutions in a cascade of
+      homotopies to find generic points on lower dimensional components.
 ///;
 
 -----------------------------------

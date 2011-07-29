@@ -69,7 +69,7 @@ export {
 	outputTexPoset,
 	displayPoset,
 	SuppressLabels,
-	setPartitions,
+	setPartition,
 	partitionRefinementPairs,
 	partitionLattice,
 	hyperplaneEquivalence,
@@ -378,7 +378,7 @@ adjoinMax (Poset,Thing):= (P,a)->(
 adjoinMin = method()
 
 adjoinMin Poset := P -> (
-     adjoinMin(P,{1})
+     adjoinMin(P,{0})
      )
 
 adjoinMin (Poset,Thing):= (P,a)->(
@@ -1489,8 +1489,8 @@ doc ///
      Headline
      	  returns the LCM lattice of an ideal
      Usage
-     	  L = lcmLattice (I)
-	  L = lcmLattice (M)
+     	  lcmLattice (I)
+	  lcmLattice (M)
      Inputs 
      	  I : Ideal
 	  M : MonomialIdeal
@@ -1527,7 +1527,7 @@ doc ///
 	Headline
 		returns the poset of all divisors of a given monomial
 	Usage
-		P = divisorPoset (M)
+		divisorPoset (M)
 	Inputs 
 		M : RingElement
 	Outputs
@@ -1554,7 +1554,7 @@ doc ///
 	Headline
 		returns a list of all relations (a < b) with no intermediates
 	Usage
-		C = coveringRelations (P)
+		coveringRelations (P)
 	Inputs 
 		P : Poset
 	Outputs
@@ -1585,8 +1585,8 @@ doc ///
 	Headline
 		returns the poset obtained by removing a list of elements 
 	Usage
-		Q = dropElements (P, L)
-		Q = dropElements (P, f)
+		dropElements (P, L)
+		dropElements (P, f)
 	Inputs 
 		P : Poset
 		L : List
@@ -1624,7 +1624,7 @@ doc ///
 	Headline
 		returns all maximal chains of a poset
 	Usage
-		C = maximalChains (P)
+		maximalChains (P)
 	Inputs 
 		P : Poset
 	Outputs
@@ -1657,7 +1657,7 @@ doc ///
 	Headline
 		returns all minimal elements of a poset
 	Usage
-		L = minimalElements (P)
+		minimalElements (P)
 	Inputs 
 		P : Poset
 	Outputs
@@ -1687,7 +1687,7 @@ doc ///
 	Headline
 		returns all maximal elements of a poset
 	Usage
-		L = maximalElements (P)
+		maximalElements (P)
 	Inputs 
 		P : Poset
 	Outputs
@@ -1707,6 +1707,77 @@ doc ///
 /// 
 
 -----------------
+-- adjoinMax
+-----------------
+
+doc ///
+	Key
+		adjoinMax
+		(adjoinMax,Poset)
+		(adjoinMax,Poset,Thing)
+	Headline
+		returns new Poset with new maximal element
+	Usage
+		adjoinMax P
+		adjoinMax(P,a)
+	Inputs 
+		P : Poset
+		a : Thing
+	Outputs
+		Q : Poset
+	Description
+		Text
+			This method returns a new poset with maximal element adjoined.
+			If no element specified, uses {1}.
+
+		Example
+			G = {1,2,3,4}
+			R = {{1,2},{1,3},{2,4},{3,4}}
+			P = poset(G,R)
+			Q = adjoinMax P
+			Q = adjoinMax(P,5)
+	SeeAlso
+	     	adjoinMin
+		maximalElements
+		minimalElements
+/// 
+
+-----------------
+-- adjoinMax
+-----------------
+
+doc ///
+	Key
+		adjoinMin
+		(adjoinMin,Poset)
+		(adjoinMin,Poset,Thing)
+	Headline
+		returns new Poset with new minimal element
+	Usage
+		adjoinMin P
+		adjoinMin(P,a)
+	Inputs 
+		P : Poset
+		a : Thing
+	Outputs
+		Q : Poset
+	Description
+		Text
+			This method returns a new poset with minimal element adjoined.
+			If no element specified, uses {0}.
+
+		Example
+			G = {1,2,3,4}
+			R = {{1,2},{1,3},{2,4},{3,4}}
+			P = poset(G,R)
+			Q = adjoinMin P
+			Q = adjoinMin(P,0)
+	SeeAlso
+	     	adjoinMax
+		maximalElements
+		minimalElements
+/// 
+-----------------
 -- orderComplex
 -----------------
 
@@ -1717,7 +1788,7 @@ doc ///
 	Headline
 		returns the simplicial complex with faces given by chains
 	Usage
-		D = orderComplex (P)
+		orderComplex (P)
 	Inputs 
 		P : Poset
 	Outputs
@@ -1747,13 +1818,11 @@ doc ///
 	Headline
 		returns the closed interval in the poset between two elements
 	Usage
-		I = closedInterval(P,a,b)
+		closedInterval(P,a,b)
 	Inputs 
 		P : Poset
 		a : Thing
-     	    	     an element of P 
-		b : Thing
-     	    	     an element of P 
+		b : Thing 
 	Outputs
 		I : Poset
 			the closed interval between a and b 
@@ -1771,60 +1840,58 @@ doc ///
 ----------------
 --openInterval
 ----------------
-doc///
-     Key
-     	  openInterval
-	  (openInterval,Poset,Thing,Thing)
-     Headline
-     	  returns the open interval in the poset between two elements
-     Usage
-     	  I = openInterval(P,a,b)
-     Inputs
-     	  P : Poset
-	  a : Thing
-	       an element of P
-	  b : Thing
-	       an element of P
-     Outputs
-     	  I : Poset
-	       the open interval between a and b
-     Description
-     	  Text
-	       This routine returns the intreval between the elements a and b in P, not including a and b,
-	       and an error message if the two elements are not comparable in P.
+
+doc ///
+	Key
+	      openInterval
+       	      (openInterval,Poset,Thing,Thing)
+	Headline
+     	      returns the open interval in the poset between two elements
+	Usage
+     	      openInterval(P,a,b)
+	Inputs
+     	      P : Poset
+	      a : Thing
+              b : Thing
+        Outputs
+              I : Poset
+	Description
+     	     Text
+	          This routine returns the intreval between the elements a and b in P, not including a and b,
+	          and an error message if the two elements are not comparable in P.
 	  
-	  Example
-     	       P = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)})
-	       openInterval(P,a,g)
+    	     Example
+       	          P = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)})
+	          openInterval(P,a,g)
 ///
 
 -----------------
 -- hasseDiagram
 -----------------
-doc///
-     Key
-     	  hasseDiagram
-	  (hasseDiagram,Poset)
-     Headline
-     	  returns Hasse diagram for the poset
-     Usage
-     	  G = hasseDiagram(P)
-     Inputs
-     	  P : Poset
-     Outputs
-	  G : Digraph
-	       Directed graph whose edges correspond to covering relations in P
-     Description
-     	  Text 
-	       This routine returns the Hasse diagram which is a directed graph (defined in the Graphs package)
-	       whose edges correspond to the covering relations in P.  Specifically, the vertices in the graph 
-	       correspond to the elements in the ground set of P, and two vertices a and b have a directed edge 
-	       from a to b if a > b.
-	  Example
-	       P = poset ({a,b,c,d},{(a,b), (b,c), (b,d)})
-	       G = hasseDiagram(P)	
-     SeeAlso
-     	 displayGraph
+doc  ///
+	Key
+     	     hasseDiagram
+	     (hasseDiagram,Poset)
+	Headline
+             returns Hasse diagram for the poset
+	Usage
+     	     hasseDiagram(P)
+        Inputs
+     	     P : Poset
+        Outputs
+	     G : Digraph
+	          Directed graph whose edges correspond to covering relations in P
+        Description
+     	     Text 
+	          This routine returns the Hasse diagram which is a directed graph (defined in the Graphs package)
+	          whose edges correspond to the covering relations in P.  Specifically, the vertices in the graph 
+	          correspond to the elements in the ground set of P, and two vertices a and b have a directed edge 
+	          from a to b if a > b.
+	     Example
+	          P = poset ({a,b,c,d},{(a,b), (b,c), (b,d)})
+	          G = hasseDiagram(P)	
+        SeeAlso
+             displayGraph
 ///
 
 
@@ -1834,16 +1901,11 @@ doc///
 doc///
      Key
      	  moebiusFunction
-     Headline
-     	  returns Moebius function values
-///
-doc///
-     Key
 	  (moebiusFunction,Poset)
      Headline
      	  returns the Moebius function values for the unique minimal element to each element of the poset
      Usage
-     	  M = moebiusFunction(P)
+     	  moebiusFunction(P)
      Inputs
      	  P : Poset
      Outputs
@@ -1868,7 +1930,7 @@ doc///
      Headline
      	  returns the Moebius function values for the minimal element of a closed interval to each element of the interval
      Usage
-     	  M = moebiusFunction(P,a,b)
+     	  moebiusFunction(P,a,b)
      Inputs
      	  P : Poset
 	  a : Thing
@@ -1901,7 +1963,7 @@ doc///
      Headline
      	  returns the subposet supported on elements in a given list
      Usage
-     	  Q = subPoset(P,L)
+     	  subPoset(P,L)
      Inputs
      	  P : Poset
 	  L : List
@@ -2373,54 +2435,3 @@ assert( ((closedInterval(P2,c,g)).Relations) === {(c,c),(c,e),(c,f),(c,g),(e,e),
 --assert( (B.RelationMatrix) === map(ZZ^4,ZZ^4,{{1, 1, 1, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}, {0, 0, 0, 1}}) )
 --assert( toString (B.Relations) === toString {(1,1),(1,x_2),(1,x_1),(1,x_1*x_2),(x_2,x_2),(x_2,x_1*x_2),(x_1,x_1),(x_1, x_1*x_2),(x_1*x_2,x_1*x_2)} )
 --///
-
-
-----------------------------------------
---New Code for Partition Lattice:
-----------------------------------------
-
-setPartition=method()
-
-setPartition ZZ := n ->(
-     L:={{{1}}};
-     for i from 2 to n do (
-	  L=flatten for lambda in L list (
-	       lambdaparts := apply(#lambda, l-> for k to #lambda-1 list if k=!=l then lambda_k else continue);
-     	       append(apply(#lambda, p-> lambdaparts_p | {lambda_p | {i}}), join(lambda,{{i}}))
-	       );
-	  );
-     apply(L, sort)
-     )
-
-
-setPartition List := S ->(
-     L:={{{first S}}};
-     for s in drop(S,1) do (
-	  L=flatten for lambda in L list(
-	       dropPart := apply(#lambda, i-> drop(lambda,{i,i}));
-	       protoLevelSet := apply(#lambda, l-> join(dropPart_l,{lambda_l|{s}}));
-     	       join(protoLevelSet, {lambda|{{s}}})
-	       );
-	  );
-     apply(L, sort)
-     )
-
-partitionRefinementPairs = method()
-
-partitionRefinementPairs List := (L)-> (
-     m:=unique apply(L, l-> #l);
-     MM:=apply(m, i-> (symbol M)_i);
-     NN:=apply(m, i-> (symbol N)_i);
-     for i in m do (
-	  subS := subsets toList(0..i-1);
-	  M_i = take(subS,{1,#subS-2});
-    	  N_i = unique apply(M_i, r-> sort {r, select(toList(0..i-1), k-> not member(k,r))});
-     );
-     dropPart := apply(#L, i-> drop(L,{i,i}));
-     coverSet := flatten for i from 0 to #L-1 list(
-	  splitPairs:=apply(N_(#L_i), m-> {(L_i)_(first m),(L_i)_(last m)});
-     	  apply(splitPairs, j-> sort join(dropPart_i,j))
-	  );
- --    coverSet/ print;
-     apply(coverSet, i-> {L,i})--/print
-     )

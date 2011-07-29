@@ -73,8 +73,6 @@ export {
 	setPartition,
 	partitionRefinementPairs,
 	partitionLattice,
-	hyperplaneEquivalence,
-	hyperplaneInclusions,
 	intersectionLattice,
 	projectivizeArrangement,
     PDFViewer

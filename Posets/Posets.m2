@@ -70,6 +70,9 @@ export {
 	setPartitions,
 	partitionRefinementPairs,
 	partitionLattice,
+	hyperplaneEquivalence,
+	hyperplaneInclusions,
+	intersectionLattice,
     PDFViewer
        }
 
@@ -234,7 +237,7 @@ nonnull := L -> select(L, i-> i =!= null);
 transitiveClosure = method()
 transitiveClosure(List,List) := (I,C) -> (
      idx := hashTable apply(#I, i-> I_i=> i);
-     G := digraph hashTable apply(I,v->idx#v => set apply(select(C, e -> e_0==v),e -> idx#(e_1)));
+     G := digraph hashTable apply(I,v->idx#v => set apply(select(C, e -> e_0===v),e -> idx#(e_1)));
      H := floydWarshall G;
      matrix apply(I,u->apply(I,v->if H#(idx#u,idx#v)<1/0. then 1 else 0))
      )
@@ -417,7 +420,7 @@ maximalChains Poset := P -> (
 	maxChains := {};
 	while #nonMaximalChains =!= 0 do (
 		nonMaximalChains = flatten apply(nonMaximalChains, c -> (
-			nexts := select(coveringRelations P, r -> first r == last c);
+			nexts := select(coveringRelations P, r -> first r === last c);
 			if #nexts == 0 then maxChains = append(maxChains, c);
 			apply(nexts, r -> c | {last r})
 			)
@@ -914,6 +917,91 @@ partitionLattice ZZ := n -> (
      G:=setPartition L;
      R:=flatten apply(G, i-> partitionRefinementPairs i);
      poset(G,R)
+     )
+
+----------------------------------------
+--Hyperplane Arrangement Lattice
+--As written, this would most likely work
+--for any type of arrangement lattice.
+----------------------------------------
+--Given a set of linear forms defining 
+--the hyperplanes in the arrangement,
+--returns set of intersection ideals
+----------------------------------------
+
+
+----------------------------------------
+--Hyperplane Equivalence
+----------------------------------------
+-- Inputs:  (L,R)
+--
+-- L = equations defining hyperplanes
+-- R = ring
+--
+-- Outputs: List of ideals of intersections, excluding
+-- the intersection of no hyperplanes and
+-- intersections which are empty.
+----------------------------------------
+
+hyperplaneEquivalence = method()
+
+hyperplaneEquivalence(List,Ring) := (L,R) -> (
+     idealsH:= drop(apply(subsets L, h-> ideal h),1);
+     hyperplanes:= {first idealsH};
+     for P from 1 to #idealsH - 1 do (
+	  if not any(take(idealsH, P-1), s-> s == idealsH_P) and not idealsH_P == sub(ideal 1,R) then (
+	       hyperplanes = append(hyperplanes, idealsH_P);
+	       );
+	  );
+     apply(hyperplanes, h-> sub(h,R))
+     )
+
+----------------------------------------
+--Hyperplane Inclusions
+----------------------------------------
+-- Inputs:  (L,R)
+--
+-- L = list of ideals produced by method
+-- hyperplaneEquivalence
+-- R = ring
+--
+-- Outputs: Pairs of ideals (I,J), with
+-- I < J if I contains J
+----------------------------------------
+
+hyperplaneInclusions = method()
+
+hyperplaneInclusions(List,Ring) := (L,R) -> (
+     H:=apply(L, l-> sub(l,R));
+     coverPairs:={};
+     for l from 1 to #H-1 do (
+	  for k to #H-1 do (
+	       if unique apply(flatten entries gens H_k, f-> f % gens H_l) === {sub(0,R)} then (
+		    coverPairs=append(coverPairs,{H_l,L_k});
+		    );
+	       );
+	  );
+     coverPairs
+     );
+
+----------------------------------------
+--Intersection Lattice
+----------------------------------------
+-- Inputs:  (L,R)
+--
+-- L = equations defining arrangement
+-- R = ring
+--
+-- Outputs: Intersection poset of hyper-
+-- plane arrangement.
+----------------------------------------
+
+intersectionLattice = method();
+
+intersectionLattice(List,Ring):=(L,R)-> (
+     G:=hyperplaneEquivalence(L,R);
+     rel:=hyperplaneInclusions(G,R);
+     poset(G,rel)
      )
 
 ----------------------------------

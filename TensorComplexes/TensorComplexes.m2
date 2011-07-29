@@ -483,7 +483,7 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
   if r1>2 then error "r1>2 is a case we can't handle";
   if n === 0 or n===1 and r1 ===1 then return f;
   if n === 1 and r1 === 2
-      then return map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d1}),{{det matrix f}});
+      then return map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d1}), gens minors(b_1,matrix f));
 
     F1 := tensorProduct({exteriorPower(d1,A)}|
 	 apply(toList(1..r1-1),j-> exteriorPower(b_j,B_j)) | -- r1 = 1 or 2
@@ -592,6 +592,8 @@ pureResES (List,Ring):=ChainComplex => (d,kk)->(
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
 --------------------------------------------------------------------------------
+beginDocumentation()
+
 doc ///
    Key 
       TensorComplexes
@@ -641,9 +643,8 @@ doc ///
       This range includes the hyperdeterminants of boundary format, 
       the construction of the first map of the pure resolutions of Eisenbud-Schreyer, 
       and the first map in the much larger family of generic pure resolutions of BEKS.
-
-
 ///
+
 doc ///
    Key 
     tensorComplex1
@@ -686,7 +687,48 @@ doc ///
       When $a=\sum (b_i-1)+1$ we are in the ``balanced case'' discussed in Section 3 of BEKS. In
       this case giving a weight vector is unnecessary, and one can use the format
       {\tt tensorComplex1 f}.
+      
+      The example from section 12 of BEKS appears below.
+      
     Example
+      f = flattenedGenericTensor({4,2,2},ZZ/32003)
+      S = ring f;
+      g = tensorComplex1(f,{0,0,2})
+      betti res coker g
+    
+    Text
+      We can recover the Eagon-Northcott complex as follows. 
+   
+    Example
+      f = flattenedGenericTensor({6,2}, ZZ/32003) 
+      S = ring f;
+      g = tensorComplex1(f,{0,0});
+      transpose g
+      betti res coker g
+      betti eagonNorthcott matrix f
+      
+    Text
+      The following example is taken from the introduction to BEKS.
+    
+    Example
+      f = flattenedGenericTensor({7,1,2,1,2,1},ZZ/32003);
+      S = ring f;
+      g = tensorComplex1 f;
+      betti res coker g
+
+    Text
+      The input map need not be generic.
+    
+    Example
+      S = QQ[x,y,z];
+      F = labeledModule S^5
+      G = tensorProduct(labeledModule S^2, labeledModule S^2)
+      f = map(G,F, (i,j) -> random(1,S))
+      g = tensorComplex1(f, {0,0,2});
+      betti res coker g
+      
+   Caveat
+     Unlike BEKS, this method does not work with arbitrary weight vectors {\tt w}.
       
    SeeAlso
     flattenedGenericTensor
@@ -694,7 +736,86 @@ doc ///
     hyperdeterminant
     hyperdeterminantMatrix
 ///
---print docTemplate
+
+doc ///
+   Key 
+     LabeledModule
+   Headline 
+     the class of free modules with a labeled basis
+   Description
+    Text
+      A labeled module $F$ is a free module together with two additional pieces of data:
+      a @TO basisList@ which corresponds to the basis of $F$, and
+      a list of @TO underlyingModules@ which were used in the construction of $F$.  
+      
+      For instance, let $F=A\otimes B$ be the tensor product of two labeled modules.
+      The basis list of $F$ consists of pairs $\{a,b\}$ where $a$ belongs to the basis list
+      of $A$ and $b$ belongs to the basis list of $b$.The
+      underlying modules of $F$ are $A$ and $B$.
+      
+      Certain functors which are the identity in the category of modules are non-trivial
+      isomorphisms in the category of labeled modules.  For example, if {\tt F} is a labeled
+      module with basis list {\tt \{0,1\}} then {\tt tensorProduct F} is a labeled free module
+      with basis list {\tt \{\{ 0\},\{ 1\}\} }.  Similarly, one must be careful when applying the functors
+      @TO exteriorPower@ and @TO symmetricPower@.  For a ring $S$, the multiplicative unit 
+      for tensor product is the rank 1 free $S$-module whose generator is labeled by {\tt \{\} }. 
+      This is constructed by {\tt labeledModule S}.
+      
+      
+///
+
+
+
+doc ///
+   Key 
+     labeledModule
+     (labeledModule,Module)
+     (labeledModule,Ring)   
+   Headline
+     makes a labeled module     
+   Usage
+     labeledModule M
+     labeledModule R
+   Inputs
+     M: Module
+       which is free
+     R: Ring  
+   Outputs
+     : LabeledModule
+   Description
+    Text
+      This is the basic construction for a labeled module.  Given a free module $M$ of rank $r$,
+      this constructs a labeled module with basis labeled by $\{0,..,r-1\}$ and
+      no underlying modules.
+    Example
+      S = ZZ/101[a,b,c];
+      E = labeledModule S^3
+      basisList E
+      underlyingModules E
+      module E
+      rank E
+    
+    Text
+      For technical reasons, it is often convenient to construct a rank $1$ free module
+      whose generator is labeled by the empty set. This is constructed by {\tt labeledModule S}.
+      
+      
+    Example
+      S = ZZ/101[a,b,c];
+      F = labeledModule S
+      basisList F
+      underlyingModules F
+      module F
+      E = labeledModule S^1
+      basisList E
+      underlyingModules E 
+   
+   
+///
+
+///
+print docTemplate
+///
 {*beginDocumentation()
 
 document { 
@@ -1030,8 +1151,9 @@ f=flattenedESTensor({7,1,2,1,2,1},kk)
 betti res coker tensorComplex1 f
 
 
-f = flattenedGenericTensor({3,3},kk)
-betti res coker tensorComplex1 f
+f = flattenedGenericTensor({6,2},ZZ/32003)
+
+betti res coker tensorComplex1(f,{0,0})
 
 f = flattenedGenericTensor({3},kk)
 betti res coker tensorComplex1 f

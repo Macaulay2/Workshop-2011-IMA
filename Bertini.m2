@@ -159,8 +159,32 @@ bertiniSolve = method(TypicalValue => List, Options=>{StartSystem=>{},StartSolut
 
 bertiniSolve List := o -> F -> (  -- F is the list of polynomials
   	  dir := makeBertiniInput(F,o);   -- creates the input file 
-  	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
-	  readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+          if o.runType == 0 then ( -- ZeroDim 
+    	    run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	    readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+            );
+          if o.runType == 1 then ( -- param homotopy
+    	    run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	    readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+            );
+          if o.runType == 2 then ( -- PosDim 
+    	    run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	    --readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+            );
+          if o.runType == 3 then ( -- Sample 
+            stdio << "Run terminated.  Sampling will be available via this M2/Bertini interface once witness sets are handled correctly in the interface.\n"
+    	    --run("cd "|dir|"; "|BERTINIexe|" < sample_script >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	    --readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+            );
+          if o.runType == 4 then ( -- Membership  
+            stdio << "Run terminated.  Component membership will be available via this M2/Bertini interface once witness sets are handled correctly in the interface.\n"
+    	    --run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	    --readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+            );
+          if o.runType == 5 then ( -- Refine/Sharpen 
+    	    run("cd "|dir|"; "|BERTINIexe|" < sharpen_script >bertini_session.log");  -- runs Bertini, storing screen output to bertini_session.log
+	    readSolutionsBertini(dir,"finite_solutions")  -- grabs "finite_solutions" and puts all finite solutions in NAGTypes data types...Is finite_solutions the correct output file??? 
+            );
           )
 
 
@@ -328,7 +352,7 @@ makeBertiniInput List := o -> T -> ( -- T=polynomials of target system
        close f;
        );
 
-  stdio << "Temporary directory for input and output files:" << dir;
+  stdio << "Temporary directory for input and output files:" << dir << endl << endl;
   dir
   )
 

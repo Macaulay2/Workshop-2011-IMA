@@ -68,6 +68,7 @@ export {
   "tensorComplex1",
   "flattenedESTensor",
   "hyperdeterminant",
+  "hyperdeterminantMatrix",
   "pureResTC1",
   "pureResTC",
   "pureResES1",
@@ -541,6 +542,17 @@ hyperdeterminant LabeledModuleMap := f -> (
      w := {0,1}|apply(toList(2..#b), i-> sum(toList(0..i-2), j-> b_j)-(i-2));
      det matrix tensorComplex1 (f,w))
 
+-- Gives a matrix of linear forms whose determinant equals the desired hyperdeterminant.
+-- This only works for hyperdeterminants of boundary format.
+hyperdeterminantMatrix = method()
+hyperdeterminantMatrix LabeledModuleMap := f -> (
+     --check boundary format
+     b := apply(underlyingModules target f, M -> rank M);
+     if not rank source f == 1 + sum b - #b then
+     	  error"not boundary format!";
+     w := {0,1}|apply(toList(2..#b), i-> sum(toList(0..i-2), j-> b_j)-(i-2));
+     matrix tensorComplex1 (f,w))
+
 -- There is a bijection between degree sequences and balanced tensor complexes.
 -- This code takes a degree sequence to the first map of the corresponding
 -- balanced tensor complex.
@@ -901,7 +913,9 @@ uninstallPackage "LabeledModules"
 installPackage "LabeledModules"
 check "LabeledModules"
 
-f = flattenedGenericTensor({3,3},kk)
+kk=ZZ/101;
+f = flattenedGenericTensor({4,2,2,2},kk)
+hyperdeterminantMatrix(f)
 betti res coker tensorComplex1 (f, {0,0})
 
 betti pureResTC({0,1,3,4,6,7},ZZ/101)

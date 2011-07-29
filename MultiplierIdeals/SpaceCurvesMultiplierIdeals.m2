@@ -1,9 +1,9 @@
 -- -*- coding: utf-8 -*-
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
------------------------- SPACE CURVES MULTIPLIER IDEALS --------------------------------------------
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--  SPACE CURVES MULTIPLIER IDEALS ---------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- Copyright 2011 Claudiu Raicu, Bart Snapp, Zach Teitler
@@ -50,12 +50,11 @@ newPackage(
 -- http://arxiv.org/abs/1006.1915
 
 
-
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
------------------------- EXPORTS -------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- EXPORTS ---------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 export {
      monomialSpaceCurveMultiplierIdeal,
@@ -63,22 +62,22 @@ export {
      monomialSpaceCurveLCT    
      }
 
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
------------------------- PACKAGES ------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- PACKAGES --------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 needsPackage "Normaliz"
 needsPackage "MonomialMultiplierIdeals"
 needsPackage "ReesAlgebra"
 
 
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
------------------------- METHODS -------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- METHODS ---------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- affineMonomialCurveIdeal
 --
@@ -91,9 +90,10 @@ needsPackage "ReesAlgebra"
 -- Output:
 --  * ideal (ideal in S defining curve parametrized by t->(t^a,t^b,t^c))
 --
--- The ring S should be a polynomial ring over a field. Currently this is not checked.
--- The integers {a,b,c} should be positive. Currently this is not checked.
--- The output ideal may need to be trimmed, we do not do this.
+-- The ring S should be a polynomial ring over a field. Currently this
+-- is not checked.  The integers {a,b,c} should be positive. Currently
+-- this is not checked.  The output ideal may need to be trimmed, we
+-- do not do this.
 --
 -- The code for affineMonomialCurveIdeal is based on the code for
 -- monomialCurveideal from Macaulay2.
@@ -118,20 +118,23 @@ affineMonomialCurveIdeal = (S, a) -> (
 
 -- ord
 --
--- Compute monomial valuation of a given polynomial with respect to a vector that gives
--- the values of the variables.
+-- Compute monomial valuation of a given polynomial with respect to a
+-- vector that gives the values of the variables.
 --
 -- Input:
 --  * list mm = {a1,a2,a3,...}
 --  * polynomial p
 -- Output:
 --  * integer
--- This computes the monomial valuation in which the variable x1 has value a1, x2 has value a2,...
--- The value of a polynomial is the MINIMUM of the values of its terms (like order of vanishing,
--- NOT like degree).
 --
--- The values {a1,a2,...} should be nonnegative and there should be at least as many as the number
--- of variables appearing in the polynomial. Currently we do not check this.
+-- This computes the monomial valuation in which the variable x1 has
+-- value a1, x2 has value a2,...  The value of a polynomial is the
+-- MINIMUM of the values of its terms (like order of vanishing, NOT
+-- like degree).
+--
+-- The values {a1,a2,...} should be nonnegative and there should be at
+-- least as many as the number of variables appearing in the
+-- polynomial. Currently we do not check this.
 
 ord = (mm,p) -> (
      R := ring p;
@@ -142,17 +145,20 @@ ord = (mm,p) -> (
 
 -- sortedGens
 --
--- Compute the minimal generators of the defining ideal of the monomial curve parametrized
--- by t->(t^a1,t^a2,t^a3,...) and return the list of generators in order of increasing values
--- of ord({a1,a2,a3,...}, -).
+-- Compute the minimal generators of the defining ideal of the
+-- monomial curve parametrized by t->(t^a1,t^a2,t^a3,...) and return
+-- the list of generators in order of increasing values of
+-- ord({a1,a2,a3,...}, -).
 --
 -- Input:
 --  * ring R
 --  * list nn = {a1,a2,a3,...} of integers
 -- Output:
 --  * list of polynomials
--- The ring R should be a polynomial ring over a field. Currently this is not checked.
--- The integers {a1,a2,a3,...} should be positive. Currently this is not checked.
+--
+-- The ring R should be a polynomial ring over a field. Currently this
+-- is not checked.  The integers {a1,a2,a3,...} should be
+-- positive. Currently this is not checked.
 
 sortedGens = (R,nn) -> (
      KK := coefficientRing R;
@@ -164,8 +170,9 @@ sortedGens = (R,nn) -> (
 
 -- exceptionalDivisorValuation
 --
--- Compute the valuation induced by the (mm,ord(mm,f_2)) exceptional divisor
--- in the resolution of singularities of the monomial curve with exponent vector nn.
+-- Compute the valuation induced by the (mm,ord(mm,f_2)) exceptional
+-- divisor in the resolution of singularities of the monomial curve
+-- with exponent vector nn.
 --
 -- Input:
 --  * list of integers nn={a,b,c}
@@ -174,9 +181,10 @@ sortedGens = (R,nn) -> (
 -- Output:
 --  * integer
 --
--- The valuation is defined as follows. First we computed the sorted generators (f0,f1,f2,...)
--- of the defining ideal of the curve. Writing p = f0^d * g where g is not divisible by f0,
--- the valuation of p is d*ord(mm,f1) + ord(mm,g).
+-- The valuation is defined as follows. First we computed the sorted
+-- generators (f0,f1,f2,...)  of the defining ideal of the
+-- curve. Writing p = f0^d * g where g is not divisible by f0, the
+-- valuation of p is d*ord(mm,f1) + ord(mm,g).
 
 exceptionalDivisorValuation = (nn,mm,p) -> (
      R := ring p;
@@ -189,8 +197,9 @@ exceptionalDivisorValuation = (nn,mm,p) -> (
 
 -- exceptionalDivisorDiscrepancy
 --
--- Compute the multiplicity of the relative canonical divisor along the (mm,ord(mm,f_2)-ord(mm,f_1))
--- exceptional divisor in the resolution of singularities of a monomial curve.
+-- Compute the multiplicity of the relative canonical divisor along
+-- the (mm,ord(mm,f_2)-ord(mm,f_1)) exceptional divisor in the
+-- resolution of singularities of a monomial curve.
 --
 -- Input:
 --  * list of integers mm={a,b,c}
@@ -207,8 +216,9 @@ exceptionalDivisorDiscrepancy = (mm,ff) -> (
 
 -- intmat2monomIdeal
 --
--- Compute the monomial ideal generated by monomials given by exponent vectors taken
--- from the rows of an integer matrix. Optionally, select a subset of rows of the matrix.
+-- Compute the monomial ideal generated by monomials given by exponent
+-- vectors taken from the rows of an integer matrix. Optionally,
+-- select a subset of rows of the matrix.
 --
 -- Input:
 --  * a matrix M with integer entries
@@ -222,7 +232,8 @@ exceptionalDivisorDiscrepancy = (mm,ff) -> (
 --   For each row (a1,a2,...) of M, the monomial x1^a1*x2^a2*... is a generator of I.
 -- With a single optional input d:
 --   Only read rows whose last entry is equal to d.
---   Ignore the last column, i.e., (a1,a2,...,an,d) corresponds to the monomial x1^a1*...*xn^an.
+-- 
+--  Ignore the last column, i.e., (a1,a2,...,an,d) corresponds to the monomial x1^a1*...*xn^an.
 -- With two optional inputs d,c:
 --   Only read rows whose entry in the c'th column is equal to d. Ignore c'th column.
 --
@@ -586,11 +597,11 @@ monomialSpaceCurveJumpingNumbers ( Ring, List , QQ , QQ ) := (R, nn , Left , Rig
 
 
 
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
------------------------- DOCUMENTATION -------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- DOCUMENTATION ---------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 beginDocumentation()
 
@@ -725,11 +736,11 @@ Description
 
 
 
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
------------------------- TESTS ---------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- TESTS -----------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 ---Test 0 - affineMonomialCurveIdeal

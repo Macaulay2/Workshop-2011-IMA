@@ -819,8 +819,8 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           )
         else (
-	   vv := toList (1..R#gaussianRing);
-	    SM := covarianceMatrix(R);
+	   vv = toList (1..R#gaussianRing);
+	   SM = covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 
 	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ))
@@ -849,7 +849,7 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      )
      else(
      	  if not sort (vertices (R#graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
-     	  Stmts := globalMarkov G; 
+     	  Stmts = globalMarkov G; 
      	  conditionalIndependenceIdeal (R,Stmts))
      )
 

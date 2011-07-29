@@ -97,6 +97,9 @@ s1=netList Imod_*
 s2=netList apply((ideal gens gb I)_*,f->1/(leadCoefficient(f)) * f)
 s1==s2
 
+combine
+ra
+
 
 
 17/101*I_0

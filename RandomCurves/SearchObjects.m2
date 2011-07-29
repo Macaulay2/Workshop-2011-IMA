@@ -34,7 +34,7 @@ globalAssignment SearchObject
 taskList:={};
 
 pSearch=method()
-pSearch SearchObject := Object -> args -> (
+pSearch(SearchObject,FunctionClosure) :=(Object,Do) -> args -> (
      -- if the args consist of a single element make it into a sequence
      if not instance(args, Sequence) then args = 1:args;
      cert := false;
@@ -65,7 +65,7 @@ pSearch SearchObject := Object -> args -> (
 	  else object=tmpObject;
 	  if object=!=null then (
 	       scan(#taskList,i->if i!=taskNr then cancelTask taskList_i);
-    	       Object.Do(object));
+    	       Do(object));
 	  object);
      
      -- set up the task List
@@ -103,15 +103,16 @@ constructMatrix=()->(
      if rank M==2 then M else null)
 
 certifyMatrix=()->true
-doMatrix=(M)->(print M)
+X=0;
+doMatrix=(M)->(X=M)
 
 sMatrix = new SearchObject from {
      Construction=>constructMatrix,
-     Certification=>certifyMatrix,
-     Do=>doMatrix
+     Certification=>certifyMatrix
      }
 
-t1=currentTime(); M=(pSearch sMatrix)(Attempts=>13^5); t2=currentTime();
+t1=currentTime(); M=(pSearch(sMatrix,doMatrix))(Attempts=>13^5); t2=currentTime();
+rank X
 showTasks()
 t2-t1
 

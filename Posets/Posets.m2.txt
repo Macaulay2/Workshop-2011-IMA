@@ -6,7 +6,7 @@ needsPackage("Posets", FileName=>"/home/math dept/workshops/IMA-2011/Posets/Pose
 --Finished
 distributiveLattice = method();
 distributiveLattice (Poset):=P->(
-	L:=apply(subsets(P.GroundSet),i->i);
+	L:=subsets(P.GroundSet);
 	J:={};
 	G:={{}};
 	R:={};
@@ -20,7 +20,7 @@ distributiveLattice (Poset):=P->(
 			};
 			Q=join(Q,K_k);
 		);
-		Q=unique flatten Q;
+		Q=unique Q;
 		J=append(J,Q);
 		};
 	);
@@ -45,6 +45,7 @@ distributiveLattice (Poset):=P->(
 	POI		
 );
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Note: Poset must be properly labeled. Ground Set should look like {grade level, numerical label, monomial label}
 --Signs not implemented
@@ -77,8 +78,124 @@ cellularResolution (Poset):= P->(
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+isAtomic = method();
+isAtomic (Poset):= P->(
+	L:=drop(subsets(atoms(P)),{0,0});
+	Q:={};
+	answer:=false;
+	for j to #L-1 do(
+		p:=L_j_0;
+		for i to #L_j-2 do(
+			p=first posetJoin(P,p,L_j_(i+1));
+		);
+		Q=unique append(Q,p);	
+	);
+	if #P.GroundSet-1 == #Q then answer = true;
+	answer
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Doesn't consider Singleton Poset
+isBounded = method();
+isBounded (Poset) := P->(
+	L:={};
+	for i to #maximalChains(P)-1 do(
+		L=append(L,last (maximalChains P)_i);
+		L=append(L,first (maximalChains P)_i);
+	);
+	if #(unique L)==2 then true else false
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+fpoly = method();
+fpoly (Poset) := P->(
+	if isBounded P == false then error"Poset is not bounded";
+	Q:=maximalChains P;
+	L:={last (maximalChains P)_0};
+	L=append(L,first (maximalChains P)_0);
+	for i to #Q-1 do(
+		Q=replace(i,drop(drop(Q_i,{#Q_i-1,#Q_i-1}),{0,0}),Q)
+	);
+	G:={};
+	for i to #Q-1 do(
+		G=append(G,subsets Q_i);
+	);
+	G=unique flatten G;
+	for i to #G-1 do(
+		G=replace(i,prepend(L_1,append(G_i,L_0)),G); --prepend(append(G_i,L_0),L_1)
+	);
+	J:=apply(G,g->#g);
+	SR:=QQ(monoid[x]);
+	m:=0;
+	for i to #J-1 do(
+		m=m+(SR_0)^((J_i)-1);
+	);
+	m
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Broke
+hpoly = method();
+hpoly (Poset) := P->(
+	--SR:=ring(fpoly(P));
+	((1-(ring(fpoly(P)))_0)^(first degree(fpoly(P))))*fpoly(P)
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+flagfpoly = method();
+flagfpoly (Poset) := P->(
+	if isBounded P == false then error"Poset is not bounded";
+	if isGraded P == false then error"Poset must be graded";
+	L:=subsets(toList({1..(#(gradePoset P)-2)}_0));
+	L=drop(L,{0,0});
+	SR:=QQ(monoid[x_1..x_(#(gradePoset P)-1)]);
+	m:=0;
+	for i to #L-1 do(
+		G:=maximalChains flagPoset(P,L_i);
+		n:=1;
+		for j to #L_i-1 do(
+			n=n*x_(L_i_j);
+		);
+		m=m+#G*n*x_(#(gradePoset P)-1);
+	);
+	m
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Broke
+extentions = method();
+extentions (Poset):= P->(
+	n:=#P.GroundSet;
+	L:=permutations(toList (0..n));
+	G:={};
+	for i to #L-1 do(
+		K:={};
+		test:=true;
+		for j to #L_i-1 do(
+			K=append(K,(P.GroundSet_j,L_i_j));
+		);
+		for j to #K-1 do(
+			for k to #K-1-j do(
+				if compare(P,K_j_0,K_(k+j)_0)==false then test=false;
+			);
+		);
+		if test!=false then{
+			G=append(G,K);
+		};
+	);
+);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 R=QQ[x_1..x_100];
 P=poset({x_1,x_2,x_3,x_4},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4)});
+P'=poset({x_1,x_2,x_3,x_4,x_10},{(x_1,x_2),(x_2,x_10),(x_1,x_3),(x_10,x_4),(x_3,x_4)});
 Q=poset({x_1,x_2,x_3,x_4,x_5,x_6,x_7,x_8},{(x_1,x_2),(x_1,x_3),(x_2,x_4),(x_3,x_4),(x_5,x_6),(x_6,x_8),(x_7,x_8)});
 L=poset({x_5,x_6,x_7,x_8},{(x_5,x_6),(x_6,x_8),(x_7,x_8)});
 H={{0,0,x_1*x_3},{0,1,x_1*x_4},{0,2,x_1*x_5},{0,3,x_2*x_4},{0,4,x_2*x_5},{0,5,x_3*x_5},{1,0,x_1*x_3*x_5},{1,1,x_1*x_3*x_4},{1,2,x_1*x_3*x_5},{1,3,x_2*x_3*x_5},{1,4,x_1*x_4*x_5},{1,5,x_1*x_2*x_5},{1,6,x_2*x_4*x_5},{1,7,x_1*x_2*x_4},{2,0,x_1*x_3*x_4*x_5},{2,1,x_1*x_2*x_4*x_5},{2,2,x_1*x_2*x_3*x_5}};
@@ -95,3 +212,4 @@ bigH = H->(
 );
 
 --H=poset({{0,0,x_1*x_3},{0,1,x_1*x_4},{0,2,x_1*x_5},{1,0,x_1*x_3*x_5},{1,1,x_1*x_3*x_4},{1,2,x_1*x_4*x_5},{2,0,x_1*x_3*x_4*x_5}},{({0,0,x_1*x_3},{1,0,x_1*x_3*x_5}),({0,0,x_1*x_3},{1,1,x_1*x_3*x_4}),({0,1,x_1*x_4},{1,1,x_1*x_3*x_4}),({0,1,x_1*x_4},{1,2,x_1*x_4*x_5}),({0,2,x_1*x_5},{1,2,x_1*x_4*x_5}),({0,2,x_1*x_5},{1,0,x_1*x_3*x_5}),({1,1,x_1*x_3*x_4},{2,0,x_1*x_3*x_4*x_5}),({1,0,x_1*x_3*x_5},{2,0,x_1*x_3*x_4*x_5}),({1,2,x_1*x_4*x_5},{2,0,x_1*x_3*x_4*x_5})});
+

@@ -2,8 +2,8 @@ needsPackage "NAGtypes"
 
 newPackage(
   "PHCpack",
-  Version => "1.04", 
-  Date => "27 Jul 2011",
+  Version => "1.05", 
+  Date => "29 Jul 2011",
   Authors => {
     {Name => "Elizabeth Gross",
      Email => "lizgross@math.uic.edu",
@@ -670,19 +670,22 @@ phcEmbed (List,ZZ) := (system,dimension) -> (
 ------------  TOP WITNESS SET  ----------------
 -----------------------------------------------
  
-topWitnessSet = method(TypicalValue => WitnessSet)
+topWitnessSet = method()
 topWitnessSet (List,ZZ) := (system,dimension) -> (
   -- IN: system, a polynomial system;
   --     dimension, top dimension of the solution set.
-  -- OUT : a witness set for the top dimensional component.
+  -- OUT : a witness set for the top dimensional component,
+  --       a list of nonsolutions
   stdio << "... calling phcEmbed ..." << endl;
   e := phcEmbed(system,dimension);
   stdio << "... calling phcSolve ..." << endl;
   s := phcSolve(e);
   g := zeroFilter(s,#e-1,1.0e-10);
+  ns := nonZeroFilter(s,#e-1,1.0e-10);
   stdio << "... constructing a witness set ... " << endl;
-  return witnessSet(ideal(take(e,{0,#e-dimension-1})),
-                    ideal(take(e,{#e-dimension,#e-1})),g);
+  w := witnessSet(ideal(take(e,{0,#e-dimension-1})),
+                 ideal(take(e,{#e-dimension,#e-1})),g);
+  return (w,ns);
 )
 
 -----------------------------------------------

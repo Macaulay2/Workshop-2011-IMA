@@ -184,7 +184,6 @@ bertiniSolve List := o -> F -> (  -- F is the list of polynomials
 
 
 -- DAN PLAN (7/26/11)
---   create files as necessary for various runs (ex.: param, sample, member)
 --   build output parsers: output is read into M2 data types (still deciding on those), with each sort of run feeding into a different output file parser, since different sorts of runs yield different output files 
 
 -- ISSUES TO CONSIDER:
@@ -377,12 +376,30 @@ readSolutionsBertini String := o -> dir -> (  -- dir=directory holding the outpu
 local pt;
 local coord;
 local coords;
+local funcResid;
+local condNum;
+local newtonResid;
+local lastT;
+local cycleNum;
+local success;
+local solNum;
+local numVars;
+local a;
+local numCodims;
+local ptsInCodim;
+local ptType; 
+local ptMult;
+local compNum;
+local numDeflations;
+
+
+print o.runType;
 
   s := {};
 
-  if (o.runType == 0) then ( --raw_data, for zeroDim -- in development (hence the -1)
+  if (o.runType == 0) then ( --raw_data, for zeroDim 
 --raw_data output file structure:
---  #vars (proj!!)
+--  #vars (incl. homog. var.!!)
 --  0  
 --  blocks as follows:
 --    path_num
@@ -401,9 +418,9 @@ local coords;
 --  junk at end is the matrix of patch coefficients -- MPTYPE on first line, then number or rows & columns on second, then the coeffs
 
        l := lines get (dir|"/raw_data"); -- grabs all lines of the file
-       numVars := value(first l);
+       numVars = value(first l);
        l = drop(l,2);
-       solNum := value(first l);
+       solNum = value(first l);
        l = drop(l,1);
        --Now we go through all blocks of solutions (each block contains the coordinates of the solution and a bunch of other stuff.
        stdio << "Solutions, in homogeneous coordinates:" << endl << endl;
@@ -422,12 +439,12 @@ local coords;
               l = drop(l,1);
               );
  
-            funcResid := value(cleanupOutput(first l)); l=drop(l,1);
-            condNum := value(cleanupOutput(first l)); l=drop(l,1);
-            newtonResid := value(cleanupOutput(first l)); l=drop(l,1);
-            lastT := value(cleanupOutput(first l)); l=drop(l,3);
-            cycleNum := value(first l); l=drop(l,1);
-            success := value(first l); l=drop(l,1);
+            funcResid = value(cleanupOutput(first l)); l=drop(l,1);
+            condNum = value(cleanupOutput(first l)); l=drop(l,1);
+            newtonResid = value(cleanupOutput(first l)); l=drop(l,1);
+            lastT = value(cleanupOutput(first l)); l=drop(l,3);
+            cycleNum = value(first l); l=drop(l,1);
+            success = value(first l); l=drop(l,1);
             solNum = value(first l);
             l = drop(l,1); 
 
@@ -436,24 +453,88 @@ local coords;
             pts = join(pts, {pt});  -- other data is currently not stored anywhere but will eventually go into Point data type.         
             );
        )
-  else if (o.runType == -1) then ( --if ZeroDim, we actually want to read raw_data, but this works until that is fully implemented. 
-       l = lines get (dir|"/finite_solutions");
-       nsols := value first separate(" ", l#0);
-       l = drop(l,2);
-       while #s < nsols do (	 
-	    coords = {};
-	    while #(first l) > 2 do ( 
-	      	 coords = coords | {(
-		   	   a := separate(" ",  cleanupOutput(first l));	 
-		   	   (value a#0)+ii*(value a#1)
-	      	   	   )};
-    	      	 l = drop(l,1);
-	      	 );	
-	    l = drop(l,1);
-            if DBG>=10 then << coords << endl;
-	    s = s | {{coords}};
-	    );	
-       ) 
+
+
+  else if (o.runType == 2) then ( --if PosDim, we read in the output from witness_data : -1 for now for development purposes!!!??? 
+--witness_data output file structure:
+--  #vars (incl. homog. var.!!)
+--  #nonempty codims   
+--  blocks by codim (1 block per codim):
+--    codim 
+--    total #points in this codim (over all irred. comps.)
+--    blocks by points (1 block per point):
+--      max prec used
+--      coords (proj!!)
+--      max prec used (useless!) 
+--      last approx of point on path before convergence to t=0 (useless!)
+--      cond_num
+--      corank (useless!)
+--      smallest nonzero sing val (useless!)
+--      largest zero sing val (useless!)
+--      type
+--      multiplicity
+--      component number
+--      deflations needed for this point
+--    -1 (at end of blocks)
+
+--  junk at end is the matrix of slice coefficients and such.
+
+       l = lines get (dir|"/witness_data"); -- grabs all lines of the file
+       numVars = value(first l);  l=drop(l,1);
+       numCodims = value(first l); l=drop(l,1);
+
+       for codimNum from 1 to numCodims do (
+
+         -- WARNING!!!!!????? 
+         -- For now, this data is overwritten in each pass through the codimNum loop: need to store codim's worth of data at end of loop (later, when witness data type is stabilized/understood)
+
+         codimen = value(first l); l=drop(l,1);
+         ptsInCodim = value(first l); l=drop(l,1);
+
+         for ptNum from 1 to ptsInCodim do (
+
+            maxPrec := value(first l);
+            l = drop(l,1);
+            coords = {};
+            for j from 1 to numVars do ( -- grab each coordinate
+              coord = select("[0-9.+-]+e[0-9+-]+", cleanupOutput(first l));  -- use regexp to get the two numbers from the string
+              coords = join(coords, {toCC(53, value(coord#0),value(coord#1))});  -- NOTE: we convert to a 53 bit floating point complex type -- beware that we might be losing data here!!!???
+              l = drop(l,1);
+              );
+
+            l = drop(l,numVars+1);  -- don't need second copy of point or extra copy of maxPrec
+
+            condNum = value(cleanupOutput(first l)); l=drop(l,4);
+            ptType = value(first l); l=drop(l,1);
+            ptMult = value(first l); l=drop(l,1);
+            compNum = value(first l); l=drop(l,1);
+            numDeflations = value(first l); l=drop(l,1);
+           ); 
+
+         );
+       )
+
+
+
+
+--  else if (o.runType == -1) then ( --if ZeroDim, we actually want to read raw_data, but this works until that is fully implemented. 
+--       l = lines get (dir|"/finite_solutions");
+--       nsols := value first separate(" ", l#0);
+--       l = drop(l,2);
+--       while #s < nsols do (	 
+--	    coords = {};
+--	    while #(first l) > 2 do ( 
+--	      	 coords = coords | {(
+--		   	   a := separate(" ",  cleanupOutput(first l));	 
+--		   	   (value a#0)+ii*(value a#1)
+--	      	   	   )};
+--    	      	 l = drop(l,1);
+--	      	 );	
+--	    l = drop(l,1);
+--            if DBG>=10 then << coords << endl;
+--	    s = s | {{coords}};
+--	    );	
+--       ) 
 
   else if o.runType == 8 then ( --runType is never 8...this block reads in raw_solutions, which I think won't be so important (???).
        l = lines get (dir|"/raw_solutions");
@@ -473,7 +554,7 @@ local coords;
 	    s = s | {{coords}};
 	    );     
 
-    ) else error "unknown output file";  --need to add witness_data parser???
+    ) else error "unknown output file";  
   pts; 
   )
 

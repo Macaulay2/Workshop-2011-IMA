@@ -45,6 +45,7 @@ export {Graph,
      showTikZ,--required DOT
      texGraph,
      outputTexGraph,
+     "pdfViewer",
      simpleGraph,      
      removeNodes, 
      inducedSubgraph,
@@ -61,8 +62,7 @@ export {Graph,
      incidenceMatrix,
      reachable,
      floydWarshall,
-     collateVertices,
-     PDFViewer
+     collateVertices
      }
 exportMutable {dotBinary,jpgViewer}
 
@@ -598,14 +598,14 @@ outputTexGraph(Digraph,String):=String=>(G,name)->(
      outputTexGraph(G,1,4,name)
      )
 
-drawGraph=method(Options =>{symbol PDFViewer=>"open"})
+drawGraph=method(Options =>{symbol pdfViewer=>"open"})
 
 drawGraph(Graph):=opts -> (G)->(
-     if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
+     if not instance(opts.pdfViewer, String) then error("Option pdfViewer must be a string.");
      name:=temporaryFileName();
      outputTexGraph(G,concatenate(name,".tex"));
      run concatenate("pdflatex -output-directory /tmp ",name, " 1>/dev/null");
-     run concatenate(opts.PDFViewer," ", name,".pdf");
+     run concatenate(opts.pdfViewer," ", name,".pdf");
      )
 
 drawGraph(Digraph):=opts -> (G)->(

@@ -82,7 +82,7 @@ export {
 	partitionLattice,
 	intersectionLattice,
 	projectivizeArrangement,
-    PDFViewer
+    "PDFViewer"
        }
 
 needsPackage "SimplicialComplexes"
@@ -1067,7 +1067,8 @@ partitionLattice ZZ := n -> (
 hyperplaneEquivalence = method()
 
 hyperplaneEquivalence(List,Ring) := (L,R) -> (
-     unique drop(apply(subsets L, h-> ideal gens gb ideal h),1)
+     allideals:=unique drop(apply(subsets L, h-> ideal gens gb ideal h),1);
+     select(allideals, I-> not I == ideal(sub(1,R)))
      )
 
 ----------------------------------------
@@ -2230,6 +2231,40 @@ doc///
 	       P2 = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)})
 	       isAntichain(P2, {a,b})     
 	       isAntichain(P2, {b,c,d}) 
+///
+
+doc///
+     Key
+     	  intersectionLattice
+	  (intersectionLattice, List, Ring)
+     Headline
+     	  computes intersection lattice of an arrangement
+     Usage
+     	  intersectionLattice(H,R)
+     Inputs
+     	 H : List
+	      a list of elements of R
+	 R : PolynomialRing 
+     Outputs
+     	 P : Poset
+     Description
+     	  Text
+	       Given a set of equations f defining hyperplanes or hypersurfaces,
+	       computes the intersection lattice of the f.
+          
+	  Example
+	       R=QQ[x,y]
+	       H={y+x,y-x,y-x-1,y}
+	       L=intersectionLattice(H,R)
+	  Text
+	       This code will produce intersection arrangement for hypersurfaces.
+	  Example
+	       R=QQ[x,y,z]
+	       H={x^2+y^2+z^2-9, z-1, x,y}
+	       L=intersectionLattice(H,R)
+     SeeAlso
+     	  projectivizeArrangement
+	       
 ///     
 
 --doc ///

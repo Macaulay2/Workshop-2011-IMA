@@ -22,7 +22,8 @@ segreClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
      return output (segreList, ambientDim, hyperplaneClass)
      )
 segreClass Ideal := I -> (     
-     return segreClass (I, symbol H)
+     H := symbol H;
+     return segreClass (I, H)
      )
 segreClass (ProjectiveVariety,Symbol) := (projectiveVar,hyperplaneClass) -> (
      I := projectiveVar.ring.ideal;
@@ -47,7 +48,7 @@ segreClassList ProjectiveVariety := projectiveVar -> (
      )
 
 
-internalSegreClassList Ideal := I -> (
+internalSegreClassList = I -> (
      checkUserInput I;
      localI := prepare I;
      return internalSegre localI;
@@ -60,8 +61,9 @@ chernClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
      (chernList, ambientDim) := internalChernClassList I;
      return output (chernList, ambientDim, hyperplaneClass)
      )
-chernClass Ideal := I -> (     
-     return chernClass (I, symbol H)
+chernClass Ideal := I -> (  
+     H := symbol H;   
+     return chernClass (I, H)
      )
 chernClass (ProjectiveVariety,Symbol) := (projectiveVar, hyperplaneClass) -> (
      I := projectiveVar.ring.ideal;
@@ -87,7 +89,7 @@ chernClassList ProjectiveVariety := projectiveVar -> (
      )
 
 
-internalChernClassList Ideal := I -> (
+internalChernClassList = I -> (
      checkUserInput I;
      localI := prepare I;
      return internalChern localI;
@@ -165,9 +167,10 @@ internalChern = I -> (
  
      
      -- Compute the Segre classes use them to compute the Chern-Fulton classes.     
-     (segreList,ambientDim) = internalSegre(I);   
-     dimension = #segreList - 1;
-     return  for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p )
+     (segreList,ambientDim) := internalSegre(I);   
+     dimension := #segreList - 1;
+     chernList := for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p );
+     return  (chernList, ambientDim)
         
      )
 
@@ -191,7 +194,7 @@ checkUserInput = I -> (
 prepare = I -> (
 
      --trim I
-     localI = trim I;     
+     localI := trim I;     
      
      -- rename variables to avoid later collisions
      numGen := numgens ring localI;
@@ -204,7 +207,7 @@ prepare = I -> (
 
 
 
-output (List, ZZ, Symbol) := (segreList,ambientDim,hyperplaneClass) -> (
+output = (segreList,ambientDim,hyperplaneClass) -> (
      -- produces the ring ZZ[hyperplaneClass]/(hyperplaneClass^ambientDim+1)
      tempRing := ZZ[hyperplaneClass];
      outputRing := tempRing / ideal((tempRing_0)^(ambientDim+1));
@@ -224,7 +227,7 @@ document {
 	EM "ChernSegre", " computes degrees of Chern and Segre classes"
 	}
 document {
-	Key => {segreClass, (segreClass,Ideal)},
+	Key => {segreClass, (segreClass,Ideal), (segreClass, ProjectiveVariety), (segreClass, Ideal, Symbol), (segreClass, ProjectiveVariety, Symbol)},
 	Headline => "computes degrees of the Segre classes",
 	Usage => "segreClass I",
 	Inputs => { "I" },
@@ -238,7 +241,7 @@ document {
       	   }     	  
 	}
 document {
-	Key => {chernClass, (chernClass,Ideal)},
+	Key => {chernClass, (chernClass,Ideal), (chernClass, ProjectiveVariety), (chernClass, Ideal, Symbol), (chernClass, ProjectiveVariety, Symbol)},
 	Headline => "computes degrees of the Chern classes",
 	Usage => "chernClass I",
 	Inputs => { "I" },
@@ -249,7 +252,7 @@ document {
 	     }
 	}
  document {
-	Key => {segreClassList, (segreClassList,Ideal)},
+	Key => {segreClassList, (segreClassList,Ideal), (segreClassList, ProjectiveVariety)},
 	Headline => "computes degrees of the Segre classes",
 	Usage => "segreClass I",
 	Inputs => { "I" },
@@ -261,7 +264,7 @@ document {
       	   }     	  
 	}
 document {
-	Key => {chernClassList, (chernClassList,Ideal)},
+	Key => {chernClassList, (chernClassList,Ideal), (chernClassList, ProjectiveVariety)},
 	Headline => "computes degrees of the Chern classes",
 	Usage => "chernClass I",
 	Inputs => { "I" },

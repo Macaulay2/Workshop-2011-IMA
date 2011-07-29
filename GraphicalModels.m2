@@ -796,15 +796,14 @@ globalMarkov Graph := List => (G) ->(
      AX = drop(AX,1); -- drop the empty set
      AX = drop(AX,-1); -- drop the entire set
      -- product should apply * to entire list. note that  * of sets is intersection.
-     statements:=apply(AX,A->( 
+     statements := for A in AX list (
 	  B:=product apply(A, v-> nonneighbors(G,v) ); --this is the list of all B's 
-     	  C:= (vertices G) - set A - B ;
-     	 {set A,  B, set C}
-	 )
-	 );
-     removeRedundants  statements --- MIIIIIKE!! HEEEEEELP!!!!!
-     -- statements
-     ) 
+	  if #B === 0 then continue; -- need both A and B to be nonempty
+     	  C := (vertices G) - set A - B ;
+     	  {set A,  B, set C}
+	  );
+    removeRedundants  statements
+    ) 
  
  
 conditionalIndependenceIdeal=method()

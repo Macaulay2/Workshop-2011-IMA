@@ -888,6 +888,8 @@ check "LabeledModules"
 f = flattenedGenericTensor({3,3},kk)
 betti res coker tensorComplex1 (f, {0,0})
 
+betti pureResTC({0,1,3,4,6,7},ZZ/101)
+hyperdeterminant  flattenedESTensor({5,3,2,2},ZZ/2) 
 
 kk = ZZ/101;
 f=flattenedESTensor({4,2,2},kk)

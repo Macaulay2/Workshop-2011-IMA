@@ -51,6 +51,8 @@ export {
 	coveringRelations,
 	maximalElements,
 	minimalElements,
+	adjoinMax,
+	adjoinMin,
 	dropElements,
 	maximalChains,
 	orderComplex,
@@ -352,6 +354,38 @@ meetIrreducibles Poset := P -> (
         meetIrred := toList (set P.GroundSet - set meets)
     ) else error "P is not a lattice"
 )
+
+----------------------------------------
+--Adjoining new Max/Min Elements to Poset
+----------------------------------------
+--inputs:  Poset P
+--     	   (Poset P, Thing)
+--outputs:  new Poset P' with "thing" as
+--label for max/min
+
+adjoinMax = method()
+
+adjoinMax Poset := P -> (
+     adjoinMax(P,{1})
+     )
+
+adjoinMax (Poset,Thing):= (P,a)->(
+     G:=P.GroundSet | {a};
+     R:=P.Relations | apply(P.GroundSet, g-> {g,a});
+     poset(G,R)
+     )
+
+adjoinMin = method()
+
+adjoinMin Poset := P -> (
+     adjoinMin(P,{1})
+     )
+
+adjoinMin (Poset,Thing):= (P,a)->(
+     G:=P.GroundSet | {a};
+     R:=P.Relations | apply(P.GroundSet, g-> {a,g});
+     poset(G,R)
+     )
 
 
 --------------------------------------------------
@@ -1028,6 +1062,11 @@ projectivizeArrangement(List,Ring):=(L,R)->(
      rel:=hyperplaneInclusions(G,S);
      poset(G,rel)
      )
+------------------------------------
+--Alternate method: Which is better?
+--Could also use "adjoinMax".
+------------------------------------
+
 
 
 ----------------------------------

@@ -254,6 +254,15 @@ pointsToFile (List,Ring,String) := o -> (S,R,name) -> (
   close file;
 ) 
 
+witnessSetFromFile = method(TypicalValue => WitnessSet)
+witnessSetFromFile (String) := (name) -> (
+  -- IN: file name which contains a witness set in PHCpack format
+  -- OUT: a witness set
+  f := systemFromFile(name); 
+  w := witnessSet(f,{},{});
+  return w;
+);
+
 -----------------------------
 ---  conversion to Point  ---
 -----------------------------
@@ -748,6 +757,14 @@ phcFactor (WitnessSet ) := w -> (
   run(PHCexe|" -f < " | PHCbatchFile | " > " | PHCsessionFile);
   stdio << "session information of phc -f is in " << PHCsessionFile << endl;
   stdio << "output of phc -f is in file " << PHCoutputFile << endl;
+  -- counting the number of factors
+  count := 0;
+  name := PHCinputFile | "_f" | toString(count+1);
+  while (fileExists name) do (
+    count = count + 1;
+    name = PHCinputFile | "_f" | toString(count+1);
+  );
+  stdio << "found " << count << " irreducible factors " << endl;
   return {w}
 )
 

@@ -616,18 +616,7 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
 	    genericSymmetricMatrix(R,n)
 	    )
   )
---covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> covarianceMatrix R
-     --(-- covarianceMatrix R  --this method needs to be updated to *stop ignoring* g.
-     --if not sort vertices R.digraph  === sort vertices g then error "vertex labels of digraph do not match labels in ring"; 
-     --  I DON'T WANT THIS MESSAGE, OR DO I? can't i just embed in a bigger ring? 
-     --if not, then make sure that there is an example in the documentation that explains this.
-     --)
-------------------------------------------------------------------------------------------------------------------------------
------- QUESTION: how come this method IGNORES the digraph!? 
--------        What if the digraph g is a proper subgraph of R.digraph???? is the answer then wrong? YES- SEE EXAMPLE FILE!
-------	   	     ---Sonja (28-29july2011)
-------------------------------------------------------------------------------------------------------------------------------
-
+-- just in the case when the graph is undirected, having a ring is not enough to get the generic symmetric matrix, so we do this:
 covarianceMatrixUndirected=method()
 covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names accordingly everywhere!!! added "undirected"
      vv := sort vertices g;
@@ -635,13 +624,13 @@ covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names according
      n := R#gaussianRing#0;
      s := value R#gaussianRing#1;
      SM := mutableMatrix(R,n,n);
-     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
-     matrix SM) 
-------------------------------------------------------------------------------------------------------------------------------
+     ------------------------------------------------------------------------------------------------------------------------------
      --QUESTION: CAN this matrix SM not be obtained via generic symmetric matrix command as in the digraph case???
      --	    	 Sonja 29july2011
      -- yes it can, but need to specify correct starting variable (i.e. omit the k's use only s's).
-------------------------------------------------------------------------------------------------------------------------------
+     ------------------------------------------------------------------------------------------------------------------------------
+     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
+     matrix SM) 
 
 
 ----------------------
@@ -757,9 +746,12 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
 ------------------------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------
--- Gaussian undirected graphs  --
+-- Gaussian undirected graphs: 
 -----------------------------------------
+--
+-- all these are totally new methods, but we also added a bunch of other functionality for undirected graphs throughout the package
 -- 26-29july2011 
+-----------------------------------------
 
 gaussianRing Graph := Ring => opts -> (g) -> (
     bb := graph g;

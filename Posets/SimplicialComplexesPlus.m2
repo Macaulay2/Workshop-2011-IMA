@@ -8,7 +8,8 @@ newPackage(
 	Version => "0.1",
 	Date => "March 1st, 2011",
 	Authors => {
-	     	{Name => "Gwyneth Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/~whieldon/Main_Details.html"}
+	     	{Name => "Gwyneth Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/~whieldon/Main_Details.html"},
+     	        {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"}
 	},
 	Headline => "Adds operations on simplicial complexes",
 	Configuration => { },

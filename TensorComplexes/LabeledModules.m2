@@ -453,8 +453,9 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
   A := source f;
   a := rank A;
   n := #B-1;
+  if #w != n+1 then error"weight vector has wrong length";
   b := B / rank; -- {0, b1, b2,..,bn}
-
+  
   d1 := if w_1>0 then 1 else b_1;
   r1 := # select(w, wj -> wj < d1);
   if r1>2 then error "r1>2 is a case we can't handle";
@@ -826,6 +827,9 @@ f = flattenedGenericTensor({3,3},kk)
 assert( (betti res coker tensorComplex1 f) === new BettiTally from {(1,{3},3) => 1, (0,{0},0) => 1} )
 f = flattenedGenericTensor({3,2,2},kk)
 assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1,2}))
+f = flattenedGenericTensor({3,3},kk)
+assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1}))
+assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,0}))
 ///
 
 end

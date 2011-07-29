@@ -3,7 +3,7 @@
 
 newPackage(
    "LRhomotopies",
-   Version => "0.5" ,
+   Version => "0.6" ,
    Date => "28 July 2011",
    Authors => {{Name => "Jan Verschelde",
                 Email => "jan@math.uic.edu",
@@ -118,20 +118,24 @@ systemFromFile(String) := (name) -> (
 --             the polynomial equations solved.
 --            
 -- ON RETURN :
---   (f,p)     a sequence with fixed flags and solved polynomial system,
+--   (f,p,s)   a sequence with flag and polynomial system, and solutions,
 --   f         random complex coordinates of the fixed flag,
---   p         the solved polynomial equations as a string.
+--   p         the solved polynomial equations as a string,
+--   s         solutions to the polynomials in string format.
 --
    data := get name;
    L := lines(data);
    nf := position(L,i->i=="THE FIXED FLAGS :");
    np := position(L,i->i=="THE POLYNOMIAL SYSTEM :");
-   ns := position(L,i->i=="THE SOLUTIONS :");
+   K := take(L,{np,#L-1});
+   ns := np + position(K,i->i=="THE SOLUTIONS :");
    f := concatenate(L_(nf+1),"\n");
    for i from nf+2 to np-1 do f = concatenate(f,L_i,"\n");
    p := concatenate(L_(np+1),"\n");
    for i from np+2 to ns-1 do p = concatenate(p,L_i,"\n");
-   result := (f,p);
+   s := concatenate(L_(ns+1),"\n");
+   for i from ns+2 to #L-1 do s = concatenate(s,L_i,"\n");
+   result := (f,p,s);
    result
 );
 LRtriple = method();
@@ -171,9 +175,8 @@ LRtriple(ZZ,Matrix) := (n,m) -> (
    stdio << "opening output file " << PHCsolutions << endl;
    stdio << endl << "extracting fixed flags, polynomial system, solutions";
    stdio << endl;
-   fp := systemFromFile(PHCoutputFile);
-   s := get PHCsolutions;
-   result := (fp_0,fp_1,s);
+   fps := systemFromFile(PHCoutputFile);
+   result := (fps_0,fps_1,fps_2);
    result
 );
 wrapTriplet = method();
@@ -182,22 +185,10 @@ wrapTriplet(String,String,String) := (f,p,s) -> (
 -- DESCRIPTION :
 --   Wraps the triplet of strings: fixed flag f, polynomial system p,
 --   and solutions s into one string suitable for parsing by phc -e.
---   Because the solutions in s are in Maple format,
---   they are converted to PHCpack format.
 --
-   PHCsolutionsMpl := temporaryFileName() | "PHCsolutionsMpl";
-   PHCsolutionsFrm := temporaryFileName() | "PHCsolutionsFrm";
-   stdio << "writing solutions in Maple form to " << PHCsolutionsMpl << endl;
-   file := openOut PHCsolutionsMpl;
-   file << s << endl;
-   close file;
-   stdio << "running phc -z, writing output to " << PHCsolutionsFrm << endl;
-   run("phc -z " | PHCsolutionsMpl | " " | PHCsolutionsFrm);
-   stdio << "reading PHCpack solutions from " << PHCsolutionsFrm << endl;
-   ns := get PHCsolutionsFrm;
    result := concatenate("THE FIXED FLAGS :\n",f);
    result = concatenate(result,"THE POLYNOMIAL SYSTEM :\n",p);
-   result = concatenate(result,"THE SOLUTIONS :\n",ns);
+   result = concatenate(result,"THE SOLUTIONS :\n",s);
    result
 );
 cheaterInputFile = method();
@@ -369,10 +360,10 @@ doc ///
       R := ZZ;
       n := 6;
       m := matrix{{3, 2, 4, 6}};
-     -- result := LRtriple(n,m);
-     -- stdio << "the fixed flags :\n" << result_0;
-     -- stdio << "polynomial system solved :\n" << result_1;
-     -- stdio << "solutions :\n" << result_2;
+      result := LRtriple(n,m);
+      stdio << "the fixed flags :\n" << result_0;
+      stdio << "polynomial system solved :\n" << result_1;
+      stdio << "solutions :\n" << result_2;
 ///;
 
 doc ///
@@ -432,12 +423,12 @@ doc ///
       R := ZZ;
       n := 6;
       m := matrix{{3, 2, 4, 6}};
-     -- t := LRtriple(n,m);
-     -- w := wrapTriplet(t);
-     -- result := LRcheater(n,m,w);
-     -- stdio << "real fixed flags :\n" << result_0;
-     -- stdio << "polynomial system solved :\n" << result_1;
-     -- stdio << "solutions :\n" << result_2;
+      t := LRtriple(n,m);
+      w := wrapTriplet(t);
+      result := LRcheater(n,m,w);
+      stdio << "real fixed flags :\n" << result_0;
+      stdio << "polynomial system solved :\n" << result_1;
+      stdio << "solutions :\n" << result_2;
 ///;
 
 end  -- terminate reading

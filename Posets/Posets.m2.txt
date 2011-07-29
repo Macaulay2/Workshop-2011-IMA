@@ -168,10 +168,10 @@ flagfpoly (Poset) := P->(
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Broke
-extentions = method();
-extentions (Poset):= P->(
+linearExtensions = method();
+linearExtensions (Poset) := P->(
 	n:=#P.GroundSet;
-	L:=permutations(toList (0..n));
+	L:=permutations(toList (1..n));
 	G:={};
 	for i to #L-1 do(
 		K:={};
@@ -180,14 +180,15 @@ extentions (Poset):= P->(
 			K=append(K,(P.GroundSet_j,L_i_j));
 		);
 		for j to #K-1 do(
-			for k to #K-1-j do(
-				if compare(P,K_j_0,K_(k+j)_0)==false then test=false;
+			for k to #K-2-j do(
+				if compare(P,K_j_0,K_(k+1+j)_0)==true and K_(k+1+j)_1 < K_j_1 then test=false;
 			);
 		);
 		if test!=false then{
 			G=append(G,K);
 		};
 	);
+	G
 );
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------

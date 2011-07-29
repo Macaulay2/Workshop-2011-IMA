@@ -6,116 +6,95 @@ newPackage(
     	Authors => {{Name => "Christine Jost", 
 		  Email => "jost@math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
-    	Headline => "Computations of degrees of Chern and Segre classes of projective schemes",
+    	Headline => "Degrees of Chern and Segre classes",
     	DebuggingMode => true
     	)
 
 
+-- internal commenting!!!
+-- write documentation
+-- test all functions
+
 export {segreClass}
 segreClass = method(TypicalValue => RingElement);
+segreClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
+     (segreList, ambientDim) := internalSegreClassList I;
+     return output (segreList, ambientDim, hyperplaneClass)
+     )
 segreClass Ideal := I -> (     
-     checkUserInput I; 
-     I = prepare I;
-     (s,ambientDim) := internalSegre I;
-     out := output (s,ambientDim);
-     return out
+     return segreClass (I, symbol H)
      )
-segreClass (Ideal, Symbol) := (I,H) -> (
-     checkUserInput I;
-     I = prepare I;
-     (s, ambientDim) := internalSegre I;
-     out := output (s, ambientDim, H);
-     return out
+segreClass (ProjectiveVariety,Symbol) := (projectiveVar,hyperplaneClass) -> (
+     I := projectiveVar.ring.ideal;
+     return segreClass(I, hyperplaneClass)
      )
-segreClass ProjectiveVariety := P -> (
-     I := P.ring.ideal;
-     checkUserInput I; 
-     I = prepare I;
-     (s,ambientDim) := internalSegre I;
-     out := output (s,ambientDim);
-     return out
-     )
-segreClass (ProjectiveVariety,Symbol) := (P,H) -> (
-     I := P.ring.ideal;
-     checkUserInput I;
-     I = prepare I;
-     (s, ambientDim) := internalSegre I;
-     out := output (s, ambientDim, H);
-     return out
+segreClass ProjectiveVariety := projectiveVar -> (
+     I := projectiveVar.ring.ideal;
+     return segreClass I
      )
      
 
      
-
-
 export {segreClassList}
 segreClassList = method(TypicalValue => List);
 segreClassList Ideal := I -> (
-     checkUserInput I;
-     I = prepare I;
-     (s,ambientDim) := internalSegre I;
-     return s
+     (segreList, ambientDim) := internalSegreClassList I;
+     return segreList
      )
-segreClassList ProjectiveVariety := P -> (
-     I := P.ring.ideal;
-     checkUserInput I;
-     I = prepare I;
-     (s,ambientDim) := internalSegre I;
-     return s
+segreClassList ProjectiveVariety := projectiveVar -> (
+     I := projectiveVar.ring.ideal;
+     return segreClassList I
      )
 
+
+internalSegreClassList Ideal := I -> (
+     checkUserInput I;
+     localI := prepare I;
+     return internalSegre localI;
+     )
 
 
 export {chernClass}
 chernClass = method(TypicalValue => RingElement);
-chernClass Ideal := I -> (
-     checkUserInput I; 
-     I = prepare I;
-     (c,ambientDim) := internalChern I;
-     out := output (c,ambientDim);
-     return out
+chernClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
+     (chernList, ambientDim) := internalChernClassList I;
+     return output (chernList, ambientDim, hyperplaneClass)
      )
-chernClass (Ideal, Symbol) := (I,H) -> (
-     checkUserInput I;
-     I = prepare I;
-     (c, ambientDim) := internalChern I;
-     out := output (c, ambientDim, H);
-     return out;
+chernClass Ideal := I -> (     
+     return chernClass (I, symbol H)
      )
-chernClass ProjectiveVariety := P -> (
-     I := P.ring.ideal;
-     checkUserInput I; 
-     I = prepare I;
-     (c,ambientDim) := internalChern I;
-     out := output (c,ambientDim);
-     return out
+chernClass (ProjectiveVariety,Symbol) := (projectiveVar, hyperplaneClass) -> (
+     I := projectiveVar.ring.ideal;
+     return chernClass(I, hyperplaneClass)
      )
-chernClass (ProjectiveVariety, Symbol) := (P,H) -> (
-     I := P.ring.ideal;
-     checkUserInput I;
-     I = prepare I;
-     (c, ambientDim) := internalChern I;
-     out := output (c, ambientDim, H);
-     return out;
+chernClass ProjectiveVariety := projectiveVar -> (
+     I := projectiveVar.ring.ideal;
+     return chernClass I
      )
 
+     
 
-
+     
 export {chernClassList}
 chernClassList = method(TypicalValue => List);
 chernClassList Ideal := I -> (
-     checkUserInput I;
-     I = prepare I;
-     (c,ambientDim) := internalChern I;
-     return c
+     (chernList, ambientDim) := internalChernClassList I;
+     return chernList
      )
-chernClassList ProjectiveVariety := P -> (
-     I := P.ring.ideal;
-     checkUserInput I;
-     I = prepare I;
-     (c,ambientDim) := internalChern I;
-     return c
+chernClassList ProjectiveVariety := projectiveVar -> (
+     I := projectiveVar.ring.ideal;
+     return chernClassList I
      )
+
+
+internalChernClassList Ideal := I -> (
+     checkUserInput I;
+     localI := prepare I;
+     return internalChern localI;
+     )
+
+
+
 
 
 
@@ -133,21 +112,26 @@ internalSegre = I -> (
      R := ring I;
      ambientDim := dim Proj R;
      dimension := dim Proj(R/I) ;
-     gensI := flatten entries sort gens I;
-     maxDeg := first max degrees I; 
-     minDegGen := first gensI;
      
      s:= {};
      
      
      if I == ideal(0_R) then (
 	  s = for i from 0 to dimension list if i==0 then 1 else 0;
-	  return s;
+	  return (s,ambientDim);
 	  );
      if I == ideal(1_R) then (
 	  s = {};
-	  return s;
-	  );
+	  return (s,ambientDim);
+	  );    
+     
+     
+     
+     gensI := flatten entries sort gens I;
+     maxDeg := first max degrees I; 
+     minDegGen := first gensI;
+     
+
     
      -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
      f := for i from 1 to ambientDim list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
@@ -177,60 +161,14 @@ internalSegre = I -> (
 
 
 
-
 internalChern = I -> (
+ 
      
-     -- Obtain:
-     -- the ring R 
-     -- the dimension of the ambient space
-     -- the dimension n of Z
-     -- a list of the generators of I sorted by degree
-     -- the maximal degree of the generators of I and
-     -- a generator of I with minimal degree
-     R := ring I;
-     ambientDim := dim Proj R;
-     dimension := dim Proj(R/I) ;
-     gensI := flatten entries sort gens I;
-     maxDeg := first max degrees I; 
-     minDegGen := first gensI;
-     
-     s := {};
-     
-     
-     if I == ideal(0_R) then (
-	  s = for i from 0 to dimension list if i==0 then 1 else 0;
-	  return s;
-	  );
-     if I == ideal(1_R) then (
-	  s = {};
-	  return s;
-	  );
-    
-     -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
-     f := for i from 1 to ambientDim list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
-     
-     -- The for loop computes the degrees of the Segre classes of Z, stores them in the list s.
-     for d from (ambientDim - dimension) to ambientDim do (
-	  
-	  -- Obtain the ideal J of the intersection of d hypersurfaces containing Z, where d = comdimension of Z, ..., dimension of the ambient space.
-	  J := ideal(take(f,d));
-	  
-	  -- Compute the residual of Z in the intersection of the d hypersurfaces, using saturation. Compute the degree of the residual. 
-	  residual := saturate(J,minDegGen);
-	  residualDeg := if residual != ideal vars R then degree residual else 0;
-	  
-     	  -- Using the degree of the residual, compute the degree of the pth Segre class, where p = d - codimension of Z.
-	  p := d - (ambientDim - dimension);
-	  degSegreClass := maxDeg^d - residualDeg - sum( 0..(p-1), i -> binomial(d,p-i)*maxDeg^(p-i)*s_i );
-	  
-	  s = append(s, degSegreClass);
-	    
-	  );
-     
-     c := for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*s_p );
-
-     return (c,ambientDim);
-     
+     -- Compute the Segre classes use them to compute the Chern-Fulton classes.     
+     (segreList,ambientDim) = internalSegre(I);   
+     dimension = #segreList - 1;
+     return  for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p )
+        
      )
 
 
@@ -251,44 +189,29 @@ checkUserInput = I -> (
 
 
 prepare = I -> (
-     
+
      --trim I
-     I = trim I;     
+     localI = trim I;     
      
      -- rename variables to avoid later collisions
-     numGen := numgens ring I;
-     coeffRing := coefficientRing ring I;
+     numGen := numgens ring localI;
+     coeffRing := coefficientRing ring localI;
      z := symbol z;
      R := coeffRing[z_1 .. z_numGen];
-     renamingMap := map(R, ring I, {z_1 .. z_numGen});
-     I = renamingMap I;
-     return I;
+     renamingMap := map(R, ring localI, {z_1 .. z_numGen});
+     return renamingMap localI;
      )
 
 
 
-
-output = method(TypicalValue => RingElement)
-output (List,ZZ) := (s,ambientDim) -> (
-     H := symbol H;
-     -- produces the ring ZZ[H]/(H^ambientDim+1)
-     tempRing := ZZ[H];
-     tempIdeal := ideal((tempRing_0)^(ambientDim+1));
-     outputRing := tempRing / tempIdeal;
+output (List, ZZ, Symbol) := (segreList,ambientDim,hyperplaneClass) -> (
+     -- produces the ring ZZ[hyperplaneClass]/(hyperplaneClass^ambientDim+1)
+     tempRing := ZZ[hyperplaneClass];
+     outputRing := tempRing / ideal((tempRing_0)^(ambientDim+1));
      
-     dim := #s-1;
-     out := sum(0..dim, i -> s_i * H^(ambientDim - dim + i));
-     return out
-     )
-output (List, ZZ, Symbol) := (s,ambientDim,H) -> (
-     -- produces the ring ZZ[H]/(H^ambientDim+1)
-     tempRing := ZZ[H];
-     tempIdeal := ideal((tempRing_0)^(ambientDim+1));
-     outputRing := tempRing / tempIdeal;
-     
-     dim := #s-1;
-     out := sum(0..dim, i -> s_i * (outputRing_0)^(ambientDim - dim + i));
-     return out
+     -- reserved symbol
+     dimension := #segreList-1;
+     return  sum(0..dimension, i -> segreList_i * (outputRing_0)^(ambientDim - dimension + i))
      )
 
 
@@ -306,8 +229,10 @@ document {
 	Usage => "segreClass I",
 	Inputs => { "I" },
 	Outputs => {{ "a list with degrees of Segre classes {deg s_0, ... , deg s_n} of the projective scheme given by the ideal", TT "I" }},
-        SourceCode => {(segreClass,Ideal)},
+        -- sourceCode ??
+	SourceCode => {(segreClass,Ideal)},
 	EXAMPLE {
+	     -- get lines \\\
 	"1+1"
  --       segreClass ideal(x)
       	   }     	  
@@ -349,9 +274,10 @@ document {
 	
    
 
-
 TEST ///
     R = QQ[x,y,z]
     I = (x)
     assert ( segreClass I == {1,-1} )
+    
+    
  ///

@@ -121,12 +121,14 @@ export {bidirectedEdgesMatrix,
        gaussianVanishingIdeal,
        undirectedEdgesMatrix,
        numberOfEliminationVariables, --entry stored inside gaussianRing. not used anywhere. delete?or document?
-       conditionalIndependenceIdeal
+       conditionalIndependenceIdeal,
+       gaussianRingList
 	} 
      
 needsPackage "Graphs"
 
-markov = local markov
+markov = local markov ----WHY IS IT A GOOD IDEA TO KEEP THESE LOCAL? WHY NOT LET THE USER ACCESS SOME OF THIS STUFF?
+     	       	    	 --- Sonja&Seth 29july2011.  (we did not keep gaussian stuff like this local.)
 markovVariables = local markovVariables
 gaussianVariables = local gaussianVariables
 
@@ -392,7 +394,7 @@ markovRing Sequence := Ring => opts -> d -> (
 
 marginMap = method()
 marginMap(ZZ,Ring) := RingMap => (v,R) -> (
-     if (not R#?markov) then error "expected a ring created with markovRing";
+     if (not R.?markov) then error "expected a ring created with markovRing";
      -- R should be a Markov ring
      v = v-1;
      d := R.markov;
@@ -417,7 +419,7 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
      v = v-1;
      -- R := ring presentation A;
      p := i -> A.markovVariables#i;
-     if not A#?markov then error "expected a ring created with markovRing";
+     if not A.?markov then error "expected a ring created with markovRing";
      d := A.markov;
      e := drop(d, {v,v});
      S := markovRing (e);
@@ -545,29 +547,36 @@ prob = (R,s) -> (
 -- gaussianRing    --
 ---------------------
 
-
 ------------------------------------------------------------------------------------------------------------------------------
 -- QUESTION: how come markovRing is smart, and stores a hashtable markovRingList so as to not re-create rings, 
 -- 	     and gaussianRing does not do that? 
 --     	    Should this be fixed?      	    	 --- Sonja 28jul2011
+--    FIXED: 	       	    	      	   	 ---Sonja 29jul2011
  ------------------------------------------------------------------------------------------------------------------------------
-gaussianRing = method(Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
+gaussianRingList = new MutableHashTable;
+--the mutable hash table of all gaussian rings created is indexed by:
+--     (coefficient field, variable name, number of r.v.'s) --in case of ZZ input
+--     (coefficient field, variable name, vertices of the directed graph) --in case of Digraph input
+--     (coefficient field, variable name, whole undirected graph) --in case of Graph input
+gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
 	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
      s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
      kk := opts.Coefficients;
+     if (not gaussianRingList#?(kk,s,n)) then ( 
+	  --(kk,s,n) uniquely identifies gaussianRing in case of ZZ input.
      w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
      v := apply (w, ij -> s_ij);
      R := kk(monoid [v, MonomialSize=>16]);
-     R#gaussianRing = n;
+     R#gaussianRing = n; ---- OH MY GOD THE KEY EQUALS THE NAME OF THE METHOD!!! ---Seth&Sonja 29july2011
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
-     R
+     gaussianRingList#((kk,s,n)) = R;); 
+     gaussianRingList#((kk,s,n))
      )
      
--- we want to be able to do s_{a,b} 
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
      -- Input is a Digraph G, 
      -- we read off the list of labels from the vertices.
@@ -575,6 +584,8 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
      kk := opts.Coefficients;
      vv := sort vertices G; 
+     if (not gaussianRingList#?(kk,s,vv)) then ( 
+	  --(kk,s,vv) uniquely identifies gaussianRing in case of Digraph input.
      w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
      v := apply (w, ij -> s_ij);
      R := kk(monoid [v, MonomialSize=>16]);
@@ -583,7 +594,8 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R.gaussianVariables = H;
      R.digraph = G; ---THIS IS NEW --- TO BE MERGED FOR FUNCTIONALITY! --- sonja 28july2011
      	       	    --merged in covarianceMatrix(Ring,Digraph), 
-     R
+     gaussianRingList#((kk,s,vv)) = R;); 
+     gaussianRingList#((kk,s,vv))
      )
 
 ------------------------
@@ -605,11 +617,12 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
        n := R#gaussianRing; 
        genericSymmetricMatrix(R,n)--)
   )
-covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> (-- covarianceMatrix R  --this method needs to be updated to *stop ignoring* g.
-     if not sort vertices R#digraph  === sort vertices g then error "vertex labels of digraph do not match labels in ring"; 
+covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> covarianceMatrix R
+     --(-- covarianceMatrix R  --this method needs to be updated to *stop ignoring* g.
+     --if not sort vertices R.digraph  === sort vertices g then error "vertex labels of digraph do not match labels in ring"; 
      --  I DON'T WANT THIS MESSAGE, OR DO I? can't i just embed in a bigger ring? 
      --if not, then make sure that there is an example in the documentation that explains this.
-     )
+     --)
 ------------------------------------------------------------------------------------------------------------------------------
 ------ QUESTION: how come this method IGNORES the digraph!? 
 -------        What if the digraph g is a proper subgraph of R.digraph???? is the answer then wrong? YES- SEE EXAMPLE FILE!
@@ -732,7 +745,7 @@ trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
 -----------------------------------------
 -- Gaussian undirected graphs  --
 -----------------------------------------
--- 27JULY2011 
+-- 26-29july2011 
 
 gaussianRing Graph := Ring => opts -> (g) -> (
     bb := graph g;
@@ -740,6 +753,8 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     s := opts.sVariableName;
     k := opts.kVariableName;
     kk := opts.Coefficients;
+    if (not gaussianRingList#?(kk,s,k,bb)) then ( 
+	 --(kk,s,k,bb) uniquely identifies gaussianRing in case of Digraph input.
     sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
     kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
     m := #kL; --eliminate the k's 
@@ -747,7 +762,9 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     R#numberOfEliminationVariables = m;
     R#gaussianRing = {#vv,s,k};
     R#graph = g;
-    R)
+    gaussianRingList#((kk,s,k,bb)) = R;); 
+    gaussianRingList#((kk,s,k,bb))
+    )
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (

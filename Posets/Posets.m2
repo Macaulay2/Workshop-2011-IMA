@@ -73,6 +73,7 @@ export {
 	hyperplaneEquivalence,
 	hyperplaneInclusions,
 	intersectionLattice,
+	projectivizeArrangement,
     PDFViewer
        }
 
@@ -816,7 +817,7 @@ outputTexPoset(Poset,String):= opts -> (P,name)->(
      H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
      levelsets:=apply(values H, v-> #v-1);
      scalew:=min{1.5,15/ max levelsets};
-     scaleh:=min{2/scalew,15/L};
+     scaleh:=min{2/scalew,15/(L+1)};
      halflevelsets:=apply(levelsets, j-> scalew*j/2.0);
      spacings:=apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
      fn:=openOut name;
@@ -966,7 +967,7 @@ hyperplaneEquivalence(List,Ring) := (L,R) -> (
 -- R = ring
 --
 -- Outputs: Pairs of ideals (I,J), with
--- I < J if I contains J
+-- I < J if J contains I
 ----------------------------------------
 
 hyperplaneInclusions = method()
@@ -977,7 +978,7 @@ hyperplaneInclusions(List,Ring) := (L,R) -> (
      for l from 1 to #H-1 do (
 	  for k to #H-1 do (
 	       if unique apply(flatten entries gens H_k, f-> f % gens H_l) === {sub(0,R)} then (
-		    coverPairs=append(coverPairs,{H_l,L_k});
+		    coverPairs=append(coverPairs,{L_k,H_l});
 		    );
 	       );
 	  );
@@ -1003,6 +1004,31 @@ intersectionLattice(List,Ring):=(L,R)-> (
      rel:=hyperplaneInclusions(G,R);
      poset(G,rel)
      )
+
+----------------------------------------
+--Projectivize Arrangement
+----------------------------------------
+-- Inputs:  (L,R)
+--
+-- L = equations defining (possibly nonprojective)
+-- arrangement
+-- R = ring
+--
+-- Outputs: Intersection poset of projectivized 
+-- hyperplane arrangement.
+----------------------------------------
+
+projectivizeArrangement = method();
+
+projectivizeArrangement(List,Ring):=(L,R)->(
+     Z:=local Z;
+     S:= coefficientRing R[gens R|{(symbol Z)}];
+     newL:=apply(L, h->homogenize(sub(h,S),Z));
+     G:=hyperplaneEquivalence(newL,S);
+     rel:=hyperplaneInclusions(G,S);
+     poset(G,rel)
+     )
+
 
 ----------------------------------
 -- DOCUMENTATION

@@ -9,8 +9,9 @@ viewHelp "GraphicalModels"
 gaussianRing 3 
 gaussianRing 4
 gaussianRing (4, sVariableName=>t)
-gaussianRing 4
-peek gaussianRingList
+S=gaussianRing 4
+covarianceMatrix S
+--peek gaussianRingList
 
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 gaussianRing G --passing a graph gives the variable names l's and p's
@@ -32,7 +33,7 @@ M=undirectedEdgesMatrix(R,G)
 -- to get the adjoint:
 -- to be invertible needs to be promoted to fraction field:
 adjK = sub(det(M)* inverse(sub(M,frac R)), R)
-cov=covarianceMatrix(R,G) -- now works for undirected graphs
+cov=covarianceMatrix(R)--,G) -- now works for undirected graphs
 flatten  entries( t*cov - adjK) 
 t*det(M)-1
      

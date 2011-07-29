@@ -121,8 +121,7 @@ export {bidirectedEdgesMatrix,
        gaussianVanishingIdeal,
        undirectedEdgesMatrix,
        numberOfEliminationVariables, --entry stored inside gaussianRing. not used anywhere. delete?or document?
-       conditionalIndependenceIdeal,
-       gaussianRingList
+       conditionalIndependenceIdeal
 	} 
      
 needsPackage "Graphs"
@@ -553,7 +552,7 @@ prob = (R,s) -> (
 --     	    Should this be fixed?      	    	 --- Sonja 28jul2011
 --    FIXED: 	       	    	      	   	 ---Sonja 29jul2011
  ------------------------------------------------------------------------------------------------------------------------------
-gaussianRingList = new MutableHashTable;
+gaussianRingList := new MutableHashTable;
 --the mutable hash table of all gaussian rings created is indexed by:
 --     (coefficient field, variable name, number of r.v.'s) --in case of ZZ input
 --     (coefficient field, variable name, vertices of the directed graph) --in case of Digraph input
@@ -592,8 +591,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R#gaussianRing = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
-     R.digraph = G; ---THIS IS NEW --- TO BE MERGED FOR FUNCTIONALITY! --- sonja 28july2011
-     	       	    --merged in covarianceMatrix(Ring,Digraph), 
+     R.digraph = G; ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
      gaussianRingList#((kk,s,vv)) = R;); 
      gaussianRingList#((kk,s,vv))
      )
@@ -604,20 +602,14 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 
 covarianceMatrix = method()
 covarianceMatrix(Ring) := Matrix => (R) -> (
-       if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
-       --if R#?digraph then (
-	--   D := R#digraph;	   
-	--this should really take the labels from D, right? 
-	--NO: but i don't have to worry about it, because R is assumed to have been created from D. 
-	--no problem here. The problem is in the call with (Ring,Digraph). See below.
-	--   )
-       --else (
-       -- Note that this method also works when 
-       -- the gaussianRing R has no graph attached to it; i.e. it was created using gaussianRing ZZ.
-       n := R#gaussianRing; 
-       genericSymmetricMatrix(R,n)--)
+       if not R#?gaussianRing then error "expected a ring created with gaussianRing";    
+       if R#?graph then (covarianceMatrixUndirected(R,R#graph);)
+       else (
+	    n:=R#gaussianRing; 
+	    genericSymmetricMatrix(R,n)
+	    )
   )
-covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> covarianceMatrix R
+--covarianceMatrix(Ring,Digraph) := Matrix => (R,g) -> covarianceMatrix R
      --(-- covarianceMatrix R  --this method needs to be updated to *stop ignoring* g.
      --if not sort vertices R.digraph  === sort vertices g then error "vertex labels of digraph do not match labels in ring"; 
      --  I DON'T WANT THIS MESSAGE, OR DO I? can't i just embed in a bigger ring? 
@@ -778,8 +770,8 @@ undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
      scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then p_(i,j) else p_(j,i)));
      matrix PM) 
 
-
-covarianceMatrix (Ring,Graph) := (R,g) -> (
+covarianceMatrixUndirected=method()
+covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names accordingly everywhere!!! added "undirected"
      vv := sort vertices g;
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      n := R#gaussianRing#0;
@@ -801,7 +793,7 @@ gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
     g:= graph G;
     K:= undirectedEdgesMatrix(R,G);
     adjK := sub(det(K)*inverse(sub(K,frac R)), R);
-    Itemp:=saturate(ideal (det(K)*covarianceMatrix(R,G) - adjK), det(K));
+    Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
     ideal selectInSubring(1, gens gb Itemp)
      )
 
@@ -852,7 +844,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
         if R#?graph then (
 	   g := R#graph;
            vv := sort vertices g;
-           SM := covarianceMatrix(R,g);
+           SM := covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 
 	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
@@ -1617,7 +1609,7 @@ doc ///
     gaussianRing n 
     gaussianRing G 
     gaussianRing(n,Coefficients=>Ring) 
-    gaussianRing(n,Variable=>Symbol)
+    gaussianRing(n,sVariableName=>Symbol)
   Inputs
     n:ZZ
       the number of random variables
@@ -1648,7 +1640,7 @@ doc ///
     Example
       R#gaussianRing
       R#graph  
-      covarianceMatrix(R,G)
+      covarianceMatrix R
       undirectedEdgesMatrix(R,G)
         
     Text
@@ -1772,8 +1764,6 @@ doc///
    Key
      covarianceMatrix
      (covarianceMatrix,Ring)
-     (covarianceMatrix,Ring,Graph)
-     (covarianceMatrix,Ring,Digraph)
      (covarianceMatrix,Ring,MixedGraph)
    Headline
      the covariance matrix of a gaussian graphical model
@@ -1783,8 +1773,8 @@ doc///
    Inputs
      R:Ring
        which should be a gaussianRing
-     G:
-       @ofClass {Graph,Digraph,MixedGraph}@
+     G:MixedGraph
+       an option we might delete!!!!!!!!!!!!!!!
    Outputs
      :Matrix
        the $n \times{} n$ covariance matrix of symbols where n is the number of vertices in $G$
@@ -1800,7 +1790,7 @@ doc///
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G
-       S = covarianceMatrix(R,G)       
+       S = covarianceMatrix R       
      Text
        Note that the covariance matrix is symmetric in the symbols.
      Example
@@ -2434,7 +2424,7 @@ assert(0 == M - matrix correctOutput )
 TEST ///
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R=gaussianRing G 
-cov=covarianceMatrix(R,G)
+cov=covarianceMatrix R
 correctOutput = {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b),s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)},{s_(a,d), s_(b,d), s_(c,d), s_(d,d)}}
 assert(0 == cov - matrix correctOutput )
 ///

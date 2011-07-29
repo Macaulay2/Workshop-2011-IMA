@@ -727,9 +727,19 @@ Description
 ----------------------------------------------------------------------------------------------------
 
 
+--FirstPackage#"test values" 
+
+--TEST ///
+--assert ( firstFunction 2 == "D’oh!" )
+--///
+
+
+
+
+
 end
 
-
+viewHelp assert
 
 restart
 installPackage "SpaceCurvesMultiplierIdeals"

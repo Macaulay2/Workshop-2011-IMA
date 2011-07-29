@@ -13,7 +13,6 @@ newPackage(
 export {segreClass, chernClass, segreClassList, chernClassList}
 
 -- internal commenting!!!
--- test all functions
 
 segreClass = method(TypicalValue => RingElement);
 segreClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
@@ -347,9 +346,15 @@ doc ///
    
 
 TEST ///
-    R = QQ[x,y,z]
-    I = (x)
-    assert ( segreClass I == {1,-1} )
-    
-    
+   R = QQ[x,y,z]
+   assert( segreClassList ideal x == {1,-1} )
+   assert( chernClassList ideal x == {1,2} )
  ///
+ 
+TEST ///
+   R = QQ[x,y,z]
+   totalSegre = segreClass ideal x
+   assert( totalSegre == (ring(totalSegre))_0 - ((ring(totalSegre))_0)^2 )
+   totalChern = chernClass ideal x
+   assert( totalChern == (ring(totalChern))_0 +2 * ((ring(totalChern))_0)^2 )
+///

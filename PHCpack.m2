@@ -679,9 +679,10 @@ topWitnessSet (List,ZZ) := (system,dimension) -> (
   e := phcEmbed(system,dimension);
   stdio << "... calling phcSolve ..." << endl;
   s := phcSolve(e);
+  g := zeroFilter(s,#e-1,1.0e-10);
   stdio << "... constructing a witness set ... " << endl;
   return witnessSet(ideal(take(e,{0,#e-dimension-1})),
-                    ideal(take(e,{#e-dimension,#e-1})),s);
+                    ideal(take(e,{#e-dimension,#e-1})),g);
 )
 
 -----------------------------------------------

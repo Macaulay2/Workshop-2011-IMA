@@ -445,22 +445,43 @@ getPositionOfVertices := (G,S) -> apply(S, w -> pos(sort vertices G, w))
 --------------------
 
 markovMatrices = method()
-markovMatrices(Ring,Digraph,List) := (R,G,Stmts) -> (
+markovMatrices(Ring,List,List) := (R,VarNames,Stmts) -> (
      -- R should be a markovRing, G a digraph 
      -- and Stmts is a list of
      -- independence statements
      if not R.?markov then error "expected a ring created with markovRing";
      d := R.markov;
+     if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
      flatten apply(Stmts, stmt -> (
-     	       Avals := possibleValues(d,getPositionOfVertices(G,stmt#0)); 
-     	       Bvals := possibleValues(d,getPositionOfVertices(G,stmt#1)); 
-     	       Cvals := possibleValues(d,getPositionOfVertices(G,stmt#2)); 
+	       Avals := possibleValues(d, apply( stmt#0, i ->  pos( VarNames,i)) );
+	       Bvals := possibleValues(d, apply( stmt#1, i ->  pos( VarNames,i)) );
+	       Cvals := possibleValues(d, apply( stmt#2, i ->  pos( VarNames,i)) );
      	       apply(Cvals, c -> (
                   matrix apply(Avals, 
 		       a -> apply(Bvals, b -> (
 				 e := toSequence(toList a + toList b + toList c);
 		      		 prob(R,e))))))))
-     )
+    )
+
+
+markovMatrices(Ring,List) := (R,Stmts) -> (
+     -- R should be a markovRing, G a digraph 
+     -- and Stmts is a list of
+     -- independence statements
+     if not R.?markov then error "expected a ring created with markovRing";
+     d := R.markov;
+     if not isSubset ( set unique flatten flatten Stmts,  set( 1..#d) )  then error "variables names in statements do not match list of random variable names";
+     VarNames := toList (1..#d);
+     flatten apply(Stmts, stmt -> (
+	       Avals := possibleValues(d, apply( stmt#0, i ->  pos( VarNames,i)) );
+	       Bvals := possibleValues(d, apply( stmt#1, i ->  pos( VarNames,i)) );
+	       Cvals := possibleValues(d, apply( stmt#2, i ->  pos( VarNames,i)) );
+     	       apply(Cvals, c -> (
+                  matrix apply(Avals, 
+		       a -> apply(Bvals, b -> (
+				 e := toSequence(toList a + toList b + toList c);
+		      		 prob(R,e))))))))
+    )
 
 --------------------
 -- markovIdeal    --
@@ -809,7 +830,7 @@ globalMarkov Graph := List => (G) ->(
  
 conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
-     if not (R#?gaussianRing or R#?markovRing) then error "expected a ring created with gaussianRing or markovRing";
+     if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if R#?gaussianRing then (
         if R#?graph then (
 	   g := R#graph;
@@ -827,7 +848,10 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ))
 	  )
         )
-        else (
+     else (
+	  
+--	  M := markovMatrices(R,G,Stmts);
+--     	  sum apply(M, m -> minors(2,m))
 	     -- Add material that will compute the conditional independence
 	     -- ideal of a list of statements
 	     -- this will come from what is currently markovIdeal(R,G,Stmts)
@@ -1482,18 +1506,21 @@ doc ///
 doc ///
   Key
     markovMatrices
-    (markovMatrices,Ring,Digraph,List) 
+    (markovMatrices,Ring,List)
+    (markovMatrices,Ring,List,List) 
   Headline
     The matrices whose minors form the ideal associated to the list of independence statements of the graph.
   Usage
-    markovMatrices(R,G,S)
+    markovMatrices(R,VarNames,S)
+    markovMatrices(R,S)
   Inputs
     R:Ring
       R must be a markovRing
-    G:Digraph
-      directed acyclic graph
+    VarNames:List
+      of names of random variables in conditional independence statements in S.  If this is omited 
+      it is assumed that these are integers 1 to n where n is the number of variables in the declaration of markovRing 
     S:List 
-      a list of independence statements that are true for the DAG G
+      of conditional independence statements that are true for the DAG G
   Outputs
     :List 
       whose elements are instances of Matrix. Minors of these matrices form the independence ideal for the independent statements of the Digraph.
@@ -1504,10 +1531,17 @@ doc ///
       is used in markovIdeals. But it is exported to be able to see constraints not as 
       polynomials but as minors of matrices in this list. 
     Example
-      G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
+      VarNames = {a,b,c,d}
+      S = {{{a},{c},{d}}}
+      R = markovRing (4:2)
+      L = markovMatrices (R,VarNames, S)
+    Text
+      Here is an example where the independence statements are extracted from a graph
+    Example  
+      G = graph{{a,b},{b,c},{c,d},{a,d}}
       S = localMarkov G
       R = markovRing (4:2)
-      L = markovMatrices (R,G,S)   
+      L = markovMatrices (R,vertices G,S)   
   SeeAlso
     markovRing
     markovIdeal

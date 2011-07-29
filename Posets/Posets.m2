@@ -10,8 +10,7 @@ newPackage(
     	Authors => {
 	     {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
 	     {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},
-         {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
-         {Name => "Stephen Sturgeon", Email => "stephen.sturgeon@uky.edu"}
+             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"}
 	     },
     	Headline => "Package for processing posets and order complexes",
     	DebuggingMode => true
@@ -1194,7 +1193,8 @@ document {
     {HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html","Josephine Yu")},
     {HREF("http://www.math.purdue.edu/~nkummini/","Manoj Kumminni")},
     {HREF("http://www.math.cornell.edu/People/Grads/fisher.html","Kristine Fisher")},
-    {HREF("http://www.mathstat.dal.ca/~handrew/","Andrew Hoefel")}
+    {HREF("http://www.mathstat.dal.ca/~handrew/","Andrew Hoefel")},
+    {HREF("mailto:stephen.sturgeon@uky.edu", "Stephen Sturgeon")} 
     },
   }
 

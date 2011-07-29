@@ -67,7 +67,11 @@ export {
   "minorsMap",
   "tensorComplex1",
   "flattenedESTensor",
-  "hyperdeterminant"
+  "hyperdeterminant",
+  "pureResTC1",
+  "pureResTC",
+  "pureResES1",
+  "pureResES"
   }
 
 --------------------------------------------------------------------------------
@@ -419,6 +423,11 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
     map(F0, F1 ** labeledModule S^{ -b_2}, g4 * g3 * g2 * g1 * g0)))
 
 
+-- When f is a balanced tensor, then this reproduces the tensor
+-- used by Eisenbud and Schreyer in their original construction of
+-- pure resolutions.  For instance tensorComplex f will equal to their
+-- pure resolution.  However, this function works even in the nonbalanced
+-- case.  In that case, it produces the `natural' analogue of their tensor.
 
 flattenedESTensor = method()
 flattenedESTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
@@ -469,6 +478,7 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
     -- target of output map
     F0 := tensorProduct apply(n, j-> symmetricPower(w_(j+1), B_(j+1)));
     trMap := id_(labeledModule S);
+--  I don't think these n>1 workarounds are needed anymore.  There's another one below.
     if n>1 then trMap = traceMap tensorProduct apply(toList(r1..n), 
       j -> symmetricPower(d1,B_j));
     G1 := tensorProduct(target trMap, F1);
@@ -479,7 +489,6 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
     -- as labeled modules
     G2 := tensorProduct G1factors;
     -- g1 is the map induced by dropping all parentheses in the tensor product  
-
 ---
     g1 := map(G2, G1, id_(S^(rank G1)));
     perm := {};
@@ -519,9 +528,38 @@ hyperdeterminant LabeledModuleMap := f -> (
      	  error"not boundary format!";
      w := {0,1}|apply(toList(2..#b), i-> sum(toList(0..i-2), j-> b_j)-(i-2));
      det matrix tensorComplex1 (f,w))
-     
+
+-- There is a bijection between degree sequences and balanced tensor complexes.
+-- This code takes a degree sequence to the first map of the corresponding
+-- balanced tensor complex.
+pureResTC1=method()     
+pureResTC1 (List,Ring) := LabeledModuleMap =>(d,kk)->(
+     b := apply(#d-1,i-> d_(i+1)-d_i);
+     if min b<=0 then error"d is not strictly increasing";
+     a := d_(#b) - d_0;
+     f := flattenedGenericTensor({a}|b,kk);
+     tensorComplex1(f)
+     )
 
 
+pureResTC=method()
+pureResTC (List,Ring):=ChainComplex => (d,kk)->(
+     res coker matrix pureResTC1(d,kk)
+     ) 
+
+pureResES1=method()     
+pureResES1 (List,Ring) := LabeledModuleMap =>(d,kk)->(
+     b := apply(#d-1,i-> d_(i+1)-d_i);
+     if min b<=0 then error"d is not strictly increasing";
+     a := d_(#b) - d_0;
+     f := flattenedESTensor({a}|b,kk);
+     tensorComplex1(f)
+     )
+
+pureResES=method()
+pureResES (List,Ring):=ChainComplex => (d,kk)->(
+     res coker matrix pureResES1(d,kk)
+     ) 
 
 --------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -823,6 +861,8 @@ BD=new BettiTally from {(0,{0},0) => 2, (1,{1},1) => 4, (2,{3},3) => 4, (3,{4},4
 assert(betti res coker matrix tensorComplex1 f==BD)
 f=flattenedESTensor({4,1,2,1},kk);
 assert(betti res coker matrix tensorComplex1 f==BD)
+assert(betti pureResTC({0,1,3,4},kk)==BD)
+assert(betti pureResES({0,1,3,4},kk)==BD)
 f = flattenedGenericTensor({3,3},kk)
 assert( (betti res coker tensorComplex1 f) === new BettiTally from {(1,{3},3) => 1, (0,{0},0) => 1} )
 f = flattenedGenericTensor({3,2,2},kk)
@@ -830,6 +870,9 @@ assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1,2}))
 f = flattenedGenericTensor({3,3},kk)
 assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1}))
 assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,0}))
+f=flattenedESTensor({3,2,2},kk)
+assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1,2}))
+
 ///
 
 end

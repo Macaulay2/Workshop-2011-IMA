@@ -618,7 +618,7 @@ doc ///
       
       Tensor complexes specialize to several well-known constructions including: the Eagon-Northcott 
       and Buchsbaum-Rim complexes, and the others in this family described by Eisenbud and Buchsbaum 
-      (Eisenbud ``Commutative algebra with a view towards algebraic geometry'', A2.6), 
+      (see Eisenbud ``Commutative algebra with a view towards algebraic geometry'', A2.6), 
       and the {\it hyperdeterminants} of Weyman and Zelevinsky.
   
       A collection of $a$ tensors of type $b_1\times \dots \times b_n$ 
@@ -1122,7 +1122,7 @@ assert(hyperdeterminant f ==  det matrix tensorComplex1 (f,{0,1,2}))
 ///
 
 --add further tests!! esp of the non balanced case.
-
+--
 end
 --------------------------------------------------------------------------------
 -- SCRATCH SPACE
@@ -1130,6 +1130,7 @@ end
 
 restart
 uninstallPackage "TensorComplexes"
+path=append(path,"~/IMA-2011/TensorComplexes/")
 installPackage "TensorComplexes"
 viewHelp TensorComplexes
 check "TensorComplexes"

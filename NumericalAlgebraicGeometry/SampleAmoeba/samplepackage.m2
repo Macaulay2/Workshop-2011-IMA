@@ -3,16 +3,15 @@ newPackage(
 	Version => "0.7",
 	Date=> "July 21, 2011",
 	Authors => {
-			{Name=>"Henry Duong", Email=>"henry.y.duong@gmail.com"}
-			{Name=>"Anton Leykin", Email=>"leykin@math.gatech.edu"}
+			{Name=>"Henry Duong", Email=>"henry.y.duong@gmail.com"},
+			{Name=>"Anton Leykin", Email=>"leykin@math.gatech.edu"},
 			{Name=>"Josephone Yu", Email=>"josephine.yu@math.gatech.edu"}						
 			},
 	Headline=> "Calculates the Tropical Variety of an Ideal by Numerical Methods",
-	AuxilliaryFiles=> False,
 	DebuggingMode=> true
 	)
 
-export{sampleAmoeba}
+export{sampleAmoeba, Factor, Multiplier, Extra, Tolerance}
 
 needsPackage "NumericalAlgebraicGeometry"
 
@@ -213,7 +212,7 @@ determinecut (Ideal,ZZ, CC, RR) := (I,n, MyExtra, Tolerance) -> (
 
 beginDocumentation()
 document { 
-	Key => PackageTemplate,
+	Key => Amoeba Sampling,
 	Headline => "an example Macaulay2 package",
 	EM "PackageTemplate", " is an example package which can
 	be used as a template for user packages."

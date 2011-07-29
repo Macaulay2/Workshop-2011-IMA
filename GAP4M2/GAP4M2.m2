@@ -121,6 +121,7 @@ doc ///
 doc ///
     Key
         gapCreateWorkspace
+        1:(gapCreateWorkspace)
         [gapCreateWorkspace, AdditionalCall]
         [gapCreateWorkspace, OverwriteOld]
     Headline
@@ -142,6 +143,7 @@ doc ///
 doc ///
     Key
         gapHasWorkspace
+        1:(gapHasWorkspace)
     Headline
         determines if a GAP workspace exists
     Usage
@@ -154,6 +156,7 @@ doc ///
 doc ///
     Key
         gapRemoveWorkspace
+        1:(gapRemoveWorkspace)
     Headline
         removes an extant GAP workspace
     Usage

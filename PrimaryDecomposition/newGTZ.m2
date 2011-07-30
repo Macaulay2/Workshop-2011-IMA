@@ -33,6 +33,8 @@ needs "./newGTZGenPos.m2"
 
 eliminationTime = 0_RR
 sepAndSatTime = 0_RR
+factorTime = 0_RR
+primaryTime = 0_RR
 
 getHighestDegree = method()
 getHighestDegree(List, RingElement) := (gs, x) ->
@@ -320,10 +322,10 @@ getComponentSep(List,ZZ) := (compList,i) -> (
 
 debug PrimaryDecomposition
 primDecZeroDim = method(Options => {Verbosity => 0, Strategy=> {}})
-primDecZeroDim(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) ->
+primDecZeroDim(Ideal, List, Ideal) := opts -> (I, independentVars, resultSoFar) ->
 (
    pdList := time if member(BasicPD,set opts.Strategy) then primaryDecomposition I
-             else if member(GeneralPosition, set opts.Strategy) then primDecZeroDimField(I,variables,resultSoFar,Verbosity => opts.Verbosity)
+             else if member(GeneralPosition, set opts.Strategy) then primDecZeroDimField(I,independentVars,resultSoFar,Verbosity => opts.Verbosity)
 	     else 
              (
                 compList := decompose I;
@@ -353,6 +355,8 @@ newPD(Ideal) := opts -> (I) -> (
    if (opts.Verbosity >= 2) then (
 	<< "Time spent on minpoly elimination : " << eliminationTime << endl;
 	<< "Time spent on sep and sat         : " << sepAndSatTime << endl;
+	<< "Time spent factoring              : " << factorTime << endl;
+	<< "Time spent checking primary       : " << primaryTime << endl;
    );
    retVal
 )
@@ -374,8 +378,8 @@ PDWorker(Ideal, Ideal, ZZ) := opts -> (I, resultSoFar, callDepth) ->
    )
    else
    (
-      variables := support first indSetI;
-      t1 := timing (mySep := first getSeparator(I, variables));
+      independentVars := support first indSetI;
+      t1 := timing (mySep := first getSeparator(I, independentVars));
       --t2 := timing ((Isat,satIndex) := getSaturation(I,mySep));
       local Isat;
       local satIndex;
@@ -395,7 +399,7 @@ PDWorker(Ideal, Ideal, ZZ) := opts -> (I, resultSoFar, callDepth) ->
       );
       if (not isSubset(resultSoFar,Isat)) then
       (
-	 (comps,newResultSoFar) = primDecZeroDim(Isat, variables, resultSoFar, opts);
+	 (comps,newResultSoFar) = primDecZeroDim(Isat, independentVars, resultSoFar, opts);
 	 if opts.Verbosity >= 2 then (
             << "Components Found : " << netList comps << endl;
 	 );
@@ -489,10 +493,10 @@ doc ///
   Headline
     Blah
   Usage
-    getSeparator(I,variables)
+    getSeparator(I,independentVars)
   Inputs
     I : Ideal
-    variables : List
+    independentVars : List
   Outputs
     f : RingElement
   Description

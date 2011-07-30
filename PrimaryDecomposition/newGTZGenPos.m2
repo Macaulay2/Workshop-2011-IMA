@@ -197,7 +197,8 @@ splitZeroDimensionalIdeal(Ideal,List) := (I, independentVars) ->
 (
    -- the below command is the same as the previous two combined, except from the trim.
    sepAndSatTime = sepAndSatTime + first timing (Isat := sepAndSat(I,independentVars));
-   factorList := apply(toList factor getMinimalPolynomial(Isat, independentVars), toList);
+   minPoly := getMinimalPolynomial(Isat, independentVars);
+   factorTime = factorTime + first timing (factorList := apply(toList factor minPoly, toList));
    factorList = select(factorList, fac -> first degree fac#0 > 0);
    << "Factor List:" << endl;
    << netList factorList << endl;
@@ -210,7 +211,7 @@ splitZeroDimensionalIdeal(Ideal,List) := (I, independentVars) ->
 )
 TEST ///
 restart
-load "newGTZ.m2"
+loadPackage "newGTZ"
 debug newGTZ
 R = ZZ/32003[a,b,c,d,e,h]
 I = ideal(
@@ -220,12 +221,10 @@ I = ideal(
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
 J = ideal(a+b+c+d+e,d*e,d^2,c*d-2*b*e-c*e-e^2,b*d,b*c+b*e,b^2,h^5)
-primDecZeroDimField(J,support first independentSets J, ideal 1_R)
-independentSets I
-mySep = first getSeparator(I,{c})
-Isat = saturate(I,mySep)
-time splitZeroDimensionalIdeal(Isat,{c},h,a+7*b+13*d+5*e+9*h);
 time ourPD = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
+componentList / independentSets
+assert all(ourPD, J -> isPrimary J)
+assert (intersect ourPD == I)
 ///
 
 -- Input  : A list xs, and a function f on the elements of xs.  The return value of f should be a tuple,
@@ -246,21 +245,21 @@ applyUntil(List, Function) := opts -> (xs, f) ->
 -- Input  : A zero dimensional ideal I, and a resultSoFar.
 -- Output : 
 primDecZeroDimField = method(Options => {Verbosity => 0})
-primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, variables, resultSoFar) ->
+primDecZeroDimField(Ideal, List, Ideal) := opts -> (I, independentVars, resultSoFar) ->
 (
-   splitTime := timing (componentList := splitZeroDimensionalIdeal(I, variables));
-   fiberVars := reverse sort toList (set gens ring I - set variables);
+   (phi,phiInverse,lastVar) := getCoordChange(ring I, independentVars);
+   splitTime := timing (componentList := splitZeroDimensionalIdeal(I, independentVars));
+   fiberVars := reverse sort toList (set gens ring I - set independentVars);
    
    if (opts.Verbosity > 0) then << "Splitting time : " << splitTime#0 << endl;
 
-   genPosList := apply(componentList, J -> isPrimaryZeroDim J);
+   primaryTime = primaryTime + first timing(genPosList := apply(componentList, J -> isPrimaryZeroDim(J,independentVars)));
    componentList = flatten apply(#genPosList, i -> (
 	     if genPosList#i then {componentList#i}
 	     else (
 	       -- here, this (potential) component is not in general position, so we change coordinates and
 	       -- call primDecZeroDimField on it again.
-     	       (phi,phiInverse,lastVar) := getCoordChange(ring I, variables);
-	       primDecZeroDimField(phi componentList#i, variables, resultSoFar, opts) / phiInverse / trim
+	       primDecZeroDimField(phi componentList#i, independentVars, resultSoFar, opts) / phiInverse / trim
 	     )));
    componentList
 )
@@ -306,7 +305,7 @@ restart
 load "newGTZ.m2"
 debug newGTZ
 R = QQ[a,b,c,d,e,h]
-idealList = {ideal(e-h,d-h,c-h,a+b+3*h,b^2+3*b*h+h^2),ideal(e-h,c+d+3*h,b-h,a-h,d^2+3*d*h+h^2),ideal(e-h,d-h,b+c+3*h,a-h,c^2+3*c*h+h^2),ideal(e-h,a+b+c+d+h,d^2-c*h,c*d-b*h,b*d+b*h+c*h+d*h+h^2,c^2+b*h+c*h+d*h+h^2,b*c-h^2,b^2-d*h)}
+idealList = {ideal(e-h,d-h,c-h,a+b+3*h,b^2+3*b*h+h^g2),ideal(e-h,c+d+3*h,b-h,a-h,d^2+3*d*h+h^2),ideal(e-h,d-h,b+c+3*h,a-h,c^2+3*c*h+h^2),ideal(e-h,a+b+c+d+h,d^2-c*h,c*d-b*h,b*d+b*h+c*h+d*h+h^2,c^2+b*h+c*h+d*h+h^2,b*c-h^2,b^2-d*h)}
 isPrimaryZeroDim first idealList
 idealList / (I -> time isPrimaryZeroDim I)
 
@@ -357,13 +356,12 @@ getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
 -- This function should be called only on ideals before a change of coordinates have been applied.
 isPrimaryZeroDim = method()
 
-isPrimaryZeroDim Ideal := I ->
+isPrimaryZeroDim (Ideal,List) := (I, independentVars) ->
 (
    -- null so that unless I is homogeneous, nothing is used in the Hilbert option in the GB computation below.
    hilbI := null;
    R := ring I;
-   -- pass around the independent variables, or recompute them?
-   independentVars := support first independentSets I;
+   --independentVars := support first independentSets I;
    fiberVars := reverse sort toList (set gens R - set independentVars);
    lexR := (coefficientRing R)[fiberVars | independentVars,MonomialOrder=>{Lex=>#fiberVars,GRevLex=>#independentVars}];
    lexI := sub(I,lexR);

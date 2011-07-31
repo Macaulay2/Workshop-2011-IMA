@@ -236,6 +236,8 @@ rank LabeledModuleMap := ZZ => f -> rank matrix f
 transpose LabeledModuleMap := LabeledModuleMap => f ->
 map(source f,target f, transpose matrix f)
 
+--want a betti command!
+--betti(LabeledModuleMap) := HashTable => o-> f -> betti map(target f, source f, matrix f)
 LabeledModule#id = E -> map(E,E,1)
 
 LabeledModuleMap * LabeledModuleMap := LabeledModuleMap => (f,g) -> 
@@ -622,27 +624,26 @@ doc ///
       and the {\it hyperdeterminants} of Weyman and Zelevinsky.
   
       A collection of $a$ tensors of type $b_1\times \dots \times b_n$ 
-      may be regarded as a map $\mathcal O_X^a(-1,-1,\dots,-1) \to \mathcal O_X$ (with $X$ as above). 
+      may be regarded as a map $E := \mathcal O_X^a(-1,-1,\dots,-1) \to \mathcal O_X$ (with $X$ as above). 
       Equivalently, we may think of this as a single $a \times b_1 \times \cdots \times b_n$ tensor.
-      We let $\mathcal O_X(d, e_1,\dots e_n)$ be the tensor product of the pull-backs to $X$ 
+      
+      One important construction made from such a collection of tensors is the Koszul complex 
+      $$
+      \mathbf K := \cdots \wedge^2 \oplus_1^a O_X(-1,\dots, -1) \to  O_X  \to 0.
+      $$
+      Let $\mathcal O_X(d, e_1,\dots e_n)$ be the tensor product of the pull-backs to $X$ 
       of the line bundles $\mathcal O_{\mathbb P^n}(d)$ and  $\mathcal O_{\mathbb P^{b_i-1}}(-1)$.  
-      If we define $E$ to be the direct sum of line bundles $E:=\oplus_1^a \mathcal O_X(-1,\dots, -1)$ 
-      on $X$ then such a collection of tensors may equally well be thought of as a map $E\to O_X$.
-
-      One important construction is the Koszul complex 
-      $$
-      \mathbf K := \cdots \wedge^2 \oplus_1^a O_X(-1,\dots, -1) \to  O_X  \to 0
-      $$
-      derived from such a map. If we twist this complex by $O_X(0, -w_1, \dots -w_n)$ 
+      If we twist the Koszul complex by $O_X(0, -w_1, \dots -w_n)$ 
       and then push it forward to $Spec S$ we get the tensor complex 
-      $F(\phi,w)$ of BEKS. Each map $\partial_i$ in this complex can be defined by
-      a rather involved construct in multilinear algebra, and this construction is given 
-      by BEKS explicitly in a large range of cases. This package implements the 
+      $F(\phi,w)$ of BEKS. 
+      
+      Each map $\partial_i$ in the tensor complex can be defined by
+      a rather involved construct in multilinear algebra. This package implements the 
       construction of $\partial_1$ in the range of cases described explicitly in BEKS 
-      (see Sections 4 and 12 of BEKS).
+      (Sections 4 and 12).
       This range includes the hyperdeterminants of boundary format, 
       the construction of the first map of the pure resolutions of Eisenbud-Schreyer, 
-      and the first map in the much larger family of generic pure resolutions of BEKS.
+      and the first map in most of the much larger family of generic pure resolutions of BEKS.
 ///
 
 doc ///
@@ -670,7 +671,7 @@ doc ///
       $$
       be the Koszul complex of the multilinear forms corresponding to f, on $X$.
       The output of {\tt tensorComplex1(f,w)} is the first map of the complex obtained
-      by pushing $\mathbf K \otimes {\mathcal O}_X(w_1,\dots,w_n)$ down to $Spec S$. 
+      by pushing $\mathbf K \otimes {\mathcal O}_X(w_1,\dots,w_n)$ down to $Spec S$.
 
       This script implements the construction of tensor complexes from the paper 
       ``Tensor Complexes: Multilinear free resolutions constructed from higher tensors''
@@ -684,7 +685,8 @@ doc ///
       w_0 = 0, w_1 \geq 0, w_2 \geq w_1+b_1, \ {\rm and }\  w_i>w_{i-1} \ {\rm for }\ i\geq 2.
       $$
       
-      When $a=\sum (b_i-1)+1$ we are in the ``balanced case'' discussed in Section 3 of BEKS. In
+      When $rank A=\sum rank B_i$, that is, $L_0 = \sum_{i=1}^n L_i$ then
+      we are in the ``balanced case'' discussed in Section 3 of BEKS. In
       this case giving a weight vector is unnecessary, and one can use the format
       {\tt tensorComplex1 f}.
       
@@ -694,6 +696,9 @@ doc ///
       f = flattenedGenericTensor({4,2,2},ZZ/32003)
       S = ring f;
       g = tensorComplex1(f,{0,0,2})
+      g1 = tensorComplex1 f
+      betti matrix g
+      betti matrix g1
       betti res coker g
     
     Text
@@ -746,12 +751,16 @@ doc ///
     Text
       A labeled module $F$ is a free module together with two additional pieces of data:
       a @TO basisList@ which corresponds to the basis of $F$, and
-      a list of @TO underlyingModules@ which were used in the construction of $F$.  
+      a list of @TO underlyingModules@ which were used in the construction of $F$. The constructor
+      @TO labeledModule@ can be used to construct a labeled module from a free module. The call
+      {\tt labeledModule E}, where $E$ is a free module, returns a labeled module with @TO basisList@
+      $\{1,\dots, rank E\}$ and @TO underlyingModules@ $\{E\}$.ß
       
-      For instance, let $F=A\otimes B$ be the tensor product of two labeled modules.
-      The basis list of $F$ consists of pairs $\{a,b\}$ where $a$ belongs to the basis list
-      of $A$ and $b$ belongs to the basis list of $b$.The
-      underlying modules of $F$ are $A$ and $B$.
+      For example if $A,B$ are of type LabeledModule, then
+      {\tt F=tensorProduct(A,B)} constructs the LabeledModule $F=A\otimes B$ with 
+      @TO basisList@ equal to the list of pairs $\{a,b\}$ where $a$ belongs to the basis list
+      of $A$ and $b$ belongs to the basis list of $b$. The list of @TO underlyingModules@ of $F$
+      is $\{A,B\}$.
       
       Certain functors which are the identity in the category of modules are non-trivial
       isomorphisms in the category of labeled modules.  For example, if {\tt F} is a labeled
@@ -760,8 +769,6 @@ doc ///
       @TO exteriorPower@ and @TO symmetricPower@.  For a ring $S$, the multiplicative unit 
       for tensor product is the rank 1 free $S$-module whose generator is labeled by {\tt \{\} }. 
       This is constructed by {\tt labeledModule S}.
-      
-      
 ///
 
 
@@ -784,7 +791,7 @@ doc ///
      : LabeledModule
    Description
     Text
-      This is the basic construction for a labeled module.  Given a free module $M$ of rank $r$,
+      This is the basic construction for a @TO LabeledModule@.  Given a free module $M$ of rank $r$,
       this constructs a labeled module with basis labeled by $\{0,..,r-1\}$ and
       no underlying modules.
     Example
@@ -809,10 +816,171 @@ doc ///
       E = labeledModule S^1
       basisList E
       underlyingModules E 
-   
-   
+///
+doc ///
+   Key 
+    tensorProduct
+   Headline
+    tensor product of Modules and LabeledModules, Matrices, Maps and LabeledModuleMaps
+   Usage
+    tensorProduct L
+    (tensorProduct List)
+    (tensorProduct Sequence)
+   Inputs
+    L: List
+     or @TO Sequence@ of objects of type @TO Matrix@, @TO Module@, @TO LabeledModule@ or @TO LabeledModuleMap@
+   Outputs
+    :Matrix
+     or, in general, an object of the same type as the inputs.
+   Description
+    Text
+     Forms the tensor product of the objects in the input list or sequence. 
+     In the case where the inputs are of type @TO LabeledModule@, the output is a labeled module
+     whose basis list is the set of tuples of elements of the basis lists of the input modules
+    Example
+     S = ZZ/101[x,y]
+     M = labeledModule(S^4)
+     basisList M
+     E = exteriorPower(2,M)
+     basisList E
+     underlyingModules E
+     N = tensorProduct(E,labeledModule(S^2))
+     basisList N
+     underlyingModules N
+   SeeAlso
+    basisList
+    underlyingModules
+    LabeledModule
+    LabeledModuleMap
+    "**"
 ///
 
+{* --a function has to be documented in the package that defined it.
+doc ///
+   Key 
+    exteriorPower
+    (exteriorPower, ZZ, LabeledModule)
+   Headline 
+    Exterior power of a @TO LabeledModule@
+   Usage 
+    E = exteriorPower(i,M)
+   Inputs 
+    i: ZZ
+    M: LabeledModule
+   Outputs
+    E: LabeledModule
+   Consequences
+    Item
+   Description
+    Text
+    Code
+    Pre
+    Example
+   Subnodes
+   Caveat
+   SeeAlso
+///
+*}
+
+doc ///
+   Key 
+    flattenedGenericTensor
+    (flattenedGenericTensor, List, Ring)
+   Headline 
+    Make a generic tensor of given format
+   Usage
+    flattenedGenericTensor(L,kk)
+   Inputs
+    L: List
+     of positive ZZ
+    kk: Ring
+     Name of ground field (or ring)
+   Outputs
+    f: LabeledModuleMap
+   Description
+    Text
+     Given a list $L = \{a, b_1,\dots, b_n\}$ of positive integers 
+     with
+     $
+     a= sum_i b_i,
+     $
+     and a field (or ring of integers) kk,
+     the script creates a polynomial ring $S$ over $kk$ with $a\times b_1\times\cdots\times b_n$ variables,
+     and a generic map
+     $$
+     f: A \to B_1\otimes\cdots \otimes B_n
+     $$
+     of @TO LabeledModule@s over $S$, where 
+     $A$ is a free LabeledModule of rank $a$ and 
+     $B_i$ is a free LabeledModule of rank $b_i$.
+     We think of $f$ as representing a tensor of type $(a,b_1,\dots,b_n)$
+     made from the elementary symmetric functions.
+     
+     The format of $F$ is the one required
+     by @TO tensorComplex1@, namely $f: A \to B_1\otimes \cdots \otimes B_n$, with
+     $a = rank A, b_i = rank B_i$.
+    Example
+     kk = ZZ/101
+     f = flattenedGenericTensor({5,2,1,2},kk)
+     numgens ring f
+     betti matrix f
+     S = ring f
+     tensorComplex1 f
+   SeeAlso
+    flattenedESTensor
+    tensorComplex1
+///
+doc ///
+   Key 
+    flattenedESTensor
+   Headline
+    make a flattened tensor from elementary symmetric functions
+   Usage
+    flattenedESTensor(L,kk)
+   Inputs
+    L: List
+     of positive ZZ
+    kk: Ring
+     Name of ground field (or ring)
+   Outputs
+    f: LabeledModuleMap
+   Description
+    Text
+     Given a list $L = \{a, b_1,\dots, b_n\}$ of positive integers 
+     with
+     $
+     a= sum_i b_i,
+     $
+     and a field (or ring of integers) kk,
+     the script creates a ring $S = kk[x_1,\dots,x_n]$ and a map
+     $$
+     f: A \to B_1\otimes\cdots \otimes B_n
+     $$
+     of @TO LabeledModule@s over $S$, where 
+     $A$ is a free LabeledModule of rank $a$ and 
+     $B_i$ is a free LabeledModule of rank $b_i$.
+     The map $f$ is constructed from symmetric functions, and 
+     corresponds to collection of linear forms on $P^{b_1-1}\times\cdots\timesß P^{b_n-1}$
+     as used in the construction of 
+     pure resolutions in the paper 
+     ``Betti numbers of graded modules and cohomology of vector bundles''
+     of Eisenbud and Schreyer.
+     
+     The format of $F$ is the one required
+     by @TO tensorComplex1@, namely $f: A \to B_1\otimes \cdots \otimes B_n$, with
+     $a = rank A, b_i = rank B_i$.
+    Example
+     kk = ZZ/101
+     f = flattenedESTensor({5,2,1,2},kk)
+     numgens ring f
+     betti matrix f
+     S = ring f
+     g = tensorComplex1 f
+     betti res coker g
+   SeeAlso
+    flattenedGenericTensor
+    tensorComplex1
+///
 ///
 print docTemplate
 ///

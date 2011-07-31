@@ -1,7 +1,5 @@
 needsPackage "SimplicialComplexes"
 needsPackage "Graphs"
---needsPackage "EdgeIdeals"
-needsPackage "Posets"
 
 newPackage(
 	"SimplicialComplexesPlus",
@@ -33,8 +31,6 @@ export {
 
 needsPackage "Graphs"
 needsPackage "SimplicialComplexes"
---needsPackage "EdgeIdeals"
-needsPackage "Posets"
 
 
 cartesianProduct = method();

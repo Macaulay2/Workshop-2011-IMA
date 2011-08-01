@@ -71,7 +71,6 @@ export {
     "intersectionLattice",
     "lcmLattice",
     "partitionLattice",
-        "partitionRefinementPairs",  -- ***TODO*** Gwyn, do we really want to export this?
         "setPartition",
     "projectivizeArrangement",
     --
@@ -85,9 +84,6 @@ export {
     -- Vertices & vertex properties
     "atoms",
     "compare",
-    "gradeLattice",
-    "gradePoset",
-        "Grading",
     "joinExists",
     "maximalElements",
     "meetExists",
@@ -95,6 +91,8 @@ export {
     "minimalElements",
     "posetJoin",
     "posetMeet",
+    "rankPoset",
+        "Ranking",
     --
     -- Relations & relation properties
     "allRelations",
@@ -116,7 +114,8 @@ export {
     "isDistributive",
     "isEulerian",
     "isGraded",
-    "isLattice"
+    "isLattice",
+    "isRanked"
     }
 
 ------------------------------------------
@@ -206,7 +205,7 @@ filter = method()
 filter (Poset, Thing) := (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
 
 flagPoset = method()
-flagPoset (Poset, List) := (P, L)-> subPoset(P, flatten ((gradePoset P)_L))
+flagPoset (Poset, List) := (P, L)-> subPoset(P, flatten ((rankPoset P)_L))
 
 -- input: poset and two elements
 -- output: the induced poset coming from the poset with minimal element and maximal element corresponding to the 2 given elements with these 2 elements removed 
@@ -594,7 +593,7 @@ texPoset (Poset) := opts -> (P) -> (
     protoH := partition(g-> last g, heightpairs);
     H := hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
     levelsets := apply(values H, v-> #v-1);
-    scalew := min{1.5,15/ max levelsets};
+    scalew := min{1.5,15/ (1 + max levelsets)};
     scaleh := min{2/scalew,15/(L+1)};
     halflevelsets := apply(levelsets, j-> scalew*j/2.0);
     spacings := apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
@@ -623,65 +622,6 @@ compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
     Aindex := indexElement(P,A);
     Bindex := indexElement(P,B);
     P.RelationMatrix_Bindex_Aindex != 0
-    )
-
-gradeLattice = method()
-gradeLattice Poset := P -> (
-    if not isGraded P then error "P must be graded";
-    if not isLattice P then error "P must be a Lattice";
-    if P.cache.?Grading then return P.cache.Grading;
-    M := maximalChains P;
-    nM := unique apply(M, c -> #c);
-    if #nM != 1 then error "P must be graded";
-    P.cache.Grading = apply(first nM, d -> unique for c in M list if c#?d then c#d else continue)
-    )
-
--- ***TODO***: Needs simplification!
-gradePoset = method()
-gradePoset Poset := P -> (
-    if not isGraded P then error "P must be graded";
-    if P.cache.?Grading then return P.cache.Grading;
-    nPGS := #P.GroundSet;
-    counter := 1;
-    M := maximalChains P;
-    n := max apply(M, c->#c);
-    L := select(M, c -> #c == n);
-    C := coveringRelations P;
-    J := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
-    while #(flatten J) < nPGS do (
-        if counter != 0 then (
-            counter = 0;
-            for i to #C - 1 do (
-                m0 := member(C_i_0, flatten J);
-                m1 := member(C_i_1, flatten J);
-                if m0 and not m1 then (
-                    for j to #J - 1 do
-                        if member(C_i_0, J_j) then (
-                            J = replace(j+1, append(J_(j+1), C_i_1), J);
-                            counter = counter + 1;
-                        );
-                ) else if not m0 and m1 then (
-                    for j to #J - 1 do
-                        if member(C_i_1, J_j) then (
-                            J = replace(j-1, append(J_(j-1), C_i_0),J);
-                            counter = counter + 1;
-                        );
-                );
-            );
-        ) else (
-            P = dropElements(P, flatten J); --slowest part!
-            M = maximalChains P;
-            C = coveringRelations P;
-            if #M != 0 then (
-                n = max apply(M, c->#c);
-                L = select(M, c -> #c == n);
-                J' := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
-                J = apply(max(#J, #J'), d -> unique join(if J#?d then J#d else {}, if J'#?d then J'#d else {}));
-            );
-            counter = 1;
-        ); 
-    );
-    P.cache.Grading = J
     )
 
 joinExists = method()
@@ -768,6 +708,15 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
         )
     )
 
+-- DC2: Working on as of 1452, 01. August 2011
+-- Ranked:  There exists an integer ranking-function r on the groundset of P
+--          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
+rankPoset = method()
+rankPoset Poset := P -> (
+    if P.cache.?Ranking then return P.cache.Ranking;
+    P.cache.Ranking = null
+    )
+
 ------------------------------------------
 -- Relations & relation properties
 ------------------------------------------
@@ -830,7 +779,7 @@ maximalChains Poset := P -> (
 
 -- ***TODO*** Is this right?
 fvector = method()
-fvector Poset := P -> apply(gradePoset P, G -> #G)
+fvector Poset := P -> apply(rankPoset P, G -> #G)
 
 moebiusFunction = method()
 moebiusFunction Poset := HashTable => P -> ( 
@@ -868,7 +817,7 @@ isConnected Poset := P -> (
         J = J | J';
         J' = select(P.GroundSet, v -> not member(v, J) and any(P.Relations, r -> (v === first r and member(last r, J)) or (v === last r and member(first r, J))));
         );
-    P.cache.isConnected = (#unique J == #P.GroundSet)
+    P.cache.isConnected = (#J == #P.GroundSet)
     )
 
 isDistributive = method()
@@ -882,7 +831,7 @@ isDistributive (Poset) := P->(
 isEulerian = method()
 isEulerian Poset := Boolean => P -> (
     if P.cache.?isEulerian then return P.cache.isEulerian;
-    if not isGraded P then error "Poset must be graded.";
+    if not isRanked P then error "Poset must be ranked.";
     P.cache.isEulerian = all(P.GroundSet, a -> 
         all(P.GroundSet, b -> (
                 if compare(P, a, b) then (
@@ -894,10 +843,11 @@ isEulerian Poset := Boolean => P -> (
         )
     )
 
+-- Graded:  All maximal chains are the same length.
 isGraded = method()
 isGraded Poset := P -> (
     if P.cache.?isGraded then return P.cache.isGraded;
-    P.cache.isGraded = all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true))
+    P.cache.isGraded = #unique apply(maximalChains P, c -> #c) == 1
     )
 
 --inputs: a poset P
@@ -908,6 +858,11 @@ isLattice Poset := P -> (
     --P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
     P.cache.isLattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j) and meetExists(P, P.GroundSet#i, P.GroundSet#j)))
     )
+
+-- Ranked:  There exists an integer ranking-function r on the groundset of P
+--          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
+isRanked = method()
+isRanked Poset := P -> rankPoset P =!= null
 
 ------------------------------------------
 -- Documentation

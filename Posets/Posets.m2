@@ -109,14 +109,14 @@ export {
     "moebiusFunction",
     --
     -- Properties
+  --"height", -- exported by Core
     "isAtomic",
     "isBounded",
     "isConnected",
     "isDistributive",
     "isEulerian",
     "isGraded",
-    "isLattice",
-    "posetHeight"
+    "isLattice"
     }
 
 ------------------------------------------
@@ -846,6 +846,9 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 -- Properties
 ------------------------------------------
 
+-- Method given in Core
+height Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s)
+
 -- P is atomic if every non-minimal, non-atom element is greater than some atom
 isAtomic = method()
 isAtomic Poset := P -> (
@@ -907,8 +910,6 @@ isLattice Poset := P -> (
     P.cache.isLattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j) and meetExists(P, P.GroundSet#i, P.GroundSet#j)))
     )
 
-posetHeight = method() 
-posetHeight Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s)
 
 ------------------------------------------
 -- Documentation

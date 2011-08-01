@@ -229,19 +229,11 @@ subPoset (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.Ground
 --inputs:  Poset P, Thing a
 --outputs:  new Poset P' with a as label for max or min
 adjoinMax = method()
-adjoinMax (Poset,Thing):= (P,a)->(
-    G:=P.GroundSet | {a};
-    R:=P.Relations | apply(P.GroundSet, g-> {g,a});
-    poset(G,R)
-    )
+adjoinMax (Poset,Thing):= (P,a)-> poset(P.GroundSet | {a}, P.Relations | apply(P.GroundSet, g-> {g,a}))
 adjoinMax Poset := P -> adjoinMax(P, {1})
 
 adjoinMin = method()
-adjoinMin (Poset,Thing):= (P,a)->(
-    G:=P.GroundSet | {a};
-    R:=P.Relations | apply(P.GroundSet, g-> {a,g});
-    poset(G,R)
-    )
+adjoinMin (Poset,Thing):= (P,a)-> poset(P.GroundSet | {a}, P.Relations | apply(P.GroundSet, g-> {a,g}))
 adjoinMin Poset := P -> adjoinMin(P, {0})
 
 augmentPoset = method()
@@ -278,8 +270,6 @@ posetDiamondProduct (Poset,Poset) := (P,Q)->(
     ) else error "P and Q must be lattices"
     )
 
--- Input: Two posets
--- Output: Product of posets
 posetProduct = method()
 posetProduct (Poset,Poset) := (P,Q) -> 
     poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
@@ -322,7 +312,7 @@ divisorPoset ZZ := Poset => m -> (
     poset(G,L)
     )
 
---This should be fixed to compute this more cleverly, without computing the entire poset.
+-- ***TODO*** This should be fixed to compute this more cleverly, without computing the entire poset.
 --This method takes a pair of monomials: first element should divide second.
 divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
     if ring m === ring n then (
@@ -347,9 +337,9 @@ divisorPoset (List, List, PolynomialRing):= Poset => (m, n, R) -> (
 facePoset = method()
 facePoset(SimplicialComplex):=Poset=>(D)->(
     testmax := L -> min apply(L, j->#j) > 1;
-    faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i, D)), r -> support r);
-    chainheads:=apply(flatten entries facets D, i-> support i);
-    maxchains:=apply(chainheads, i-> {i});
+    faceset := apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i, D)), r -> support r);
+    chainheads := apply(flatten entries facets D, i-> support i);
+    maxchains := apply(chainheads, i-> {i});
     while any(maxchains, testmax) do (
         nextstage:={};
         holdover:=select(maxchains,c-> not testmax c);
@@ -788,13 +778,11 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
 ------------------------------------------
 
 allRelations = method()
-allRelations Poset := P -> (
-     rows := entries P.RelationMatrix;
-     select(flatten apply(#rows, i -> flatten apply((#(rows_i), j -> if (rows_i)_j == 1 then (P.GroundSet#i, P.GroundSet#j)))), i -> i =!= null)
-     )
+allRelations Poset := P -> flatten for i to numrows P.RelationMatrix - 1 list for j to numrows P.RelationMatrix - 1 list if P.RelationMatrix_i_j == 1 then {P.GroundSet#i, P.GroundSet#j} else continue
 
+-- ***TODO*** Terribly inefficient.  Find a better way!
 antichains = method()
-antichains Poset := P-> select(subsets(P.GroundSet), s -> isAntichain(P, s))
+antichains Poset := P -> select(subsets(P.GroundSet), s -> isAntichain(P, s))
 
 coveringRelations = method()
 coveringRelations Poset := P -> (
@@ -811,7 +799,7 @@ coveringRelations Poset := P -> (
     )
 
 flagChains = method()
-flagChains (Poset,List) := (P,L)-> maximalChains flagPoset(P,L)
+flagChains (Poset,List) := (P,L) -> maximalChains flagPoset(P,L)
 
 --input: P a poset and L a list of elements of the poset
 --output: whether L is an antichain in P

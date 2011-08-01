@@ -17,11 +17,15 @@
 --------------------------------------------------------------------------------
 {*Not needed now, but would be nice:
 kk as an optional second argument
-handdling of rings (out put of pairs, so that ring name can be set)
+handling of rings (out put of pairs, so that ring name can be set)
 facility for making tensors
 exterior multiplication and contraction
 Schur Functors
 functoriality 
+a code bettiTC that would tell you the Betti table of a tensor complex w/o computing the resolution
+links to arXiv papers in the documentation
+cleaning up tensorComplex1.  for instance, the balanced case should call the 
+   non-balanced case, and compute w internally.
 *}
 
 
@@ -343,7 +347,6 @@ tensorComplex1 = method()
 
 
 {*
-FIX: things have a little.
 Make the first map of a generic tensor complex:
 Given (over a ring R)
 free modules Bi of ranks bi\geq 1,
@@ -379,6 +382,7 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   -- The output is the first map F0 <- F1 of the balanced tensor complex.
   -- If f is not balanced this outputs an error.  
   -- In the non-balanced case, there should be a weight vector as a second input.
+  -- See below.
   if not isBalanced f then error "The map f is not a balanced tensor.  
                                  Need to add a weight vector as a second input.";
   S := ring f;  
@@ -467,8 +471,8 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
   -- 
   -- f: A --> B1** B2** ... Bn
   -- makes the map F0 <- F1 as above.
-  -- if f is not balanced, we should  be doing something else 
-  -- w = (0,w1,...)
+  -- w = (0,w1,...).  w must satisfy some technical conditions that are checked below.
+  -- These technical conditions also appear in the documentation node for this function.
   if not w_0 == 0 and w_1 >=0 and min apply(toList(2..#w), i-> w_i-w_(i-1)) > 0 then 
       error "w not of the form (0,non-neg,increasing)";
   
@@ -855,10 +859,68 @@ doc ///
     "**"
 ///
 
-{* --a function has to be documented in the package that defined it.
+
+doc ///
+   Key
+     hyperdeterminant
+     hyperdeterminantMatrix
+   Headline
+     computes the hyperdeterminant of a boundary format tensor
+   Usage
+     hyperdeterminant f
+     hyperdeterminantMatrix f
+   Inputs
+     f: LabeledModuleMap
+   Outputs
+     : RingElement
+     : LabeledModuleMap
+   Description
+    Text
+      This constructs the hyperdeterminant of a tensor of {\em boundary format}, where
+      we say that a $a\times b_1\times \dots \times b_n$ has boundary format if
+      $$
+      a-\sum_{i=1}^n (b_i-1)=1.
+      $$
+      We construct the hyperdeterminant as the determinant of a certain square matrix
+      derived from $f$.  The {\tt hyperdeterminant} function outputs the hyperdeterminant
+      itself, whereas the {\tt hyperdeterminantMatrix} function outputs the matrix used to
+      compute the hyperdeterminant.  (For background on computing hyperdeterminants, see
+      Section 14.3 of the book ``Discriminants, resultants, and multidimensional
+      determinants '' by Gelfand-Kapranov-Zelevinsky.)
+      
+      The following constructs the generic hyperdetermiant of format $3\times 2\times 2$,
+      which is a polynomial of degree 6 consisting of 66 monomials.
+    
+    Example
+      f=flattenedGenericTensor({3,2,2},QQ);
+      S=ring f;
+      h=hyperdeterminant f;
+      degree h
+      #terms h
+    
+    Text
+      The following example illustrates that the code constructs 
+      the hyperdeterminant as a determinant of matrix {\tt hyperdeterminantMatrix f}.
+    
+    Example
+      f=flattenedGenericTensor({3,2,2},QQ);
+      S=ring f;
+      M=hyperdeterminantMatrix f
+      det(M)==hyperdeterminant f
+      
+   Caveat
+     There is bug involving the graded structure of the output. Namely, the code assumes that
+     all entries of {\tt f} have degree 1, and gives the wrong graded structure if this is not
+     the case. If {\tt ring f} is not graded, then 
+     the code gives an error.  
+     
+   SeeAlso
+///
+
+
 doc ///
    Key 
-    exteriorPower
+    --exteriorPower
     (exteriorPower, ZZ, LabeledModule)
    Headline 
     Exterior power of a @TO LabeledModule@
@@ -873,14 +935,139 @@ doc ///
     Item
    Description
     Text
-    Code
-    Pre
     Example
-   Subnodes
-   Caveat
    SeeAlso
 ///
-*}
+
+
+doc ///
+   Key
+     pureResES1
+   Headline
+     computes the first map of the Eisenbud--Schreyer pure resolution of a given type
+   Usage
+     pureResES1(d,kk)
+   Inputs
+     d: List
+     kk: Ring
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      Given a degree sequence $d\in \mathbb Z^{n+1}$ and a field $k$ of arbtirary characteristic, 
+      this produces the first map of pure resolution of type d as constructed by
+      Eisenbud and Schreyer in Section 5 of ``Betti numbers of graded modules and cohomology 
+      of vector bundles''.  The cokernel of this map is a module of finite of length over a
+      polynomial ring in $n$ variables.
+      
+      The code gives an error if d is not strictly increasing with $d_0=0$.
+      
+    Example
+      d={0,2,4,5};
+      p=pureResES1(d,ZZ/32003)
+      betti res coker p
+      dim coker p
+   
+   SeeAlso
+     pureResES
+///
+
+
+doc ///
+   Key
+     pureResES
+   Headline
+     constructs the Eisenbud--Schreyer pure resolution of a given type
+   Usage
+     pureResES(d,kk)
+   Inputs
+     d: List
+     kk: Ring
+   Outputs
+     : ChainComplex
+   Description
+    Text
+      Given a degree sequence $d$, this function returns the pure resolution of
+      type $d$ constructed in by Eisenbud and Schreyer in Section 5 of 
+      ``Betti numbers of graded modules and cohomology of vector bundles''.  The
+      function operates by resolving the output of {\tt pureResES1(d,kk)}.
+      
+    Example
+      d={0,2,4,5};
+      FF=pureResES(d,ZZ/32003)
+      betti FF
+      
+   SeeAlso
+     pureResES1
+///
+
+
+doc ///
+   Key
+     pureResTC1
+   Headline
+     computes the first map of a balanced tensor complex with pure resolution of a given type
+   Usage
+     pureResTC1(d,kk)
+   Inputs
+     d: List
+     kk: Ring
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      Given a degree sequence $d\in \mathbb Z^{n+1}$ and a field $k$ of arbtirary characteristic, 
+      this produces the first map of a balanced tensor complex with a 
+      pure resolution of type d, as constructed in Section 3
+      of the paper ``Tensor Complexes: Multilinear free resolutions constructed from higher tensors
+      by Berkesch-Erman-Kummini-Sam.  The cokernel of the output is an indecomposable
+      module of codimension $n$.
+
+      The code gives an error if d is not strictly increasing with $d_0=0$.
+      
+    Example
+      d={0,2,4,5};
+      p=pureResTC1(d,ZZ/32003)
+      betti res coker p
+   
+   SeeAlso
+     pureResTC
+///
+
+
+doc ///
+   Key
+     pureResTC
+   Headline
+     constructs the balanced tensor complex of a given type
+   Usage
+     pureResTC(d,kk)
+   Inputs
+     d: List
+     kk: Ring
+   Outputs
+     : ChainComplex
+   Description
+    Text
+      Given a degree sequence $d$, this function returns a balanced tensor complex
+      that is a  pure resolution of type $d$, as constructed in Section 3
+      of the paper ``Tensor Complexes: Multilinear free resolutions constructed from higher tensors
+      by Berkesch-Erman-Kummini-Sam.
+      The function operates by resolving the output of {\tt pureResTC1(d,kk)}.
+      
+      The code gives an error if d is not strictly increasing with $d_0=0$.
+
+    Example
+      d={0,2,4,5};
+      FF=pureResTC(d,ZZ/32003)
+      betti FF
+      
+   SeeAlso
+     pureResTC1
+///
+
+
+
 
 doc ///
    Key 
@@ -981,6 +1168,215 @@ doc ///
     flattenedGenericTensor
     tensorComplex1
 ///
+
+
+doc ///
+   Key
+     LabeledModuleMap
+   Headline
+     the class of maps between LabeledModules
+   Description
+    Text
+      A map between two labeled modules remembers the labeled module structure of the
+     source of target.  
+     Some, but not all methods available for maps have been extended to
+     this class.  In these cases, one should apply the method to the underlying
+     matrix.  See @TO (rank,LabeledModuleMap)@.
+
+///
+
+
+doc ///
+   Key
+     (map,LabeledModule,LabeledModule,Function)
+   Headline
+     create a LabeledModuleMap by specifying a function that gives each entry
+   Usage
+     map(F,G,f)
+   Inputs
+     F: LabeledModule
+     G: LabeledModule
+     f: Function
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      This function produces essentially the same output as 
+      {\tt map(Module,Module,Function)}, except that the output map
+      belongs to the class LabeledModuleMap, and thus remembers the labeled
+      module structure of the source and target. 
+    Example
+      S=QQ[x,y,z];
+      F=labeledModule(S^3)
+      f=map(F,F,(i,j)->(S_i)^j)      
+   SeeAlso
+      (map,Module,Module,Function)
+///
+
+
+doc ///
+   Key
+     (map,LabeledModule,LabeledModule,LabeledModuleMap)
+   Headline
+     creates a new LabeledModuleMap from a given LabeledModuleMap
+   Usage
+     map(F,G,f)
+   Inputs
+     F: LabeledModule
+     G: LabeledModule
+     f: LabeledModuleMap
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      This function produces has the same output {\tt map(F,G,matrix f)}.
+      This function is most useful when the either source/target of $f$ is
+      isomorphic to $F/G$ as a module with basis, 
+      but not as a labeled module.  
+     
+    Example
+      S=QQ[x,y,z];
+      A=labeledModule(S^2)
+      F=(A**A)**A
+      G=A**(A**A)
+      f=map(F,G,id_(F))      
+   SeeAlso
+      (map,LabeledModule,LabeledModule,Matrix)
+      (map,Module,Module,Matrix)
+///
+
+
+doc ///
+   Key
+     (map,LabeledModule,LabeledModule,Matrix)
+   Headline
+     creates a LabeledModuleMap from a matrix
+   Usage
+     map(F,G,M)
+   Inputs
+     F: LabeledModule
+     G: LabeledModule
+     M: Matrix
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      This function produces essentially the same output as 
+      {\tt map(Module,Module,Matrix)}, except that the output map
+      belongs to the class LabeledModuleMap, and thus remembers the labeled
+      module structure of the source and target. 
+    Example
+      S=QQ[x,y,z];
+      F=labeledModule(S^3)
+      M=matrix{{1,2,3},{x,y,z},{3*x^2,x*y,z^2}}
+      g=map(F,F,M)      
+      source g
+   SeeAlso
+      (map,Module,Module,Matrix)
+///
+
+
+
+
+doc ///
+   Key
+     (map,LabeledModule,LabeledModule,List)
+   Headline
+     creates a LabeledModuleMap from a list
+   Usage
+     map(F,G,L)
+   Inputs
+     F: LabeledModule
+     G: LabeledModule
+     L: List
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      This function produces essentially the same output as 
+      @TO (map,Module,Module,List)@, except that the output map
+      belongs to the class LabeledModuleMap, and thus remembers the labeled
+      module structure of the source and target. 
+    Example
+      S=QQ[x,y,z];
+      F=labeledModule(S^3)
+      L={{1,2,3},{x,y,z},{3*x^2,x*y,z^2}}
+      g=map(F,F,L)      
+      source g
+   SeeAlso
+      (map,Module,Module,List)
+///
+
+
+doc ///
+   Key
+     (map,LabeledModule,LabeledModule,ZZ)
+   Headline
+     creates scalar multiplication by an integer as a LabeledModuleMap
+   Usage
+     map(F,G,m)
+   Inputs
+     F: LabeledModule
+     G: LabeledModule
+     m: ZZ
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      This function produces essentially the same output as 
+      @TO (map,Module,Module,ZZ)@, except that the output map
+      belongs to the class LabeledModuleMap, and thus remembers the labeled
+      module structure of the source and target.  If $m=0$ then the output is
+      the zero map.  If $m\ne 0$, then $F$ and $G$ must have the same rank.
+    Example
+      S=QQ[x,y,z];
+      F=labeledModule(S^3);
+      G=labeledModule(S^2);
+      g=map(F,G,0)      
+      h=map(F,F,1)
+   SeeAlso
+      (map,Module,Module,ZZ)
+///
+
+
+
+{*
+doc ///
+   Key
+     (coker,LabeledModuleMap)
+     (rank,LabeledModuleMap)
+     (transpose,LabeledModuleMap)
+   Headline
+     a number of methods for maps have been extended to the class LabeledModuleMap
+   Usage
+     coker(f)
+     rank(f)
+     transpose(f)
+   Inputs
+     f: LabeledModuleMap
+   Outputs
+     : Thing
+   Description
+    Text
+      A number of methods that apply to maps have been extend the class LabeledModuleMap.
+      Where this is the case, the syntax is exactly the same.
+    Example
+      R=ZZ/101[a,b];
+      F=labeledModule(R^3);
+      f=map(F,F,(i,j)->a^i+b^j);
+      rank f
+      coker f
+    Text
+      Many methods have not been extended.  In these cases, one will see an error message,
+      and should apply the method to {\tt matrix f} instead of directly to {\tt f}.
+    Example
+      R=ZZ/101[a,b];
+      F=labeledModule(R^2);
+      f=map(F,F,(i,j)->a^i+b^j);
+      entries matrix f     
+///
+*}
+
 ///
 print docTemplate
 ///

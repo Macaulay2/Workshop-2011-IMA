@@ -708,13 +708,25 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
         )
     )
 
--- DC2: Working on as of 1452, 01. August 2011
 -- Ranked:  There exists an integer ranking-function r on the groundset of P
 --          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
 rankPoset = method()
 rankPoset Poset := P -> (
     if P.cache.?Ranking then return P.cache.Ranking;
-    P.cache.Ranking = null
+    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
+    v := local v;
+    R := ZZ(monoid [v_0..v_(#P.GroundSet - 1)]);
+    rk := apply(#P.GroundSet, i -> R_i);
+    for r in apply(coveringRelations P, r -> {idx#(r#0), idx#(r#1)}) do (
+        tmp := rk#(r#1) - rk#(r#0) - 1;
+        if tmp === 0 then continue else if #(support tmp) === 0 then return P.cache.Ranking = null;
+        u := first support rk#(r#0);
+        v := first support rk#(r#1);
+        tmp = sub(tmp, {u => 0, v => 0});
+        rk = if tmp <= 0 then apply(rk, g -> sub(g, u => v + tmp)) else apply(rk, g -> sub(g, v => u - tmp)); 
+        );
+    rk = apply(rk, r -> sub(r, ZZ));
+    P.cache.Ranking = apply(0..max rk, r -> P.GroundSet_(positions(rk, i -> i == r)))
     )
 
 ------------------------------------------

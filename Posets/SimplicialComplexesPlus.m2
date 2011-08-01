@@ -220,9 +220,9 @@ sdlabel(SimplicialComplex):=SimplicialComplex=>(D)->(
       simplicialComplex apply(maxchains, c-> product apply(c, j-> toVarfaces#j))
       )
  
-selectLevelVariables = method()
+selectLevel = method()
 
-selectLevelVariables(SimplicialComplex,ZZ):= (D,i)-> (
+selectLevel(SimplicialComplex,ZZ):= (D,i)-> (
      select(gens ring D, v-> # sequence value last baseName v === i)
      )
  
@@ -465,8 +465,8 @@ doc ///
 
 doc ///
 	Key
-		selectLevelVariables
-		(selectLevelVariables, SimplicialComplex,ZZ)
+		selectLevel
+		(selectLevel, SimplicialComplex,ZZ)
 	Headline 
 		from the labeled barycentric subdivision of a complex, selects variables corresponding to sets of a certain size
 	Description
@@ -477,8 +477,8 @@ doc ///
 		Example
      	       	    	D=bdsimplex 3
      	       	    	C=sdlabel D
-			selectLevelVariables(C,1)
-			selectLevelVariables(C,2)
+			selectLevel(C,1)
+			selectLevel(C,2)
 		Text
 		     	This selects vertices of subdivision coming from faces of dimension (i-1).
 	SeeAlso

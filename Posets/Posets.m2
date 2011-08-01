@@ -91,8 +91,8 @@ export {
     "minimalElements",
     "posetJoin",
     "posetMeet",
+    "rankFunction",
     "rankPoset",
-        "Ranking",
     --
     -- Relations & relation properties
     "allRelations",
@@ -105,6 +105,7 @@ export {
     -- Enumerative invariants
     "fvector",
     "moebiusFunction",
+    "totalMoebiusFunction",
     --
     -- Properties
   --"height", -- exported by Core
@@ -708,25 +709,30 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
         )
     )
 
--- Ranked:  There exists an integer ranking-function r on the groundset of P
---          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
-rankPoset = method()
-rankPoset Poset := P -> (
-    if P.cache.?Ranking then return P.cache.Ranking;
+rankFunction = method()
+rankFunction Poset := P -> (
+    if P.cache.?rankFunction then return P.cache.rankFunction;
     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
     v := local v;
     R := ZZ(monoid [v_0..v_(#P.GroundSet - 1)]);
     rk := apply(#P.GroundSet, i -> R_i);
     for r in apply(coveringRelations P, r -> {idx#(r#0), idx#(r#1)}) do (
         tmp := rk#(r#1) - rk#(r#0) - 1;
-        if tmp === 0 then continue else if #(support tmp) === 0 then return P.cache.Ranking = null;
+        if tmp === 0_R then continue else if #(support tmp) === 0 then return P.cache.rankFunction = null;
         u := first support rk#(r#0);
         v := first support rk#(r#1);
         tmp = sub(tmp, {u => 0, v => 0});
         rk = if tmp <= 0 then apply(rk, g -> sub(g, u => v + tmp)) else apply(rk, g -> sub(g, v => u - tmp)); 
         );
-    rk = apply(rk, r -> sub(r, ZZ));
-    P.cache.Ranking = apply(0..max rk, r -> P.GroundSet_(positions(rk, i -> i == r)))
+    P.cache.rankFunction = apply(rk, r -> sub(r, ZZ))
+    )
+
+-- Ranked:  There exists an integer ranking-function r on the groundset of P
+--          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
+rankPoset = method()
+rankPoset Poset := P -> (
+    rk := rankFunction P;
+    if rk === null then null else apply(0..max rk, r -> P.GroundSet_(positions(rk, i -> i == r)))
     )
 
 ------------------------------------------
@@ -802,6 +808,17 @@ moebiusFunction Poset := HashTable => P -> (
     )
 moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2))
 
+totalMoebiusFunction = method()
+totalMoebiusFunction Poset := HashTable => P -> (
+    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
+    mu := new MutableHashTable;
+    for p in P.GroundSet do (
+        gtp := P.GroundSet_(positions(flatten entries (P.RelationMatrix_(idx#p)), i -> i != 0));
+        for q in P.GroundSet do mu#(q, p) = if p === q then 1 else if not member(q, gtp) then 0 else -sum(gtp, z -> if mu#?(q, z) then mu#(q, z) else 0);
+        );
+    new HashTable from mu
+    )
+
 ------------------------------------------
 -- Properties
 ------------------------------------------
@@ -839,18 +856,17 @@ isDistributive (Poset) := P->(
     P.cache.isDistributive = all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
     )
 
--- ***TODO*** Terribly inefficient--fix it!
 isEulerian = method()
 isEulerian Poset := Boolean => P -> (
     if P.cache.?isEulerian then return P.cache.isEulerian;
-    if not isRanked P then error "Poset must be ranked.";
-    P.cache.isEulerian = all(P.GroundSet, a -> 
-        all(P.GroundSet, b -> (
-                if compare(P, a, b) then (
-                    ci := closedInterval(P, a, b);
-                    (moebiusFunction ci)#b === (-1)^(height ci)
-                    ) else true
-                )
+    rk := rankFunction P;
+    if rk === null then error "Poset must be ranked.";
+    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
+    mu := totalMoebiusFunction P;
+    P.cache.isEulerian = all(P.GroundSet, 
+        p -> (
+            gtp := P.GroundSet_(positions(flatten entries (P.RelationMatrix_(idx#p)), i -> i != 0));
+            all(gtp, q -> mu#(q, p) == (-1)^(rk#(idx#q) - rk#(idx#p)))
             )
         )
     )
@@ -874,7 +890,7 @@ isLattice Poset := P -> (
 -- Ranked:  There exists an integer ranking-function r on the groundset of P
 --          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
 isRanked = method()
-isRanked Poset := P -> rankPoset P =!= null
+isRanked Poset := P -> rankFunction P =!= null
 
 ------------------------------------------
 -- Documentation

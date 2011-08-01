@@ -24,10 +24,11 @@ export {
 	sd,
 	recoverLabels,
 	sdlabel,
-	selectLevelVariables,
+	selectLevel,
 	originalvars,
 	nerveComplex,
-	IsMultigraded
+	IsMultigraded,
+	inducedSubcomplex
 }
 
 needsPackage "Graphs"
@@ -49,35 +50,47 @@ combJoin(SimplicialComplex,SimplicialComplex):= SimplicialComplex => (A,B)->(
 )
 
 bdcrossPolytope = method();
-bdcrossPolytope(ZZ):=(n)->(
+bdcrossPolytope(ZZ,Ring):=(n,kk)->(
 --     s:=getSymbol "x";
 --     t:=getSymbol "y";
      x:=local x;
      y:=local y;
-     R:=ZZ/10007[x_1..x_n,y_1..y_n];
+     R:=kk[x_1..x_n,y_1..y_n];
      a:=apply(toList (0..n-1), i-> R_i*R_(n+i));
      simplicialComplex monomialIdeal a
+     )
+
+bdcrossPolytope = method();
+bdcrossPolytope(ZZ):=(n)->(
+     bdcrossPolytope(n,QQ)
      )
 
 --Prewritten methods for producing the n-diml simplex and its boundary:
 simplex = method();
 
-
-simplex(ZZ):=SimplicialComplex=>(n)->(
+simplex(ZZ,Ring):=SimplicialComplex=>(n,kk)->(
      x:=local x;
-     R:=QQ[x_0..x_n];
+     R:=kk[x_0..x_n];
      facet:={product flatten entries vars R};
      simplicialComplex facet
      )
 
+simplex(ZZ):=SimplicialComplex=>(n)->(
+     simplex(n,QQ)
+     )
+
 bdsimplex = method();
 
-
-bdsimplex(ZZ):=SimplicialComplex=>(n)->(
+bdsimplex(ZZ,Ring):=SimplicialComplex=>(n,kk)->(
      x:=local x;
-     R:=QQ[x_0..x_n];
+     R:=kk[x_0..x_n];
      simplicialComplex flatten entries faces(n-1,simplex(n))
      )
+
+bdsimplex(ZZ):=SimplicialComplex=>(n)->(
+     bdsimplex(n,QQ)
+     )
+
 
 --Method to print simplicial complexes in Gap format:
 sctoGap = method();
@@ -101,7 +114,6 @@ sctoGap(SimplicialComplex):=String=>(D)->(
 --This writes your complex to a file for Gap to read later:
 
 sctoGapFile = method();
-
 
 sctoGapFile(SimplicialComplex,String):=File=>(D,s)->(
      fn:=concatenate(s,".g");
@@ -228,17 +240,21 @@ selectLevel(SimplicialComplex,ZZ):= (D,i)-> (
  
 nerveComplex = method(Options=>{symbol IsMultigraded => false});
 
-nerveComplex(Graph):= opts -> (G) -> (
+nerveComplex(Graph,Ring):= opts -> (G,kk) -> (
      m := # edges G;
      e :=local e;
      S := if not opts.IsMultigraded then (
-	  QQ(monoid[(symbol e)_1..(symbol e)_m])
+	  kk(monoid[(symbol e)_1..(symbol e)_m])
 	  )
      else (
-	  QQ(monoid[(symbol e)_1..(symbol e)_m, MonomialSize => 8, Degrees => apply(m, i-> apply(m, j -> if i === j then 1 else 0))])
+	  kk(monoid[(symbol e)_1..(symbol e)_m, MonomialSize => 8, Degrees => apply(m, i-> apply(m, j -> if i === j then 1 else 0))])
      	  );
      I := apply(vertices G, v -> select(0..(m-1), i -> member(v, toList(edges G)#i)));
      simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
+)
+
+nerveComplex(Graph):= opts -> (G) -> (
+     nerveComplex(G,QQ)
 )
 
 nerveComplex(SimplicialComplex):= opts -> (D)->(
@@ -254,6 +270,27 @@ nerveComplex(SimplicialComplex):= opts -> (D)->(
      I := apply(gens ring D, v -> select(0..(m-1), i -> member(v, support (flatten entries facets D)#i)));
      simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
 )
+
+inducedSubcomplex=method();
+
+inducedSubcomplex(SimplicialComplex, List):= (D,W)->(
+     R:=ring D;
+     kk:=coefficientRing R;
+     vertlist:=flatten entries faces(0,D);
+     V:=select(vertlist, v-> not member(v,W));
+     I:=ideal D;
+     if isSubset(W,vertlist) then (
+	  L:={product V};
+	  for w in W do (
+	       L=join(L,select(flatten entries gens I, k-> k % w === sub(0,R)));
+     	       );
+	  L
+	  );
+     S:=local S;
+     S:=kk[W];
+     J:=monomialIdeal sub(ideal select(flatten entries gens I, i-> not member(i,L)),S);
+     simplicialComplex J
+     )
 
 
 
@@ -460,7 +497,7 @@ doc ///
 	SeeAlso
 		sd
 		recoverLabels
-		selectLevelVariables
+		selectLevel
 ///
 
 doc ///

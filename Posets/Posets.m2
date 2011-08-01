@@ -863,22 +863,12 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 isConnected = method()
 isConnected Poset := P->(
     if P.cache.?isConnected then return P.cache.isConnected;
-    J := first maximalChains P;
-    counter := 1;
-    while counter != 0 do (
-        counter = 0;
-        J = join(J, 
-            flatten for v in P.GroundSet list (
-                if not member(v, J) then (
-                    for r in P.Relations list (
-                        if (v === first r and member(last r, J)) or (v === last r and member(first r, J)) then (
-                            counter = counter + 1; v 
-                        ) else continue
-                    )
-                ) else continue
-            )
+    J := {};
+    J' := first maximalChains P;
+    while #J' != 0 do (
+        J = J | J';
+        J' = select(P.GroundSet, v -> not member(v, J) and any(P.Relations, r -> (v === first r and member(last r, J)) or (v === last r and member(first r, J))));
         );
-    );
     P.cache.isConnected = (#unique J == #P.GroundSet)
     )
 

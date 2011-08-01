@@ -60,7 +60,6 @@ bdcrossPolytope(ZZ,Ring):=(n,kk)->(
      simplicialComplex monomialIdeal a
      )
 
-bdcrossPolytope = method();
 bdcrossPolytope(ZZ):=(n)->(
      bdcrossPolytope(n,QQ)
      )
@@ -330,6 +329,7 @@ doc ///
 	Key
 		simplex
 		(simplex, ZZ)
+		(simplex, ZZ, Ring)
       	Headline 
 		returns the simplex as an object of type SimplicialComplex.
 	Description
@@ -352,6 +352,7 @@ doc ///
 	Key
 		bdsimplex
 		(bdsimplex, ZZ)
+		(bdsimplex, ZZ, Ring)
 	Headline 
 		returns the boundary of a simplex as an object of type SimplicialComplex.
 	Description
@@ -399,6 +400,7 @@ doc ///
 	Key
 		bdcrossPolytope
 		(bdcrossPolytope, ZZ)
+		(bdcrossPolytope, ZZ, Ring)
 	Headline 
 		returns boundary of the n dimensional cross polytope
 	Description

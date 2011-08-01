@@ -243,8 +243,8 @@ augmentPoset Poset := P -> adjoinMin adjoinMax P
 -- outputs: P without L
 dropElements = method()
 dropElements (Poset, List) := (P, L) -> (
-    keptIndices := select(toList(0..#P.GroundSet-1), i-> not member(P.GroundSet#i,L));
-    newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
+    keptIndices := select(toList(0..#P.GroundSet-1), i -> not member(P.GroundSet#i, L));
+    newGroundSet := P.GroundSet_keptIndices;
     newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
     newRelations := select(allRelations P, r -> not member(first r, L) and not member(last r, L));
     poset(newGroundSet, newRelations, newRelationMatrix)
@@ -734,7 +734,7 @@ rankPoset Poset := P -> (
 ------------------------------------------
 
 allRelations = method()
-allRelations Poset := P -> flatten for i to numrows P.RelationMatrix - 1 list for j to numrows P.RelationMatrix - 1 list if P.RelationMatrix_i_j == 1 then {P.GroundSet#i, P.GroundSet#j} else continue
+allRelations Poset := P -> flatten for i to numrows P.RelationMatrix - 1 list for j to numrows P.RelationMatrix - 1 list if P.RelationMatrix_i_j == 1 then (P.GroundSet#j, P.GroundSet#i) else continue
 
 antichains = method()
 antichains Poset := P -> (
@@ -2135,21 +2135,21 @@ L2 = divisorPoset(x^2*y^3);
 
 --testing subPoset
 assert( ((subPoset(P1, {a,b,e})).GroundSet) === {a,b,e} )
-assert( ((subPoset(P1, {a,b,e})).Relations) === {(a,a),(a,e),(b,b),(b,e),(e,e)} )
+assert( sort ((subPoset(P1, {a,b,e})).Relations) === {(a,a),(a,e),(b,b),(b,e),(e,e)} )
 assert( ((subPoset(P1, {a,b,e})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((subPoset(P2, {a,e,f,d})).GroundSet) === {a,d,e,f} )
-assert( ((subPoset(P2, {a,e,f,d})).Relations) === {(a,a),(a,e),(a,f),(d,d),(e,e),(e,f),(f,f)} )
+assert( sort ((subPoset(P2, {a,e,f,d})).Relations) === {(a,a),(a,e),(a,f),(d,d),(e,e),(e,f),(f,f)} )
 assert( ((subPoset(P2, {a,e,f,d})).RelationMatrix) === map(ZZ^4,ZZ^4,{{1, 0, 1, 1}, {0, 1, 0, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}}) )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).GroundSet) === {y^2,x^2,x^2*y^2} )
-assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,y^2),(y^2,x^2*y^2),(x^2,x^2),(x^2,x^2*y^2),(x^2*y^2,x^2*y^2)} )
+assert( sort ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,y^2),(y^2,x^2*y^2),(x^2,x^2),(x^2,x^2*y^2),(x^2*y^2,x^2*y^2)} )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 
 -- testing dropElements
 assert( ((dropElements(P1, {a,c})).GroundSet) === {b,d,e} )
-assert( ((dropElements(P1, {a,c})).Relations) === {(b,b),(b,d),(b,e),(d,d),(d,e),(e,e)} )
+assert( sort ((dropElements(P1, {a,c})).Relations) === {(b,b),(b,d),(b,e),(d,d),(d,e),(e,e)} )
 assert( ((dropElements(P1, {a,c})).RelationMatrix          ) === map(ZZ^3,ZZ^3,{{1, 1, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((dropElements(L2, m-> first degree m > 2)).GroundSet) == {1,y,y^2,x,x*y,x^2} )
-assert( ((dropElements(L2, m-> first degree m > 2)).Relations) == {(1,1),(1,y),(1,y^2),(1,x),(1,x*y),(1,x^2),(y,y),(y,y^2),(y,x*y),(y^2,y^2),(x,x),(x,x*y),(x,x^2),(x*y,x*y),(x^2,x^2)} )
+assert( sort ((dropElements(L2, m-> first degree m > 2)).Relations) == sort {(1,1),(1,y),(1,y^2),(1,x),(1,x*y),(1,x^2),(y,y),(y,y^2),(y,x*y),(y^2,y^2),(x,x),(x,x*y),(x,x^2),(x*y,x*y),(x^2,x^2)} )
 assert( ((dropElements(L2, m-> first degree m > 2)).RelationMatrix) === map(ZZ^6,ZZ^6,{{1, 1, 1, 1, 1, 1}, {0, 1, 1, 0, 1, 0}, {0, 0, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 1}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}}) )
 
 ///
@@ -2237,9 +2237,9 @@ P1 = poset ({h,i,j,k},{(h,i), (i,j), (i,k)});
 P2 = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)});
 
 assert( ((openInterval(P1,h,j)).Relations) === {(i,i)} )
-assert( ((closedInterval(P1,i,k)).Relations) === {(i,i),(i,k),(k,k)} )
-assert( ((openInterval(P2,a,e)).Relations) === {(b,b),(c,c)} )
-assert( ((closedInterval(P2,c,g)).Relations) === {(c,c),(c,e),(c,f),(c,g),(e,e),(e,g),(f,f),(f,g),(g,g)} )
+assert( sort ((closedInterval(P1,i,k)).Relations) === {(i,i),(i,k),(k,k)} )
+assert( sort ((openInterval(P2,a,e)).Relations) === {(b,b),(c,c)} )
+assert( sort ((closedInterval(P2,c,g)).Relations) === {(c,c),(c,e),(c,f),(c,g),(e,e),(e,g),(f,f),(f,g),(g,g)} )
 
 ///
 

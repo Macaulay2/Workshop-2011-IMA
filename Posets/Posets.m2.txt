@@ -77,36 +77,6 @@ cellularResolution (Poset):= P->(
 );
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-isAtomic = method();
-isAtomic (Poset):= P->(
-	L:=drop(subsets(atoms(P)),{0,0});
-	Q:={};
-	answer:=false;
-	for j to #L-1 do(
-		p:=L_j_0;
-		for i to #L_j-2 do(
-			p=first posetJoin(P,p,L_j_(i+1));
-		);
-		Q=unique append(Q,p);	
-	);
-	if #P.GroundSet-1 == #Q then answer = true;
-	answer
-);
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Doesn't consider Singleton Poset
-isBounded = method();
-isBounded (Poset) := P->(
-	L:={};
-	for i to #maximalChains(P)-1 do(
-		L=append(L,last (maximalChains P)_i);
-		L=append(L,first (maximalChains P)_i);
-	);
-	if #(unique L)==2 then true else false
-);
-
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 fpoly = method();

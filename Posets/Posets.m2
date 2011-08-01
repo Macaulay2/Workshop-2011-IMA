@@ -109,6 +109,8 @@ export {
     "moebiusFunction",
     --
     -- Properties
+    "isAtomic",
+    "isBounded",
     "isConnected",
     "isDistributive",
     "isEulerian",
@@ -218,7 +220,7 @@ orderIdeal (Poset, Thing) := (P, a) -> P.GroundSet_(positions(flatten entries(P.
 
 -- inputs:  a poset P and a list L of elements from P to "keep"
 -- outputs:  induced poset the list L
-subPoset = method();
+subPoset = method()
 subPoset (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L))
 
 ------------------------------------------
@@ -267,7 +269,7 @@ dropElements (Poset, Function) := (P, f) -> (
 mergePoset = method()
 mergePoset (Poset, Poset) := (P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations))
 
-posetDiamondProduct = method();
+posetDiamondProduct = method()
 posetDiamondProduct (Poset,Poset) := (P,Q)->(
     if isLattice P and isLattice Q then (
         P':=posetProduct(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
@@ -714,10 +716,8 @@ joinExists (Poset,Thing,Thing) := (P,a,b) -> (
 maximalElements = method()
 maximalElements Poset := P -> (
     if P.cache.?maximalElements then return P.cache.maximalElements;
-    M := P.RelationMatrix;
-    n := #P.GroundSet;
-    L := apply(n, i -> if all(n, j -> M_(i,j) == 0 or i == j) then P.GroundSet#i);
-    P.cache.maximalElements = select(L, x -> x =!= null) 
+    L := select(#P.GroundSet, i -> all(#P.GroundSet, j -> P.RelationMatrix_(i,j) == 0 or i == j));
+    P.cache.maximalElements = P.GroundSet_L
     )
 
 meetExists = method()
@@ -748,10 +748,8 @@ meetIrreducibles Poset := P -> (
 minimalElements = method()
 minimalElements Poset := P -> (
     if P.cache.?minimalElements then return P.cache.minimalElements;
-    M := P.RelationMatrix;
-    n := #P.GroundSet;
-    L := apply(n, i -> if all(n, j -> M_(j,i) == 0 or i == j) then P.GroundSet#i);
-    P.cache.minimalElements = select(L, x -> x =!= null) 
+    L := select(#P.GroundSet, i -> all(#P.GroundSet, j -> P.RelationMatrix_(j,i) == 0 or i == j));
+    P.cache.minimalElements = P.GroundSet_L
     )
 
 posetJoin = method()     
@@ -860,8 +858,19 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 -- Properties
 ------------------------------------------
 
+-- P is atomic if every non-minimal, non-atom element is greater than some atom
+isAtomic = method()
+isAtomic Poset := P -> (
+    if P.cache.?isAtomic then return P.cache.isAtomic;
+    atm := atoms P;
+    P.cache.isAtomic = all(toList(set P.GroundSet - set minimalElements P - set atm), v -> any(atm, a -> compare(P, a, v)))
+    )
+
+isBounded = method()
+isBounded Poset := P -> #minimalElements P == 1 and #maximalElements P == 1
+
 isConnected = method()
-isConnected Poset := P->(
+isConnected Poset := P -> (
     if P.cache.?isConnected then return P.cache.isConnected;
     J := {};
     J' := first maximalChains P;
@@ -872,7 +881,7 @@ isConnected Poset := P->(
     P.cache.isConnected = (#unique J == #P.GroundSet)
     )
 
-isDistributive = method();
+isDistributive = method()
 isDistributive (Poset) := P->(
     if P.cache.?isDistributive then return P.cache.isDistributive;
     if not isLattice P then error "Poset must be a lattice";

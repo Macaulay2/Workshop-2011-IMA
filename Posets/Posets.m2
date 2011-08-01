@@ -116,7 +116,7 @@ export {
     "moebiusFunction",
     --
     -- Properties
-    --"height",
+    --"height",-- already in Core
     "isConnected",
     "isDistributive",
     "isEulerian",
@@ -124,17 +124,10 @@ export {
     "isLattice"
     }
 
--- input: a poset, and an element A from I
--- output:  the index of A in the ground set of P
--- usage: compare, orderIdeal 
+------------------------------------------
+-- Non-exported, strongly prevalent functions
+------------------------------------------
 indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
-
--- input:  a list, potentially with nulls
--- output:  a list w/out nulls
--- usage:  orderIdeal, filter
-nonnull := L -> select(L, i-> i =!= null);
-
-
 
 ------------------------------------------
 -- Data type & constructor
@@ -435,7 +428,7 @@ lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
         Ground = lcmLatticeProduceGroundSet L;
         Ground = apply(Ground, D -> product apply(numgens ring M, i-> (ring M)_i^(D#i)));
         );
-    Rels := nonnull unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s)));
+    Rels := select(unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s))), i -> i =!= null);
     RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
     poset (Ground, Rels, RelsMatrix)
        )
@@ -590,22 +583,34 @@ projectivizeArrangement(List,Ring):=(L,R)->(
 displayPoset=method(Options => { symbol SuppressLabels => true, symbol PDFViewer => "open" })
 displayPoset(Poset):=opts->(P)->(
     if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
-    name:=temporaryFileName();
-    outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
-    run concatenate("pdflatex -output-directory /tmp ",name, " 1>/dev/null");
+    name := temporaryFileName();
+    outputTexPoset(P, concatenate(name, ".tex"), symbol SuppressLabels => opts.SuppressLabels);
+    run concatenate("pdflatex -output-directory /tmp ", name, " 1>/dev/null");
     run concatenate(opts.PDFViewer, " ", name,".pdf");
     )
 
 outputTexPoset = method(Options => {symbol SuppressLabels => true});
 outputTexPoset(Poset,String):= opts -> (P,name)->(
-    C:= maximalChains P;
+    fn:=openOut name;
+    fn << "\\documentclass[8pt]{article}"<< endl;
+    fn << "\\usepackage{tikz}" << endl;
+    fn << "\\begin{document}" << endl << endl;
+    fn << texPoset(P, opts) << endl;
+    fn << "\\end{document}" << endl;
+    close fn;
+    get name
+    )
+
+texPoset = method(Options => {symbol SuppressLabels => true})
+texPoset (Poset) := opts -> (P) -> (
+    C := maximalChains P;
     --hash table of variable labels:
     idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
     --edge list to be read into TikZ:
     edgelist:= apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
     --height of poset:
-    L:=max apply(C, c-> #c)-1;
-    heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+    L := max apply(C, c-> #c) - 1;
+    heightpairs:=apply(P.GroundSet, g -> {g, L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
     protoH:=partition(g-> last g, heightpairs);
     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
     levelsets:=apply(values H, v-> #v-1);
@@ -613,63 +618,15 @@ outputTexPoset(Poset,String):= opts -> (P,name)->(
     scaleh:=min{2/scalew,15/(L+1)};
     halflevelsets:=apply(levelsets, j-> scalew*j/2.0);
     spacings:=apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
-    fn:=openOut name;
-    fn << "\\documentclass[8pt]{article}"<< endl;
-    fn << "\\usepackage{tikz}" << endl;
-    fn << "\\begin{document}" << endl;
-    fn << "\\begin{tikzpicture}" << endl;
-    fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]")<< endl;
-    if opts.SuppressLabels then (
-        for i from 0 to L do
-            for j from 0 to levelsets_i do
-                fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
-         )
-    else (
-        for i from 0 to L do
-            for j from 0 to levelsets_i do
-                fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
-        );
-    fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
-    fn << "\\draw [-] (\\to)--(\\from);" << endl;
-    fn << "\\end{tikzpicture}" << endl;
-    fn << "\\end{document}" << endl;
-    close fn;
-    get name   
-    )
-
-texPoset = method(Options => {symbol SuppressLabels => true})
-texPoset (Poset) := opts -> (P) -> (
-    C := maximalChains P;
-    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
-    edgelist := apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
-    L := max apply(C, c-> #c)-1;
-    heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
-    protoH:=partition(g-> last g, heightpairs);
-    H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
-    levelsets:=apply(values H, v-> #v-1);
-    halflevelsets:=apply(levelsets, j-> j/2.0);
-    spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
-    name:=temporaryFileName();
-    fn:=openOut name;
-    fn << "\\begin{tikzpicture}" << endl;
-    fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
-    if opts.SuppressLabels then (
-        for i from 0 to L do
-            for j from 0 to levelsets_i do
-                fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
-        )
-    else (
-        for i from 0 to L do
-             for j from 0 to levelsets_i do
-                fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (", toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
-        );
-    fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
-    fn << "\\draw [-] (\\to)--(\\from);" << endl;
-    fn << "\\end{tikzpicture}" << endl;
-    close fn;
-    s:=get name;
-    removeFile name;
-    s
+    -- The TeX String
+    "\\begin{tikzpicture}[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]\n" |
+        concatenate(
+            for i from 0 to L list for j from 0 to levelsets_i list
+                {"\t\\node [vertices", if opts.SuppressLabels then "]" else (", label=right:{" | tex (values H)_i_j | "}]"),
+                 " (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",
+                 toString spacings_i_j,",",toString (scaleh*i),"){};\n"}
+            ) |
+    concatenate("\\foreach \\to/\\from in ", toString edgelist, "\n\\draw [-] (\\to)--(\\from);\n\\end{tikzpicture}\n")
     )
 
 ------------------------------------------
@@ -789,7 +746,7 @@ meetIrreducibles Poset := P -> (
     -- want to compute meets only for non-comparable elements
     if not isLattice P then error "P is not a lattice";
     nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> compare(P, posspair#0,posspair#1) == false and compare(P,posspair#1,posspair#0)== false);
-    meets := nonnull unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true then posetMeet(P,posspair#0, posspair#1)); 
+    meets := select(unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true then posetMeet(P,posspair#0, posspair#1)), i -> i =!= null); 
     toList (set P.GroundSet - set meets)
     )
 
@@ -842,7 +799,7 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
 allRelations = method()
 allRelations Poset := P -> (
      rows := entries P.RelationMatrix;
-     rels := nonnull flatten apply(#rows, i -> flatten apply((#(rows_i), j -> if (rows_i)_j == 1 then (P.GroundSet#i, P.GroundSet#j))))
+     select(flatten apply(#rows, i -> flatten apply((#(rows_i), j -> if (rows_i)_j == 1 then (P.GroundSet#i, P.GroundSet#j)))), i -> i =!= null)
      )
 
 antichains = method()

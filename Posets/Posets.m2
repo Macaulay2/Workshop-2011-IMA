@@ -1,3 +1,12 @@
+-- Gwyn:  I am going to do a massive reformatting of the whole file.  If you
+--        want to work on it in the next couple of hours, you may need to do
+--        a manual merge.  Alternatively, you can upload a "merge-me" file, or
+--        some-such, and I will do the merge myself.  I apologise for any
+--        inconvience this may cause.
+-- Time:  0849, 01. August 2011
+
+
+
 -- this file is licensed for use under the GNU General Public Licence version 2
 
 needsPackage "SimplicialComplexes"

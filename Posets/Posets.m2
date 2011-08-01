@@ -171,7 +171,7 @@ hasseDiagram Poset := P -> (
 incomparabilityGraph = method()
 incomparabilityGraph Poset := P -> (
     E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
-        if P.RelationMatrix_i_j == 0 or P.RelationMatrix_j_i == 0 then {P.GroundSet_i, P.GroundSet_j} else continue;
+        if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {P.GroundSet_i, P.GroundSet_j} else continue;
     fE := unique flatten E;
     graph(E, Singletons => select(P.GroundSet, p -> not member(p, fE)))
     )
@@ -312,13 +312,12 @@ divisorPoset ZZ := Poset => m -> (
     poset(G,L)
     )
 
--- ***TODO*** This should be fixed to compute this more cleverly, without computing the entire poset.
 --This method takes a pair of monomials: first element should divide second.
 divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
     if ring m === ring n then (
         if n % m === sub(0, ring m) then (
-            P := divisorPoset n;
-            closedInterval(P, m, n)
+            P := divisorPoset (n//m);
+            poset(apply(P.GroundSet, v -> v * m), apply(P.Relations, r -> (m * first r, m * last r)), P.RelationMatrix)
             ) else error "First monomial does not divide second."
         ) else error "Monomials must be in same ring."
     )
@@ -326,12 +325,8 @@ divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
 --This method takes a pair of exponent vectors a,b and computes divisorPoset x^a,x^b
 divisorPoset (List, List, PolynomialRing):= Poset => (m, n, R) -> (
     makeMonomialFromDegree := (R, d) -> product apply(numgens R, i-> R_i^(d#i));
-    if #m === #n and #n === numgens R then (
-        M := makeMonomialFromDegree(R,m);
-        N := makeMonomialFromDegree(R,n);
-        divisorPoset(M,N)
-        )
-        else error "Wrong number of variables in first or second entry."
+    if #m === #n and #n === numgens R then divisorPoset(makeMonomialFromDegree(R, m), makeMonomialFromDegree(R, n))
+    else error "Wrong number of variables in first or second entry."
     )
 
 facePoset = method()
@@ -780,9 +775,13 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
 allRelations = method()
 allRelations Poset := P -> flatten for i to numrows P.RelationMatrix - 1 list for j to numrows P.RelationMatrix - 1 list if P.RelationMatrix_i_j == 1 then {P.GroundSet#i, P.GroundSet#j} else continue
 
--- ***TODO*** Terribly inefficient.  Find a better way!
 antichains = method()
-antichains Poset := P -> select(subsets(P.GroundSet), s -> isAntichain(P, s))
+antichains Poset := P -> (
+    v := local v;
+    R := (ZZ/2)(monoid [v_1..v_(#P.GroundSet)]);
+    S := simplicialComplex monomialIdeal flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then R_i * R_j else continue;
+    apply(flatten apply(1 + dim S, d -> flatten entries faces(d, S)), a -> P.GroundSet_(indices a))
+    )
 
 coveringRelations = method()
 coveringRelations Poset := P -> (
@@ -909,7 +908,6 @@ isLattice Poset := P -> (
     --P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
     P.cache.isLattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j) and meetExists(P, P.GroundSet#i, P.GroundSet#j)))
     )
-
 
 ------------------------------------------
 -- Documentation
@@ -2021,33 +2019,9 @@ doc///
            
 ///     
 
---doc ///
---     Key     
---           booleanLattice
---      (booleanLattice, ZZ)
---     Headline
---           computes a Boolean lattice
---     Usage
---           B = booleanLattice(n)
---     Inputs
---           n : ZZ
---           a positive integer
---     Outputs
---           B : Poset
---           a Boolean lattice on n atoms
---     Description
---           Text
---           This function returns a Boolean lattice on the specified number of atoms, in the form of an lcm-lattice computed from the
---           irrelevant maximal ideal in the polynomial ring over the integers with the specified number of variables.
---      Example
---           booleanLattice(3)
---     SeeAlso
---           lcmLattice
---///
-
----------------------------------
---Tests
----------------------------------
+------------------------------------------
+-- Tests
+------------------------------------------
 
 -- TEST 0
 -- a lattice, B_3

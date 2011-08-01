@@ -863,17 +863,15 @@ doc ///
 doc ///
    Key
      hyperdeterminant
-     hyperdeterminantMatrix
+     (hyperdeterminant, LabeledModuleMap)
    Headline
      computes the hyperdeterminant of a boundary format tensor
    Usage
      hyperdeterminant f
-     hyperdeterminantMatrix f
    Inputs
      f: LabeledModuleMap
    Outputs
      : RingElement
-     : LabeledModuleMap
    Description
     Text
       This constructs the hyperdeterminant of a tensor of {\em boundary format}, where
@@ -883,7 +881,7 @@ doc ///
       $$
       We construct the hyperdeterminant as the determinant of a certain square matrix
       derived from $f$.  The {\tt hyperdeterminant} function outputs the hyperdeterminant
-      itself, whereas the {\tt hyperdeterminantMatrix} function outputs the matrix used to
+      itself, whereas the @TO hyperdeterminantMatrix@ function outputs the matrix used to
       compute the hyperdeterminant.  (For background on computing hyperdeterminants, see
       Section 14.3 of the book ``Discriminants, resultants, and multidimensional
       determinants '' by Gelfand-Kapranov-Zelevinsky.)
@@ -896,17 +894,7 @@ doc ///
       S=ring f;
       h=hyperdeterminant f;
       degree h
-      #terms h
-    
-    Text
-      The following example illustrates that the code constructs 
-      the hyperdeterminant as a determinant of matrix {\tt hyperdeterminantMatrix f}.
-    
-    Example
-      f=flattenedGenericTensor({3,2,2},QQ);
-      S=ring f;
-      M=hyperdeterminantMatrix f
-      det(M)==hyperdeterminant f
+      #terms h    
       
    Caveat
      There is bug involving the graded structure of the output. Namely, the code assumes that
@@ -915,7 +903,47 @@ doc ///
      the code gives an error.  
      
    SeeAlso
+     hyperdeterminantMatrix
 ///
+
+doc ///
+   Key
+     hyperdeterminantMatrix
+     (hyperdeterminantMatrix, LabeledModuleMap)
+   Headline
+     computes a matrix whose determinant equals the hyperdeterminant of a boundary format tensor
+   Usage
+     hyperdeterminantMatrix f
+   Inputs
+     f: LabeledModuleMap
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      This constructs a matrix whose determinant equals 
+      the hyperdeterminant of a tensor of {\em boundary format}, where
+      we say that a $a\times b_1\times \dots \times b_n$ has boundary format if
+      $$
+      a-\sum_{i=1}^n (b_i-1)=1.
+      $$
+      The entries of the output matrix correspond to entries of the input tensor.
+
+    Example
+      f=flattenedGenericTensor({3,2,2},QQ);
+      S=ring f;
+      M=hyperdeterminantMatrix f
+      det(M)==hyperdeterminant f
+    
+   Caveat
+     There is bug involving the graded structure of the output. Namely, the code assumes that
+     all entries of {\tt f} have degree 1, and gives the wrong graded structure if this is not
+     the case. If {\tt ring f} is not graded, then 
+     the code gives an error.  
+     
+   SeeAlso
+     hyperdeterminant
+///
+
 
 
 doc ///

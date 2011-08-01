@@ -83,7 +83,7 @@ bdsimplex = method();
 bdsimplex(ZZ,Ring):=SimplicialComplex=>(n,kk)->(
      x:=local x;
      R:=kk[x_0..x_n];
-     simplicialComplex flatten entries faces(n-1,simplex(n))
+     simplicialComplex flatten entries faces(n-1,simplex(n,kk))
      )
 
 bdsimplex(ZZ):=SimplicialComplex=>(n)->(

@@ -1,11 +1,3 @@
--- Gwyn:  I am going to do a massive reformatting of the whole file.  If you
---        want to work on it in the next couple of hours, you may need to do
---        a manual merge.  Alternatively, you can upload a "merge-me" file, or
---        some-such, and I will do the merge myself.  I apologise for any
---        inconvience this may cause.
--- Time:  0849, 01. August 2011
-
-
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
 -- License Version 2 as published by the Free Software Foundation.
@@ -21,8 +13,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0", 
-        Date => "26. July 2011",
+        Version => "1.0.1", 
+        Date => "01. August 2011",
         Authors => {
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
             {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},
@@ -30,7 +22,7 @@ newPackage select((
         },
         Headline => "Package for processing posets and order complexes",
         DebuggingMode => true,
-        if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes"}
+        if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes", "Graphs"}
         ), x -> x =!= null)
 
 if version#"VERSION" <= "1.4" then (
@@ -39,6 +31,7 @@ if version#"VERSION" <= "1.4" then (
     )
 
 export {
+    --
     -- Data type & constructor
     "Poset",
         "GroundSet",
@@ -78,7 +71,7 @@ export {
     "intersectionLattice",
     "lcmLattice",
     "partitionLattice",
-        "partitionRefinementPairs",  -- Gwyn: Do we really want to export this?
+        "partitionRefinementPairs",  -- ***TODO*** Gwyn, do we really want to export this?
         "setPartition",
     "projectivizeArrangement",
     --
@@ -116,12 +109,12 @@ export {
     "moebiusFunction",
     --
     -- Properties
-    --"height",-- already in Core
     "isConnected",
     "isDistributive",
     "isEulerian",
     "isGraded",
-    "isLattice"
+    "isLattice",
+    "posetHeight"
     }
 
 ------------------------------------------
@@ -360,7 +353,7 @@ facePoset(SimplicialComplex):=Poset=>(D)->(
         holdover:=select(maxchains,c-> not testmax c);
         for m in select(maxchains,testmax) do (
             minsize:=min apply(m, i-> #i);
-            minset:=first select(m, i-> #i== minsize);
+            minset:=first select(m, i-> #i == minsize);
             coveredfaces:=subsets(minset,minsize-1);
             nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
             );
@@ -431,7 +424,7 @@ lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
     Rels := select(unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s))), i -> i =!= null);
     RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
     poset (Ground, Rels, RelsMatrix)
-       )
+    )
 
 protect next
 -- Makes a pair storing a multi-degree and a list of multi-degrees which are to be joined with this degree.
@@ -610,14 +603,14 @@ texPoset (Poset) := opts -> (P) -> (
     edgelist:= apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
     --height of poset:
     L := max apply(C, c-> #c) - 1;
-    heightpairs:=apply(P.GroundSet, g -> {g, L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
-    protoH:=partition(g-> last g, heightpairs);
-    H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
-    levelsets:=apply(values H, v-> #v-1);
-    scalew:=min{1.5,15/ max levelsets};
-    scaleh:=min{2/scalew,15/(L+1)};
-    halflevelsets:=apply(levelsets, j-> scalew*j/2.0);
-    spacings:=apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
+    heightpairs := apply(P.GroundSet, g -> {g, L - max flatten apply(C, c-> positions(reverse c, i-> g === i))});
+    protoH := partition(g-> last g, heightpairs);
+    H := hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+    levelsets := apply(values H, v-> #v-1);
+    scalew := min{1.5,15/ max levelsets};
+    scaleh := min{2/scalew,15/(L+1)};
+    halflevelsets := apply(levelsets, j-> scalew*j/2.0);
+    spacings := apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
     -- The TeX String
     "\\begin{tikzpicture}[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]\n" |
         concatenate(
@@ -636,7 +629,7 @@ texPoset (Poset) := opts -> (P) -> (
 -- input:  poset
 -- output: list of elements covering minimal elements
 atoms = method()
-atoms Poset := List => P -> unique apply(select(coveringRelations P, R -> any(minimalElements P, elt -> (elt == R#0))), rels-> rels_1)
+atoms Poset := List => P -> unique apply(select(coveringRelations P, R -> any(minimalElements P, elt -> (elt === R#0))), rels-> rels_1)
 
 compare = method()
 compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
@@ -656,7 +649,7 @@ gradeLattice Poset := P -> (
     P.cache.Grading = apply(first nM, d -> unique for c in M list if c#?d then c#d else continue)
     )
 
--- TODO: Needs simplification!
+-- ***TODO***: Needs simplification!
 gradePoset = method()
 gradePoset Poset := P -> (
     if not isGraded P then error "P must be graded";
@@ -735,7 +728,7 @@ meetExists (Poset, Thing, Thing) := (P,a,b) -> (
     if lowerBounds == {} then false else (
         M := P.RelationMatrix;
         heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-        #(select(heightLowerBounds, i-> i== max heightLowerBounds)) <= 1
+        #(select(heightLowerBounds, i-> i == max heightLowerBounds)) <= 1
         )
     )
 
@@ -770,7 +763,7 @@ posetJoin (Poset,Thing,Thing) := (P,a,b)  -> (
     else (
         M := P.RelationMatrix;
         heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-        if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
+        if #(select(heightUpperBounds, i-> i == min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
         else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
         )
     )
@@ -787,7 +780,7 @@ posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
     else (
         M := P.RelationMatrix;
         heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-        if #(select(heightLowerBounds, i-> i== max heightLowerBounds)) > 1 then error "meet does not exist, greatest lower bound not unique" 
+        if #(select(heightLowerBounds, i-> i == max heightLowerBounds)) > 1 then error "meet does not exist, greatest lower bound not unique" 
         else lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)}
         )
     )
@@ -858,7 +851,7 @@ moebiusFunction = method()
 moebiusFunction Poset := HashTable => P -> ( 
     if #minimalElements P > 1 then error "this poset has more than one minimal element - specify an interval";
     M := (P.RelationMatrix)^(-1);
-    k := position(P.GroundSet,v->v===(minimalElements P)_0);
+    k := position(P.GroundSet,v->v === (minimalElements P)_0);
     hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
     )
 moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2))
@@ -866,9 +859,6 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 ------------------------------------------
 -- Properties
 ------------------------------------------
-
---height = method() -- already in Core
-height Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s)
 
 isConnected = method()
 isConnected Poset := P->(
@@ -926,8 +916,12 @@ isGraded Poset := P -> (
 isLattice = method()
 isLattice Poset := P -> (
     if P.cache.?isLattice then return P.cache.isLattice;
-    P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
+    --P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
+    P.cache.isLattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j) and meetExists(P, P.GroundSet#i, P.GroundSet#j)))
     )
+
+posetHeight = method() 
+posetHeight Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s)
 
 ------------------------------------------
 -- Documentation

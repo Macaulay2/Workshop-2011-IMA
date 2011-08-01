@@ -57,7 +57,6 @@ export {
     -- Derivative posets
     "closedInterval",
     "dualPoset",
-    "facePoset",
     "filter",
     "flagPoset",
     "openInterval",
@@ -75,10 +74,11 @@ export {
     --
     -- Enumerators
     "divisorPoset",
+    "facePoset",
     "intersectionLattice",
     "lcmLattice",
     "partitionLattice",
-        "partitionRefinementPairs",
+        "partitionRefinementPairs",  -- Gwyn: Do we really want to export this?
         "setPartition",
     "projectivizeArrangement",
     --
@@ -100,27 +100,41 @@ export {
     "meetExists",
     "meetIrreducibles",
     "minimalElements",
-    "posetMeet",
     "posetJoin",
+    "posetMeet",
     --
     -- Relations & relation properties
+    "allRelations",
     "antichains",
     "coveringRelations",
     "flagChains",
     "isAntichain",
     "maximalChains",
     --
-    -- Enumerations
+    -- Enumerative invariants
     "fvector",
     "moebiusFunction",
     --
     -- Properties
+    --"height",
     "isConnected",
     "isDistributive",
     "isEulerian",
     "isGraded",
     "isLattice"
     }
+
+-- input: a poset, and an element A from I
+-- output:  the index of A in the ground set of P
+-- usage: compare, orderIdeal 
+indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
+
+-- input:  a list, potentially with nulls
+-- output:  a list w/out nulls
+-- usage:  orderIdeal, filter
+nonnull := L -> select(L, i-> i =!= null);
+
+
 
 ------------------------------------------
 -- Data type & constructor
@@ -152,582 +166,284 @@ transitiveClosure (List,List) := (I, C) -> (
 -- Derivative combinatorial structures
 ------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-------------------------------------------
--- UNDOCUMENTED NEW CODE 
--------------------------------------------
-isDistributive = method();
-isDistributive (Poset) := P->(
-    if P.cache.?isDistributive then return P.cache.isDistributive;
-    if not isLattice P then error "Poset must be a lattice";
-    P.cache.isDistributive = all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
-);
-
-antichains = method();
-antichains Poset := P-> select(subsets(P.GroundSet), s -> isAntichain(P, s));
-
-flagPoset = method();
-flagPoset (Poset, List) := (P, L)-> subPoset(P, flatten ((gradePoset P)_L));
-
-flagChains = method();
-flagChains (Poset,List):= (P,L)-> maximalChains flagPoset(P,L);
-
-fvector = method();
-fvector (Poset) := P-> apply(gradePoset P, G -> #G);
-
-isConnected = method();
-isConnected (Poset):= P->(
-    if P.cache.?isConnected then return P.cache.isConnected;
-    J := first maximalChains P;
-    counter := 1;
-    while counter != 0 do (
-        counter = 0;
-        J = join(J, 
-            flatten for v in P.GroundSet list (
-                if not member(v, J) then (
-                    for r in P.Relations list (
-                        if (v === first r and member(last r, J)) or (v === last r and member(first r, J)) then (
-                            counter = counter + 1; v 
-                        ) else continue
-                    )
-                ) else continue
-            )
-        );
-    );
-    P.cache.isConnected = (#unique J == #P.GroundSet)
-);
-
-incomparabilityGraph = method();
-incomparabilityGraph Poset := P -> (
-    E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
-        if P.RelationMatrix_i_j == 0 or P.RelationMatrix_j_i == 0 then {P.GroundSet_i, P.GroundSet_j} else continue;
-    fE := unique flatten E;
-    graph(E, Singletons => select(P.GroundSet, p -> not member(p, fE)))
-);
-
-comparabilityGraph = method();
+comparabilityGraph = method()
 comparabilityGraph Poset := P -> (
     E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
         if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} else continue;
     fE := unique flatten E;
     graph(E, Singletons => select(P.GroundSet, p -> not member(p, fE)))
-);
+    )
 
---Imput: Two posets
---Output: Product of posets
---How: Combine Grounds Set. Find cover relations by combining cover relations of P with ground set elements of Q remaining constant. 
---       Then mirror with Q and P exchanged.
-posetProduct = method();
-posetProduct (Poset,Poset) := (P,Q) -> 
-    poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
-          join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
-           flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})));
+hasseDiagram = method()
+hasseDiagram Poset := P -> (
+    cr := coveringRelations P;
+    digraph hashTable apply(P.GroundSet, v -> v => set apply(select(cr, e -> e_0 === v), e -> e_1))
+    )
+
+incomparabilityGraph = method()
+incomparabilityGraph Poset := P -> (
+    E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
+        if P.RelationMatrix_i_j == 0 or P.RelationMatrix_j_i == 0 then {P.GroundSet_i, P.GroundSet_j} else continue;
+    fE := unique flatten E;
+    graph(E, Singletons => select(P.GroundSet, p -> not member(p, fE)))
+    )
+
+orderComplex = method(Options => { symbol VariableName => getSymbol "v", symbol CoefficientRing => QQ })
+orderComplex (Poset) := opts -> (P) -> (
+    s := opts.VariableName;
+    R := (opts.CoefficientRing)(monoid [s_0..s_(#P.GroundSet - 1)]);
+    variableMap := hashTable apply(#P.GroundSet, i -> P.GroundSet#i => R_i);
+    simplicialComplex apply(maximalChains P, c -> product apply(c, x -> variableMap#x))
+    )
+
+------------------------------------------
+-- Derivative posets
+------------------------------------------
+
+-- input:  poset, and two elements
+-- output:  the induced poset with minimal element and maximal element corresponding to the 2 given elements
+closedInterval = method()
+closedInterval (Poset, Thing, Thing) := (P, elt1, elt2) ->(
+    if compare(P, elt1, elt2) then subPoset(P, select(P.GroundSet, elt -> compare(P, elt1, elt) and compare(P, elt, elt2)))
+    else if compare(P, elt2, elt1) then subPoset(P, select(P.GroundSet, elt -> compare(P, elt2, elt) and compare(P, elt, elt1)))
+    else error "these elements are uncomparable"
+    )
+
+dualPoset = method()
+dualPoset Poset := P -> poset(P.GroundSet, P.Relations/reverse)
+
+-- input: a poset, and an element from I
+-- output:  the filter of a, i.e. all elements in the poset that are <= a
+filter = method()
+filter (Poset, Thing) := (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
+
+flagPoset = method()
+flagPoset (Poset, List) := (P, L)-> subPoset(P, flatten ((gradePoset P)_L))
+
+-- input: poset and two elements
+-- output: the induced poset coming from the poset with minimal element and maximal element corresponding to the 2 given elements with these 2 elements removed 
+openInterval = method()
+openInterval (Poset, Thing, Thing) := (P, elt1, elt2) -> dropElements(closedInterval(P, elt1, elt2), {elt1, elt2})
+
+-- input: a poset, and an element from I
+-- output: the order ideal of a, i.e. all elements in the poset that are >= a
+orderIdeal = method()
+orderIdeal (Poset, Thing) := (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
+
+-- inputs:  a poset P and a list L of elements from P to "keep"
+-- outputs:  induced poset the list L
+subPoset = method();
+subPoset (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L))
+
+------------------------------------------
+-- Operations
+------------------------------------------
+--inputs:  Poset P, Thing a
+--outputs:  new Poset P' with a as label for max or min
+adjoinMax = method()
+adjoinMax (Poset,Thing):= (P,a)->(
+    G:=P.GroundSet | {a};
+    R:=P.Relations | apply(P.GroundSet, g-> {g,a});
+    poset(G,R)
+    )
+adjoinMax Poset := P -> adjoinMax(P, {1})
+
+adjoinMin = method()
+adjoinMin (Poset,Thing):= (P,a)->(
+    G:=P.GroundSet | {a};
+    R:=P.Relations | apply(P.GroundSet, g-> {a,g});
+    poset(G,R)
+    )
+adjoinMin Poset := P -> adjoinMin(P, {0})
+
+augmentPoset = method()
+augmentPoset (Poset, Thing, Thing) := (P, a, b) -> adjoinMin(adjoinMax(P, b), a)
+augmentPoset Poset := P -> adjoinMin adjoinMax P
+
+-- inputs:  poset P and a list L of elements to drop
+-- outputs: P without L
+dropElements = method()
+dropElements (Poset, List) := (P, L) -> (
+    keptIndices := select(toList(0..#P.GroundSet-1), i-> not member(P.GroundSet#i,L));
+    newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
+    newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
+    newRelations := select(allRelations P, r -> not member(first r, L) and not member(last r, L));
+    poset(newGroundSet, newRelations, newRelationMatrix)
+    )
+dropElements (Poset, Function) := (P, f) -> (
+    keptIndices := select(toList(0..#P.GroundSet-1), i-> not f(P.GroundSet#i));
+    newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
+    newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
+    newRelations := select(allRelations P, r -> not f(first r) and not f(last r));
+    poset(newGroundSet, newRelations, newRelationMatrix)
+    )
+
+mergePoset = method()
+mergePoset (Poset, Poset) := (P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations))
 
 posetDiamondProduct = method();
 posetDiamondProduct (Poset,Poset) := (P,Q)->(
     if isLattice P and isLattice Q then (
         P':=posetProduct(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
-        poset(prepend({first minimalElements P , first minimalElements Q}, P'.GroundSet), join(apply(minimalElements P', p->({first minimalElements P , first minimalElements Q}, p)),P'.Relations))
+        poset(prepend({first minimalElements P, first minimalElements Q}, P'.GroundSet), 
+              join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations))
     ) else error "P and Q must be lattices"
-);
-
-isGraded = method();
-isGraded Poset := P -> (
-    if P.cache.?isGraded then return P.cache.isGraded;
-    P.cache.isGraded = all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true))
-);
-
-gradeLattice = method();
-gradeLattice Poset := P -> (
-    if not isGraded P then error "P must be graded";
-    if not isLattice P then error "P must be a Lattice";
-    M:=maximalChains P;
-    nM := unique apply(M, c -> #c);
-    if #nM != 1 then error "P must be graded";
-    apply(first nM, d -> unique for c in M list if c#?d then c#d else continue)
-);
-
-dualPoset = method();
-dualPoset Poset := P -> poset(P.GroundSet, P.Relations/reverse);
-
-mergePoset = method();
-mergePoset (Poset, Poset):=(P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations));
-
--- TODO: Needs simplification!
-gradePoset = method();
-gradePoset Poset := P->(
-    if not isGraded P then error "P must be graded";
-    if P.cache.?Grading then return P.cache.Grading;
-    nPGS := #P.GroundSet;
-    counter := 1;
-    M := maximalChains P;
-    n := max apply(M, c->#c);
-    L := select(M, c -> #c == n);
-    C := coveringRelations P;
-    J := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
-    while #(flatten J) < nPGS do (
-        if counter != 0 then (
-            counter = 0;
-            for i to #C - 1 do (
-                m0 := member(C_i_0, flatten J);
-                m1 := member(C_i_1, flatten J);
-                if m0 and not m1 then (
-                    for j to #J - 1 do
-                        if member(C_i_0, J_j) then (
-                            J = replace(j+1, append(J_(j+1), C_i_1), J);
-                            counter = counter + 1;
-                        );
-                ) else if not m0 and m1 then (
-                    for j to #J - 1 do
-                        if member(C_i_1, J_j) then (
-                            J = replace(j-1, append(J_(j-1), C_i_0),J);
-                            counter = counter + 1;
-                        );
-                );
-            );
-        ) else (
-            P = dropElements(P, flatten J); --slowest part!
-            M = maximalChains P;
-            C = coveringRelations P;
-            if #M != 0 then (
-                n = max apply(M, c->#c);
-                L = select(M, c -> #c == n);
-                J' := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
-                J = apply(max(#J, #J'), d -> unique join(if J#?d then J#d else {}, if J'#?d then J'#d else {}));
-            );
-            counter = 1;
-        ); 
-    );
-    P.cache.Grading = J
-);
-
-----------------------------------------------------------------------------------
--- NORMAL CODE
-----------------------------------------------------------------------------------
--- DirectedGraph, adjacencyMatrix and allPairsShortestPath were moved to Graphs.m2
-
--- input: a poset, and an element A from I
--- output:  the index of A in the ground set of P
--- usage: compare, orderIdeal 
-indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
-
--- input:  a list, potentially with nulls
--- output:  a list w/out nulls
--- usage:  orderIdeal, filter
-nonnull := L -> select(L, i-> i =!= null);
-
-
---------------------------------------------------
---Transitive Closure and Element Inclusion
---------------------------------------------------
-
-
---input: A poset with any type of relation C (not necessarily minimal, maximal, etc.)
---output:  The transitive closure of relations in C in our poset
-
---fullPosetRelation:= (P) -> (
---     M:=P.RelationMatrix;
---     L = toList sum apply(numrows(M), i-> set(nonnull(apply(numrows(M), 
---           j-> if (M_j)_i=!=0 and i=!=j then (P.GroundSet#i,I#j)))))
---     ) -- outputs the wrong data
-
---input: A poset P with any type of relation C (minimal, maximal, etc.)
---output:  The poset P' on the same ground set with the transitive closure of C
-
---fullPoset:= (P) -> (
---     L = poset(P.GroundSet,fullPosetRelation(P)) 
---     )
-
--- input:  A poset, and two elements A and B from I
--- output: true if A<= B, false else
-
-compare = method()
-compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
-    Aindex:=indexElement(P,A);
-    Bindex:=indexElement(P,B);
-    P.RelationMatrix_Bindex_Aindex != 0
-)
-
-
-
---------------------------------------------------
---Covering Relations and Hasse Diagrams
---------------------------------------------------
---input: A poset with any type of relation C (minimal, maximal, etc.)
---output: The minimal relations defining our poset
---------------------------------------------------
---This needs to have another nested sort somehow on the nodes...
-
-coveringRelations = method();
-coveringRelations Poset := P -> (
-    if P.cache.?coveringRelations then return P.cache.coveringRelations;
-        P.cache.coveringRelations = if #P.Relations === 0 then {} else (
-                edgeset := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
-         if P.RelationMatrix_i_j == 1 then {P.GroundSet_j, P.GroundSet_i} else
-         if P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} else continue;
-         testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
-              nonCovers:=apply(testpairs, p-> {first first p, last last p});
-              select(edgeset, p-> not member(p,nonCovers))
-     )    
     )
 
---input:  A poset P
---output:  A digraph which represents the Hasse Diagram of P
-hasseDiagram = method();
-hasseDiagram Poset := P -> (
-    cr := coveringRelations P;
-    digraph hashTable apply(P.GroundSet,v->v=>set apply(select(cr,e->e_0===v),e->e_1))
-)
+-- Input: Two posets
+-- Output: Product of posets
+posetProduct = method()
+posetProduct (Poset,Poset) := (P,Q) -> 
+    poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
+          join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
+           flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})))
 
---G = digraph(apply(P.GroundSet, elt-> {elt, apply(select(P.cache.coveringRelations, rel -> rel#1 == elt), goodrel-> goodrel#0)})) 
+------------------------------------------
+-- Enumerators
+------------------------------------------
+-- input:  a monomial m (and an ideal I)
+-- output: lattice of all monomials dividing m (and contained in I)
+divisorPoset = method()
+divisorPoset RingElement := Poset => m -> (
+    allMultiDegreesLessThan := d -> (
+        L := {{}};
+        for i from 0 to #d - 1 do L = flatten apply(L, H -> apply(d#i + 1, i -> H | {i}));
+        L
+        );
+    makeMonomialFromDegree := (R, d) -> product apply(numgens R, i-> R_i^(d#i));
+    d := flatten exponents m;
+    Ground := apply(allMultiDegreesLessThan d, e -> makeMonomialFromDegree(ring m, e));
+    Rels :=  unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s)));
+    Rels = select(Rels, r -> r =!= null);
+    RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
+    poset (Ground, Rels, RelsMatrix)
+    )
 
+divisorPoset ZZ := Poset => m -> (
+    if m < 0 then ( print "Did you mean |m|?"; m=-m; );
+    M := toList \ toList factor m;
+    p := local p;
+    Pset := apply(#M, i-> p_i);
+    R := QQ[Pset];
+    numHash := hashTable apply(#M, i-> R_i=>first M_i);
+    P := product apply(#M, p-> R_p^(last M_p));
+    subFunc := apply(pairs numHash, q-> q_0=>q_1);
+    Q := divisorPoset P;
+    G := sort apply(Q.GroundSet, g-> sub(g,subFunc));
+    L := apply(Q.Relations, g-> {sub(first g, subFunc),sub(last g, subFunc)});
+    poset(G,L)
+    )
 
---------------------------------------------------
---Minimal/Maximal Elements, and atoms 
---------------------------------------------------
--- input:  poset
--- output:  list of minimal elements
-minimalElements = method()
-minimalElements Poset := P -> (
-    if P.cache.?minimalElements then return P.cache.minimalElements;
-    M := P.RelationMatrix;
-    n := #P.GroundSet;
-    L := apply(n, i -> if all(n, j -> M_(j,i) == 0 or i == j) then P.GroundSet#i);
-    P.cache.minimalElements = select(L, x -> x =!= null) 
-)
+--This should be fixed to compute this more cleverly, without computing the entire poset.
+--This method takes a pair of monomials: first element should divide second.
+divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
+    if ring m === ring n then (
+        if n % m === sub(0, ring m) then (
+            P := divisorPoset n;
+            closedInterval(P, m, n)
+            ) else error "First monomial does not divide second."
+        ) else error "Monomials must be in same ring."
+    )
 
-
--- input: poset
--- output:  list of maximal elements
-maximalElements = method()
-maximalElements Poset := P -> (
-    if P.cache.?maximalElements then return P.cache.maximalElements;
-    M := P.RelationMatrix;
-    n := #P.GroundSet;
-    L := apply(n, i -> if all(n, j -> M_(i,j) == 0 or i == j) then P.GroundSet#i);
-    P.cache.maximalElements = select(L, x -> x =!= null) 
-)
-
-
---input:  poset
---output:  list of elements covering minimal elements
-
-atoms = method();
-atoms Poset := List => P -> (
-    cr := coveringRelations P;
-    unique apply(select(cr, R -> any(minimalElements P, elt -> (elt == R#0))), rels-> rels_1)    
-  )
-
--- input:  poset
--- output:  meet irreducibles of poset
-meetIrreducibles = method()
-meetIrreducibles Poset := P -> (
-    -- want to compute meets only for non-comparable elements
-    if isLattice P then (
-        nonComparablePairs := select(subsets(P.GroundSet,2), posspair-> 
-            compare(P, posspair#0,posspair#1) == false and compare(P,posspair#1,posspair#0)== false);
-        meets := nonnull unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true 
-            then posetMeet(P,posspair#0, posspair#1)); 
-        meetIrred := toList (set P.GroundSet - set meets)
-    ) else error "P is not a lattice"
-)
-
-----------------------------------------
---Adjoining new Max/Min Elements to Poset
-----------------------------------------
---inputs:  Poset P
---            (Poset P, Thing)
---outputs:  new Poset P' with "thing" as
---label for max/min
-
-adjoinMax = method()
-
-adjoinMax Poset := P -> adjoinMax(P,{1});
-
-adjoinMax (Poset,Thing):= (P,a)->(
-     G:=P.GroundSet | {a};
-     R:=P.Relations | apply(P.GroundSet, g-> {g,a});
-     poset(G,R)
-     )
-
-adjoinMin = method()
-
-adjoinMin Poset := P -> adjoinMin(P,{0});
-
-adjoinMin (Poset,Thing):= (P,a)->(
-     G:=P.GroundSet | {a};
-     R:=P.Relations | apply(P.GroundSet, g-> {a,g});
-     poset(G,R)
-     )
-
-augmentPoset = method();
-augmentPoset Poset := P -> adjoinMin adjoinMax P;
-augmentPoset(Poset, Thing, Thing) := (P, a, b) -> adjoinMin(adjoinMax(P, b), a);
-
-
---------------------------------------------------
--- dropElements/induced poset
---------------------------------------------------
--- only intended for input where M = P.RelationMatrix 
-allRelations := (P,M) -> (
-     rows := entries M;
-     rels := nonnull flatten apply(#rows, i -> flatten apply((#(rows_i), j -> if (rows_i)_j == 1 then (P.GroundSet#i, P.GroundSet#j))))  
-     )
-
--- dropElements
--- inputs:  poset P and a list L of elements to drop
--- outputs: P without L
-dropElements = method()
-
-dropElements (Poset, List) := (P, L) -> (
-    keptIndices := select(toList(0..#P.GroundSet-1), i-> not member(P.GroundSet#i,L));
-    newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
-    newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
-    newRelations := select(allRelations(P,P.RelationMatrix), r -> not member(first r, L) and not member(last r, L));
-    poset(newGroundSet, newRelations, newRelationMatrix)
-)
-
-dropElements (Poset, Function) := (P, f) -> (
-    keptIndices := select(toList(0..#P.GroundSet-1), i-> not f(P.GroundSet#i));
-    newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
-    newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
-    newRelations := select(allRelations(P,P.RelationMatrix), r -> not f(first r) and not f(last r));
-    poset(newGroundSet, newRelations, newRelationMatrix)
-)
-
--- inducedPoset
--- inputs:  a poset P and a list L of elements from P to "keep"
--- outputs:  induced poset the list L
-subPoset = method();
-subPoset (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L));
-
-
--- closedInterval
--- input:  poset, and two elements
--- output:  the induced poset with minimal element and maximal element corresponding to the 2 given elements
-closedInterval = method()
-closedInterval(Poset, Thing, Thing) := (P, elt1, elt2) ->(
-     if not (compare(P,elt1,elt2) or compare(P,elt2,elt1)) then return error "these elements are uncomparable";
-     -- find elements between a and b
-     if compare(P,elt1,elt2) then return subPoset(P, select(P.GroundSet, elt -> compare(P,elt1,elt) and compare(P,elt,elt2)));
-     if compare(P,elt2,elt1) then return subPoset(P, select(P.GroundSet, elt -> compare(P,elt2,elt) and compare(P,elt,elt1)));
-)
-
---openInterval
---input: poset and two elements
--- output: the induced poset coming from the poset with minimal element and maximal element corresponding to the 2 given elements
---         with these 2 elements removed 
-openInterval = method()
-openInterval(Poset, Thing, Thing) := (P, elt1, elt2) -> dropElements(closedInterval(P, elt1, elt2), {elt1, elt2});
-
-
---------------------------------------------------
--- maximalChains 
---------------------------------------------------
-
-maximalChains = method()
-maximalChains Poset := P -> (
-    if P.cache.?maximalChains then return P.cache.maximalChains;
-    nonMaximalChains := apply(minimalElements(P), x -> {x});
-    maxChains := {};
-    while #nonMaximalChains =!= 0 do (
-        nonMaximalChains = flatten apply(nonMaximalChains, c -> (
-            nexts := select(coveringRelations P, r -> first r === last c);
-            if #nexts == 0 then maxChains = append(maxChains, c);
-            apply(nexts, r -> c | {last r})
-            )
+--This method takes a pair of exponent vectors a,b and computes divisorPoset x^a,x^b
+divisorPoset (List, List, PolynomialRing):= Poset => (m, n, R) -> (
+    makeMonomialFromDegree := (R, d) -> product apply(numgens R, i-> R_i^(d#i));
+    if #m === #n and #n === numgens R then (
+        M := makeMonomialFromDegree(R,m);
+        N := makeMonomialFromDegree(R,n);
+        divisorPoset(M,N)
         )
-    );
-    P.cache.maximalChains = maxChains
-)
+        else error "Wrong number of variables in first or second entry."
+    )
 
---input:  P a poset
---output:  length of maximal chain in P
+facePoset = method()
+facePoset(SimplicialComplex):=Poset=>(D)->(
+    testmax := L -> min apply(L, j->#j) > 1;
+    faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i, D)), r -> support r);
+    chainheads:=apply(flatten entries facets D, i-> support i);
+    maxchains:=apply(chainheads, i-> {i});
+    while any(maxchains, testmax) do (
+        nextstage:={};
+        holdover:=select(maxchains,c-> not testmax c);
+        for m in select(maxchains,testmax) do (
+            minsize:=min apply(m, i-> #i);
+            minset:=first select(m, i-> #i== minsize);
+            coveredfaces:=subsets(minset,minsize-1);
+            nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
+            );
+        maxchains = join(nextstage,holdover);
+        );    
+    poset(faceset, unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
+    )
 
-height Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s);
+-- Hyperplane Arrangement Lattice: 
+-- As written, this would most likely work for any type of arrangement lattice.
+-- Given a set of linear forms defining the hyperplanes in the arrangement, returns set of intersection ideals.
 
+-- Inputs:
+--      L = equations defining hyperplanes
+--      R = ring
+-- Outputs: List of ideals of intersections, excluding the intersection of no hyperplanes and intersections which are empty.
+hyperplaneEquivalence = method()
+hyperplaneEquivalence(List,Ring) := (L,R) -> (
+    allideals:=unique drop(apply(subsets L, h-> ideal gens gb ideal h),1);
+    select(allideals, I-> not I == ideal(sub(1,R)))
+    )
 
+-- Inputs:
+--      L = list of ideals produced by method hyperplaneEquivalence
+--      R = ring
+-- Outputs: Pairs of ideals (I,J), with I < J if J contains I
+hyperplaneInclusions = method()
+hyperplaneInclusions(List,Ring) := (L,R) -> (
+    H:=apply(L, l-> sub(l,R));
+    coverPairs:={};
+    for l from 1 to #H-1 do
+        for k to #H-1 do 
+            if unique apply(flatten entries gens H_k, f-> f % gens H_l) === {sub(0,R)} then 
+                coverPairs = append(coverPairs,{L_k,H_l});
+    coverPairs
+    )
 
--------------------------------------------------
---Anti-Chains
--------------------------------------------------
--- isAntichain
---input: P a poset and L a list of elements of the poset
---output T/F whether L is an antichain in P
+-- Inputs:
+--      L = equations defining arrangement
+--      R = ring
+-- Outputs: Intersection poset of hyperplane arrangement.
+-- In theory, this should work on arrangements of hypersurfaces.  In practice, throws an error saying "antisymmetry fails."
+intersectionLattice = method()
+intersectionLattice(List,Ring):=(L,R)-> (
+    G:=hyperplaneEquivalence(L,R);
+    rel:=hyperplaneInclusions(G,R);
+    poset(G,rel)
+    )
 
-
-isAntichain = method()
-
-isAntichain (Poset, List) := (P, L) ->(
-     Q := subPoset(P, L);
-     minimalElements(Q) == maximalElements(Q)
-)
-     
-     
---------------------------------------------------
--- Order-Complex 
---------------------------------------------------
-
-orderComplex = method(Options => { symbol VariableName => getSymbol "v", symbol CoefficientRing => QQ } )
-orderComplex (Poset) := opts -> (P) -> (
-    s := opts.VariableName;
-    R := (opts.CoefficientRing)(monoid [s_0..s_(#P.GroundSet -1)]);
-    variableMap := hashTable apply(#P.GroundSet, i -> P.GroundSet#i => R_i);
-    simplicialComplex apply(maximalChains P, c -> product apply(c, x -> variableMap#x))
-)
-
---------------------------------------------------
---Order and Filter Ideals
---------------------------------------------------
-
--- input: a poset, and an element from I
--- output: the order ideal of a, i.e. all elements in the poset that are >= a
--- usage:
-
-filter= method()
-filter(Poset, Thing) := (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0));
-
--- input: a poset, and an element from I
--- output:  the filter of a, i.e. all elements in the poset that are <= a
--- usage:
-orderIdeal = method()
-orderIdeal(Poset, Thing) := (P,a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0));
-
-
-
-----------------------------------------------------
---Joins, Meets, Lattices and Atoms
-----------------------------------------------------
--- inputs: P, poset, and two elements of P.GroundSet
--- outputs:  the element of P.GroundSet that is the join of these, or "not comparable" or "not unique" if those situations occur
--- usage:  joinExists used in isLattice
-
-posetJoin = method()     
-posetJoin(Poset,Thing,Thing) := (P,a,b)  -> (
-     OIa := filter(P,a);     
-     OIb := filter(P,b);
-     upperBounds := toList (set(OIa)*set(OIb));
-     if upperBounds == {} then (
-        error "your elements do not share any upper bounds";
-     ) else (
-         M := P.RelationMatrix;
-         heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-          if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
-         else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
-     )
-)
-
-
-joinExists = method()
-joinExists(Poset,Thing,Thing) := (P,a,b) -> (
-     OIa := filter(P,a);     
-     OIb := filter(P,b);
-     upperBounds := toList (set(OIa)*set(OIb));
-     if upperBounds == {} then false else (M := P.RelationMatrix;
-           heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-           if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then false
-      else true
-     ))
-
-
---inputs:  P a poset, and 2 elements of P.GroundSet
---outputs:  the element in P.GroundSet that is the meet of these, or "not comparable" or "not unique"
--- usage:  MeetExits used in isLattice
-posetMeet = method()
-posetMeet(Poset,Thing,Thing) := (P,a,b) ->(
-     Fa:= orderIdeal(P,a);
-     Fb:= orderIdeal(P,b);
-     lowerBounds:= toList (set(Fa)*set(Fb));
-     if lowerBounds == {} then (error "your elements do not share any lower bounds") else (
-      M := P.RelationMatrix;
-           heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-           if #(select(heightLowerBounds, i-> i== max heightLowerBounds)) > 1 then error "meet does not exist, greatest lower bound not unique" 
-      else(lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)})) 
-     )
-
-meetExists = method()
-meetExists(Poset, Thing, Thing) := (P,a,b) -> (
-     Fa:= orderIdeal(P,a);
-     Fb:= orderIdeal(P,b);
-     lowerBounds:= toList (set(Fa)*set(Fb));
-     if lowerBounds == {} then false else (
-      M := P.RelationMatrix;
-           heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-           if #(select(heightLowerBounds, i-> i== max heightLowerBounds)) > 1 then false
-      else true ) 
-     )
-
-
---inputs: a poset P
---output:  boolean value for whether or not it is a lattice
---usage:
-isLattice = method()
-isLattice Poset := P -> (
-    if P.cache.?isLattice then return P.cache.isLattice;
-    P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
-);
-
-
------------------------------------------------
--- LCM lattices
------------------------------------------------
---input: a set of monomials
--- output: the lcm of those monomials
---lcm = (L) -> (
---    flatten entries gens intersect apply(L, i-> ideal (i))
---    )
-
+-- ***TODO*** Needs thorough cleaning.
 -- input:  generators of a monomial ideal
 -- output: lcm lattice of that monomial ideal
 -- potential problem:  subsets dies when a set is too big (> 18)
-
-lcmLattice = method( Options => { Strategy => 1 })     
-lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts);
-
+lcmLattice = method( Options => { Strategy => 1 })
+lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts)
 lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
-       L := flatten entries gens M;
-       Ground := null;
-       if opts.Strategy === 0 then (
+    L := flatten entries gens M;
+    Ground := null;
+    if opts.Strategy === 0 then (
         subsetsL := flatten apply(#L, i-> subsets (L,i+1));
         Ground = unique flatten apply (subsetsL, r-> lcm(r));
         Ground = prepend(1_(ring M), Ground);
-        ) else (
+        ) 
+    else (
         Ground = lcmLatticeProduceGroundSet L;
         Ground = apply(Ground, D -> product apply(numgens ring M, i-> (ring M)_i^(D#i)));
         );
-       Rels := nonnull unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s)));
-       RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
-       poset (Ground, Rels, RelsMatrix)
+    Rels := nonnull unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s)));
+    RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
+    poset (Ground, Rels, RelsMatrix)
        )
 
 protect next
---Subroutine of lcmLatticeProduceGroundSet
---Makes a pair storing a multi-degree and 
---a list of multi-degrees which are to be 
---joined with this degree.
-degreeNextPair = (D, nextDegrees) -> 
-    hashTable { 
-        symbol degree => D, 
-        symbol next => nextDegrees
-        };
+-- Makes a pair storing a multi-degree and a list of multi-degrees which are to be joined with this degree.
+degreeNextPair = (D, nextDegrees) -> hashTable {symbol degree => D, symbol next => nextDegrees}
 
---Subroutine of lcmLatticeProduceGroundSet
 --Takes the lcm of two degrees and determines which 
 --of the lowerNexts can later be joined to newDegree
 --and change its multidegree. Note that the lower nexts are not
@@ -738,25 +454,20 @@ joinDegrees = (A,B, lowerNexts) ->  (
     C := lcmDegree {A.degree, B};
     nexts := select(lowerNexts, D -> not dividesDegree(D, C));
     degreeNextPair( C, nexts )
-)
+    )
 
---Subroutine of lcmLatticeProduceGroundSet (used in joinDegrees)
 --Checks if D divides E as multidegrees
-dividesDegree = (D,E) -> all(E-D, i-> i >= 0);
+dividesDegree = (D,E) -> all(E-D, i-> i >= 0)
 
---Subroutine of lcmLatticeProduceGroundSet (used in joinDegrees)
 --Takes the lcm of two multidegrees
-lcmDegree = L -> apply(transpose L, l -> max l);
+lcmDegree = L -> apply(transpose L, l -> max l)
 
---Subroutine of lcmLatticeProduceGroundSet (used in determineLCMsForVariable)
 --Take a list of degreeNextPairs and drop duplicate degrees
 uniqueMultiDegrees = L -> (
     P := partition(D -> (D.degree) , L);
     apply(keys P, d -> first P#d)
-)
+    )
 
-
---Subroutine of lcmLatticeProduceGroundSet 
 --Builds the possible multidegrees by changes in variable i.
 determineLCMsForVariable = (lcmDegrees, i) -> (
     VERBOSE := false;
@@ -804,432 +515,468 @@ lcmLatticeProduceGroundSet = G -> (
         lcmDegrees = determineLCMsForVariable(lcmDegrees, i);
     );
     sort apply(lcmDegrees, D -> D.degree)
-)
-
-
------------------------------------------------
--- divisorPoset
------------------------------------------------
--- input:  a monomial m (and an ideal I)
--- output: lattice of all monomials dividing m (and contained in I)
-
-divisorPoset = method()
-
-divisorPoset RingElement := Poset => m -> (
-    d := flatten exponents m;
-    Ground := apply(allMultiDegreesLessThan d, e -> makeMonomialFromDegree(ring m, e));
-    Rels :=  unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s)));
-    Rels = select(Rels, r -> r =!= null);
-    RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
-    poset (Ground, Rels, RelsMatrix)
     )
-
-divisorPoset ZZ :=Poset => m -> (
-     if m < 0 then (
-      print "Did you mean |m|?";
-      m=-m;
-      );
-     M := toList \ toList factor m;
-     p:=local p;
-     Pset := apply(#M, i-> p_i);
-     R := QQ[Pset];
-     numHash := hashTable apply(#M, i-> R_i=>first M_i);
-     P := product apply(#M, p-> R_p^(last M_p));
-     subFunc := apply(pairs numHash, q-> q_0=>q_1);
-     Q := divisorPoset P;
-     G := sort apply(Q.GroundSet, g-> sub(g,subFunc));
-     L := apply(Q.Relations, g-> {sub(first g, subFunc),sub(last g, subFunc)});
-     poset(G,L)
-     )
-
-
---This should be fixed to compute this more cleverly, without computing
---the entire poset.
-
---This method takes a pair of monomials:
---first element should divide second:
-
-divisorPoset (RingElement,RingElement):= Poset =>(m,n) -> (
-     if ring m === ring n then (
-      if n % m === sub(0, ring m) then (
-                P:=divisorPoset(n);
-                closedInterval(P,m,n)
-                )
-      else error "First monomial does not divide second."
-      )
-     else error "Monomials must be in same ring."
-     )
-
---This method takes a pair of exponent vectors a,b and computes divisorPoset x^a,x^b
-
-divisorPoset (List, List, PolynomialRing):= Poset => (m,n,R) -> (
-     if #m === #n and #n === numgens R then (
-      M:=makeMonomialFromDegree(R,m);
-      N:=makeMonomialFromDegree(R,n);
-      divisorPoset(M,N)
-      )
-     else error "Wrong number of variables in first or second entry."
-     )
-
-
-makeMonomialFromDegree = (R, d) -> product apply(numgens R, i-> R_i^(d#i));
-
-allMultiDegreesLessThan = d -> (
-    L := {{}};
-    for i from 0 to (#d) -1 do (
-        maxDegree := d#i;
-        L = flatten apply(L, H -> apply(maxDegree+1, i -> H | {i}));
-    );
-    L
-)
-
---------------------------------
--- Face Poset
---------------------------------
-
---Internal test function for facePoset:
-testmax = method();
-
-testmax(List):=Boolean=>(L)->(
-     min apply(L, j->#j) > 1
-     )
-
-facePoset=method();
-
-facePoset(SimplicialComplex):=Poset=>(D)->(
-     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
-     chainheads:=apply(flatten entries facets D, i-> support i);
-     maxchains:=apply(chainheads, i-> {i});
-     while any(maxchains, testmax) do ( 
-           nextstage:={};
-           holdover:=select(maxchains,c-> not testmax c);
-           for m in select(maxchains,testmax) do (
-           minsize:=min apply(m, i-> #i);
-           minset:=first select(m, i-> #i== minsize);
-                coveredfaces:=subsets(minset,minsize-1);
-           nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
-           );
-            maxchains = join(nextstage,holdover);
-            );    
-     poset(faceset,unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
-)
-
-
----------------------------------
--- MOEBIUS FUNCTION
----------------------------------
-moebiusFunction = method();
-
-moebiusFunction Poset := HashTable => P -> ( 
-     if #minimalElements P > 1 then error "this poset has more than one minimal element - specify an interval";
-     M := (P.RelationMatrix)^(-1);
-     k := position(P.GroundSet,v->v===(minimalElements P)_0);
-     hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
-     )
-moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2));
-
--- ** FIX: Terribly inefficient
-isEulerian = method();
-isEulerian Poset := Boolean => P -> (
-    if P.cache.?isEulerian then return P.cache.isEulerian;
-    if not isGraded P then error "Poset must be graded.";
-    P.cache.isEulerian = all(P.GroundSet, a -> all(P.GroundSet, b -> (
-                if compare(P, a, b) then (
-                    ci := closedInterval(P, a, b);
-                    (moebiusFunction ci)#b === (-1)^(height ci)
-                ) else true
-            )
-        )
-    )
-);
-
-
-
------------------------------------
---Posets
------------------------------------
-
-
-
---coveringRelations breaks when nodes are labeled by lists!
-
-texPoset = method(Options => {symbol SuppressLabels => true});
-
-texPoset(Poset):= opts -> (P)->(
-     C := maximalChains P;
-     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
-     edgelist := apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
-     L:=max apply(C, c-> #c)-1;
-     heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
-     protoH:=partition(g-> last g, heightpairs);
-     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
-     levelsets:=apply(values H, v-> #v-1);
-     halflevelsets:=apply(levelsets, j-> j/2.0);
-     spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
-     name:=temporaryFileName();
-     fn:=openOut name;
-     fn << "\\begin{tikzpicture}" << endl;
-     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
-     if opts.SuppressLabels then (
-           for i from 0 to L do (
-                for j from 0 to levelsets_i do (
-                   fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
-                        )
-                );
-      )
-     else (
-           for i from 0 to L do (
-                for j from 0 to levelsets_i do (
-                   fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (", toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
-                        )
-                );
-           );
-     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
-     fn << "\\draw [-] (\\to)--(\\from);" << endl;
-     fn << "\\end{tikzpicture}" << endl;
-     close fn;
-     s:=get name;
-     removeFile name;
-     s
-     )
-
-outputTexPoset = method(Options => {symbol SuppressLabels => true});
-
-outputTexPoset(Poset,String):= opts -> (P,name)->(
-     C:= maximalChains P;
-     --hash table of variable labels:
-     idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
-     --edge list to be read into TikZ:
-     edgelist:= apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
-     --height of poset:
-     L:=max apply(C, c-> #c)-1;
-     heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
-     protoH:=partition(g-> last g, heightpairs);
-     H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
-     levelsets:=apply(values H, v-> #v-1);
-     scalew:=min{1.5,15/ max levelsets};
-     scaleh:=min{2/scalew,15/(L+1)};
-     halflevelsets:=apply(levelsets, j-> scalew*j/2.0);
-     spacings:=apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
-     fn:=openOut name;
-     fn << "\\documentclass[8pt]{article}"<< endl;
-     fn << "\\usepackage{tikz}" << endl;
-     fn << "\\begin{document}" << endl;
-     fn << "\\begin{tikzpicture}" << endl;
-     fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]")<< endl;
-     if opts.SuppressLabels then (
-           for i from 0 to L do (
-                for j from 0 to levelsets_i do (
-                   fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
-                        )
-                );
-      )
-     else (
-           for i from 0 to L do (
-                for j from 0 to levelsets_i do (
-                   fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
-                        )
-                );
-           );
-     fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
-     fn << "\\draw [-] (\\to)--(\\from);" << endl;
-     fn << "\\end{tikzpicture}" << endl;
-     fn << "\\end{document}" << endl;
-     close fn;
-     get name   
-     )
-
-displayPoset=method(Options => { symbol SuppressLabels => true, symbol PDFViewer => "open" })
-
-displayPoset(Poset):=opts->(P)->(
-    if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
-     name:=temporaryFileName();
-     outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
-     run concatenate("pdflatex -output-directory /tmp ",name, " 1>/dev/null");
-     run concatenate(opts.PDFViewer, " ", name,".pdf");
-     )
-
-----------------------------------------
---New Code for Partition Lattice:
---Move to appropriate location in package later.
-----------------------------------------
-
-setPartition=method()
-
-setPartition ZZ := n ->(
-     L:={{{1}}};
-     for i from 2 to n do (
-      L=flatten for lambda in L list (
-           lambdaparts := apply(#lambda, l-> for k to #lambda-1 list if k=!=l then lambda_k else continue);
-                append(apply(#lambda, p-> lambdaparts_p | {lambda_p | {i}}), join(lambda,{{i}}))
-           );
-      );
-     apply(L,sort)
-     )
-
-
-setPartition List := S ->(
-     L:={{{first S}}};
-     for s in drop(S,1) do (
-      L=flatten for lambda in L list(
-           dropPart := apply(#lambda, i-> drop(lambda,{i,i}));
-           protoLevelSet := apply(#lambda, l-> join(dropPart_l,{lambda_l|{s}}));
-                join(protoLevelSet, {lambda|{{s}}})
-           );
-      );
-     apply(L,sort)
-     )
-
-partitionRefinementPairs = method()
-
-partitionRefinementPairs List := (L)-> (
-     m:=unique apply(L, l-> #l);
-     M:=local M;
-     N:=local N;
-     MM:=apply(m, i-> (symbol M)_i);
-     NN:=apply(m, i-> (symbol N)_i);
-     for i in m do (
-      subS := subsets toList(0..i-1);
-      M_i = take(subS,{1,#subS-2});
-          N_i = unique apply(M_i, r-> sort {r, select(toList(0..i-1), k-> not member(k,r))});
-     );
-     dropPart := apply(#L, i-> drop(L,{i,i}));
-     coverSet := flatten for i from 0 to #L-1 list(
-      splitPairs:=apply(N_(#L_i), m-> {(L_i)_(first m),(L_i)_(last m)});
-           apply(splitPairs, j-> sort join(dropPart_i,j))
-      );
- --    coverSet/ print;
-     apply(coverSet, i-> {L,i})--/print
-     )
 
 partitionLattice = method()
-
 partitionLattice ZZ := n -> (
-     L:=toList (1..n);
-     G:=setPartition L;
-     R:=flatten apply(G, i-> partitionRefinementPairs i);
+     L := toList (1..n);
+     G := setPartition L;
+     R := flatten apply(G, i-> partitionRefinementPairs i);
      poset(G,R)
      )
 
-----------------------------------------
---Hyperplane Arrangement Lattice
---As written, this would most likely work
---for any type of arrangement lattice.
-----------------------------------------
---Given a set of linear forms defining 
---the hyperplanes in the arrangement,
---returns set of intersection ideals
-----------------------------------------
+partitionRefinementPairs = method()
+partitionRefinementPairs List := (L)-> (
+    m := unique apply(L, l-> #l);
+    M := local M;
+    N := local N;
+    MM := apply(m, i-> (symbol M)_i);
+    NN := apply(m, i-> (symbol N)_i);
+    for i in m do (
+        subS := subsets toList(0..i-1);
+        M_i = take(subS,{1,#subS-2});
+        N_i = unique apply(M_i, r-> sort {r, select(toList(0..i-1), k-> not member(k,r))});
+        );
+    dropPart := apply(#L, i-> drop(L,{i,i}));
+    coverSet := flatten for i from 0 to #L-1 list(
+        splitPairs:=apply(N_(#L_i), m-> {(L_i)_(first m),(L_i)_(last m)});
+        apply(splitPairs, j-> sort join(dropPart_i,j))
+    );
+    apply(coverSet, i -> {L,i})
+    )
 
-
-----------------------------------------
---Hyperplane Equivalence
-----------------------------------------
--- Inputs:  (L,R)
---
--- L = equations defining hyperplanes
--- R = ring
---
--- Outputs: List of ideals of intersections, excluding
--- the intersection of no hyperplanes and
--- intersections which are empty.
-----------------------------------------
-
-hyperplaneEquivalence = method()
-
-hyperplaneEquivalence(List,Ring) := (L,R) -> (
-     allideals:=unique drop(apply(subsets L, h-> ideal gens gb ideal h),1);
-     select(allideals, I-> not I == ideal(sub(1,R)))
-     )
-
-----------------------------------------
---Hyperplane Inclusions
-----------------------------------------
--- Inputs:  (L,R)
---
--- L = list of ideals produced by method
--- hyperplaneEquivalence
--- R = ring
---
--- Outputs: Pairs of ideals (I,J), with
--- I < J if J contains I
-----------------------------------------
-
-hyperplaneInclusions = method()
-
-hyperplaneInclusions(List,Ring) := (L,R) -> (
-     H:=apply(L, l-> sub(l,R));
-     coverPairs:={};
-     for l from 1 to #H-1 do (
-      for k to #H-1 do (
-           if unique apply(flatten entries gens H_k, f-> f % gens H_l) === {sub(0,R)} then (
-            coverPairs=append(coverPairs,{L_k,H_l});
+setPartition = method()
+setPartition ZZ := n -> (
+    L := {{{1}}};
+    for i from 2 to n do (
+        L = flatten for lambda in L list (
+            lambdaparts := apply(#lambda, l-> for k to #lambda-1 list if k=!=l then lambda_k else continue);
+            append(apply(#lambda, p-> lambdaparts_p | {lambda_p | {i}}), join(lambda,{{i}}))
             );
-           );
-      );
-     coverPairs
-     );
+        );
+    apply(L, sort)
+    )
+setPartition List := S -> (
+    L := {{{first S}}};
+    for s in drop(S,1) do (
+        L = flatten for lambda in L list(
+            dropPart := apply(#lambda, i-> drop(lambda,{i,i}));
+            protoLevelSet := apply(#lambda, l-> join(dropPart_l,{lambda_l|{s}}));
+            join(protoLevelSet, {lambda|{{s}}})
+            );
+        );
+    apply(L,sort)
+    )
 
-----------------------------------------
---Intersection Lattice
-----------------------------------------
--- Inputs:  (L,R)
---
--- L = equations defining arrangement
--- R = ring
---
--- Outputs: Intersection poset of hyper-
--- plane arrangement.
-----------------------------------------
-
-intersectionLattice = method();
-
-intersectionLattice(List,Ring):=(L,R)-> (
-     G:=hyperplaneEquivalence(L,R);
-     rel:=hyperplaneInclusions(G,R);
-     poset(G,rel)
-     )
-
---In theory, should work on arrangements
---of hypersurfaces.  In practice, throws an
---error saying "antisymmetry fails."
-
-----------------------------------------
---Projectivize Arrangement
-----------------------------------------
--- Inputs:  (L,R)
---
--- L = equations defining (possibly nonprojective)
--- arrangement
--- R = ring
---
--- Outputs: Intersection poset of projectivized 
--- hyperplane arrangement.
-----------------------------------------
-
-projectivizeArrangement = method();
-
+-- Inputs:
+--      L = equations defining (possibly nonprojective) arrangement
+--      R = ring
+-- Outputs: Intersection poset of projectivized hyperplane arrangement.
+-- ***TODO***: Alternate method: Which is better?  Could also use "adjoinMax".
+projectivizeArrangement = method()
 projectivizeArrangement(List,Ring):=(L,R)->(
-     Z:=local Z;
-     S:= coefficientRing R[gens R|{(symbol Z)}];
-     newL:=apply(L, h->homogenize(sub(h,S),Z));
-     G:=hyperplaneEquivalence(newL,S);
-     rel:=hyperplaneInclusions(G,S);
-     poset(G,rel)
+    Z := local Z;
+    S := coefficientRing R[gens R|{(symbol Z)}];
+    newL := apply(L, h->homogenize(sub(h,S),Z));
+    G := hyperplaneEquivalence(newL,S);
+    rel := hyperplaneInclusions(G,S);
+    poset(G,rel)
+    )
+
+------------------------------------------
+-- TeX
+------------------------------------------
+
+displayPoset=method(Options => { symbol SuppressLabels => true, symbol PDFViewer => "open" })
+displayPoset(Poset):=opts->(P)->(
+    if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
+    name:=temporaryFileName();
+    outputTexPoset(P,concatenate(name,".tex"), symbol SuppressLabels => opts.SuppressLabels);
+    run concatenate("pdflatex -output-directory /tmp ",name, " 1>/dev/null");
+    run concatenate(opts.PDFViewer, " ", name,".pdf");
+    )
+
+outputTexPoset = method(Options => {symbol SuppressLabels => true});
+outputTexPoset(Poset,String):= opts -> (P,name)->(
+    C:= maximalChains P;
+    --hash table of variable labels:
+    idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
+    --edge list to be read into TikZ:
+    edgelist:= apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
+    --height of poset:
+    L:=max apply(C, c-> #c)-1;
+    heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+    protoH:=partition(g-> last g, heightpairs);
+    H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+    levelsets:=apply(values H, v-> #v-1);
+    scalew:=min{1.5,15/ max levelsets};
+    scaleh:=min{2/scalew,15/(L+1)};
+    halflevelsets:=apply(levelsets, j-> scalew*j/2.0);
+    spacings:=apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
+    fn:=openOut name;
+    fn << "\\documentclass[8pt]{article}"<< endl;
+    fn << "\\usepackage{tikz}" << endl;
+    fn << "\\begin{document}" << endl;
+    fn << "\\begin{tikzpicture}" << endl;
+    fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]")<< endl;
+    if opts.SuppressLabels then (
+        for i from 0 to L do
+            for j from 0 to levelsets_i do
+                fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
+         )
+    else (
+        for i from 0 to L do
+            for j from 0 to levelsets_i do
+                fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString (scaleh*i),"){};") << endl;
+        );
+    fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
+    fn << "\\draw [-] (\\to)--(\\from);" << endl;
+    fn << "\\end{tikzpicture}" << endl;
+    fn << "\\end{document}" << endl;
+    close fn;
+    get name   
+    )
+
+texPoset = method(Options => {symbol SuppressLabels => true})
+texPoset (Poset) := opts -> (P) -> (
+    C := maximalChains P;
+    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
+    edgelist := apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
+    L := max apply(C, c-> #c)-1;
+    heightpairs:=apply(P.GroundSet, g-> {g,L - max flatten apply(C, c-> positions(reverse c, i-> g===i))});
+    protoH:=partition(g-> last g, heightpairs);
+    H:=hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
+    levelsets:=apply(values H, v-> #v-1);
+    halflevelsets:=apply(levelsets, j-> j/2.0);
+    spacings:=apply(toList(0..L), j-> toList(0..levelsets_j));
+    name:=temporaryFileName();
+    fn:=openOut name;
+    fn << "\\begin{tikzpicture}" << endl;
+    fn << concatenate("[scale=1, vertices/.style={draw, fill=black, circle, inner sep=1pt}]")<< endl;
+    if opts.SuppressLabels then (
+        for i from 0 to L do
+            for j from 0 to levelsets_i do
+                fn << concatenate("\\node [vertices] (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+        )
+    else (
+        for i from 0 to L do
+             for j from 0 to levelsets_i do
+                fn << concatenate("\\node [vertices, label=right:{",tex (values H)_i_j,"}] (", toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",toString spacings_i_j,",",toString i,"){};") << endl;
+        );
+    fn << concatenate("\\foreach \\to/\\from in ",toString edgelist)<< endl;
+    fn << "\\draw [-] (\\to)--(\\from);" << endl;
+    fn << "\\end{tikzpicture}" << endl;
+    close fn;
+    s:=get name;
+    removeFile name;
+    s
+    )
+
+------------------------------------------
+-- Vertices & vertex properties
+------------------------------------------
+
+-- input:  poset
+-- output: list of elements covering minimal elements
+atoms = method()
+atoms Poset := List => P -> unique apply(select(coveringRelations P, R -> any(minimalElements P, elt -> (elt == R#0))), rels-> rels_1)
+
+compare = method()
+compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
+    Aindex := indexElement(P,A);
+    Bindex := indexElement(P,B);
+    P.RelationMatrix_Bindex_Aindex != 0
+    )
+
+gradeLattice = method()
+gradeLattice Poset := P -> (
+    if not isGraded P then error "P must be graded";
+    if not isLattice P then error "P must be a Lattice";
+    if P.cache.?Grading then return P.cache.Grading;
+    M := maximalChains P;
+    nM := unique apply(M, c -> #c);
+    if #nM != 1 then error "P must be graded";
+    P.cache.Grading = apply(first nM, d -> unique for c in M list if c#?d then c#d else continue)
+    )
+
+-- TODO: Needs simplification!
+gradePoset = method()
+gradePoset Poset := P -> (
+    if not isGraded P then error "P must be graded";
+    if P.cache.?Grading then return P.cache.Grading;
+    nPGS := #P.GroundSet;
+    counter := 1;
+    M := maximalChains P;
+    n := max apply(M, c->#c);
+    L := select(M, c -> #c == n);
+    C := coveringRelations P;
+    J := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
+    while #(flatten J) < nPGS do (
+        if counter != 0 then (
+            counter = 0;
+            for i to #C - 1 do (
+                m0 := member(C_i_0, flatten J);
+                m1 := member(C_i_1, flatten J);
+                if m0 and not m1 then (
+                    for j to #J - 1 do
+                        if member(C_i_0, J_j) then (
+                            J = replace(j+1, append(J_(j+1), C_i_1), J);
+                            counter = counter + 1;
+                        );
+                ) else if not m0 and m1 then (
+                    for j to #J - 1 do
+                        if member(C_i_1, J_j) then (
+                            J = replace(j-1, append(J_(j-1), C_i_0),J);
+                            counter = counter + 1;
+                        );
+                );
+            );
+        ) else (
+            P = dropElements(P, flatten J); --slowest part!
+            M = maximalChains P;
+            C = coveringRelations P;
+            if #M != 0 then (
+                n = max apply(M, c->#c);
+                L = select(M, c -> #c == n);
+                J' := apply(n, d -> unique for c in L list if c#?d then c#d else continue);
+                J = apply(max(#J, #J'), d -> unique join(if J#?d then J#d else {}, if J'#?d then J'#d else {}));
+            );
+            counter = 1;
+        ); 
+    );
+    P.cache.Grading = J
+    )
+
+joinExists = method()
+joinExists (Poset,Thing,Thing) := (P,a,b) -> (
+    OIa := filter(P, a);     
+    OIb := filter(P, b);
+    upperBounds := toList (set(OIa)*set(OIb));
+    if upperBounds == {} then false else (
+        M := P.RelationMatrix;
+        heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
+        #(select(heightUpperBounds, i-> i == min heightUpperBounds)) <= 1
+        )
+    )
+
+-- input: poset
+-- output:  list of maximal elements
+maximalElements = method()
+maximalElements Poset := P -> (
+    if P.cache.?maximalElements then return P.cache.maximalElements;
+    M := P.RelationMatrix;
+    n := #P.GroundSet;
+    L := apply(n, i -> if all(n, j -> M_(i,j) == 0 or i == j) then P.GroundSet#i);
+    P.cache.maximalElements = select(L, x -> x =!= null) 
+    )
+
+meetExists = method()
+meetExists (Poset, Thing, Thing) := (P,a,b) -> (
+    Fa:= orderIdeal(P, a);
+    Fb:= orderIdeal(P, b);
+    lowerBounds:= toList (set(Fa)*set(Fb));
+    if lowerBounds == {} then false else (
+        M := P.RelationMatrix;
+        heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
+        #(select(heightLowerBounds, i-> i== max heightLowerBounds)) <= 1
+        )
+    )
+
+-- input:  poset
+-- output:  meet irreducibles of poset
+meetIrreducibles = method()
+meetIrreducibles Poset := P -> (
+    -- want to compute meets only for non-comparable elements
+    if not isLattice P then error "P is not a lattice";
+    nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> compare(P, posspair#0,posspair#1) == false and compare(P,posspair#1,posspair#0)== false);
+    meets := nonnull unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true then posetMeet(P,posspair#0, posspair#1)); 
+    toList (set P.GroundSet - set meets)
+    )
+
+-- input:  poset
+-- output:  list of minimal elements
+minimalElements = method()
+minimalElements Poset := P -> (
+    if P.cache.?minimalElements then return P.cache.minimalElements;
+    M := P.RelationMatrix;
+    n := #P.GroundSet;
+    L := apply(n, i -> if all(n, j -> M_(j,i) == 0 or i == j) then P.GroundSet#i);
+    P.cache.minimalElements = select(L, x -> x =!= null) 
+    )
+
+posetJoin = method()     
+posetJoin (Poset,Thing,Thing) := (P,a,b)  -> (
+    OIa := filter(P, a);     
+    OIb := filter(P, b);
+    upperBounds := toList (set(OIa)*set(OIb));
+    if upperBounds == {} then error "your elements do not share any upper bounds"
+    else (
+        M := P.RelationMatrix;
+        heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
+        if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
+        else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
+        )
+    )
+
+-- iputs:  P a poset, and 2 elements of P.GroundSet
+--outputs:  the element in P.GroundSet that is the meet of these, or "not comparable" or "not unique"
+-- usage:  MeetExits used in isLattice
+posetMeet = method()
+posetMeet (Poset,Thing,Thing) := (P,a,b) ->(
+    Fa := orderIdeal(P,a);
+    Fb := orderIdeal(P,b);
+    lowerBounds:= toList (set(Fa)*set(Fb));
+    if lowerBounds == {} then error "your elements do not share any lower bounds"
+    else (
+        M := P.RelationMatrix;
+        heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
+        if #(select(heightLowerBounds, i-> i== max heightLowerBounds)) > 1 then error "meet does not exist, greatest lower bound not unique" 
+        else lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)}
+        )
+    )
+
+------------------------------------------
+-- Relations & relation properties
+------------------------------------------
+
+allRelations = method()
+allRelations Poset := P -> (
+     rows := entries P.RelationMatrix;
+     rels := nonnull flatten apply(#rows, i -> flatten apply((#(rows_i), j -> if (rows_i)_j == 1 then (P.GroundSet#i, P.GroundSet#j))))
      )
-------------------------------------
---Alternate method: Which is better?
---Could also use "adjoinMax".
-------------------------------------
 
+antichains = method()
+antichains Poset := P-> select(subsets(P.GroundSet), s -> isAntichain(P, s))
 
+coveringRelations = method()
+coveringRelations Poset := P -> (
+    if P.cache.?coveringRelations then return P.cache.coveringRelations;
+    P.cache.coveringRelations = if #P.Relations === 0 then {} else (
+        edgeset := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
+            if P.RelationMatrix_i_j == 1 then {P.GroundSet_j, P.GroundSet_i} 
+            else if P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} 
+            else continue;
+        testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
+        nonCovers:=apply(testpairs, p-> {first first p, last last p});
+        select(edgeset, p-> not member(p,nonCovers))
+        )    
+    )
 
-----------------------------------
--- DOCUMENTATION
-----------------------------------
+flagChains = method()
+flagChains (Poset,List) := (P,L)-> maximalChains flagPoset(P,L)
+
+--input: P a poset and L a list of elements of the poset
+--output: whether L is an antichain in P
+isAntichain = method()
+isAntichain (Poset, List) := (P, L) -> (
+    Q := subPoset(P, L);
+    minimalElements(Q) == maximalElements(Q)
+    )
+
+maximalChains = method()
+maximalChains Poset := P -> (
+    if P.cache.?maximalChains then return P.cache.maximalChains;
+    nonMaximalChains := apply(minimalElements(P), x -> {x});
+    maxChains := {};
+    while #nonMaximalChains =!= 0 do (
+        nonMaximalChains = flatten apply(nonMaximalChains, c -> (
+                nexts := select(coveringRelations P, r -> first r === last c);
+                if #nexts == 0 then maxChains = append(maxChains, c);
+                apply(nexts, r -> c | {last r})
+                )
+            )
+        );
+    P.cache.maximalChains = maxChains
+    )
+
+------------------------------------------
+-- Enumerative invariants
+------------------------------------------
+
+-- ***TODO*** Is this right?
+fvector = method()
+fvector Poset := P -> apply(gradePoset P, G -> #G)
+
+moebiusFunction = method()
+moebiusFunction Poset := HashTable => P -> ( 
+    if #minimalElements P > 1 then error "this poset has more than one minimal element - specify an interval";
+    M := (P.RelationMatrix)^(-1);
+    k := position(P.GroundSet,v->v===(minimalElements P)_0);
+    hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
+    )
+moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2))
+
+------------------------------------------
+-- Properties
+------------------------------------------
+
+--height = method() -- already in Core
+height Poset := Poset => P -> -1 + max apply (maximalChains P, s-> #s)
+
+isConnected = method()
+isConnected Poset := P->(
+    if P.cache.?isConnected then return P.cache.isConnected;
+    J := first maximalChains P;
+    counter := 1;
+    while counter != 0 do (
+        counter = 0;
+        J = join(J, 
+            flatten for v in P.GroundSet list (
+                if not member(v, J) then (
+                    for r in P.Relations list (
+                        if (v === first r and member(last r, J)) or (v === last r and member(first r, J)) then (
+                            counter = counter + 1; v 
+                        ) else continue
+                    )
+                ) else continue
+            )
+        );
+    );
+    P.cache.isConnected = (#unique J == #P.GroundSet)
+    )
+
+isDistributive = method();
+isDistributive (Poset) := P->(
+    if P.cache.?isDistributive then return P.cache.isDistributive;
+    if not isLattice P then error "Poset must be a lattice";
+    P.cache.isDistributive = all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
+    )
+
+-- ***TODO*** Terribly inefficient--fix it!
+isEulerian = method()
+isEulerian Poset := Boolean => P -> (
+    if P.cache.?isEulerian then return P.cache.isEulerian;
+    if not isGraded P then error "Poset must be graded.";
+    P.cache.isEulerian = all(P.GroundSet, a -> 
+        all(P.GroundSet, b -> (
+                if compare(P, a, b) then (
+                    ci := closedInterval(P, a, b);
+                    (moebiusFunction ci)#b === (-1)^(height ci)
+                    ) else true
+                )
+            )
+        )
+    )
+
+isGraded = method()
+isGraded Poset := P -> (
+    if P.cache.?isGraded then return P.cache.isGraded;
+    P.cache.isGraded = all(minimalElements P, z->all(P.GroundSet,p->if compare(P,z,p) then #unique apply(maximalChains closedInterval(P,z,p), c -> #c) == 1 else true))
+    )
+
+--inputs: a poset P
+--output:  boolean value for whether or not it is a lattice
+isLattice = method()
+isLattice Poset := P -> (
+    if P.cache.?isLattice then return P.cache.isLattice;
+    P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
+    )
+
+------------------------------------------
+-- Documentation
+------------------------------------------
 
 beginDocumentation()
-
 
 ---------
 -- front page

@@ -24,6 +24,7 @@ export {
 	sd,
 	recoverLabels,
 	sdlabel,
+	selectLevelVariables,
 	originalvars,
 	nerveComplex,
 	IsMultigraded
@@ -219,6 +220,11 @@ sdlabel(SimplicialComplex):=SimplicialComplex=>(D)->(
       simplicialComplex apply(maxchains, c-> product apply(c, j-> toVarfaces#j))
       )
  
+selectLevelVariables = method()
+
+selectLevelVariables(SimplicialComplex,ZZ):= (D,i)-> (
+     select(gens ring D, v-> # sequence value last baseName v === i)
+     )
  
 nerveComplex = method(Options=>{symbol IsMultigraded => false});
 
@@ -454,8 +460,30 @@ doc ///
 	SeeAlso
 		sd
 		recoverLabels
+		selectLevelVariables
 ///
 
+doc ///
+	Key
+		selectLevelVariables
+		(selectLevelVariables, SimplicialComplex,ZZ)
+	Headline 
+		from the labeled barycentric subdivision of a complex, selects variables corresponding to sets of a certain size
+	Description
+		Text
+			inputs:  labeled barycentric simplicial complex and integer i
+		Text
+			outputs:  vertices of barycentric subdivision coming from faces of size i
+		Example
+     	       	    	D=bdsimplex 3
+     	       	    	C=sdlabel D
+			selectLevelVariables(C,1)
+			selectLevelVariables(C,2)
+		Text
+		     	This selects vertices of subdivision coming from faces of dimension (i-1).
+	SeeAlso
+		sdlabel
+///
 
 end;
 

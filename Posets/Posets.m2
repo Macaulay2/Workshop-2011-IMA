@@ -57,6 +57,7 @@ export {
     -- Derivative posets
     "closedInterval",
     "distributiveLattice",
+        "OriginalPoset",
     "dualPoset",
     "filter",
     "flagPoset",
@@ -98,6 +99,7 @@ export {
     "compare",
     "connectedComponents",
     "joinExists",
+    "joinIrreducibles",
     "maximalElements",
     "meetExists",
     "meetIrreducibles",
@@ -231,9 +233,9 @@ closedInterval (Poset, Thing, Thing) := Poset => (P, elt1, elt2) ->(
 distributiveLattice = method()
 distributiveLattice Poset := Poset => P -> (
     O := unique apply(P.GroundSet, p -> orderIdeal(P, p));
-    P := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset);
-    P.cache.OriginalPoset = P;
-    P
+    POI := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset);
+    POI.cache.OriginalPoset = P;
+    POI
     )
 
 dualPoset = method()
@@ -721,6 +723,14 @@ joinExists (Poset,Thing,Thing) := Boolean => (P,a,b) -> (
         )
     )
 
+joinIrreducibles = method()
+joinIrreducibles Poset := List => P -> (
+    if not isLattice P then error "P is not a lattice";
+    nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> not compare(P, posspair#0,posspair#1) and not compare(P,posspair#1,posspair#0));
+    joins := select(unique flatten apply(nonComparablePairs, posspair -> if joinExists(P, posspair#0, posspair#1) then posetMeet(P, posspair#0, posspair#1)), i -> i =!= null); 
+    toList (set P.GroundSet - set joins)
+    )
+
 -- input: poset
 -- output:  list of maximal elements
 maximalElements = method()
@@ -748,8 +758,8 @@ meetIrreducibles = method()
 meetIrreducibles Poset := List => P -> (
     -- want to compute meets only for non-comparable elements
     if not isLattice P then error "P is not a lattice";
-    nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> compare(P, posspair#0,posspair#1) == false and compare(P,posspair#1,posspair#0)== false);
-    meets := select(unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) == true then posetMeet(P,posspair#0, posspair#1)), i -> i =!= null); 
+    nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> not compare(P, posspair#0,posspair#1) and not compare(P,posspair#1,posspair#0));
+    meets := select(unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) then posetMeet(P,posspair#0, posspair#1)), i -> i =!= null); 
     toList (set P.GroundSet - set meets)
     )
 

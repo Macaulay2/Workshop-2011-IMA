@@ -87,6 +87,7 @@ export {
     -- Vertices & vertex properties
     "atoms",
     "compare",
+    "connectedComponents",
     "joinExists",
     "maximalElements",
     "meetExists",
@@ -656,6 +657,18 @@ compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
     P.RelationMatrix_Bindex_Aindex != 0
     )
 
+connectedComponents = method()
+    connectedComponents Poset := List => P -> (
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    L := new MutableList from toList(0..#P.GroundSet-1);
+    for c in coveringRelations P do (
+        i := idx#(c#0); j := idx#(c#1);
+        if i < j then (L#j = L#i;) else (L#i = L#j;);
+        );
+    L = toList L;
+    apply(unique L, l -> P.GroundSet_(positions(L, t -> t == l)))
+    )
+
 joinExists = method()
 joinExists (Poset,Thing,Thing) := Boolean => (P,a,b) -> (
     OIa := filter(P, a);     
@@ -949,13 +962,7 @@ isBounded Poset := Boolean => P -> #minimalElements P == 1 and #maximalElements 
 isConnected = method()
 isConnected Poset := Boolean => P -> (
     if P.cache.?isConnected then return P.cache.isConnected;
-    J := {};
-    J' := first maximalChains P;
-    while #J' != 0 do (
-        J = J | J';
-        J' = select(P.GroundSet, v -> not member(v, J) and any(P.Relations, r -> (v === first r and member(last r, J)) or (v === last r and member(first r, J))));
-        );
-    P.cache.isConnected = (#J == #P.GroundSet)
+    P.cache.isConnected = #connectedComponents P == 1
     )
 
 isDistributive = method()

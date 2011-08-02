@@ -31,13 +31,13 @@ export {
 	inducedSubcomplex
 }
 
-needsPackage "Graphs"
-needsPackage "SimplicialComplexes"
-
+needsPackage"SimplicialComplexes"
+needsPackage"Graphs"
 
 cartesianProduct = method();
 
 cartesianProduct(List,List):= List => (H,J) -> (
+     
      flatten apply(H, h-> apply(J, i-> h*i))
      )
 
@@ -240,6 +240,7 @@ selectLevel(SimplicialComplex,ZZ):= (D,i)-> (
 nerveComplex = method(Options=>{symbol IsMultigraded => false});
 
 nerveComplex(Graph,Ring):= opts -> (G,kk) -> (
+     
      m := # edges G;
      e :=local e;
      S := if not opts.IsMultigraded then (
@@ -285,7 +286,6 @@ inducedSubcomplex(SimplicialComplex, List):= (D,W)->(
      	       );
 	  L
 	  );
-     S:=local S;
      S:=kk[W];
      J:=monomialIdeal sub(ideal select(flatten entries gens I, i-> not member(i,L)),S);
      simplicialComplex J
@@ -536,3 +536,25 @@ viewHelp SimplicialComplexesPlus
 
 loadPackage"SimplicialComplexes"
 loadPackage"EdgeIdeals"
+
+doc ///
+	Key
+		selectLevel
+		(selectLevel, SimplicialComplex,ZZ)
+	Headline 
+		from the labeled barycentric subdivision of a complex, selects variables corresponding to sets of a certain size
+	Description
+		Text
+			inputs:  labeled barycentric simplicial complex and integer i
+		Text
+			outputs:  vertices of barycentric subdivision coming from faces of size i
+		Pre
+     	       	    	D=bdsimplex 3
+     	       	    	C=sdlabel D
+			selectLevel(C,1)
+			selectLevel(C,2)
+		Text
+		     	This selects vertices of subdivision coming from faces of dimension (i-1).
+	SeeAlso
+		sdlabel
+///

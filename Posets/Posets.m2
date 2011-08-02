@@ -1,3 +1,8 @@
+-- Gwyn:  This morning (0825, 02. August 2011) I plan to implement:
+--        - Poset from a GroundSet and comparison function
+--        - Poset of monomials in the quotient ring of a monomial ideal
+--        - f-poly, h-poly, flag-f-poly, flag-h-poly, W-poly, zeta-poly
+
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
 -- License Version 2 as published by the Free Software Foundation.
@@ -13,8 +18,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0.1", 
-        Date => "01. August 2011",
+        Version => "1.0.2", 
+        Date => "02. August 2011",
         Authors => {
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
             {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},

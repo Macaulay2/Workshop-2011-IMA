@@ -56,6 +56,7 @@ export {
     --
     -- Derivative posets
     "closedInterval",
+    "distributiveLattice",
     "dualPoset",
     "filter",
     "flagPoset",
@@ -227,11 +228,19 @@ closedInterval (Poset, Thing, Thing) := Poset => (P, elt1, elt2) ->(
     else error "these elements are uncomparable"
     )
 
+distributiveLattice = method()
+distributiveLattice Poset := Poset => P -> (
+    O := unique apply(P.GroundSet, p -> orderIdeal(P, p));
+    P := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset);
+    P.cache.OriginalPoset = P;
+    P
+    )
+
 dualPoset = method()
 dualPoset Poset := Poset => P -> poset(P.GroundSet, P.Relations/reverse)
 
 -- input: a poset, and an element from I
--- output:  the filter of a, i.e. all elements in the poset that are <= a
+-- output:  the filter of a, i.e. all elements in the poset that are >= a
 filter = method()
 filter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
 
@@ -244,7 +253,7 @@ openInterval = method()
 openInterval (Poset, Thing, Thing) := Poset => (P, elt1, elt2) -> dropElements(closedInterval(P, elt1, elt2), {elt1, elt2})
 
 -- input: a poset, and an element from I
--- output: the order ideal of a, i.e. all elements in the poset that are >= a
+-- output: the order ideal of a, i.e. all elements in the poset that are <= a
 orderIdeal = method()
 orderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
 

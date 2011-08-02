@@ -127,9 +127,11 @@ export {
     "isEulerian",
     "isGraded",
     "isLattice",
+    "isLowerSemilattice",
     "isLowerSemimodular",
     "isModular",
     "isRanked",
+    "isUpperSemilattice",
     "isUpperSemimodular"
     }
 
@@ -995,10 +997,11 @@ isGraded Poset := Boolean => P -> #unique apply(maximalChains P, c -> #c) == 1
 --inputs: a poset P
 --output:  boolean value for whether or not it is a lattice
 isLattice = method()
-isLattice Poset := Boolean => P -> (
-    if P.cache.?isLattice then return P.cache.isLattice;
-    P.cache.isLattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j) and meetExists(P, P.GroundSet#i, P.GroundSet#j)))
-    )
+isLattice Poset := Boolean => P -> isLowerSemilattice P and isUpperSemilattice P 
+
+isLowerSemilattice = method()
+isLowerSemilattice Poset := Boolean => P -> if P.cache.?isLowerSemilattice then P.cache.isLowerSemilattice else
+    P.cache.isLowerSemilattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package
 isLowerSemimodular = method()
@@ -1021,6 +1024,10 @@ isModular Poset := Boolean => P -> (
 --          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
 isRanked = method()
 isRanked Poset := Boolean => P -> rankFunction P =!= null
+
+isUpperSemilattice = method()
+isUpperSemilattice Poset := Boolean => P -> if P.cache.?isUpperSemilattice then P.cache.isLowerSemilattice else
+    P.cache.isUpperSemilattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> meetExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package
 isUpperSemimodular = method()

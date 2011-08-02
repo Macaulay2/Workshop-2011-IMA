@@ -114,8 +114,11 @@ export {
     "characteristicPolynomial",
     "flagfPolynomial",
     "flaghPolynomial",
+    "fPolynomial",
+    "hPolynomial",
     "moebiusFunction",
     "totalMoebiusFunction",
+    "zetaPolynomial",
     --
     -- Properties
   --"height", -- exported by Core
@@ -844,6 +847,8 @@ characteristicPolynomial Poset := RingElement => opts -> P -> (
     )
 
 -- Following Stanley's definition in EC1
+-- f_i * q_i_1 * ... * q_i_k (where i = (i_1, ..., i_k) is strictly increasing):
+-- f_i is the number of chains of k vertices hitting ranks i.
 flagfPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
 flagfPolynomial Poset := RingElement => opts -> P -> (
     if not isRanked P then error("Poset must be ranked.");
@@ -858,7 +863,25 @@ flaghPolynomial Poset := RingElement => opts -> P -> (
     if not isRanked P then error("Poset must be ranked.");
     ff := flagfPolynomial(P, opts);
     R := ring ff;
-    lift(product(gens R, r -> 1 - r)* sub(ff, apply(gens R, r -> r => r/(1-r))), R)
+    lift(product(gens R, r -> 1 - r)* sub(ff, apply(gens R, r -> r => r/(1 - r))), R)
+    )
+
+-- f_i*q^i: f_i is the number of chains of i vertices in P
+-- aka: chainPolynomial.
+fPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
+fPolynomial Poset := RingElement => opts -> P -> (
+    oP := orderComplex P;
+    fV := fVector oP;
+    R := ZZ(monoid [opts.VariableName]);
+    sum(-1..dim oP, i -> fV#i * R_0^(i + 1))
+    )
+
+hPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
+hPolynomial Poset := RingElement => opts -> P -> (
+    fp := fPolynomial(P, opts);
+    R := ring fp;
+    hp := (1-R_0)^(first degree fp) * sub(fp, R_0 => R_0 / (1 - R_0));
+    if denominator hp == -1_R then -numerator hp else numerator hp
     )
 
 moebiusFunction = method()
@@ -879,6 +902,17 @@ totalMoebiusFunction Poset := HashTable => P -> (
         for q in P.GroundSet do mu#(q, p) = if p === q then 1 else if not member(q, gtp) then 0 else -sum(gtp, z -> if mu#?(q, z) then mu#(q, z) else 0);
         );
     new HashTable from mu
+    )
+
+-- zeta(i) = the number of weak-chains of i-1 vertices in P
+zetaPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
+zetaPolynomial Poset := RingElement => opts -> P -> (
+    oP := orderComplex P;
+    fV := fVector oP;
+    R := QQ(monoid [opts.VariableName]);
+    X := toList(2..dim oP+2);
+    Y := apply(X, n -> sum(2..n, i -> fV#(i-2) * binomial(n-2, i-2)));
+    sum(#X, i -> Y_i * product(drop(X, {i,i}), xj -> (R_0 - xj)/(X_i-xj)))
     )
 
 ------------------------------------------

@@ -1,3 +1,10 @@
+------------------------------------------
+-- Currently caching:
+------------------------------------------
+-- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
+-- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular
+
+
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
 -- License Version 2 as published by the Free Software Foundation.
@@ -67,6 +74,7 @@ export {
     --
     -- Enumerators
     "divisorPoset",
+    "dominanceLattice",
     "facePoset",
     "intersectionLattice",
     "lcmLattice",
@@ -349,6 +357,23 @@ divisorPoset (List, List, PolynomialRing):= Poset => (m, n, R) -> (
     makeMonomialFromDegree := (R, d) -> product apply(numgens R, i-> R_i^(d#i));
     if #m === #n and #n === numgens R then divisorPoset(makeMonomialFromDegree(R, m), makeMonomialFromDegree(R, n))
     else error "Wrong number of variables in first or second entry."
+    )
+
+dominanceLattice = method()
+dominanceLattice ZZ := Poset => n -> (
+    G := toList \ partitions n;
+    cmp := (a, b) -> (
+        if #b > #a then return false;
+        sa := 0; 
+        sb := 0;
+        for k from 0 to #b - 1 do (
+            sa = sa + a_k;
+            sb = sb + b_k;
+            if sa > sb then return false;
+            );
+        true
+        );
+    poset(G, cmp)
     )
 
 facePoset = method()

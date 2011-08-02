@@ -127,7 +127,10 @@ export {
     "isEulerian",
     "isGraded",
     "isLattice",
-    "isRanked"
+    "isLowerSemimodular",
+    "isModular",
+    "isRanked",
+    "isUpperSemimodular"
     }
 
 ------------------------------------------
@@ -658,7 +661,8 @@ compare(Poset, Thing, Thing) := Boolean => (P,A,B) -> (
     )
 
 connectedComponents = method()
-    connectedComponents Poset := List => P -> (
+connectedComponents Poset := List => P -> (
+    if P.cache.?connectedComponents then return P.cache.connectedComponents;
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     L := new MutableList from toList(0..#P.GroundSet-1);
     for c in coveringRelations P do (
@@ -666,7 +670,7 @@ connectedComponents = method()
         if i < j then (L#j = L#i;) else (L#i = L#j;);
         );
     L = toList L;
-    apply(unique L, l -> P.GroundSet_(positions(L, t -> t == l)))
+    P.cache.connectedComponents = apply(unique L, l -> P.GroundSet_(positions(L, t -> t == l)))
     )
 
 joinExists = method()
@@ -960,10 +964,7 @@ isBounded = method()
 isBounded Poset := Boolean => P -> #minimalElements P == 1 and #maximalElements P == 1
 
 isConnected = method()
-isConnected Poset := Boolean => P -> (
-    if P.cache.?isConnected then return P.cache.isConnected;
-    P.cache.isConnected = #connectedComponents P == 1
-    )
+isConnected Poset := Boolean => P -> #connectedComponents P == 1
 
 isDistributive = method()
 isDistributive Poset := Boolean => P -> (
@@ -989,25 +990,48 @@ isEulerian Poset := Boolean => P -> (
 
 -- Graded:  All maximal chains are the same length.
 isGraded = method()
-isGraded Poset := Boolean => P -> (
-    if P.cache.?isGraded then return P.cache.isGraded;
-    P.cache.isGraded = #unique apply(maximalChains P, c -> #c) == 1
-    )
+isGraded Poset := Boolean => P -> #unique apply(maximalChains P, c -> #c) == 1
 
 --inputs: a poset P
 --output:  boolean value for whether or not it is a lattice
 isLattice = method()
 isLattice Poset := Boolean => P -> (
     if P.cache.?isLattice then return P.cache.isLattice;
-    --P.cache.isLattice = all(P.GroundSet, a -> all(P.GroundSet, b -> joinExists(P, a, b) and meetExists(P, a, b)))
     P.cache.isLattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j) and meetExists(P, P.GroundSet#i, P.GroundSet#j)))
+    )
+
+-- Ported from Stembridge's Maple Package
+isLowerSemimodular = method()
+isLowerSemimodular Poset := Boolean => P -> (
+    if P.cache.?isLowerSemimodular then return P.cache.isLowerSemimodular;
+    if not isLattice P then error "The poset must be a lattice.";
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    cr := coveringRelations P;
+    cvrs := for a in P.GroundSet list for c in cr list if c_1 === a then idx#(c_0) else continue;
+    P.cache.isLowerSemimodular = all(#P.GroundSet, i -> all(#cvrs#i, j -> all(j, k -> #(set cvrs#(cvrs#i#j) * set cvrs#(cvrs#i#k)) === 1)))
+    )
+
+isModular = method()
+isModular Poset := Boolean => P -> (
+    if not isLattice P then error "The poset must be a lattice.";
+    isLowerSemimodular P and isUpperSemimodular P
     )
 
 -- Ranked:  There exists an integer ranking-function r on the groundset of P
 --          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
--- Notice that Graded => Ranked
 isRanked = method()
-isRanked Poset := Boolean => P -> if P.cache.?isGraded and P.cache.isGraded then true else rankFunction P =!= null
+isRanked Poset := Boolean => P -> rankFunction P =!= null
+
+-- Ported from Stembridge's Maple Package
+isUpperSemimodular = method()
+isUpperSemimodular Poset := Boolean => P -> (
+    if P.cache.?isUpperSemimodular then return P.cache.isUpperSemimodular;
+    if not isLattice P then error "The poset must be a lattice.";
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    cr := coveringRelations P;
+    cvrby := for a in P.GroundSet list for c in cr list if c_0 === a then idx#(c_1) else continue;
+    P.cache.isUpperSemimodular = all(#P.GroundSet, i -> all(#cvrby#i, j -> all(j, k -> #(set cvrby#(cvrby#i#j) * set cvrby#(cvrby#i#k)) === 1)))
+    )
 
 ------------------------------------------
 -- Documentation

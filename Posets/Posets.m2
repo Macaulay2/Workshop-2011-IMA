@@ -113,6 +113,7 @@ export {
     "fPolynomial",
     "hPolynomial",
     "moebiusFunction",
+    "rankGeneratingFunction",
     "totalMoebiusFunction",
     "zetaPolynomial",
     --
@@ -816,7 +817,7 @@ isAntichain (Poset, List) := Boolean => (P, L) -> (
 -- Ported from Stembridge's Maple Package
 linearExtensions = method()
 linearExtensions Poset := List => P -> (
-    f #P.GroundSet <= 1 then return {P.GroundSet};
+    if #P.GroundSet <= 1 then return {P.GroundSet};
     flatten apply(minimalElements P, m -> apply(linearExtensions dropElements(P, {m}), e -> prepend(m, e)))
     )
 
@@ -896,6 +897,14 @@ moebiusFunction Poset := HashTable => P -> (
     hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
     )
 moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction closedInterval(P,elt1,elt2)
+
+-- r_i*x^i: r_i is the number of rank i vertices in P
+rankGeneratingFunction = method(Options => {symbol VariableName => getSymbol "q"})
+rankGeneratingFunction Poset := RingElement => opts -> P -> (
+    if not isRanked P then error("Poset must be ranked.");
+    R := ZZ(monoid [opts.VariableName]);
+    sum(pairs tally rankFunction P, p -> p_1 * (R_0)^(p_0))
+    )
 
 totalMoebiusFunction = method()
 totalMoebiusFunction Poset := HashTable => P -> (

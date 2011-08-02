@@ -1,39 +1,39 @@
 -- -*- coding: utf-8 -*-
 
 
---------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------
 -- Preamble
---------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------
 
 newPackage(
-	"ChernSegre",
+	"characteristicClasses",
     	Version => "0.1", 
     	Date => "July 25, 2011",
     	Authors => {{Name => "Christine Jost", 
-		  Email => "jost@math.su.se", 
+		  Email => "jost at math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
     	Headline => "Degrees of Chern and Segre classes",
     	DebuggingMode => true
     	)
 
 
-----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------
 -- Exported functions
-----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------
 
 -- The package provides the following functions:
--- segreClass:     computes the pushforward to the Chow ring of the ambient space of the total Segre 
---                 class of a closed subscheme of P^k
+-- segreClass:     computes Segre classes of closed subschemes of P^k, or rather the pushforward 
+--                 of the total Segre class to the Chow ring of the ambient space
 -- segreClassList: does the same as segreClass, but returns a list with coefficients instead of a 
 --                 polynomial
--- chernClass:     computes the pushforward to the Chow ring of the ambient space of the total Chern
---                 class of a closed subscheme of P^k
--- chernlassList:  does the same as segreClass, but returns a list with coefficients instead of a 
+-- chernClass:     computes Chern classes of closed subschemes of P^k, or rather the pushforward 
+--                 of the total Chern class to the Chow ring of the ambient space
+-- chernlassList:  does the same as chernClass, but returns a list with coefficients instead of a 
 --                 polynomial
 export {segreClass, chernClass, segreClassList, chernClassList}
 
 
--- On  the functions segreClass and segreClassList:
+
 -- The computation of the Segre classes is done by the internal function internalSegreClassList, which 
 -- returns a list with the degrees of the Segre Classes and the dimension of the ambient space. The 
 -- human-readable output as a polynomial in the Chow ring ZZ[H]/H^(k+1) of the ambient space P^k is
@@ -69,10 +69,9 @@ segreClassList ProjectiveVariety := projectiveVar -> (
      return segreClassList I
      )
 
--- On  the functions chernClass and chernClassList:
--- The computation of the Chern classes is done by the internal function internalChernClassList, which 
--- returns a list with the degrees of the Chern Classes and the dimension of the ambient space. As for the
--- computation of the Segre classes, the human-readable output as a polynomial in the Chow ring 
+-- Analogously to the computation of the Segre classes, the computation of the Chern classes is done by 
+-- the internal function internalChernClassList, which returns a list with the degrees of the Chern 
+-- Classes and the dimension of the ambient space. The human-readable output as a polynomial in the Chow ring 
 -- ZZ[H]/H^(k+1) of the ambient space P^k is produced by the internal function output.
 -- The user can choose to give the input as a homogeneous ideal in a polynomial ring or as a projective
 -- variety. Furthermore, the user can give the symbol used for the Chow ring ZZ[H]/H^(k+1) as an 
@@ -109,13 +108,13 @@ chernClassList ProjectiveVariety := projectiveVar -> (
 
 
 
-----------------------------------------------------------------------------------------------------
+----------------------------------------------
 -- Internal functions
-----------------------------------------------------------------------------------------------------
+----------------------------------------------
 
 
 
--- The functions internalSegreClassList and internalChernClassList simply call other internal functions 
+-- The functions internalSegreClassList and internalChernClassList call other internal functions 
 -- which do the actual work. 
 internalSegreClassList = I -> (
      -- check that the input is a homogeneous ideal in a polynomial ring over a field
@@ -135,13 +134,12 @@ internalChernClassList = I -> (
      )
 
 -- The function internalSegre is the main function in this package which does the actual computation of the 
--- Segre classes. It uses the algorithm described in the article "A method to compute Segre classes" 
--- (David Eklund, Christine Jost, Chris Peterson).
+-- Segre classes. It uses the algorithm described in [1].
 -- Notation: This algorithm computes the degrees of the Segre classes s_0(Z,P^k), ..., s_n(Z,P^k) of an
 -- n-dimensional closed subscheme Z of P^k. The subscheme Z is given by a homogeneous ideal I in the 
 -- polynomial ring R.
 -- Input:  I, a homogeneous ideal in a polynomial ring over a field
--- Output: segreList, a list containing the degrees of the Segre classes of Proj(R/I)
+-- Output: segreList, a list containing the degrees of the Segre classes of Proj(R/I) = Z
 --         ambientDim, the dimension k of the ambient space Proj(R)=P^k 
 internalSegre = I -> (
     
@@ -155,7 +153,7 @@ internalSegre = I -> (
      
      -- take care of the special cases I = (0) and I = (1)
      if I == ideal(0_R) then (
-	  segreList = for i from 0 to dimension list if i==0 then 1 else 0;
+	  segreList := for i from 0 to dimension list if i==0 then 1 else 0;
 	  return (segreList,ambientDim);
 	  );
      if I == ideal(1_R) then (
@@ -173,7 +171,7 @@ internalSegre = I -> (
      minDegGen := first gensI;
      
      -- initialize segreList as an empty list
-     segreList:= {};
+     segreList= {};
     
      -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
      f := for i from 1 to ambientDim list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
@@ -188,11 +186,12 @@ internalSegre = I -> (
 	  -- Remark: Instead of saturating with the ideal I of the scheme Z, we saturate with a hypersurface containing Z of minimal degree.
 	  --         This gives the same result with sufficiently high probability and speeds up calculations considerably.
 	  residual := saturate(J,minDegGen);
+	  -- Take care of the special case where the residual is the irrelevant ideal when computing the degree
 	  residualDeg := if residual != ideal vars R then degree residual else 0;
 	  
      	  -- Using the degree of the residual, compute the degree of the pth Segre class, where p = d - codimension of Z.
 	  p := d - (ambientDim - dimension);
-	  degSegreClass := maxDeg^d - residualDeg - sum( 0..(p-1), i -> binomial(d,p-i)*maxDeg^(p-i)*s_i );
+	  degSegreClass := maxDeg^d - residualDeg - sum( 0..(p-1), i -> binomial(d,p-i)*maxDeg^(p-i)*segreList_i );
 	  
 	  segreList = append(segreList, degSegreClass);
 	    
@@ -204,16 +203,33 @@ internalSegre = I -> (
 
 
 -- The function internalChern calls internalSegre to compute the Segre classes of the given subscheme of P^k. From these it computes the
--- Chern-Fulton classes using a simple formula. The Chern-Fulton classes are identical to the Chern classes if the scheme in fact is a
--- smooth variety.
+-- Chern-Fulton classes using a simple formula (see e.g. [1]). The Chern-Fulton classes are identical to the Chern classes if the scheme 
+-- is a smooth variety.
 -- Input:  I, a homogeneous ideal in a polynomial ring over a field
 -- Output: chernList, a list containing the degrees of the Chern classes of Proj(R/I)
 --         ambientDim, the dimension k of the ambient space Proj(R)=P^k 
 internalChern = I -> (
-       
-     (segreList,ambientDim) := internalSegre(I);   
-     dimension := #segreList - 1;
-     chernList := for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p );
+     
+     -- Obtain:
+     -- the ring R
+     -- the dimension of the ambient space and
+     -- the dimension n of Z
+     R := ring I;
+     ambientDim := dim Proj R;
+     dimension := dim Proj(R/I) ;
+
+     -- take care of the special cases I = (0) and I = (1) 
+     if I == ideal(0_R) then (
+	  chernList := apply(0..dimension, i-> binomial(dimension, i));
+	  return (chernList,ambientDim);
+	  );
+     if I == ideal(1_R) then (
+	  chernList = {};
+	  return (chernList,ambientDim);
+	  ); 
+
+     (segreList,ambientDim) := internalSegre(I); 
+     chernList = for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p );
      return  (chernList, ambientDim)
         
      )
@@ -235,8 +251,8 @@ checkUserInput = I -> (
 
 
 -- The function prepare does two things to prepare the later computations. Firstly, it trims the ideal I, taking away
--- nonnecessary generators. Then it creates a local ring and an ideal in it isomorphic to I and returns this ideal. This 
--- step is done to avoid conflicts in the choice of variables.
+-- nonnecessary generators. Then it creates a ring only used internally and an ideal in it isomorphic to I and returns this ideal. This 
+-- step is done to avoid possible later conflicts in the choice of variables.
 prepare = I -> (
 
      --trim I
@@ -246,32 +262,32 @@ prepare = I -> (
      numGen := numgens ring localI;
      coeffRing := coefficientRing ring localI;
      z := symbol z;
-     R := coeffRing[z_1 .. z_numGen];
-     renamingMap := map(R, ring localI, {z_1 .. z_numGen});
+     internalR := coeffRing[z_1 .. z_numGen];
+     renamingMap := map(internalR, ring localI, {z_1 .. z_numGen});
      return renamingMap localI;
      )
 
 -- The function output turns a list of degrees of characteristic classes into a polynomial in the Chow ring of the ambient space P^k.
--- This ring is created by the hyperplane class.
+-- This ring is generated by the hyperplane class.
 -- Input:  segreList, a list {deg s_0, ..., deg s_n} of integers
 --         ambientDim, the dimension k of ambient space P^k
 --         hyperplaneClass, the symbol for the hyperplane class
--- Output: the polynomial deg s_0 hyperplaneClass^ambientDim + ... + deg s_n hyperplaneClass^(ambientDim - n)
+-- Output: the polynomial (deg s_0)*hyperplaneClass^ambientDim + ... + (deg s_n)*hyperplaneClass^(ambientDim - n)
 output = (segreList,ambientDim,hyperplaneClass) -> (
      -- produce the Chow ring ZZ[hyperplaneClass]/(hyperplaneClass^ambientDim+1)
      tempRing := ZZ[hyperplaneClass];
      outputRing := tempRing / ideal((tempRing_0)^(ambientDim+1));
      -- obtain the dimension n
      dimension := #segreList-1;
-     -- obtain the polynomial deg s_0 hyperplaneClass^ambientDim + ... + deg s_n hyperplaneClass^(ambientDim - n)
+     -- create the polynomial (deg s_0)*hyperplaneClass^ambientDim + ... + (deg s_n)*hyperplaneClass^(ambientDim - n)
      return  sum(0..dimension, i -> segreList_i * (outputRing_0)^(ambientDim - dimension + i))
      )
 
 
 
-----------------------------------------------------------------------------------------------------
+----------------------------------------------
 -- Documentation
-----------------------------------------------------------------------------------------------------
+---------------------------------------------
 
 
 
@@ -279,7 +295,7 @@ beginDocumentation()
 
 doc ///
      Key
-     	  ChernSegre
+     	  characteristicClasses
      Headline
      	  Degrees of Chern and Segre classes
      Description
@@ -287,7 +303,7 @@ doc ///
 	       The package ChernSegre provides commands to compute the degrees of the Chern and Segre classes of subvarieties and subschemes of projective space. 
 	       Equivalently, it computes the pushforward to projective space of the Chern and Segre classes.
 	       
-	       Let X be an n-dimensional subscheme of projective space P^k, with embedding i: X -> P^k. If X is smooth, then by definition the Chern classes of X are the Chern classes c_0(T_X), ..., c_n(T_X) of the tangent bundle T_X. The Chern classes are cycles in the Chow ring of X, i.e. linear combinations of subvarieties of X modulo rational equivalence. For a subvariety V of X, the degree of the cycle [V] is defined as the degree of the variety V. This extends linearly to linear combinations of subvarieties. Computing the degrees of the Chern classes of X is equivalent to computing the pushforward of the Chern classes to the Chow ring of P^k, which is the ring ZZ[H]/(H^{k+1}), with H the hyperplane class. Also by definition, the Segre classes of the projective scheme X are the Segre classes s_0(X,P^k), ..., s_n(X,P^k) of X in P^k. For definition of the concepts used here, see e.g. W. Fulton "Intersection Theory".
+	       Let X be an n-dimensional subscheme of projective space P^k. If X is smooth, then by definition the Chern classes of X are the Chern classes c_0(T_X), ..., c_n(T_X) of the tangent bundle T_X. The Chern classes are cycles in the Chow ring of X, i.e. linear combinations of subvarieties of X modulo rational equivalence. For a subvariety V of X, the degree of the cycle [V] is defined as the degree of the variety V. This extends linearly to linear combinations of subvarieties. Computing the degrees of the Chern classes of X is equivalent to computing the pushforward of the Chern classes to the Chow ring of P^k, which is the ring ZZ[H]/(H^{k+1}), with H the hyperplane class. Also by definition, the Segre classes of the projective scheme X are the Segre classes s_0(X,P^k), ..., s_n(X,P^k) of X in P^k. For definition of the concepts used here, see e.g. W. Fulton "Intersection Theory".
 	       
 	       The functions in this package can have two different kinds of output. The functions chernClass and segreClass give back the pushforward of the total Chern class to the Chow ring of P^k, whereas chernClassList and segreClassList give a list of the degrees of the Chern or Segre classes, respectively. The scheme X can be given as either a homogeneous ideal in a polynomial ring over a field, or as projective variety.
 	       
@@ -310,7 +326,7 @@ doc ///
 	  segreClass P
      Inputs
      	  I:Ideal
-	    a homogeneous ideal in a polynomial ring over a field, defining a subscheme X of P^k
+	    a homogeneous ideal in a polynomial ring over a field, defining a closed subscheme X of P^k
 	  P:ProjectiveVariety
 	    a projective variety X
      Outputs
@@ -410,9 +426,9 @@ doc ///
    
    
    
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------
 -- Tests
-----------------------------------------------------------------------------------------------------
+--------------------------------------------------------
  
 
 TEST ///
@@ -428,3 +444,10 @@ TEST ///
    totalChern = chernClass ideal x
    assert( totalChern == (ring(totalChern))_0 +2 * ((ring(totalChern))_0)^2 )
 ///
+
+
+
+-------------------------------------------------------
+-- References
+------------------------------------------------------
+-- [1] A method to compute Segre classes (David Eklund, Christine Jost, Chris Peterson)

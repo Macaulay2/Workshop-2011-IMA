@@ -112,6 +112,8 @@ export {
     --
     -- Enumerative invariants
     "characteristicPolynomial",
+    "flagfPolynomial",
+    "flaghPolynomial",
     "moebiusFunction",
     "totalMoebiusFunction",
     --
@@ -611,7 +613,7 @@ outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     )
 
 texPoset = method(Options => {symbol SuppressLabels => true})
-texPoset (Poset) := opts -> String => (P) -> (
+texPoset (Poset) := String => opts -> (P) -> (
     C := maximalChains P;
     --hash table of variable labels:
     idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
@@ -761,7 +763,7 @@ rankFunction Poset := List => P -> (
 rankPoset = method()
 rankPoset Poset := List => P -> (
     rk := rankFunction P;
-    if rk === null then null else apply(0..max rk, r -> P.GroundSet_(positions(rk, i -> i == r)))
+    if rk === null then error("Poset must be ranked.") else apply(0..max rk, r -> P.GroundSet_(positions(rk, i -> i == r)))
     )
 
 ------------------------------------------
@@ -794,7 +796,14 @@ coveringRelations Poset := List => P -> (
     )
 
 flagChains = method()
-flagChains (Poset,List) := List => (P,L) -> maximalChains flagPoset(P,L)
+flagChains (Poset,List) := List => (P, L) -> (
+    if not isRanked P then error("Poset must be ranked.");
+    rkP := rankPoset P;
+    if #L == 0 then {} else 
+    if #L == 1 then apply(rkP_(first L), p -> {p}) else 
+    flatten for c in flagChains(P, drop(L, 1)) list for p in rkP_(first L) list if compare(P, p, first c) then prepend(p, c) else continue
+    )
+
 
 --input: P a poset and L a list of elements of the poset
 --output: whether L is an antichain in P
@@ -824,8 +833,32 @@ maximalChains Poset := List => P -> (
 -- Enumerative invariants
 ------------------------------------------
 
-characteristicPolynomial = method()
-characteristicPolynomial Poset := RingElement => P -> (
+characteristicPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
+characteristicPolynomial Poset := RingElement => opts -> P -> (
+    if not isGraded P then error("Poset must be graded.");
+    rk := rankFunction P;
+    mu := totalMoebiusFunction P;
+    R := ZZ(monoid [opts.VariableName]);
+    zeroP := first minimalElements P;
+    sum(#P.GroundSet, i -> mu#(zeroP, P.GroundSet_i) * (R_0)^(max rk - rk#i))
+    )
+
+-- Following Stanley's definition in EC1
+flagfPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
+flagfPolynomial Poset := RingElement => opts -> P -> (
+    if not isRanked P then error("Poset must be ranked.");
+    rkP := #rankPoset P - 1;
+    R := ZZ(monoid [opts.VariableName_0..opts.VariableName_(rkP)]);
+    1 + sum for s in subsets toList(0..rkP) list #flagChains(P, s) * product(s, i -> R_i)
+    )
+
+-- Following Stanley's definition in EC1
+flaghPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
+flaghPolynomial Poset := RingElement => opts -> P -> (
+    if not isRanked P then error("Poset must be ranked.");
+    ff := flagfPolynomial(P, opts);
+    R := ring ff;
+    lift(product(gens R, r -> 1 - r)* sub(ff, apply(gens R, r -> r => r/(1-r))), R)
     )
 
 moebiusFunction = method()
@@ -835,7 +868,7 @@ moebiusFunction Poset := HashTable => P -> (
     k := position(P.GroundSet,v->v === (minimalElements P)_0);
     hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
     )
-moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction(closedInterval(P,elt1,elt2))
+moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction closedInterval(P,elt1,elt2)
 
 totalMoebiusFunction = method()
 totalMoebiusFunction Poset := HashTable => P -> (
@@ -918,8 +951,9 @@ isLattice Poset := Boolean => P -> (
 
 -- Ranked:  There exists an integer ranking-function r on the groundset of P
 --          such that for each x and y in P: if y covers x then r(y)-r(x) = 1.
+-- Notice that Graded => Ranked
 isRanked = method()
-isRanked Poset := Boolean => P -> rankFunction P =!= null
+isRanked Poset := Boolean => P -> if P.cache.?isGraded and P.cache.isGraded then true else rankFunction P =!= null
 
 ------------------------------------------
 -- Documentation

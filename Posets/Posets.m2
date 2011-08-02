@@ -1,8 +1,3 @@
--- Gwyn:  This morning (0825, 02. August 2011) I plan to implement:
---        - Poset from a GroundSet and comparison function
---        - Poset of monomials in the quotient ring of a monomial ideal
---        - f-poly, h-poly, flag-f-poly, flag-h-poly, W-poly, zeta-poly
-
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
 -- License Version 2 as published by the Free Software Foundation.
@@ -108,6 +103,7 @@ export {
     "coveringRelations",
     "flagChains",
     "isAntichain",
+    "linearExtensions",
     "maximalChains",
     --
     -- Enumerative invariants
@@ -743,6 +739,7 @@ posetMeet (Poset,Thing,Thing) := List => (P,a,b) ->(
         )
     )
 
+-- Ported from Stembridge's Maple Package
 rankFunction = method()
 rankFunction Poset := List => P -> (
     if P.cache.?rankFunction then return P.cache.rankFunction;
@@ -814,6 +811,13 @@ isAntichain = method()
 isAntichain (Poset, List) := Boolean => (P, L) -> (
     Q := subPoset(P, L);
     minimalElements(Q) == maximalElements(Q)
+    )
+
+-- Ported from Stembridge's Maple Package
+linearExtensions = method()
+linearExtensions Poset := List => P -> (
+    f #P.GroundSet <= 1 then return {P.GroundSet};
+    flatten apply(minimalElements P, m -> apply(linearExtensions dropElements(P, {m}), e -> prepend(m, e)))
     )
 
 maximalChains = method()

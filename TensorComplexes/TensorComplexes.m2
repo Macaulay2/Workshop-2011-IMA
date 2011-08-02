@@ -383,8 +383,7 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
   -- If f is not balanced this outputs an error.  
   -- In the non-balanced case, there should be a weight vector as a second input.
   -- See below.
-  if not isBalanced f then error "The map f is not a balanced tensor.  
-                                 Need to add a weight vector as a second input.";
+  if not isBalanced f then error "The map f is not a balanced tensor. Need to add a weight vector as a second input.";
   S := ring f;  
   B := {S^0} | underlyingModules target f;
   A := source f;
@@ -1374,6 +1373,8 @@ doc ///
      (coker,LabeledModuleMap)
      (rank,LabeledModuleMap)
      (transpose,LabeledModuleMap)
+     (symbol *, LabeledModule,LabeledModule)
+     (symbol **, LabeledModule,LabeledModule)
    Headline
      a number of methods for maps have been extended to the class LabeledModuleMap
    Usage
@@ -1405,24 +1406,102 @@ doc ///
 ///
 *}
 
+doc ///
+   Key
+     underlyingModules
+     (underlyingModules, LabeledModule)     
+   Headline
+     gives the list of underlying modules of a labeled module
+   Usage
+     underlyingModules(F)
+   Inputs
+     F: LabeledModule
+   Outputs
+    : List
+   Description
+    Text
+      One of the key features of a labeled module is that it comes equipped
+      with a list of modules used in its construction.  For instance, if $F$
+      is the tensor product of $A$ and $B$, then the underlying modules of
+      $F$ would be the set $\{ A,B\}$.  Similarly, if $G=\wedge^2 A$, then
+      $A$ is the only underlying module of $G$.
+    
+    Example
+      S=ZZ/101[x,y,z];
+      A=labeledModule(S^2);
+      B=labeledModule(S^5);
+      F=A**B
+      underlyingModules(F)
+      G=exteriorPower(2,A)
+      underlyingModules(G)
+///
+
+
+doc ///
+   Key
+     basisList
+     (basisList, LabeledModule)     
+   Headline
+     gives the list used to label the basis elements of a labeled module
+   Usage
+     basisList(F)
+   Inputs
+     F: LabeledModule
+   Outputs
+    : List
+   Description
+    Text
+      One of the key features of a labeled module of rank $r$
+      is that the basis can be labeled by any list of cardinality $r$.
+      This is particularly convenient when working with tensor products, symmetric
+      powers, and exterior powers.  For instance, if $A$ is a labeled module with
+      basis labeled by $\{0,\dots, r-1\}$ then it is natural to think of
+      $\wedge^2 A$ as a labeled module with a basis labeled by elements of the
+      lists
+      $$
+      \{(i,j)| 0\leq i<j\leq r-1\}.
+      $$
+      When you use apply the functions @TO tensorProduct@, @TO symmetricPower@
+      and @TO exteriorPower@ to a labeled module, the output is a labeled
+      module with a natural basis list.
+          
+    Example
+      S=ZZ/101[x,y,z];
+      A=labeledModule(S^2);
+      B=labeledModule(S^4);
+      F=A**B
+      basisList(F)
+      G=exteriorPower(2,B)
+      basisList(G)
+///
+
+{*
+doc ///
+   Key
+   Headline
+   Usage
+   Inputs
+   Outputs
+   Consequences
+    Item
+   Description
+    Text
+    Code
+    Pre
+    Example
+   Subnodes
+   Caveat
+   SeeAlso
+///
+*}
+
 ///
 print docTemplate
 ///
 {*beginDocumentation()
 
-document { 
-  Key => LabeledModule,
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
 undocumented { (net, LabeledModule), (net, LabeledModuleMap) }
 
-document { 
-  Key => {labeledModule, (labeledModule,Module), (labeledModule,Ring)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
 
 document { 
   Key => {underlyingModules, (underlyingModules, LabeledModule)},
@@ -1722,7 +1801,7 @@ end
 
 restart
 uninstallPackage "TensorComplexes"
-path=append(path,"~/IMA-2011/TensorComplexes/")
+-- path=append(path,"~/IMA-2011/TensorComplexes/")
 installPackage "TensorComplexes"
 viewHelp TensorComplexes
 check "TensorComplexes"
@@ -1736,9 +1815,12 @@ betti pureResTC({0,1,3,4,6,7},ZZ/101)
 hyperdeterminant  flattenedESTensor({5,3,2,2},ZZ/2) 
 
 kk = ZZ/101;
-f=flattenedESTensor({4,2,2},kk)
-tensorComplex1 f
-betti res coker tensorComplex1 f
+f=flattenedGenericTensor({7,2,2},kk)
+S=ring f;
+p1=tensorComplex1(f,{0,1,4});
+I=ann coker p1;
+
+
 
 f=flattenedESTensor({7,1,2,1,2,1},kk)
 betti res coker tensorComplex1 f

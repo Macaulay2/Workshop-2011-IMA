@@ -164,7 +164,7 @@ Poset = new Type of HashTable
 
 poset = method()
 poset(List, List, Matrix) := Poset => (I,C,M) -> (
-    if rank M =!= #I then error("Antisymmetry fails");
+    if rank M =!= #I then error "The relations failed anti-symmetry.";
     new Poset from {
         symbol GroundSet => I,
         symbol Relations => C,
@@ -175,7 +175,7 @@ poset (List, List) := Poset => (I, C) -> poset(I, C, transitiveClosure(I, C))
 poset (List, Function) := Poset => (I, cmp) -> (
     try (
         rel := flatten for a in I list for b in I list if cmp(a,b) then {a,b} else continue;
-    ) else error("The comparison function cmp must (i) take two inputs, (ii) return a Boolean, and (iii) be defined for all pairs of I.");
+    ) else error "The comparison function cmp must (i) take two inputs, (ii) return a Boolean, and (iii) be defined for all pairs of I.";
     poset(I, rel)
     )
 poset List := Poset => C -> poset(unique flatten C, C);
@@ -233,7 +233,7 @@ closedInterval = method()
 closedInterval (Poset, Thing, Thing) := Poset => (P, elt1, elt2) ->(
     if compare(P, elt1, elt2) then subPoset(P, select(P.GroundSet, elt -> compare(P, elt1, elt) and compare(P, elt, elt2)))
     else if compare(P, elt2, elt1) then subPoset(P, select(P.GroundSet, elt -> compare(P, elt2, elt) and compare(P, elt, elt1)))
-    else error "these elements are uncomparable"
+    else error "The elements are incomparable."
     )
 
 distributiveLattice = method()
@@ -314,7 +314,7 @@ posetDiamondProduct (Poset, Poset) := Poset => (P, Q)->(
         P':=posetProduct(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
         poset(prepend({first minimalElements P, first minimalElements Q}, P'.GroundSet), 
               join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations))
-    ) else error "P and Q must be lattices"
+    ) else error "The posets must be lattices."
     )
 
 posetProduct = method()
@@ -328,7 +328,7 @@ posetProduct (Poset, Poset) := Poset => (P, Q) ->
 ------------------------------------------
 chain = method()
 chain ZZ := Poset => n -> (
-    if n == 0 then error "Integer n must be non-zero.";
+    if n == 0 then error "The integer n must be non-zero.";
     if n < 0 then ( print "Did you mean |n|?"; n = -n; );
     -- The matrix is known, so give it.
     poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1)))
@@ -353,7 +353,7 @@ divisorPoset RingElement := Poset => m -> (
     )
 
 divisorPoset ZZ := Poset => m -> (
-    if m == 0 then error "Integer m must be non-zero.";
+    if m == 0 then error "The integer m must be non-zero.";
     if m < 0 then ( print "Did you mean |m|?"; m=-m; );
     if m == 1 then return poset({1}, {}); -- 1 is special
     M := toList \ toList factor m;
@@ -375,15 +375,15 @@ divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
         if n % m === sub(0, ring m) then (
             P := divisorPoset (n//m);
             poset(apply(P.GroundSet, v -> v * m), apply(P.Relations, r -> (m * first r, m * last r)), P.RelationMatrix)
-            ) else error "First monomial does not divide second."
-        ) else error "Monomials must be in same ring."
+            ) else error "The first monomial does not divide the second."
+        ) else error "The monomials must be in same ring."
     )
 
 --This method takes a pair of exponent vectors a,b and computes divisorPoset x^a,x^b
 divisorPoset (List, List, PolynomialRing):= Poset => (m, n, R) -> (
     makeMonomialFromDegree := (R, d) -> product apply(numgens R, i-> R_i^(d#i));
     if #m === #n and #n === numgens R then divisorPoset(makeMonomialFromDegree(R, m), makeMonomialFromDegree(R, n))
-    else error "Wrong number of variables in first or second entry."
+    else error "Wrong number of variables in the first or the second exponent vector."
     )
 
 dominanceLattice = method()
@@ -636,11 +636,11 @@ projectivizeArrangement (List, Ring) := Poset => (L, R) -> (
 
 randomPoset = method(Options => {symbol Bias => 0.5})
 randomPoset (List) := Poset => opts -> (G) -> (
-    if not instance(opts.Bias, RR) and not instance(opts.Bias, QQ) and not instance(opts.Bias, ZZ) then error("Option Bias must be a ZZ, QQ, or RR.");
+    if not instance(opts.Bias, RR) and not instance(opts.Bias, QQ) and not instance(opts.Bias, ZZ) then error "The option Bias must be a ZZ, QQ, or RR.";
     b := if instance(opts.Bias, ZZ) then (
-        if opts.Bias > 0 then 1.0/opts.Bias else error("Option Bias (as a ZZ) must be at least 1.")
+        if opts.Bias > 0 then 1.0/opts.Bias else error "The option Bias (as a ZZ) must be at least 1."
         ) else opts.Bias;
-    if b < 0 or b > 1 then error("Option Bias must be at least 0 and at most 1.");
+    if b < 0 or b > 1 then error "The option Bias must be at least 0 and at most 1.";
     poset(G, flatten for i from 0 to #G-1 list for j from i+1 to #G-1 list if random 1.0 < opts.Bias then {G_i, G_j} else continue)
     )
 randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
@@ -651,7 +651,8 @@ randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
 
 displayPoset=method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer })
 displayPoset(Poset):=opts->(P)->(
-    if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
+    if not instance(opts.PDFViewer, String) then error "The option PDFViewer must be a string.";
+    if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     name := temporaryFileName();
     outputTexPoset(P, concatenate(name, ".tex"), symbol SuppressLabels => opts.SuppressLabels);
     run concatenate("pdflatex -output-directory /tmp ", name, " 1>/dev/null");
@@ -660,6 +661,7 @@ displayPoset(Poset):=opts->(P)->(
 
 outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels});
 outputTexPoset(Poset,String) := String => opts -> (P,name)->(
+    if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     fn:=openOut name;
     fn << "\\documentclass[8pt]{article}"<< endl;
     fn << "\\usepackage{tikz}" << endl;
@@ -672,6 +674,7 @@ outputTexPoset(Poset,String) := String => opts -> (P,name)->(
 
 texPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels})
 texPoset (Poset) := String => opts -> (P) -> (
+    if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     C := maximalChains P;
     --hash table of variable labels:
     idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
@@ -741,7 +744,7 @@ joinExists (Poset,Thing,Thing) := Boolean => (P,a,b) -> (
 
 joinIrreducibles = method()
 joinIrreducibles Poset := List => P -> (
-    if not isLattice P then error "P is not a lattice";
+    if not isLattice P then error "The poset is not a lattice.";
     nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> not compare(P, posspair#0,posspair#1) and not compare(P,posspair#1,posspair#0));
     joins := select(unique flatten apply(nonComparablePairs, posspair -> if joinExists(P, posspair#0, posspair#1) then posetMeet(P, posspair#0, posspair#1)), i -> i =!= null); 
     toList (set P.GroundSet - set joins)
@@ -773,7 +776,7 @@ meetExists (Poset, Thing, Thing) := Boolean => (P,a,b) -> (
 meetIrreducibles = method()
 meetIrreducibles Poset := List => P -> (
     -- want to compute meets only for non-comparable elements
-    if not isLattice P then error "P is not a lattice";
+    if not isLattice P then error "The poset is not a lattice.";
     nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> not compare(P, posspair#0,posspair#1) and not compare(P,posspair#1,posspair#0));
     meets := select(unique flatten apply(nonComparablePairs, posspair -> if meetExists(P, posspair#0, posspair#1) then posetMeet(P,posspair#0, posspair#1)), i -> i =!= null); 
     toList (set P.GroundSet - set meets)
@@ -793,11 +796,11 @@ posetJoin (Poset,Thing,Thing) := List => (P,a,b)  -> (
     OIa := filter(P, a);     
     OIb := filter(P, b);
     upperBounds := toList (set(OIa)*set(OIb));
-    if upperBounds == {} then error "your elements do not share any upper bounds"
+    if upperBounds == {} then error "The elements do not share any upper bounds."
     else (
         M := P.RelationMatrix;
         heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-        if #(select(heightUpperBounds, i-> i == min heightUpperBounds)) > 1 then error "join does not exist, least upper bound not unique" 
+        if #(select(heightUpperBounds, i-> i == min heightUpperBounds)) > 1 then error "The join does not exist; the least upper bound not unique." 
         else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
         )
     )
@@ -810,11 +813,11 @@ posetMeet (Poset,Thing,Thing) := List => (P,a,b) ->(
     Fa := orderIdeal(P,a);
     Fb := orderIdeal(P,b);
     lowerBounds:= toList (set(Fa)*set(Fb));
-    if lowerBounds == {} then error "your elements do not share any lower bounds"
+    if lowerBounds == {} then error "The elements do not share any lower bounds."
     else (
         M := P.RelationMatrix;
         heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-        if #(select(heightLowerBounds, i-> i == max heightLowerBounds)) > 1 then error "meet does not exist, greatest lower bound not unique" 
+        if #(select(heightLowerBounds, i-> i == max heightLowerBounds)) > 1 then error "The meet does not exist; the greatest lower bound not unique." 
         else lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)}
         )
     )
@@ -842,7 +845,7 @@ rankFunction Poset := List => P -> (
 rankPoset = method()
 rankPoset Poset := List => P -> (
     rk := rankFunction P;
-    if rk === null then error("Poset must be ranked.") else apply(0..max rk, r -> P.GroundSet_(positions(rk, i -> i == r)))
+    if rk === null then error "The poset must be ranked." else apply(max rk + 1, r -> P.GroundSet_(positions(rk, i -> i == r)))
     )
 
 ------------------------------------------
@@ -879,7 +882,7 @@ coveringRelations Poset := List => P -> (
 
 flagChains = method()
 flagChains (Poset,List) := List => (P, L) -> (
-    if not isRanked P then error("Poset must be ranked.");
+    if not isRanked P then error "The poset must be ranked.";
     rkP := rankPoset P;
     if #L == 0 then {} else 
     if #L == 1 then apply(rkP_(first L), p -> {p}) else 
@@ -924,7 +927,7 @@ maximalChains Poset := List => P -> (
 
 characteristicPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
 characteristicPolynomial Poset := RingElement => opts -> P -> (
-    if not isGraded P then error("Poset must be graded.");
+    if not isGraded P then error "The poset must be graded.";
     rk := rankFunction P;
     mu := totalMoebiusFunction P;
     R := ZZ(monoid [opts.VariableName]);
@@ -937,7 +940,7 @@ characteristicPolynomial Poset := RingElement => opts -> P -> (
 -- f_i is the number of chains of k vertices hitting ranks i.
 flagfPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
 flagfPolynomial Poset := RingElement => opts -> P -> (
-    if not isRanked P then error("Poset must be ranked.");
+    if not isRanked P then error "The poset must be ranked.";
     rkP := #rankPoset P - 1;
     R := ZZ(monoid [opts.VariableName_0..opts.VariableName_(rkP)]);
     1 + sum for s in subsets toList(0..rkP) list #flagChains(P, s) * product(s, i -> R_i)
@@ -946,7 +949,7 @@ flagfPolynomial Poset := RingElement => opts -> P -> (
 -- Following Stanley's definition in EC1
 flaghPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
 flaghPolynomial Poset := RingElement => opts -> P -> (
-    if not isRanked P then error("Poset must be ranked.");
+    if not isRanked P then error "The poset must be ranked.";
     ff := flagfPolynomial(P, opts);
     R := ring ff;
     lift(product(gens R, r -> 1 - r)* sub(ff, apply(gens R, r -> r => r/(1 - r))), R)
@@ -972,7 +975,7 @@ hPolynomial Poset := RingElement => opts -> P -> (
 
 moebiusFunction = method()
 moebiusFunction Poset := HashTable => P -> ( 
-    if #minimalElements P > 1 then error "this poset has more than one minimal element - specify an interval";
+    if #minimalElements P > 1 then error "The poset has more than one minimal element; specify an interval.";
     M := (P.RelationMatrix)^(-1);
     k := position(P.GroundSet,v->v === (minimalElements P)_0);
     hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
@@ -982,7 +985,7 @@ moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebius
 -- r_i*x^i: r_i is the number of rank i vertices in P
 rankGeneratingFunction = method(Options => {symbol VariableName => getSymbol "q"})
 rankGeneratingFunction Poset := RingElement => opts -> P -> (
-    if not isRanked P then error("Poset must be ranked.");
+    if not isRanked P then error "The poset must be ranked.";
     R := ZZ(monoid [opts.VariableName]);
     sum(pairs tally rankFunction P, p -> p_1 * (R_0)^(p_0))
     )
@@ -1033,7 +1036,7 @@ isConnected Poset := Boolean => P -> #connectedComponents P == 1
 isDistributive = method()
 isDistributive Poset := Boolean => P -> (
     if P.cache.?isDistributive then return P.cache.isDistributive;
-    if not isLattice P then error "Poset must be a lattice";
+    if not isLattice P then error "The poset must be a lattice.";
     P.cache.isDistributive = all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
     )
 
@@ -1041,7 +1044,7 @@ isEulerian = method()
 isEulerian Poset := Boolean => P -> (
     if P.cache.?isEulerian then return P.cache.isEulerian;
     rk := rankFunction P;
-    if rk === null then error "Poset must be ranked.";
+    if rk === null then error "The poset must be ranked.";
     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
     mu := totalMoebiusFunction P;
     P.cache.isEulerian = all(P.GroundSet, 

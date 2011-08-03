@@ -115,7 +115,7 @@ underlyingModules = method(TypicalValue => List)
 underlyingModules LabeledModule := E -> E.underlyingModules
 basisList = method(TypicalValue => List)
 basisList LabeledModule := E -> E.basisList
-fromOrdinal = method(TypicalValue => List)
+fromOrdinal = method(TypicalValue => Thing)
 fromOrdinal(ZZ, LabeledModule) := (i, E) -> (basisList E)#i
 toOrdinal = method(TypicalValue => ZZ)
 toOrdinal(Thing, LabeledModule) := (l, E) -> (
@@ -957,15 +957,98 @@ doc ///
     i: ZZ
     M: LabeledModule
    Outputs
-    E: LabeledModule
-   Consequences
-    Item
+    : LabeledModule
    Description
     Text
+      This produces the exterior power of a labeled module as a labeled module
+      with the natural basis list.  For instance if $M$ is a labeled module with
+      basis list $L$, then {\tt exteriorPower(2,M)} is a labeled
+      module with basis list {\tt subsets(2,L)} and with $M$ as an underlying module,
     Example
+      S=ZZ/101[x,y,z];
+      M=labeledModule(S^3);
+      E=exteriorPower(2,M)
+      basisList E
+      underlyingModules E
+      F=exteriorPower(2,E);
+      basisList F 
+    Text
+     The first exterior power of a labeled module is not the identity in the category
+     of labeled modules.  For instance, if $M$ is a free labeled module with basis
+     list $\{0,1\}$ and with no underlying modules, then ${\tt exteriorPower(1,M)}$ is
+     a labeled module with basis list $\{ \{0\}, \{1\},\}$ and with $M$ as an underlying
+     module.
+    Example
+     S=ZZ/101[x,y,z];
+     M=labeledModule(S^2);
+     E=exteriorPower(1,M);
+     basisList M
+     basisList E
+     underlyingModules M
+     underlyingModules E
+    Text
+     By convention, the zeroeth symmetric power of an $S$-module is the labeled module
+     $S^1$ with basis list $\{\{\}\}$ and with no underlying modules.  
+    Example
+     S=ZZ/101[x,y,z];
+     M=labeledModule(S^2);
+     E=exteriorPower(0,M)
+     basisList E
+     underlyingModules E
    SeeAlso
 ///
 
+doc ///
+   Key 
+    (symmetricPower, ZZ, LabeledModule)
+   Headline 
+    Symmetric power of a @TO LabeledModule@
+   Usage 
+    E = symmetricPower(i,M)
+   Inputs 
+    i: ZZ
+    M: LabeledModule
+   Outputs
+    E: LabeledModule
+   Description
+    Text
+      This produces the symmetric power of a labeled module as a labeled module
+      with the natural basis list.  For instance if $M$ is a labeled module with
+      basis list $L$, then {\tt exteriorPower(2,M)} is a labeled
+      module with basis list {\tt multiSubsets(2,L)} and with $M$ as an underlying module,
+    Example
+      S=ZZ/101[x,y,z];
+      M=labeledModule(S^3);
+      F=symmetricPower(2,M)
+      basisList F
+      underlyingModules F
+      G=symmetricPower(2,F);
+      basisList G 
+    Text
+     The first symmetric power of a labeled module is not the identity in the category
+     of labeled modules.  For instance, if $M$ is a free labeled module with basis
+     list $\{0,1\}$ and with no underlying modules, then ${\tt symmetricPower(1,M)}$ is
+     a labeled module with basis list $\{ \{0\}, \{1\},\}$ and with $M$ as an underlying
+     module.
+    Example
+     S=ZZ/101[x,y,z];
+     M=labeledModule(S^2);
+     E=symmetricPower(1,M);
+     basisList M
+     basisList E
+     underlyingModules M
+     underlyingModules E
+    Text
+     By convention, the zeroeth symmetric power of an $S$-module is the labeled module
+     $S^1$ with basis list $\{\{\}\}$ and with no underlying modules.  
+    Example
+     S=ZZ/101[x,y,z];
+     M=labeledModule(S^2);
+     E=symmetricPower(0,M)
+     basisList E
+     underlyingModules E
+   SeeAlso
+///
 
 doc ///
    Key
@@ -1475,25 +1558,387 @@ doc ///
       basisList(G)
 ///
 
+
+doc ///
+   Key
+     fromOrdinal
+     (fromOrdinal, ZZ, LabeledModule)     
+   Headline
+     outputs the label of a basis element of a labeled module
+   Usage
+     fromOrdinal(i,F)
+   Inputs
+     i: ZZ
+     F: LabeledModule
+   Outputs
+     : Thing
+   Description
+    Text
+      This function allows one to access the labels of the basis
+      elements of a labeled free module.  
+      For instance, if $F$ is a labeled free module of $r$,
+      then its basis is labeled by a list $L$.
+      This function takes an integer $i$ between $0$ and outputs the $i$'th element
+      of $L$.
+      
+      This function is particularly useful when defining maps between labeled free
+      modules.
+    Example
+      S=ZZ/101[x_{0,0,0}..x_{2,1,1}];
+      A=labeledModule(S^3);
+      fromOrdinal(0,A)
+      B=labeledModule(S^2);
+      C=symmetricPower(2,B)
+      fromOrdinal(0,C)      
+      f=map(A,C,(i,j)->x_(flatten {fromOrdinal(j,A)}|fromOrdinal(i,C)))
+   SeeAlso
+     basisList
+     toOrdinal
+///
+
+
+doc ///
+   Key
+     toOrdinal
+     (toOrdinal, Thing, LabeledModule)
+   Headline
+     turns the label of a basis element of a labeled module into a corresponding ordinal
+   Usage
+     toOrdinal(i,F)
+   Inputs
+     l: Thing
+     F: LabeledModule
+   Outputs
+     : ZZ
+   Description
+    Text
+      This function allows one to move from the labels of the basis
+      elements of a labeled free module of rank $r$ to the the integers
+      $\{0,1, \dots, r-1\}$.
+      More specifically, if $F$ is a labeled free module where we have labeled the
+      basis with the list $L$, then this function an element  $l\in L$
+      to the ordinal $j$ such that $l$ is the $j$'th element of $L$.
+      
+    Example
+      S=ZZ/101[x_{0,0,0}..x_{2,1,1}];
+      C=symmetricPower(2,labeledModule(S^3))
+      basisList C
+      toOrdinal({0,0},C)
+      toOrdinal({1,2},C)
+   SeeAlso
+     basisList
+     fromOrdinal
+///
+
+
+doc ///
+   Key
+     multiSubsets
+     (multiSubsets, ZZ, ZZ)
+     (multiSubsets, List, ZZ)
+   Headline
+     produce all subsets of a given size, allowing repetitions
+   Usage
+     multiSubsets(L,n)
+     multiSubsets(m,n)
+   Inputs
+     L: List
+     n: ZZ
+     m: ZZ
+   Outputs
+     : List
+   Description
+    Text
+      {\tt multiSubsets(L,n)} yields all multisets of cardinality $n$ with element
+      from $L$.  {\tt multiSubsets(m,n)} yields all multisets of cardinality $n$
+      with elements in the list $\{0,\dots,m-1\}$.
+    Example
+      L={a,b,c}
+      multiSubsets(L,2)
+      multiSubsets(3,2)
+   SeeAlso
+     subsets
+///
+
+
+doc ///
+   Key
+     traceMap
+     (traceMap, LabeledModule)
+   Headline
+     produces the trace map from a ring to a free module tensored with its dual
+   Usage
+     traceMap F
+   Inputs
+     F: LabeledModule
+   Outputs
+     : LabeledModuleMap
+   Description
+    Text
+      If $F$ is a free labeled module, then this produces the trace map
+      $S\to F\otimes F^*$.
+    Example
+      S=ZZ/101[x,y,z];
+      F=labeledModule(S^3);
+      traceMap F
+   SeeAlso
+///
+
+
+
+
+doc ///
+   Key
+    cauchyMap
+    (cauchyMap, ZZ, LabeledModule)
+   Headline
+    produces one surjection from the Cauchy decomposition of the exterior power of a tensor product
+   Usage
+    cauchyMap(b,E)
+   Inputs
+    b: ZZ
+    E: LabeledModule
+     must be a tensor product
+   Outputs
+    : LabeledModuleMap
+   Description
+    Text
+      We begin with a module $E$ that was constructed as a tensor
+      product $E=A\otimes B$, where $A$ and $B$ are free modules.
+      Cauchy decomposition provides a formula for decomposing $\wedge^b E$
+      as $GL(A)\times GL(B)$ representations.  This function constructs 
+      the surjection onto the $\wedge^b A\otimes S^b B$ 
+      factor:
+      $$
+      \wedge^b E \to \wedge^b A\otimes S^b B.
+      $$
+    Example
+      S=ZZ/101[x,y,z];
+      A=labeledModule(S^3);
+      B=labeledModule(S^3);
+      E=tensorProduct(A,B)
+      f=cauchyMap(2,E)
+      underlyingModules source f
+      underlyingModules target f
+   SeeAlso
+///
+
+
 {*
 doc ///
    Key
+    (symbol ==, LabeledModule,  LabeledModule),
    Headline
+    tests equality for labeled modules
    Usage
+    F==G
    Inputs
+    F: LabeledModule
+    G: LabeledModule
    Outputs
-   Consequences
-    Item
+    : Boolean
    Description
     Text
-    Code
-    Pre
+     Two labeled modules are equal if they are equal as modules and if they have the
+     same basis list and list of underlying modules.
     Example
-   Subnodes
-   Caveat
+     S=ZZ/101[x,y,z];
+     F=labeledModule(S^3)
+     G=labeledModule(S^3)
+     H=exteriorPower(2,labeledModule(S^2))
+     F==G
+     F==H
+     basisList(F)
+     basisList(H)
    SeeAlso
 ///
 *}
+
+
+
+doc ///
+   Key
+    (target, LabeledModuleMap)
+   Headline
+    the target of a map of a labeled modules
+   Usage
+    target f
+   Inputs
+    f: LabeledModuleMap
+   Outputs
+    : LabeledModule
+   Description
+    Text
+     This yields the target of a map of a labeled module, as a labeled module.
+    Example
+     S=ZZ/101[x,y,z];
+     F=labeledModule(S^2);
+     G=symmetricPower(2,F);
+     f=map(F,G,{{x,y,z},{y,z,x}})
+     target f
+     basisList target f 
+   SeeAlso
+    (source, LabeledModuleMap)
+///
+
+
+doc ///
+   Key
+    (source, LabeledModuleMap)
+   Headline
+    the source of a map of a labeled modules
+   Usage
+    source f
+   Inputs
+    f: LabeledModuleMap
+   Outputs
+    : LabeledModule
+   Description
+    Text
+     This yields the source of a map of a labeled module, as a labeled module.
+    Example
+     S=ZZ/101[x,y,z];
+     F=labeledModule(S^2);
+     G=symmetricPower(2,F);
+     f=map(G,F,{{x,y},{y,z},{z,x}})
+     source f
+     basisList source f 
+   SeeAlso
+    (target, LabeledModuleMap)
+///
+
+
+doc ///
+   Key
+    symmetricMultiplication
+    (symmetricMultiplication, LabeledModule, ZZ, ZZ)
+   Headline
+    creates the symmetric multiplication map
+   Usage
+    symmetricMultiplication(F,i,j)
+   Inputs
+    F: LabeledModule
+    i: ZZ
+    j: ZZ
+   Outputs
+    : LabeledModuleMap
+   Description
+    Text
+     Given a labeled free module $F$, and two nonnegative integers $i$ and $j$,
+     this yields the multiplication map
+     $$
+     f: S^i(F)\otimes S^j(F)\to S^{i+j}(F).
+     $$
+     The output map is treated as a map of labeled modules, and the source and target
+     are inherit the natural structure as labeled modules from $F$.  For instance,
+     if the basis list of $F$ is $L$, then the basis list of the target of $f$ is the
+     list {\tt multiSubsets(i+j,L)}. 
+    Example
+     S=ZZ/101[x,y,z];
+     F=labeledModule(S^2);
+     f=symmetricMultiplication(F,2,2)
+     source f
+     basisList F
+     basisList source f
+     basisList target f
+   SeeAlso
+///
+
+doc ///
+   Key
+    minorsMap
+    (minorsMap, Matrix, LabeledModule)
+    (minorsMap, LabeledModuleMap, LabeledModule)
+   Headline
+    creates a map of labeled free modules whose image is the minors of a map of labeled free modules 
+   Usage
+    minorsMap(f,E)
+    minorsMap(M,E)
+   Inputs
+    f: LabeledModuleMap
+    M: Matrix
+    E: LabeledModule
+   Outputs
+    : LabeledModuleMap
+   Description
+    Text
+     This function assumes that $E$ has the form $E=\wedge^b B \otimes \wedge^b A$ where 
+     $A$ and $B$ are labeled free $S$-modules and where $f: A^*\to B$ (or where $M$ is matrix
+     representing such a map).  The output is the map
+     $$
+     E\to S
+     $$
+     sending each basis element to the corresponding $b\times b$ minor of $f$ (or $M$).
+    Example
+     S=ZZ/101[x,y,z];
+     A=labeledModule(S^2);
+     B=labeledModule(S^{3:-2});
+     M=matrix{{x^2,x*y,y^2},{y^2,y*z,z^2}}
+     f=map(A,B,M);
+     E=(exteriorPower(2,B))**(exteriorPower(2,A))
+     minorsMap(f,E)
+     minorsMap(M,E)
+   SeeAlso
+///
+
+
+doc ///
+   Key
+    (tensor, LabeledModule, LabeledModule)
+   Headline
+    creates the tensor product of two labeled modules, as a labeled module
+   Usage
+    tensor(F,E)
+   Inputs
+    F: LabeledModule
+    E: LabeledModule
+   Outputs
+    : LabeledModule
+   Description
+    Text
+     This {\tt tensor(F,E)} is the same as {\tt tensorProduct(F,E)}.  See
+     @TO tensorProduct@ for more details.
+    Example
+     S=ZZ/101[x,y,z];
+     F=labeledModule(S^2);
+     E=labeledModule(S^3);
+     G=tensor(F,E)
+     basisList G
+   SeeAlso
+///
+
+
+doc ///
+   Key
+    (tensor, LabeledModuleMap, LabeledModuleMap)
+   Headline
+    creates the tensor product of two maps of labeled modules, as a map of labeled module
+   Usage
+    tensor(f,g)
+   Inputs
+    f: LabeledModuleMap
+    g: LabeledModuleMap
+   Outputs
+    : LabeledModuleMap
+   Description
+    Text
+     If $f: A\to B$ and $g: C\to D$ are maps of labeled modules, then {\tt tensor(f,g)}
+     is the map of labeled modules
+     $$
+     f\otimes g: A\otimes C \to B\otimes D.
+     $$
+    Example
+     S=ZZ/101[x,y,z];
+     A=labeledModule(S^2);
+     B=labeledModule(S^3);
+     C=labeledModule(S^3);
+     D=labeledModule(S^{2:-1});
+     f=map(A,B,{{1,1,1},{0,3,5}})
+     g=map(C,D,{{x,y},{0,z},{y,0}})
+     tensor(f,g)
+   SeeAlso
+///
+
 
 ///
 print docTemplate
@@ -1502,181 +1947,24 @@ print docTemplate
 
 undocumented { (net, LabeledModule), (net, LabeledModuleMap) }
 
-
-document { 
-  Key => {underlyingModules, (underlyingModules, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {basisList, (basisList, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {fromOrdinal, (fromOrdinal, ZZ, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {toOrdinal, (toOrdinal, Thing, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
   Key => (ring, LabeledModule),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
   Key => (module, LabeledModule),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
   Key => (rank, LabeledModule),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
 
-document { 
+  Key => (matrix, LabeledModuleMap),
+  Key => (ring, LabeledModuleMap),
+  Key => (rank, LabeledModuleMap),
+  Key => (transpose, LabeledModuleMap),
+    
   Key => (symbol ==, LabeledModule, LabeledModule),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
 
-document { 
-  Key => (exteriorPower, ZZ, LabeledModule),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {multiSubsets, (multiSubsets, ZZ, ZZ), (multiSubsets, List, ZZ)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (symmetricPower, ZZ, LabeledModule),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {tensorProduct, (tensorProduct, List), (tensorProduct, Sequence)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
   Key => {(symbol **, LabeledModule, LabeledModule), 
     (tensor,LabeledModule, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
 
-document { 
-  Key => {symmetricMultiplication, 
-    (symmetricMultiplication, LabeledModule, ZZ, ZZ)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {cauchyMap, (cauchyMap, ZZ, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {traceMap, (traceMap, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {minorsMap, (minorsMap, LabeledModuleMap, LabeledModule), 
-    (minorsMap, Matrix, LabeledModule)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {flattenedGenericTensor, 
-    (flattenedGenericTensor, List, Ring)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => LabeledModuleMap,
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => {(map,LabeledModule,LabeledModule,Matrix),
-    (map,LabeledModule,LabeledModule,List),    
-    (map,LabeledModule,LabeledModule,Function)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (source, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (target, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (matrix, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (ring, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (rank, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
-  Key => (transpose, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
-
-document { 
   Key => {(tensor, LabeledModuleMap, LabeledModuleMap),
     (symbol **, LabeledModuleMap, LabeledModuleMap)},
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
 
-document { 
   Key => (symbol *, LabeledModuleMap, LabeledModuleMap),
-  Headline => "???",
-  "Blah, blah, blah.",
-  }
 *}
 -------------------------------------------------------------------------------- 
 -- TEST

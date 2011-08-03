@@ -354,7 +354,8 @@ a free module A, of rank a = sum bi.
 a map A <--- \otimes_j Bj,
 set d = (d0=0, d1=b1, d2 = b1+b2...). 
 
-The desired map is the composite
+The desired map is the composite g5 * g4 * g3 * g2 * g1 * g0 from
+F1->G1->G2->G3->G4->G5->F1.  The modules are defined as
 
 F1= wedge^b1 A ** wedge^b1 B1* ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
 by "trace" to 
@@ -368,7 +369,102 @@ to (by the wedge ** sym to wedge map and multiplication in Sym
 G3=wedge^b1 A ** [wedge^b1 \wedge_b1(\otimes_{j\geq 1} Bj*] ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
 to (by the minors)
 
+G4
+
+G5
+
 F0=R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
+
+The map g0: F1->G1 is given by the trace map
+*}
+
+
+
+tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
+  -- NOTE: local variables names following the notation from the
+  -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
+  -- 
+  -- f: A --> B1** B2** ... Bn
+  -- makes the map F0 <- F1 as above.
+  -- w = (0,w1,...).  w must satisfy some technical conditions that are checked below.
+  -- These technical conditions also appear in the documentation node for this function.
+  if not w_0 == 0 and w_1 >=0 and min apply(toList(2..#w), i-> w_i-w_(i-1)) > 0 then 
+      error "w not of the form (0,non-neg,increasing)";
+  
+  S := ring f;  
+  B := {S^0} | underlyingModules target f;
+  A := source f;
+  a := rank A;
+  n := #B-1;
+  if #w != n+1 then error"weight vector has wrong length";
+  b := B / rank; -- {0, b1, b2,..,bn}
+  
+  d1 := if w_1>0 then 1 else b_1;
+  r1 := # select(w, wj -> wj < d1);
+  if r1>2 then error "r1>2 is a case we can't handle";
+  if n === 0 or n===1 and r1 ===1 then return f;
+  if n === 1 and r1 === 2
+      then return map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d1}), gens minors(b_1,matrix f));
+
+    F1 := tensorProduct({exteriorPower(d1,A)}|
+	 apply(toList(1..r1-1),j-> exteriorPower(b_j,B_j)) | -- r1 = 1 or 2
+      apply(toList(r1..n), j-> symmetricPower(w_j-d1,B_j)));
+    -- target of output map
+    F0 := tensorProduct apply(n, j-> symmetricPower(w_(j+1), B_(j+1)));
+    trMap := id_(labeledModule S);
+--  I don't think these n>1 workarounds are needed anymore.  There's another one below.
+    if n>1 then trMap = traceMap tensorProduct apply(toList(r1..n), 
+      j -> symmetricPower(d1,B_j));
+    G1 := tensorProduct(target trMap, F1);
+    g0 := map(G1, F1, trMap ** id_F1);
+    G1factors := flatten(
+      ((underlyingModules target trMap) | {F1}) / underlyingModules );
+    -- G2 and G1 are isomorphic as free modules with ordered basis but different
+    -- as labeled modules.  G2 is obtained from G1 by dropping parentheses in 
+    -- the tensor product.
+    G2 := tensorProduct G1factors;
+    -- g1 is the isomorphism induced by dropping all parentheses in the tensor product.
+    -- Due to indexing conventions, matrix(g1) is just an identity matrix.
+    g1 := map(G2, G1, id_(S^(rank G1)));
+    perm := {};
+    if r1==2 then perm = join({2*n-2, 2*n-1}, toList(0..n-2), 
+      flatten apply(n-1, j -> {j+n-1, j+2*n}))
+    else  perm ={2*n}|toList(0..n-1)|flatten apply(n, j -> {j+n, j+2*n+1});
+    G3factors := G1factors_perm;
+    G3 := tensorProduct G3factors;
+    -- G3 is obtained from G2 by reordering the factors in the tensor product.
+    -- g2 is the isomorphism induced by reordering the factors of the tensor product.
+    -- The reordering is given by the permutation 'perm'.  
+    permMatrix := mutableMatrix(S, rank G3, rank G2);
+    for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
+    g2 := map(G3, G2, matrix permMatrix);
+    --  G3=G3a**G3b**G3c. The map g3: G3->G4 is defined as the tensor product of 3 maps.
+    G3a := G3factors_0;
+    G3b := tensorProduct G3factors_(toList(1..n));
+    G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
+    prodB := tensorProduct apply(n,i -> B_(i+1));  
+    -- G4=G3a**G4b**G3c.
+    G4b := exteriorPower(d1, prodB);
+    G4 := tensorProduct({G3a,G4b,G3c});
+    dualCauchyMap := map (G4b, G3b, transpose cauchyMap(d1, prodB));
+    g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
+    -- G5 is obtained from G4 by adding parentheses in the tensor product.
+    --  the map g4: G4->G5 is simply represented by an identity matrix.
+    G5 := (G3a**G4b)**G3c;
+    g4 := map(G5,G4,matrix id_(G4));
+    symMultMap := map(F0, G3c, tensorProduct apply(toList(r1..n), 
+      	j -> symmetricMultiplication(B_j,d1,w_j-d1)));
+    minMap := minorsMap(f, tensorProduct(G3a, G4b));
+    g5 := minMap ** symMultMap;
+    --  the source of minMap is (G3a**G4b).  the source of symMultMap is G3c.
+    map(F0, F1 ** labeledModule S^{ -d1}, g5 * g4 * g3 * g2 * g1 * g0))
+
+
+{*
+restart
+uninstallPackage "TensorComplexes"
+-- path=append(path,"~/IMA-2011/TensorComplexes/")
+installPackage "TensorComplexes"
 *}
 
 
@@ -464,78 +560,6 @@ flattenedESTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
  )
 
 
-tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
-  -- NOTE: local variables names following the notation from the
-  -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
-  -- 
-  -- f: A --> B1** B2** ... Bn
-  -- makes the map F0 <- F1 as above.
-  -- w = (0,w1,...).  w must satisfy some technical conditions that are checked below.
-  -- These technical conditions also appear in the documentation node for this function.
-  if not w_0 == 0 and w_1 >=0 and min apply(toList(2..#w), i-> w_i-w_(i-1)) > 0 then 
-      error "w not of the form (0,non-neg,increasing)";
-  
-  S := ring f;  
-  B := {S^0} | underlyingModules target f;
-  A := source f;
-  a := rank A;
-  n := #B-1;
-  if #w != n+1 then error"weight vector has wrong length";
-  b := B / rank; -- {0, b1, b2,..,bn}
-  
-  d1 := if w_1>0 then 1 else b_1;
-  r1 := # select(w, wj -> wj < d1);
-  if r1>2 then error "r1>2 is a case we can't handle";
-  if n === 0 or n===1 and r1 ===1 then return f;
-  if n === 1 and r1 === 2
-      then return map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d1}), gens minors(b_1,matrix f));
-
-    F1 := tensorProduct({exteriorPower(d1,A)}|
-	 apply(toList(1..r1-1),j-> exteriorPower(b_j,B_j)) | -- r1 = 1 or 2
-      apply(toList(r1..n), j-> symmetricPower(w_j-d1,B_j)));
-    -- target of output map
-    F0 := tensorProduct apply(n, j-> symmetricPower(w_(j+1), B_(j+1)));
-    trMap := id_(labeledModule S);
---  I don't think these n>1 workarounds are needed anymore.  There's another one below.
-    if n>1 then trMap = traceMap tensorProduct apply(toList(r1..n), 
-      j -> symmetricPower(d1,B_j));
-    G1 := tensorProduct(target trMap, F1);
-    g0 := map(G1, F1, trMap ** id_F1);
-    G1factors := flatten(
-      ((underlyingModules target trMap) | {F1}) / underlyingModules );
-    -- G2 and G1 are isomorphic as free modules with ordered basis but different
-    -- as labeled modules
-    G2 := tensorProduct G1factors;
-    -- g1 is the map induced by dropping all parentheses in the tensor product  
----
-    g1 := map(G2, G1, id_(S^(rank G1)));
-    perm := {};
-    if r1==2 then perm = join({2*n-2, 2*n-1}, toList(0..n-2), 
-      flatten apply(n-1, j -> {j+n-1, j+2*n}))
-    else  perm ={2*n}|toList(0..n-1)|flatten apply(n, j -> {j+n, j+2*n+1});
-    G3factors := G1factors_perm;
-    G3 := tensorProduct G3factors;
-    -- g2 is an isomorphism obtain by reordering the factors of a tensor product.
-    -- The reordering is given by the permutation 'perm'  
-    permMatrix := mutableMatrix(S, rank G3, rank G2);
-    for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
-    g2 := map(G3, G2, matrix permMatrix);
-    G3a := G3factors_0;
-    G3b := tensorProduct G3factors_(toList(1..n));
-    G3c := labeledModule S; -- case n==1
-    if n>1 then
-        G3c = tensorProduct G3factors_(toList(n+1..#G3factors-1));
-    prodB := tensorProduct apply(n,i -> B_(i+1));  
-    G4b := exteriorPower(d1, prodB);
-    dualCauchyMap := map (G4b, G3b, transpose cauchyMap(d1, prodB));
-    g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
---if r1 > n then symMultMap := id
-    symMultMap := map(F0, G3c, tensorProduct apply(toList(r1..n), 
-      	j -> symmetricMultiplication(B_j,d1,w_j-d1)));
-
-    minMap := minorsMap(f, tensorProduct(G3a, G4b));
-    g4 := minMap ** symMultMap;
-    map(F0, F1 ** labeledModule S^{ -d1}, g4 * g3 * g2 * g1 * g0))
 
 hyperdeterminant = method()
 hyperdeterminant LabeledModuleMap := f -> (

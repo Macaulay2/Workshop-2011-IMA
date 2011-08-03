@@ -330,7 +330,8 @@ chain = method()
 chain ZZ := Poset => n -> (
     if n == 0 then error "Integer n must be non-zero.";
     if n < 0 then ( print "Did you mean |n|?"; n = -n; );
-    poset(toList(1..n), apply(n-1, i -> {i+1, i+2}))
+    -- The matrix is known, so give it.
+    poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1)))
     )
 
 -- input:  a monomial m (and an ideal I)
@@ -850,7 +851,13 @@ rankPoset Poset := List => P -> (
 ------------------------------------------
 
 allRelations = method()
-allRelations Poset := List => P -> flatten for i to numrows P.RelationMatrix - 1 list for j to numrows P.RelationMatrix - 1 list if P.RelationMatrix_i_j == 1 then (P.GroundSet#j, P.GroundSet#i) else continue
+allRelations Poset := List => P -> (
+    n := numrows P.RelationMatrix;
+    flatten for i to n - 1 list for j from i + 1 to n - 1 list 
+        if P.RelationMatrix_i_j == 1 then (P.GroundSet#j, P.GroundSet#i) 
+        else if P.RelationMatrix_j_i == 1 then (P.GroundSet#i, P.GroundSet#j) 
+        else continue
+    )
 
 antichains = method()
 antichains Poset := List => P -> (
@@ -864,10 +871,7 @@ coveringRelations = method()
 coveringRelations Poset := List => P -> (
     if P.cache.?coveringRelations then return P.cache.coveringRelations;
     P.cache.coveringRelations = if #P.Relations === 0 then {} else (
-        edgeset := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
-            if P.RelationMatrix_i_j == 1 then {P.GroundSet_j, P.GroundSet_i} 
-            else if P.RelationMatrix_j_i == 1 then {P.GroundSet_i, P.GroundSet_j} 
-            else continue;
+        edgeset := toList \ allRelations P;
         testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
         nonCovers:=apply(testpairs, p-> {first first p, last last p});
         select(edgeset, p-> not member(p,nonCovers))

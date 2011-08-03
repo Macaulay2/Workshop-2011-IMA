@@ -817,8 +817,8 @@ allRelations (Poset, Boolean) := List => (P, NoLoops) -> (
     n := numrows P.RelationMatrix;
     offset := if NoLoops then 1 else 0;
     flatten for i to n - 1 list for j from i + offset to n - 1 list 
-        if P.RelationMatrix_i_j == 1 then (P.GroundSet#j, P.GroundSet#i) 
-        else if P.RelationMatrix_j_i == 1 then (P.GroundSet#i, P.GroundSet#j) 
+        if P.RelationMatrix_i_j == 1 then {P.GroundSet#j, P.GroundSet#i}
+        else if P.RelationMatrix_j_i == 1 then {P.GroundSet#i, P.GroundSet#j}
         else continue
     )
 allRelations Poset := List => P -> allRelations(P, false)
@@ -835,12 +835,11 @@ antichains Poset := List => P -> (
 coveringRelations = method()
 coveringRelations Poset := List => P -> (
     if P.cache.?coveringRelations then return P.cache.coveringRelations;
-    P.cache.coveringRelations = if #P.Relations === 0 then {} else (
-        edgeset := toList \ allRelations(P, true);
-        testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
-        nonCovers:=apply(testpairs, p-> {first first p, last last p});
-        select(edgeset, p-> not member(p,nonCovers))
-        )    
+    gtp := for i to #P.GroundSet - 1 list for j to #P.GroundSet - 1 list if i != j and P.RelationMatrix_j_i != 0 then j else continue;
+    P.cache.coveringRelations = flatten for i to #P.GroundSet - 1 list (
+        gtgtp := unique flatten gtp_(gtp_i);
+        apply(toList(set gtp_i - set gtgtp), j -> {P.GroundSet_i, P.GroundSet_j})
+        )
     )
 
 flagChains = method()
@@ -2179,7 +2178,7 @@ doc///
 ///     
 
 ------------------------------------------
--- Tests
+-- )Tests
 ------------------------------------------
 
 -- TEST 0
@@ -2276,10 +2275,10 @@ L2 = divisorPoset(x^2*y^3);
 
 --testing divisorPoset and LCM lattices
 assert( (L.GroundSet) == {1,z^2,y^2,y^2*z^2,x^2,x^2*z^2,x^2*y^2,x^2*y^2*z^2} )
-assert( allRelations L == {(1,1),(1,z^2),(1,y^2),(1,y^2*z^2),(1,x^2),(1,x^2*z^2),(1,x^2*y^2),(1,x^2*y^2*z^2),(z^2,z^2),(z^2,y^2*z^2),(z^2,x^2*z^2),(z^2,x^2*y^2*z^2),(y^2,y^2),(y^2,y^2*z^2),(y^2,x^2*y^2),(y^2,x^2*y^2*z^2),(y^2*z^2,y^2*z^2),(y^2*z^2,x^2*y^2*z^2),(x^2,x^2),(x^2,x^2*z^2),(x^2,x^2*y^2),(x^2,x^2*y^2*z^2),(x^2*z^2,x^2*z^2),(x^2*z^2,x^2*y^2*z^2),(x^2*y^2,x^2*y^2),(x^2*y^2,x^2*y^2*z^2),(x^2*y^2*z^2,x^2*y^2*z^2)} )
+assert( allRelations L == {{1,1},{1,z^2},{1,y^2},{1,y^2*z^2},{1,x^2},{1,x^2*z^2},{1,x^2*y^2},{1,x^2*y^2*z^2},{z^2,z^2},{z^2,y^2*z^2},{z^2,x^2*z^2},{z^2,x^2*y^2*z^2},{y^2,y^2},{y^2,y^2*z^2},{y^2,x^2*y^2},{y^2,x^2*y^2*z^2},{y^2*z^2,y^2*z^2},{y^2*z^2,x^2*y^2*z^2},{x^2,x^2},{x^2,x^2*z^2},{x^2,x^2*y^2},{x^2,x^2*y^2*z^2},{x^2*z^2,x^2*z^2},{x^2*z^2,x^2*y^2*z^2},{x^2*y^2,x^2*y^2},{x^2*y^2,x^2*y^2*z^2},{x^2*y^2*z^2,x^2*y^2*z^2}} )
 assert( (L.RelationMatrix) === map(ZZ^8,ZZ^8,{{1, 1, 1, 1, 1, 1, 1, 1}, {0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 1, 1, 0, 0, 1, 1}, {0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0, 0, 1, 1, 1, 1}, {0, 0, 0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 1}}) )
 assert( (L2.GroundSet) == {1,y,y^2,y^3,x,x*y,x*y^2,x*y^3,x^2,x^2*y,x^2*y^2,x^2*y^3} )
-assert( allRelations L2 == {(1,1),(1,y),(1,y^2),(1,y^3),(1,x),(1,x*y),(1,x*y^2),(1,x*y^3),(1,x^2),(1,x^2*y),(1,x^2*y^2),(1,x^2*y^3),(y,y),(y,y^2),(y,y^3),(y,x*y),(y,x*y^2),(y,x*y^3),(y,x^2*y),(y,x^2*y^2),(y,x^2*y^3),(y^2,y^2),(y^2,y^3),(y^2,x*y^2),(y^2,x*y^3),(y^2,x^2*y^2),(y^2,x^2*y^3),(y^3,y^3),(y^3,x*y^3),(y^3,x^2*y^3),(x,x),(x,x*y),(x,x*y^2),(x,x*y^3),(x,x^2),(x,x^2*y),(x,x^2*y^2),(x,x^2*y^3),(x*y,x*y),(x*y,x*y^2),(x*y,x*y^3),(x*y,x^2*y),(x*y,x^2*y^2),(x*y,x^2*y^3),(x*y^2,x*y^2),(x*y^2,x*y^3),(x*y^2,x^2*y^2),(x*y^2,x^2*y^3),(x*y^3,x*y^3),(x*y^3,x^2*y^3),(x^2,x^2),(x^2,x^2*y),(x^2,x^2*y^2),(x^2,x^2*y^3),(x^2*y,x^2*y),(x^2*y,x^2*y^2),(x^2*y,x^2*y^3),(x^2*y^2,x^2*y^2),(x^2*y^2,x^2*y^3),(x^2*y^3,x^2*y^3)} )
+assert( allRelations L2 == {{1,1},{1,y},{1,y^2},{1,y^3},{1,x},{1,x*y},{1,x*y^2},{1,x*y^3},{1,x^2},{1,x^2*y},{1,x^2*y^2},{1,x^2*y^3},{y,y},{y,y^2},{y,y^3},{y,x*y},{y,x*y^2},{y,x*y^3},{y,x^2*y},{y,x^2*y^2},{y,x^2*y^3},{y^2,y^2},{y^2,y^3},{y^2,x*y^2},{y^2,x*y^3},{y^2,x^2*y^2},{y^2,x^2*y^3},{y^3,y^3},{y^3,x*y^3},{y^3,x^2*y^3},{x,x},{x,x*y},{x,x*y^2},{x,x*y^3},{x,x^2},{x,x^2*y},{x,x^2*y^2},{x,x^2*y^3},{x*y,x*y},{x*y,x*y^2},{x*y,x*y^3},{x*y,x^2*y},{x*y,x^2*y^2},{x*y,x^2*y^3},{x*y^2,x*y^2},{x*y^2,x*y^3},{x*y^2,x^2*y^2},{x*y^2,x^2*y^3},{x*y^3,x*y^3},{x*y^3,x^2*y^3},{x^2,x^2},{x^2,x^2*y},{x^2,x^2*y^2},{x^2,x^2*y^3},{x^2*y,x^2*y},{x^2*y,x^2*y^2},{x^2*y,x^2*y^3},{x^2*y^2,x^2*y^2},{x^2*y^2,x^2*y^3},{x^2*y^3,x^2*y^3}} )
 assert( (L2.RelationMatrix) === map(ZZ^12,ZZ^12,{{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1}, {0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1}, {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1}, {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}}) )
 ///
 
@@ -2314,7 +2313,7 @@ assert( (minimalElements L) == {1} )
 
 --testing atoms
 assert( (atoms(P1) ) === {c,d} )
-assert( (atoms(L)) === {z^2,y^2,x^2} )
+assert( (atoms(L)) === {x^2,z^2,y^2} )
 ///
 
 -- TEST 7
@@ -2327,21 +2326,21 @@ L2 = divisorPoset(x^2*y^3);
 
 --testing subPoset
 assert( ((subPoset(P1, {a,b,e})).GroundSet) === {a,b,e} )
-assert( ((subPoset(P1, {a,b,e})).Relations) === {(a,e),(b,e)} )
+assert( ((subPoset(P1, {a,b,e})).Relations) === {{a,e},{b,e}} )
 assert( ((subPoset(P1, {a,b,e})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((subPoset(P2, {a,e,f,d})).GroundSet) === {a,d,e,f} )
-assert( ((subPoset(P2, {a,e,f,d})).Relations) === {(a,e),(a,f),(e,f)} )
+assert( ((subPoset(P2, {a,e,f,d})).Relations) === {{a,e},{a,f},{e,f}} )
 assert( ((subPoset(P2, {a,e,f,d})).RelationMatrix) === map(ZZ^4,ZZ^4,{{1, 0, 1, 1}, {0, 1, 0, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}}) )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).GroundSet) === {y^2,x^2,x^2*y^2} )
-assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,x^2*y^2),(x^2,x^2*y^2)} )
+assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {{y^2,x^2*y^2},{x^2,x^2*y^2}} )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 
 -- testing dropElements
 assert( ((dropElements(P1, {a,c})).GroundSet) === {b,d,e} )
-assert( ((dropElements(P1, {a,c})).Relations) === {(b,d),(b,e),(d,e)} )
+assert( ((dropElements(P1, {a,c})).Relations) === {{b,d},{b,e},{d,e}} )
 assert( ((dropElements(P1, {a,c})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 1, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((dropElements(L2, m-> first degree m > 2)).GroundSet) == {1,y,y^2,x,x*y,x^2} )
-assert( ((dropElements(L2, m-> first degree m > 2)).Relations) == {(1,y), (1,y^2), (1,x), (1,x*y), (1,x^2), (y,y^2), (y,x*y), (x,x*y), (x,x^2)})
+assert( ((dropElements(L2, m-> first degree m > 2)).Relations) == {{1,y}, {1,y^2}, {1,x}, {1,x*y}, {1,x^2}, {y,y^2}, {y,x*y}, {x,x*y}, {x,x^2}} )
 assert( ((dropElements(L2, m-> first degree m > 2)).RelationMatrix) === map(ZZ^6,ZZ^6,{{1, 1, 1, 1, 1, 1}, {0, 1, 1, 0, 1, 0}, {0, 0, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 1}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}}) )
 
 ///
@@ -2385,13 +2384,11 @@ L = lcmLattice I;
 
 assert( (maximalChains(P1)) === {{h,i,j},{h,i,k}} )
 assert( (maximalChains(P2)) === {{a,b,e,g},{a,c,e,g},{a,c,f,g},{a,d,f,g}})
-assert( (maximalChains(L)) == {{1,y*z,y^3*z,x*y^3*z,x^2*y^3*z},{1,y*z,x*y*z,x*y^3*z,x^2*y^3*z},{1,y*z,x
-      *y*z,x^2*y*z,x^2*y^3*z},{1,y^3,y^3*z,x*y^3*z,x^2*y^3*z},{1,y^3,x*y^3,x*y^
-      3*z,x^2*y^3*z},{1,y^3,x*y^3,x^2*y^3,x^2*y^3*z},{1,x*y,x*y*z,x*y^3*z,x^2*y
-      ^3*z},{1,x*y,x*y*z,x^2*y*z,x^2*y^3*z},{1,x*y,x*y^3,x*y^3*z,x^2*y^3*z},{1,
-      x*y,x*y^3,x^2*y^3,x^2*y^3*z},{1,x*y,x^2*y,x^2*y*z,x^2*y^3*z},{1,x*y,x^2*y
-      ,x^2*y^3,x^2*y^3*z},{1,x^2,x^2*y,x^2*y*z,x^2*y^3*z},{1,x^2,x^2*y,x^2*y^3,
-      x^2*y^3*z}} )
+assert( (sort maximalChains(L)) == {{1, y*z, x*y*z, x^2*y*z, x^2*y^3*z}, {1, y*z, x*y*z, x*y^3*z, x^2*y^3*z},
+        {1, y*z, y^3*z, x*y^3*z, x^2*y^3*z}, {1, x*y, x*y*z, x^2*y*z, x^2*y^3*z}, {1, x*y, x*y*z, x*y^3*z, x^2*y^3*z},
+        {1, x*y, x^2*y, x^2*y*z, x^2*y^3*z}, {1, x*y, x^2*y, x^2*y^3, x^2*y^3*z}, {1, x*y, x*y^3, x*y^3*z, x^2*y^3*z}, 
+        {1, x*y, x*y^3, x^2*y^3, x^2*y^3*z}, {1, x^2, x^2*y, x^2*y*z, x^2*y^3*z}, {1, x^2, x^2*y, x^2*y^3, x^2*y^3*z},
+        {1, y^3, y^3*z, x*y^3*z, x^2*y^3*z}, {1, y^3, x*y^3, x*y^3*z, x^2*y^3*z}, {1, y^3, x*y^3, x^2*y^3, x^2*y^3*z}} )
 ///
 
 -- TEST 11
@@ -2418,9 +2415,8 @@ I = ideal(x^2, y^2, z^2);
 L = lcmLattice I;
 assert( (coveringRelations P1) === {{h,i},{i,j},{i,k}} )
 assert( (coveringRelations P2) === {{a,b},{a,c},{a,d},{b,e},{c,e},{c,f},{d,f},{e,g},{f,g}} )
-assert( (coveringRelations L) == 
-        {{1,z^2}, {1,y^2}, {1,x^2}, {z^2,y^2*z^2}, {z^2,x^2*z^2}, {y^2,y^2*z^2}, {y^2,x^2*y^2}, {y^2*z^2,x^2*y^2*z^2}, {x^2,x^2*z^2}, {x^2,x^2*y^2},
-        {x^2*z^2,x^2*y^2*z^2}, {x^2*y^2,x^2*y^2*z^2}} )
+assert( (sort coveringRelations L) == {{1, z^2}, {1, y^2}, {1, x^2}, {z^2, y^2*z^2}, {z^2, x^2*z^2}, {y^2, y^2*z^2}, {y^2, x^2*y^2}, 
+        {x^2, x^2*z^2}, {x^2, x^2*y^2}, {y^2*z^2, x^2*y^2*z^2}, {x^2*z^2, x^2*y^2*z^2}, {x^2*y^2, x^2*y^2*z^2}} )
 ///
 
 -- TEST 13
@@ -2429,9 +2425,9 @@ P1 = poset ({h,i,j,k},{(h,i), (i,j), (i,k)});
 P2 = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)});
 
 assert( ((openInterval(P1,h,j)).Relations) === {} )
-assert( sort ((closedInterval(P1,i,k)).Relations) === {(i,k)} )
+assert( sort ((closedInterval(P1,i,k)).Relations) === {{i,k}} )
 assert( sort ((openInterval(P2,a,e)).Relations) === {} )
-assert( sort ((closedInterval(P2,c,g)).Relations) === {(c,e),(c,f),(c,g),(e,g),(f,g)} )
+assert( sort ((closedInterval(P2,c,g)).Relations) === {{c,e},{c,f},{c,g},{e,g},{f,g}} )
 
 ///
 

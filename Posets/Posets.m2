@@ -295,14 +295,14 @@ dropElements (Poset, List) := Poset => (P, L) -> (
     keptIndices := select(toList(0..#P.GroundSet-1), i -> not member(P.GroundSet#i, L));
     newGroundSet := P.GroundSet_keptIndices;
     newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
-    newRelations := select(allRelations P, r -> not member(first r, L) and not member(last r, L));
+    newRelations := select(allRelations(P, true), r -> not member(first r, L) and not member(last r, L));
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
 dropElements (Poset, Function) := Poset => (P, f) -> (
     keptIndices := select(toList(0..#P.GroundSet-1), i-> not f(P.GroundSet#i));
     newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
     newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
-    newRelations := select(allRelations P, r -> not f(first r) and not f(last r));
+    newRelations := select(allRelations(P, true), r -> not f(first r) and not f(last r));
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
 
@@ -465,103 +465,60 @@ intersectionLattice (List, Ring) := Poset => (L, R)-> (
     poset(G,rel)
     )
 
--- ***TODO*** Needs thorough cleaning.
 -- input:  generators of a monomial ideal
 -- output: lcm lattice of that monomial ideal
 -- potential problem:  subsets dies when a set is too big (> 18)
 lcmLattice = method( Options => { Strategy => 1 })
 lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
     L := flatten entries gens M;
-    Ground := null;
-    if opts.Strategy === 0 then (
-        subsetsL := flatten apply(#L, i-> subsets (L,i+1));
-        Ground = unique flatten apply (subsetsL, r-> lcm(r));
-        Ground = prepend(1_(ring M), Ground);
-        ) 
-    else (
-        Ground = lcmLatticeProduceGroundSet L;
-        Ground = apply(Ground, D -> product apply(numgens ring M, i-> (ring M)_i^(D#i)));
-        );
-    Rels := select(unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s))), i -> i =!= null);
-    RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
+    Ground := if opts.Strategy === 0 then prepend(1_(ring M), unique (lcm \ drop(subsets L, 1)))
+              else apply(lcmLatticeProduceGroundSet L, D -> product apply(numgens ring M, i-> (ring M)_i^(D#i)));
+    Rels := flatten for i to #Ground-1 list for j from i+1 to #Ground-1 list 
+        if Ground_i % Ground_j == 0 then {Ground_j, Ground_i} else if Ground_j % Ground_i == 0 then {Ground_i, Ground_j} else continue;
+    RelsMatrix := matrix apply(Ground, r -> apply(Ground, s -> if s % r == 0 then 1 else 0));
     poset (Ground, Rels, RelsMatrix)
     )
 lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts)
 
+-- Used by lcmLattice for Straegy 1
 protect next
--- Makes a pair storing a multi-degree and a list of multi-degrees which are to be joined with this degree.
-degreeNextPair = (D, nextDegrees) -> hashTable {symbol degree => D, symbol next => nextDegrees}
-
---Takes the lcm of two degrees and determines which 
---of the lowerNexts can later be joined to newDegree
---and change its multidegree. Note that the lower nexts are not
---all multi-degrees. They have already been chosen so that they 
---would not change the degrees of the first i variables where
---i appears in the for loop of lcmLatticeProduceGroundSet.
-joinDegrees = (A,B, lowerNexts) ->  (
-    C := lcmDegree {A.degree, B};
-    nexts := select(lowerNexts, D -> not dividesDegree(D, C));
-    degreeNextPair( C, nexts )
-    )
-
---Checks if D divides E as multidegrees
-dividesDegree = (D,E) -> all(E-D, i-> i >= 0)
-
---Takes the lcm of two multidegrees
-lcmDegree = L -> apply(transpose L, l -> max l)
-
---Take a list of degreeNextPairs and drop duplicate degrees
-uniqueMultiDegrees = L -> (
-    P := partition(D -> (D.degree) , L);
-    apply(keys P, d -> first P#d)
-    )
-
---Builds the possible multidegrees by changes in variable i.
-determineLCMsForVariable = (lcmDegrees, i) -> (
-    VERBOSE := false;
-    newLCMDegrees := flatten apply(lcmDegrees, D -> (
-        if VERBOSE then << "Working on " << D.degree << endl << D.next << endl;
-        -- Take D's nexts are partition them by the exponent 
-        -- of the i-th variable. Store in P.
-        P := partition(E -> E#i, D.next);
-        -- Partition the possible degrees of the i-th variable
-        -- into those that change multi-degree D in the i-th coordinate
-        -- and those that don't. Store in Q.
-        Q := partition(d -> d > (D.degree)#i, keys P);
-        --Restrict P to only those which change the degree the i-th variable of D.
-        upperPartition := hashTable apply(if Q#?true then Q#true else {}, d -> d => P#d);
-        if VERBOSE then << "Upper Partition" << endl << upperPartition << endl;
-        -- The lowerNexts are those multi degrees that can change D in
-        -- the indices larger than i, but not in i itself.
-        lowerNexts := flatten apply(if Q#?false then Q#false else {},  d -> P#d);
-        newD := degreeNextPair( D.degree, lowerNexts ); -- D with fewer nexts
-        newMultiDegrees := flatten apply(keys upperPartition, d -> (
-            lowerNexts = lowerNexts | upperPartition#d; -- build these as we go
-            apply(upperPartition#d, E -> joinDegrees(D,E,lowerNexts))
-            )
-        );
-        {newD } | newMultiDegrees 
-        )
-    );
-    newLCMDegrees = select(newLCMDegrees, D -> D =!= null);
-    uniqueMultiDegrees newLCMDegrees
-)
-
 lcmLatticeProduceGroundSet = G -> (
-    VERBOSE := false;
+    degreeNextPair := (D, nextDegrees) -> hashTable {symbol degree => D, symbol next => nextDegrees};
+    -- Builds the possible multidegrees by changes in variable i.
+    determineLCMsForVariable := (lcmDegrees, i) -> (
+        -- Takes the lcm of two degrees and determines which of the lowerNexts can later be joined to newDegree
+        -- and change its multidegree. Note that the lower nexts are not all multi-degrees. 
+        joinDegrees := (A,B, lowerNexts) ->  (
+            C := max \ transpose {A.degree, B};
+            degreeNextPair(C, select(lowerNexts, D -> any(C - D, i -> i < 0)))
+            );
+        newLCMDegrees := flatten apply(lcmDegrees, D -> (
+            -- Take D's nexts are partition them by the exponent of the i-th variable. Store in P.
+            P := partition(E -> E#i, D.next);
+            -- Partition the possible degrees of the i-th variable into those that change multi-degree D 
+            -- in the i-th coordinate and those that don't. Store in Q.
+            Q := partition(d -> d > (D.degree)#i, keys P);
+            --Restrict P to only those which change the degree the i-th variable of D.
+            upperPartition := hashTable apply(if Q#?true then Q#true else {}, d -> d => P#d);
+            -- The lowerNexts are those multi degrees that can change D in the indices larger than i, but not in i itself.
+            lowerNexts := flatten apply(if Q#?false then Q#false else {}, d -> P#d);
+            newD := degreeNextPair( D.degree, lowerNexts ); -- D with fewer nexts
+            newMultiDegrees := flatten apply(keys upperPartition, d -> (
+                lowerNexts = lowerNexts | upperPartition#d; -- build these as we go
+                apply(upperPartition#d, E -> joinDegrees(D, E, lowerNexts))
+                ));
+            prepend(newD, newMultiDegrees)
+            ));
+        -- unique the multi-degrees list
+        first \ values partition(D -> D.degree, select(newLCMDegrees, D -> D =!= null))
+    );
     initialExps := flatten apply(G, m -> exponents m);
     n := if #initialExps === 0 then 0 else #(first initialExps);
     lcmDegrees := { degreeNextPair(apply(n, i -> 0), initialExps) };
-    for i from 0 to n-1 do (
-        if VERBOSE then << "Variable " << i << endl;
---        if VERBOSE then printDegreeList L;
-        -- lcmDegrees contains all possible multi-degrees restricted
-        -- to the first i varibles. For each of these multi-degrees
-        -- we have a list of "nexts" which are atoms which could
-        -- affect degrees of variables after i without changing 
-        -- the degrees of variables before i.
-        lcmDegrees = determineLCMsForVariable(lcmDegrees, i);
-    );
+    -- lcmDegrees contains all possible multi-degrees restricted to the first i varibles. For each of these multi-degrees
+    -- we have a list of "nexts" which are atoms which could affect degrees of variables after i without changing the 
+    -- degrees of variables before i.
+    for i from 0 to n-1 do lcmDegrees = determineLCMsForVariable(lcmDegrees, i);
     sort apply(lcmDegrees, D -> D.degree)
     )
 
@@ -657,7 +614,7 @@ displayPoset(Poset):=opts->(P)->(
     name := temporaryFileName();
     outputTexPoset(P, concatenate(name, ".tex"), symbol SuppressLabels => opts.SuppressLabels, symbol Jitter => opts.Jitter);
     run concatenate("pdflatex -output-directory /tmp ", name, " 1>/dev/null");
-    run concatenate(opts.PDFViewer, " ", name,".pdf");
+    run concatenate(opts.PDFViewer, " ", name,".pdf &");
     )
 
 outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, symbol Jitter => false});
@@ -856,19 +813,22 @@ rankPoset Poset := List => P -> (
 ------------------------------------------
 
 allRelations = method()
-allRelations Poset := List => P -> (
+allRelations (Poset, Boolean) := List => (P, NoLoops) -> (
     n := numrows P.RelationMatrix;
-    flatten for i to n - 1 list for j from i + 1 to n - 1 list 
+    offset := if NoLoops then 1 else 0;
+    flatten for i to n - 1 list for j from i + offset to n - 1 list 
         if P.RelationMatrix_i_j == 1 then (P.GroundSet#j, P.GroundSet#i) 
         else if P.RelationMatrix_j_i == 1 then (P.GroundSet#i, P.GroundSet#j) 
         else continue
     )
+allRelations Poset := List => P -> allRelations(P, false)
 
 antichains = method()
 antichains Poset := List => P -> (
     v := local v;
     R := (ZZ/2)(monoid [v_1..v_(#P.GroundSet)]);
-    S := simplicialComplex monomialIdeal flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then R_i * R_j else continue;
+    S := simplicialComplex monomialIdeal flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list 
+        if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then R_i * R_j else continue;
     apply(flatten apply(1 + dim S, d -> flatten entries faces(d, S)), a -> P.GroundSet_(indices a))
     )
 
@@ -876,7 +836,7 @@ coveringRelations = method()
 coveringRelations Poset := List => P -> (
     if P.cache.?coveringRelations then return P.cache.coveringRelations;
     P.cache.coveringRelations = if #P.Relations === 0 then {} else (
-        edgeset := toList \ allRelations P;
+        edgeset := toList \ allRelations(P, true);
         testpairs:=flatten apply(edgeset, r-> apply(select(edgeset, s-> last r === first s), p-> {r,p}));
         nonCovers:=apply(testpairs, p-> {first first p, last last p});
         select(edgeset, p-> not member(p,nonCovers))
@@ -2316,10 +2276,10 @@ L2 = divisorPoset(x^2*y^3);
 
 --testing divisorPoset and LCM lattices
 assert( (L.GroundSet) == {1,z^2,y^2,y^2*z^2,x^2,x^2*z^2,x^2*y^2,x^2*y^2*z^2} )
-assert( (L.Relations) == {(1,1),(1,z^2),(1,y^2),(1,y^2*z^2),(1,x^2),(1,x^2*z^2),(1,x^2*y^2),(1,x^2*y^2*z^2),(z^2,z^2),(z^2,y^2*z^2),(z^2,x^2*z^2),(z^2,x^2*y^2*z^2),(y^2,y^2),(y^2,y^2*z^2),(y^2,x^2*y^2),(y^2,x^2*y^2*z^2),(y^2*z^2,y^2*z^2),(y^2*z^2,x^2*y^2*z^2),(x^2,x^2),(x^2,x^2*z^2),(x^2,x^2*y^2),(x^2,x^2*y^2*z^2),(x^2*z^2,x^2*z^2),(x^2*z^2,x^2*y^2*z^2),(x^2*y^2,x^2*y^2),(x^2*y^2,x^2*y^2*z^2),(x^2*y^2*z^2,x^2*y^2*z^2)} )
+assert( allRelations L == {(1,1),(1,z^2),(1,y^2),(1,y^2*z^2),(1,x^2),(1,x^2*z^2),(1,x^2*y^2),(1,x^2*y^2*z^2),(z^2,z^2),(z^2,y^2*z^2),(z^2,x^2*z^2),(z^2,x^2*y^2*z^2),(y^2,y^2),(y^2,y^2*z^2),(y^2,x^2*y^2),(y^2,x^2*y^2*z^2),(y^2*z^2,y^2*z^2),(y^2*z^2,x^2*y^2*z^2),(x^2,x^2),(x^2,x^2*z^2),(x^2,x^2*y^2),(x^2,x^2*y^2*z^2),(x^2*z^2,x^2*z^2),(x^2*z^2,x^2*y^2*z^2),(x^2*y^2,x^2*y^2),(x^2*y^2,x^2*y^2*z^2),(x^2*y^2*z^2,x^2*y^2*z^2)} )
 assert( (L.RelationMatrix) === map(ZZ^8,ZZ^8,{{1, 1, 1, 1, 1, 1, 1, 1}, {0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 1, 1, 0, 0, 1, 1}, {0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0, 0, 1, 1, 1, 1}, {0, 0, 0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 1}}) )
 assert( (L2.GroundSet) == {1,y,y^2,y^3,x,x*y,x*y^2,x*y^3,x^2,x^2*y,x^2*y^2,x^2*y^3} )
-assert( (L2.Relations) == {(1,1),(1,y),(1,y^2),(1,y^3),(1,x),(1,x*y),(1,x*y^2),(1,x*y^3),(1,x^2),(1,x^2*y),(1,x^2*y^2),(1,x^2*y^3),(y,y),(y,y^2),(y,y^3),(y,x*y),(y,x*y^2),(y,x*y^3),(y,x^2*y),(y,x^2*y^2),(y,x^2*y^3),(y^2,y^2),(y^2,y^3),(y^2,x*y^2),(y^2,x*y^3),(y^2,x^2*y^2),(y^2,x^2*y^3),(y^3,y^3),(y^3,x*y^3),(y^3,x^2*y^3),(x,x),(x,x*y),(x,x*y^2),(x,x*y^3),(x,x^2),(x,x^2*y),(x,x^2*y^2),(x,x^2*y^3),(x*y,x*y),(x*y,x*y^2),(x*y,x*y^3),(x*y,x^2*y),(x*y,x^2*y^2),(x*y,x^2*y^3),(x*y^2,x*y^2),(x*y^2,x*y^3),(x*y^2,x^2*y^2),(x*y^2,x^2*y^3),(x*y^3,x*y^3),(x*y^3,x^2*y^3),(x^2,x^2),(x^2,x^2*y),(x^2,x^2*y^2),(x^2,x^2*y^3),(x^2*y,x^2*y),(x^2*y,x^2*y^2),(x^2*y,x^2*y^3),(x^2*y^2,x^2*y^2),(x^2*y^2,x^2*y^3),(x^2*y^3,x^2*y^3)} )
+assert( allRelations L2 == {(1,1),(1,y),(1,y^2),(1,y^3),(1,x),(1,x*y),(1,x*y^2),(1,x*y^3),(1,x^2),(1,x^2*y),(1,x^2*y^2),(1,x^2*y^3),(y,y),(y,y^2),(y,y^3),(y,x*y),(y,x*y^2),(y,x*y^3),(y,x^2*y),(y,x^2*y^2),(y,x^2*y^3),(y^2,y^2),(y^2,y^3),(y^2,x*y^2),(y^2,x*y^3),(y^2,x^2*y^2),(y^2,x^2*y^3),(y^3,y^3),(y^3,x*y^3),(y^3,x^2*y^3),(x,x),(x,x*y),(x,x*y^2),(x,x*y^3),(x,x^2),(x,x^2*y),(x,x^2*y^2),(x,x^2*y^3),(x*y,x*y),(x*y,x*y^2),(x*y,x*y^3),(x*y,x^2*y),(x*y,x^2*y^2),(x*y,x^2*y^3),(x*y^2,x*y^2),(x*y^2,x*y^3),(x*y^2,x^2*y^2),(x*y^2,x^2*y^3),(x*y^3,x*y^3),(x*y^3,x^2*y^3),(x^2,x^2),(x^2,x^2*y),(x^2,x^2*y^2),(x^2,x^2*y^3),(x^2*y,x^2*y),(x^2*y,x^2*y^2),(x^2*y,x^2*y^3),(x^2*y^2,x^2*y^2),(x^2*y^2,x^2*y^3),(x^2*y^3,x^2*y^3)} )
 assert( (L2.RelationMatrix) === map(ZZ^12,ZZ^12,{{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1}, {0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1}, {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1}, {0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1}, {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}}) )
 ///
 
@@ -2367,21 +2327,21 @@ L2 = divisorPoset(x^2*y^3);
 
 --testing subPoset
 assert( ((subPoset(P1, {a,b,e})).GroundSet) === {a,b,e} )
-assert( sort ((subPoset(P1, {a,b,e})).Relations) === {(a,e),(b,e)} )
+assert( ((subPoset(P1, {a,b,e})).Relations) === {(a,e),(b,e)} )
 assert( ((subPoset(P1, {a,b,e})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((subPoset(P2, {a,e,f,d})).GroundSet) === {a,d,e,f} )
-assert( sort ((subPoset(P2, {a,e,f,d})).Relations) === {(a,e),(a,f),(e,f)} )
+assert( ((subPoset(P2, {a,e,f,d})).Relations) === {(a,e),(a,f),(e,f)} )
 assert( ((subPoset(P2, {a,e,f,d})).RelationMatrix) === map(ZZ^4,ZZ^4,{{1, 0, 1, 1}, {0, 1, 0, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}}) )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).GroundSet) === {y^2,x^2,x^2*y^2} )
-assert( sort ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,x^2*y^2),(x^2,x^2*y^2)} )
+assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,x^2*y^2),(x^2,x^2*y^2)} )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 
 -- testing dropElements
 assert( ((dropElements(P1, {a,c})).GroundSet) === {b,d,e} )
-assert( sort ((dropElements(P1, {a,c})).Relations) === {(b,d),(b,e),(d,e)} )
-assert( ((dropElements(P1, {a,c})).RelationMatrix          ) === map(ZZ^3,ZZ^3,{{1, 1, 1}, {0, 1, 1}, {0, 0, 1}}) )
+assert( ((dropElements(P1, {a,c})).Relations) === {(b,d),(b,e),(d,e)} )
+assert( ((dropElements(P1, {a,c})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 1, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((dropElements(L2, m-> first degree m > 2)).GroundSet) == {1,y,y^2,x,x*y,x^2} )
-assert( sort ((dropElements(L2, m-> first degree m > 2)).Relations) == sort {(1,y),(1,y^2),(1,x),(1,x*y),(1,x^2),(y,y^2),(y,x*y),(x,x*y),(x,x^2)} )
+assert( ((dropElements(L2, m-> first degree m > 2)).Relations) == {(1,y), (1,y^2), (1,x), (1,x*y), (1,x^2), (y,y^2), (y,x*y), (x,x*y), (x,x^2)})
 assert( ((dropElements(L2, m-> first degree m > 2)).RelationMatrix) === map(ZZ^6,ZZ^6,{{1, 1, 1, 1, 1, 1}, {0, 1, 1, 0, 1, 0}, {0, 0, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 1}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}}) )
 
 ///

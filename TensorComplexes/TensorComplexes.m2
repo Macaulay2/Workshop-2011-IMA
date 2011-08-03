@@ -347,35 +347,98 @@ tensorComplex1 = method()
 
 
 {*
-Make the first map of a generic tensor complex:
-Given (over a ring R)
-free modules Bi of ranks bi\geq 1,
-a free module A, of rank a = sum bi.
-a map A <--- \otimes_j Bj,
-set d = (d0=0, d1=b1, d2 = b1+b2...). 
+This makes the first map of a tensor complex, at least when w satisfies a somewhat
+technical condition that is spelled out in the documentation file.  Eventually,
+if possible, we would like to allow w to be an arbitrary weight vector.  But we don't
+know how to program the map explicitly in that case.
 
-The desired map is the composite g5 * g4 * g3 * g2 * g1 * g0 from
-F1->G1->G2->G3->G4->G5->F1.  The modules are defined as
+The notation in the code follows the notation from the Berkesch-Erman-Kummini-Sam paper
+"Tensor Complexes".
 
-F1= wedge^b1 A ** wedge^b1 B1* ** \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
-by "trace" to 
+We start with a ring S and labeled free modules A and B_i for i=1..n.
+The input to the code is a map of labeled free modules
+ f: A^*--> B_1\otimes B_2 \otimes ... \otimes B_n,
+ along with a weight vector w.  We think of f as the flattening of a tensor
+ f\in A\otimes B_1\otimes ... \otimes B_n.
 
-G1=wedge^b1 A ** wedge^b1 B1* ** [ (\otimes_{j\geq 2} S^b1 Bj)* ** (\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj
-to (by reassociating)
+Based on f and w, we could define 
+a degree sequence d via the formula for d'(w) given in Notation 5.2 of the BEKS paper.  However,
+since we only need d1 in the construction, we only define that number in the code.
+The output map will go from a module F1 enerated in degree d1 to a module F0 generated in
+degree 0.
 
-G2=wedge^b1 A ** [wedge^b1 B1* **  (\otimes_{j\geq 2} S^b1 Bj)*] ** [(\otimes_{j\geq 2} S^b1 Bj)]  \otimes_{i\geq 2} S^{d_{j-1}-b1} Bj]
-to (by the wedge ** sym to wedge map and multiplication in Sym
+We also define r0 and r1 following the formulas given in Notation 5.2 of BEKS.  By
+construction r0 is always 0.  Our restriction on w essentially amounts to the condition
+that r1 must equal 1 or 2.  The code thus gives an error message when r1<1 or r1>2.
 
-G3=wedge^b1 A ** [wedge^b1 \wedge_b1(\otimes_{j\geq 1} Bj*] ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
-to (by the minors)
+The desired map will be constructued as a composite g5 * g4 * g3 * g2 * g1 * g0 from
+F1->G1->G2->G3->G4->G5->F0.  This follows the construction outlined in Section 4 of BEKS.
 
-G4
+The modules are defined as follows.  The definition of F1 and F0 can be found in Theorem 5.3
+of BEKS.  Since we are working with labeled modules, we can identify a module with its dual
+and we do this repeatedly.  In particular, we identify divided powers with symmetric powers.
+Since we never use the divided power multiplication, this does not cause problems.
 
-G5
+We give the full description in the case that r1=2.  When r=1, there are some minor variations,
+starting with G3.
 
-F0=R ** \otimes_{i\geq 2} S^{d_{j-1}} Bj]
+F1= wedge^d1 A ** \otimes_{j=1}^{r1-1} wedge^{b_j} B_j ** \otimes_{j=r1}^n S^{w_j-d1} B_j
 
-The map g0: F1->G1 is given by the trace map
+G1= the tensor product of two modules, one of which is F1, the other of which is the image of a trace map
+  =[[\otimes_{j=r1}^n S^d1 B_j]**[\otimes_{j=r1}^n S^d1 B_j]^*]**F1
+  =[[\otimes_{j=r1}^n S^d1 B_j]**[\otimes_{j=r1}^n S^d1 B_j]^*]
+  [\otimes_{j ** wedge^d1 A ** \otimes_{j=1}^{r1-1} wedge^{b_j} B_j ** \otimes_{j=r1}^n S^{w_j-d1} B_j]
+  
+G2=same as G1 but dropping all parentheses in the tensor product.  so G2 is the tensor product
+  of 2*(n-r1+1)+(n+1) modules.
+
+
+G3=same as G2, but we reorder the factors.  Recall that we are covering the case r1==2
+  In this case d1=b1 and G3 is the tensor product of three factors
+G3 =[wedge^d1 A] ** [wedge^d1 B_1 ** S^d1 B_2 ** S^d1 B_3 ** ... ** S^d1 B_n] **
+    [S^d1 B_2 ** S^{w_2-d1} B_2 ** S^d1 B_3 ** S^{w_3-d1} B_3 ** ... ** S^d1 B_n ** S^{w_n-d1} B_n]
+
+G4=[wedge^d1 A] ** [wedge^d1 (B_1 ** B_2 ** ... B_n)] **
+    [S^d1 B_2 ** S^{w_2-d1} B_2 ** S^d1 B_3 ** S^{w_3-d1} B_3 ** ... ** S^d1 B_n ** S^{w_n-d1} B_n]
+
+G5=same as G4, but altering parentheses so that G5 is now a tensor product of two modules
+  =[wedge^d1 A ** wedge^d1 (B_1 ** B_2 ** ... B_n)] **
+    [S^d1 B_2 ** S^{w_2-d1} B_2 ** S^d1 B_3 ** S^{w_3-d1} B_3 ** ... ** S^d1 B_n ** S^{w_n-d1} B_n]
+
+F0=S ** \otimes_{i=1}^n S^{w_j} Bj]
+
+Now we discuss the various maps gi.  Note that all maps are degree 0 maps, except for g5.
+
+g0: we define a trace map 
+    trMap: S--> [\otimes_{j=r1}^n S^d1 B_j] ** [\otimes_{j=r1}^n S^d1 B_j]^*
+    then we degine g0=trMap**id_(F1).
+
+g1: is given by an identity matrix, as the only difference between G1 and G2 is how we
+    label the bases.
+
+g2: is a permutation matrix (and thus an isomorphism) obtained by simply 
+    reordering the basis of G2.
+
+g3: Repeated application of Cauchy decomposition provide a surjection 
+    wedge^d1(B_1**..**B_n)-->wedge^d1 B_1** S^d1 B_2 ** S^d1 B_3 ** .. S^d1 B_n.
+    we label the dual of this map by dualCauchyMap.
+    then g3 is the tensor product of two identity maps and dualCauchyMap.
+
+g4: is given by an identity matrix, and the only difference between G4 and G5 is how
+    we label the bases.
+
+g5: The source of G5 is the tensor product of two modules.
+    We define minMap on the first factor of G5: 
+       minMap: [wedge^d1 A ** wedge^d1 (B_1 ** B_2 ** ... B_n)] -> S
+    by sending a a basis element to the corresponding minor of f.  This is the only
+    of the maps that is not degree 0.
+    We then define symMultMap on the second factor of G5:
+       symMultMap: [S^d1 B_2 ** S^{w_2-d1} B_2 ** ... ] -> [S^{w_2} B_2 ** ...]
+    by tensoring together a bunch of symmetric multiplication maps.
+
+NOTE: When n=0 or n=1 (i.e. when f represents a 1-tensor or a 2-tensor), the main construction
+presents some issues having to do with tensor products over empty sets.  
+So we simply treat those cases separately in the code.
 *}
 
 
@@ -409,11 +472,9 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
     F1 := tensorProduct({exteriorPower(d1,A)}|
 	 apply(toList(1..r1-1),j-> exteriorPower(b_j,B_j)) | -- r1 = 1 or 2
       apply(toList(r1..n), j-> symmetricPower(w_j-d1,B_j)));
-    -- target of output map
     F0 := tensorProduct apply(n, j-> symmetricPower(w_(j+1), B_(j+1)));
-    trMap := id_(labeledModule S);
---  I don't think these n>1 workarounds are needed anymore.  There's another one below.
-    if n>1 then trMap = traceMap tensorProduct apply(toList(r1..n), 
+    --  F1 is the source of the output map, and F0 is the target.
+    trMap := traceMap tensorProduct apply(toList(r1..n), 
       j -> symmetricPower(d1,B_j));
     G1 := tensorProduct(target trMap, F1);
     g0 := map(G1, F1, trMap ** id_F1);
@@ -460,81 +521,26 @@ tensorComplex1 (LabeledModuleMap,List) := LabeledModuleMap => (f,w) -> (
     map(F0, F1 ** labeledModule S^{ -d1}, g5 * g4 * g3 * g2 * g1 * g0))
 
 
-{*
-restart
-uninstallPackage "TensorComplexes"
--- path=append(path,"~/IMA-2011/TensorComplexes/")
-installPackage "TensorComplexes"
-*}
-
+--  When the input for tensorComplex1 is a balanced tensor, a weight vector is unnecessary.
+--  Recall that a tensor of format a x b1 x b2 x ... x bn is balanced if a=b1+b2+...+bn.
+--  See Section 3 of BEKS.
 
 tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
-  -- NOTE: local variables names following the notation from the
-  -- Berkesch-Erman-Kummini-Sam "Tensor Complexes" paper
-  -- 
-  -- The input is f: A --> B1** B2** ... Bn, where f corresponds to 'phi^{\flat}'
-  -- from the BEKS paper.
-  --
   -- The output is the first map F0 <- F1 of the balanced tensor complex.
   -- If f is not balanced this outputs an error.  
-  -- In the non-balanced case, there should be a weight vector as a second input.
-  -- See below.
+  -- If f is balanced, then this computes the appopriate weight w, and calls the other
+  -- version of this method.
   if not isBalanced f then error "The map f is not a balanced tensor. Need to add a weight vector as a second input.";
-  S := ring f;  
+  S := ring f;
   B := {S^0} | underlyingModules target f;
-  A := source f;
   n := #B-1;
-  b := B / rank; -- {0, b1, b2,..,bn}
-  d := accumulate(plus, {0} | b); --{0, b1, b1+b2...}
-  if n === 0 then f
-  else if n === 1 then 
-    map(exteriorPower(b_1,B_1),exteriorPower(b_1,A)**labeledModule(S^{ -d_1}),{{det matrix f}})
-  else(
-    -- source of output map
-    F1 := tensorProduct({exteriorPower(b_1,A), exteriorPower(b_1,B_1)} |
-      apply(toList(2..n), j-> symmetricPower(d_(j-1)-b_1,B_j)));
-    -- target of output map
-    F0 := tensorProduct apply(n-1, j-> symmetricPower(d_(j+1), B_(j+2)));
-    trMap := traceMap tensorProduct apply(toList(2..n), 
-      j -> symmetricPower(b_1,B_j));
-    G1 := tensorProduct(target trMap, F1);
-    g0 := map(G1, F1, trMap ** id_F1); -- tc1
-    G1factors := flatten(
-      ((underlyingModules target trMap) | {F1}) / underlyingModules );
-    -- G2 and G1 are isomorphic as free modules with ordered basis but different
-    -- as labeled modules.  G2 is obtained from G1 by dropping parentheses in 
-    -- the tensor product.
-    G2 := tensorProduct G1factors;
-    -- g1 is the isomorphism induced by dropping all parentheses in the tensor product.
-    -- Due to indexing conventions, matrix(g1) is just an identity matrix.
-    g1 := map(G2, G1, id_(S^(rank G1)));
-    perm := join({2*n-2, 2*n-1}, toList(0..n-2), 
-      flatten apply(n-1, j -> {j+n-1, j+2*n}));
-    G3factors := G1factors_perm;
-    G3 := tensorProduct G3factors;
-    -- G3 is obtained from G2 by reordering the factors in the tensor product.
-    -- g2 is the isomorphism induced by reordering the factors of the tensor product.
-    -- The reordering is given by the permutation 'perm'.  
-    permMatrix := mutableMatrix(S, rank G3, rank G2);
-    for J in basisList G2 do permMatrix_(toOrdinal(J_perm,G3),toOrdinal(J,G2)) = 1;
-    g2 := map(G3, G2, matrix permMatrix);
-    --  G3=G3a**G3b**G3c. The map g3: G3->G4 is defined as the tensor product of 3 maps.
-    G3a := G3factors_0;
-    G3b := tensorProduct G3factors_(toList(1..n));
-    G3c := tensorProduct G3factors_(toList(n+1..#G3factors-1));
-    prodB := tensorProduct apply(n,i -> B_(i+1));  
-    -- G4=G3a**G4b**G3c.
-    -- We omit the isomorphism of G4 with (G3a**G4b)**G3c, since this corresponds to
-    -- the identity matrix.  In other words target(g3) does not equal source (g4)
-    -- as labeledModules.
-    G4b := exteriorPower(b_1, prodB);
-    dualCauchyMap := map (G4b, G3b, transpose cauchyMap(b_1, prodB));
-    g3 := id_(G3a) ** dualCauchyMap ** id_(G3c); 
-    symMultMap := map(F0, G3c, tensorProduct apply(n-1, 
-      	j -> symmetricMultiplication(B_(j+2),b_1,d_(j+1)-b_1)));
-    minMap := minorsMap(f, tensorProduct(G3a, G4b));
-    g4 := minMap ** symMultMap;
-    map(F0, F1 ** labeledModule S^{ -b_2}, g4 * g3 * g2 * g1 * g0)))
+  b := B/rank; --- {0,b1,b2,..,bn}
+  w := {0}|accumulate(plus,{0}|b_(toList(0..#b-2)));  --{0,0,b1,b1+b2,...,b1+..+b(n-1)}
+  tensorComplex1(f,w)
+  )
+
+
+
 
 
 -- When f is a balanced tensor, then this reproduces the tensor

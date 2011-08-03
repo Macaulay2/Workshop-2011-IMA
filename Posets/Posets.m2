@@ -97,8 +97,9 @@ export {
     "displayPoset",
     "outputTexPoset",
     "texPoset",
-        "SuppressLabels",
+        "Jitter",
         "PDFViewer",
+        "SuppressLabels",
     --
     -- Vertices & vertex properties
     "atoms",
@@ -469,7 +470,6 @@ intersectionLattice (List, Ring) := Poset => (L, R)-> (
 -- output: lcm lattice of that monomial ideal
 -- potential problem:  subsets dies when a set is too big (> 18)
 lcmLattice = method( Options => { Strategy => 1 })
-lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts)
 lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
     L := flatten entries gens M;
     Ground := null;
@@ -486,6 +486,7 @@ lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
     RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
     poset (Ground, Rels, RelsMatrix)
     )
+lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts)
 
 protect next
 -- Makes a pair storing a multi-degree and a list of multi-degrees which are to be joined with this degree.
@@ -623,7 +624,6 @@ setPartition List := List => S -> (
 --      L = equations defining (possibly nonprojective) arrangement
 --      R = ring
 -- Outputs: Intersection poset of projectivized hyperplane arrangement.
--- ***TODO***: Alternate method: Which is better?  Could also use "adjoinMax".
 projectivizeArrangement = method()
 projectivizeArrangement (List, Ring) := Poset => (L, R) -> (
     Z := local Z;
@@ -649,19 +649,21 @@ randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
 -- TeX
 ------------------------------------------
 
-displayPoset=method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer })
+displayPoset=method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer, symbol Jitter => false })
 displayPoset(Poset):=opts->(P)->(
     if not instance(opts.PDFViewer, String) then error "The option PDFViewer must be a string.";
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
+    if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
     name := temporaryFileName();
-    outputTexPoset(P, concatenate(name, ".tex"), symbol SuppressLabels => opts.SuppressLabels);
+    outputTexPoset(P, concatenate(name, ".tex"), symbol SuppressLabels => opts.SuppressLabels, symbol Jitter => opts.Jitter);
     run concatenate("pdflatex -output-directory /tmp ", name, " 1>/dev/null");
     run concatenate(opts.PDFViewer, " ", name,".pdf");
     )
 
-outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels});
+outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, symbol Jitter => false});
 outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
+    if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
     fn:=openOut name;
     fn << "\\documentclass[8pt]{article}"<< endl;
     fn << "\\usepackage{tikz}" << endl;
@@ -672,9 +674,10 @@ outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     get name
     )
 
-texPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels})
+texPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, symbol Jitter => false})
 texPoset (Poset) := String => opts -> (P) -> (
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
+    if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
     C := maximalChains P;
     --hash table of variable labels:
     idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
@@ -696,7 +699,7 @@ texPoset (Poset) := String => opts -> (P) -> (
             for i from 0 to L list for j from 0 to levelsets_i list
                 {"\t\\node [vertices", if opts.SuppressLabels then "]" else (", label=right:{" | tex (values H)_i_j | "}]"),
                  " (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",
-                 toString spacings_i_j,",",toString (scaleh*i),"){};\n"}
+                 toString ((if opts.Jitter then random(scalew*0.2) else 0) + spacings_i_j),",",toString (scaleh*i),"){};\n"}
             ) |
     concatenate("\\foreach \\to/\\from in ", toString edgelist, "\n\\draw [-] (\\to)--(\\from);\n\\end{tikzpicture}\n")
     )

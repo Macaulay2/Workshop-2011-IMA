@@ -28,6 +28,7 @@ newPackage select((
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"}
         },
         Headline => "Package for processing posets and order complexes",
+        Configuration => {"DefaultPDFViewer" => "open", "DefaultSuppressLabels" => true},
         DebuggingMode => true,
         if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes", "Graphs"}
         ), x -> x =!= null)
@@ -36,6 +37,10 @@ if version#"VERSION" <= "1.4" then (
     needsPackage "SimplicialComplexes";
     needsPackage "Graphs";
     )
+
+-- Load configurations
+posets'PDFViewer = if instance((options Posets).Configuration#"DefaultPDFViewer", String) then (options Posets).Configuration#"DefaultPDFViewer" else "open";
+posets'SuppressLabels = if instance((options Posets).Configuration#"DefaultSuppressLabels", Boolean) then (options Posets).Configuration#"DefaultSuppressLabels" else true;
 
 export {
     --
@@ -75,6 +80,7 @@ export {
     "posetProduct",
     --
     -- Enumerators
+    "chain",
     "divisorPoset",
     "dominanceLattice",
     "facePoset",
@@ -320,6 +326,13 @@ posetProduct (Poset, Poset) := Poset => (P, Q) ->
 ------------------------------------------
 -- Enumerators
 ------------------------------------------
+chain = method()
+chain ZZ := Poset => n -> (
+    if n == 0 then error "Integer n must be non-zero.";
+    if n < 0 then ( print "Did you mean |n|?"; n = -n; );
+    poset(toList(1..n), apply(n-1, i -> {i+1, i+2}))
+    )
+
 -- input:  a monomial m (and an ideal I)
 -- output: lattice of all monomials dividing m (and contained in I)
 divisorPoset = method()
@@ -339,7 +352,9 @@ divisorPoset RingElement := Poset => m -> (
     )
 
 divisorPoset ZZ := Poset => m -> (
+    if m == 0 then error "Integer m must be non-zero.";
     if m < 0 then ( print "Did you mean |m|?"; m=-m; );
+    if m == 1 then return poset({1}, {}); -- 1 is special
     M := toList \ toList factor m;
     p := local p;
     Pset := apply(#M, i-> p_i);
@@ -348,8 +363,8 @@ divisorPoset ZZ := Poset => m -> (
     P := product apply(#M, p-> R_p^(last M_p));
     subFunc := apply(pairs numHash, q-> q_0=>q_1);
     Q := divisorPoset P;
-    G := sort apply(Q.GroundSet, g-> sub(g,subFunc));
-    L := apply(Q.Relations, g-> {sub(first g, subFunc),sub(last g, subFunc)});
+    G := sort apply(Q.GroundSet, g-> sub(g, subFunc));
+    L := apply(Q.Relations, g-> {sub(first g, subFunc), sub(last g, subFunc)});
     poset(G,L)
     )
 
@@ -633,7 +648,7 @@ randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
 -- TeX
 ------------------------------------------
 
-displayPoset=method(Options => { symbol SuppressLabels => true, symbol PDFViewer => "open" })
+displayPoset=method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer })
 displayPoset(Poset):=opts->(P)->(
     if not instance(opts.PDFViewer, String) then error("Option PDFViewer must be a string.");
     name := temporaryFileName();
@@ -642,7 +657,7 @@ displayPoset(Poset):=opts->(P)->(
     run concatenate(opts.PDFViewer, " ", name,".pdf");
     )
 
-outputTexPoset = method(Options => {symbol SuppressLabels => true});
+outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels});
 outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     fn:=openOut name;
     fn << "\\documentclass[8pt]{article}"<< endl;
@@ -654,7 +669,7 @@ outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     get name
     )
 
-texPoset = method(Options => {symbol SuppressLabels => true})
+texPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels})
 texPoset (Poset) := String => opts -> (P) -> (
     C := maximalChains P;
     --hash table of variable labels:

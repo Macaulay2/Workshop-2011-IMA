@@ -824,18 +824,17 @@ rankFunction = method()
 rankFunction Poset := List => P -> (
     if P.cache.?rankFunction then return P.cache.rankFunction;
     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
-    v := local v;
-    R := ZZ(monoid [v_0..v_(#P.GroundSet - 1)]);
-    rk := apply(#P.GroundSet, i -> R_i);
+    rk := apply(#P.GroundSet, i -> {i, 0});
     for r in apply(coveringRelations P, r -> {idx#(r#0), idx#(r#1)}) do (
-        tmp := rk#(r#1) - rk#(r#0) - 1;
-        if tmp === 0_R then continue else if #(support tmp) === 0 then return P.cache.rankFunction = null;
-        u := first support rk#(r#0);
-        v := first support rk#(r#1);
-        tmp = sub(tmp, {u => 0, v => 0});
-        rk = if tmp <= 0 then apply(rk, g -> sub(g, u => v + tmp)) else apply(rk, g -> sub(g, v => u - tmp)); 
+        tmp := last rk#(r#1) - last rk#(r#0) - 1;
+        if tmp == 0 then continue;
+        u := first rk#(r#0);
+        v := first rk#(r#1);
+        if u == v then return P.cache.rankFunction = null;
+        rk = if tmp > 0 then apply(rk, g -> if first g == u then {v, last g + tmp} else g) else
+                              apply(rk, g -> if first g == v then {u, last g - tmp} else g);
         );
-    P.cache.rankFunction = apply(rk, r -> sub(r, ZZ))
+    P.cache.rankFunction = last \ rk
     )
 
 -- Ranked:  There exists an integer ranking-function r on the groundset of P
@@ -2362,21 +2361,21 @@ L2 = divisorPoset(x^2*y^3);
 
 --testing subPoset
 assert( ((subPoset(P1, {a,b,e})).GroundSet) === {a,b,e} )
-assert( sort ((subPoset(P1, {a,b,e})).Relations) === {(a,a),(a,e),(b,b),(b,e),(e,e)} )
+assert( sort ((subPoset(P1, {a,b,e})).Relations) === {(a,e),(b,e)} )
 assert( ((subPoset(P1, {a,b,e})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((subPoset(P2, {a,e,f,d})).GroundSet) === {a,d,e,f} )
-assert( sort ((subPoset(P2, {a,e,f,d})).Relations) === {(a,a),(a,e),(a,f),(d,d),(e,e),(e,f),(f,f)} )
+assert( sort ((subPoset(P2, {a,e,f,d})).Relations) === {(a,e),(a,f),(e,f)} )
 assert( ((subPoset(P2, {a,e,f,d})).RelationMatrix) === map(ZZ^4,ZZ^4,{{1, 0, 1, 1}, {0, 1, 0, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}}) )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).GroundSet) === {y^2,x^2,x^2*y^2} )
-assert( sort ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,y^2),(y^2,x^2*y^2),(x^2,x^2),(x^2,x^2*y^2),(x^2*y^2,x^2*y^2)} )
+assert( sort ((subPoset(L, {x^2,y^2,x^2*y^2})).Relations) === {(y^2,x^2*y^2),(x^2,x^2*y^2)} )
 assert( ((subPoset(L, {x^2,y^2,x^2*y^2})).RelationMatrix) === map(ZZ^3,ZZ^3,{{1, 0, 1}, {0, 1, 1}, {0, 0, 1}}) )
 
 -- testing dropElements
 assert( ((dropElements(P1, {a,c})).GroundSet) === {b,d,e} )
-assert( sort ((dropElements(P1, {a,c})).Relations) === {(b,b),(b,d),(b,e),(d,d),(d,e),(e,e)} )
+assert( sort ((dropElements(P1, {a,c})).Relations) === {(b,d),(b,e),(d,e)} )
 assert( ((dropElements(P1, {a,c})).RelationMatrix          ) === map(ZZ^3,ZZ^3,{{1, 1, 1}, {0, 1, 1}, {0, 0, 1}}) )
 assert( ((dropElements(L2, m-> first degree m > 2)).GroundSet) == {1,y,y^2,x,x*y,x^2} )
-assert( sort ((dropElements(L2, m-> first degree m > 2)).Relations) == sort {(1,1),(1,y),(1,y^2),(1,x),(1,x*y),(1,x^2),(y,y),(y,y^2),(y,x*y),(y^2,y^2),(x,x),(x,x*y),(x,x^2),(x*y,x*y),(x^2,x^2)} )
+assert( sort ((dropElements(L2, m-> first degree m > 2)).Relations) == sort {(1,y),(1,y^2),(1,x),(1,x*y),(1,x^2),(y,y^2),(y,x*y),(x,x*y),(x,x^2)} )
 assert( ((dropElements(L2, m-> first degree m > 2)).RelationMatrix) === map(ZZ^6,ZZ^6,{{1, 1, 1, 1, 1, 1}, {0, 1, 1, 0, 1, 0}, {0, 0, 1, 0, 0, 0}, {0, 0, 0, 1, 1, 1}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}}) )
 
 ///
@@ -2463,10 +2462,10 @@ TEST ///
 P1 = poset ({h,i,j,k},{(h,i), (i,j), (i,k)});
 P2 = poset({a,b,c,d,e,f,g}, {(a,b), (a,c), (a,d), (b,e), (c,e), (c,f), (d,f), (e,g), (f,g)});
 
-assert( ((openInterval(P1,h,j)).Relations) === {(i,i)} )
-assert( sort ((closedInterval(P1,i,k)).Relations) === {(i,i),(i,k),(k,k)} )
-assert( sort ((openInterval(P2,a,e)).Relations) === {(b,b),(c,c)} )
-assert( sort ((closedInterval(P2,c,g)).Relations) === {(c,c),(c,e),(c,f),(c,g),(e,e),(e,g),(f,f),(f,g),(g,g)} )
+assert( ((openInterval(P1,h,j)).Relations) === {} )
+assert( sort ((closedInterval(P1,i,k)).Relations) === {(i,k)} )
+assert( sort ((openInterval(P2,a,e)).Relations) === {} )
+assert( sort ((closedInterval(P2,c,g)).Relations) === {(c,e),(c,f),(c,g),(e,g),(f,g)} )
 
 ///
 

@@ -75,10 +75,10 @@ export {
     "adjoinMax",
     "adjoinMin",
     "augmentPoset",
+    "diamondProduct",
     "dropElements",
     "mergePoset",
-    "posetDiamondProduct",
-    "posetProduct",
+  --"product",
     --
     -- Enumerators
     "booleanLattice",
@@ -298,6 +298,15 @@ augmentPoset = method()
 augmentPoset (Poset, Thing, Thing) := Poset => (P, a, b) -> adjoinMin(adjoinMax(P, b), a)
 augmentPoset Poset := Poset => P -> adjoinMin adjoinMax P
 
+diamondProduct = method()
+diamondProduct (Poset, Poset) := Poset => (P, Q)->(
+    if isLattice P and isLattice Q then (
+        P':=product(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
+        poset(prepend({first minimalElements P, first minimalElements Q}, P'.GroundSet), 
+              join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations))
+    ) else error "The posets must be lattices."
+    )
+
 -- inputs:  poset P and a list L of elements to drop
 -- outputs: P without L
 dropElements = method()
@@ -319,17 +328,8 @@ dropElements (Poset, Function) := Poset => (P, f) -> (
 mergePoset = method()
 mergePoset (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations))
 
-posetDiamondProduct = method()
-posetDiamondProduct (Poset, Poset) := Poset => (P, Q)->(
-    if isLattice P and isLattice Q then (
-        P':=posetProduct(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
-        poset(prepend({first minimalElements P, first minimalElements Q}, P'.GroundSet), 
-              join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations))
-    ) else error "The posets must be lattices."
-    )
-
-posetProduct = method()
-posetProduct (Poset, Poset) := Poset => (P, Q) -> 
+-- The product method is defined in the Core.
+product (Poset, Poset) := Poset => (P, Q) -> 
     poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
           join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
            flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})))

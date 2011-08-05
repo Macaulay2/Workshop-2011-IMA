@@ -1,12 +1,12 @@
 -- -*- coding: utf-8 -*-
 newPackage(
-  "NumericalHilbert",
-  Version => "0.0", 
-  Date => "July 25, 2010",
-  Authors => {{Name => "Robert Krone", 
-    Email => "krone@math.gatech.edu"}},
-  Headline => "some local Hilbert series functions",
-  DebuggingMode => true
+     "NumericalHilbert",
+     Version => "0.1", 
+     Date => "July 25, 2010",
+     Authors => {{Name => "Robert Krone", 
+    	       Email => "krone@math.gatech.edu"}},
+     Headline => "some local Hilbert series functions",
+     DebuggingMode => true
 )
 
 export {
@@ -57,7 +57,8 @@ isBasis DualSpace := V -> kernel V#"generators" == 0;
 DualSpace == DualSpace := (V,W) -> kernel(V#"generators" + W#"generators") == kernel(V#"generators");
 
 
-defaultT := () -> 0.001;
+--Default tolerance value for inexact fields (the default is 0 for exact fields)
+defaultT := () -> 0.0001;
 
 --Returns a DualSpace object of generators of the dual space up to the specified degree d.
 --Algorithm choices: Dayton-Zeng, Stetter-Thallinger, or Mourrain.
@@ -103,25 +104,21 @@ dualBasisDZST = method(TypicalValue => DualSpace, Options => {Point => {}, Strat
 dualBasisDZST (Matrix, ZZ, RR) := o -> (igens, d, tol) -> (
      R := ring igens;
      M := new Matrix;
-     if o.Strategy == DZ then M = transpose last DZmatrix(igens, d, Point => o.Point)
-                         else M = transpose last STmatrix(igens, d, Point => o.Point);
-     dmons := apply(1..d, i->first entries basis(i,R)); --nested list of monomials up to order d
-     (matrix{{1_R}})|parseKernel(findKernel(M, tol), dmons, tol)
+     if o.Strategy == DZ then M = transpose DZmatrix(igens, d, false, Point => o.Point)
+                         else M = transpose STmatrix(igens, d, Point => o.Point);
+     dmons := apply(d+1, i->first entries basis(i,R)); --nested list of monomials up to order d
+     dualSpace parseKernel(findKernel(M, tol), dmons, tol)
      );
 
 findKernel = (M, tol) -> (
      R := ring M;
      M = sub(M, coefficientRing R);
      kerGens := new MutableList;
+     if numgens target M == 0 then return id_(source M);
      if precision 1_R < infinity then (
-	  if numgens target M == 0 then id_(source M)
-	  else (
-       	       (svs, U, Vt) := SVD M;
-       	       Vt = entries Vt;
-       	       for i to #Vt-1 do
-	            if i > #svs-1 or abs svs#i <= tol then kerGens#(#kerGens) = apply(Vt#i, conjugate);
-       	       transpose matrix new List from kerGens
-	       )
+	  (svs, U, Vt) := SVD M;
+	  cols := toList select(0..#svs-1, i->(svs#i > tol));
+	  submatrix'(transpose Vt,,cols)
 	  ) else (
 	  gens kernel M
 	  )
@@ -229,10 +226,8 @@ DZSmatrix = method(TypicalValue => List, Options => {Point => {}, ProduceSB => f
 DZSmatrix (Matrix, RR) := o -> (igens, tol) -> (
      R := ring igens;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
-     igens = first entries igens;
-     ecart := max apply(igens, g->(gDegree g - lDegree g)); --max ecart of generators
-     topDegs := apply(igens, gDegree);
-     M := new MutableHashTable;
+     ecart := max apply(first entries igens, g->(gDegree g - lDegree g)); --max ecart of generators
+     topDegs := apply(first entries igens, gDegree);
      dmons := {};
      monGens := {};
      SBasis := {};
@@ -240,17 +235,9 @@ DZSmatrix (Matrix, RR) := o -> (igens, tol) -> (
      d := 0;
      oldBasis := {};
      while d <= finalDeg do (
-     	  dmons = append(dmons, first entries basis(d,R));
-    	  p := {};
-	  for i from 0 to #igens-1 do
-	       if d-topDegs#i >= 0 then p = p|apply(flatten take(dmons,{0,d-topDegs#i}), m->(m*(igens#i)));
-	  if #p > 0 then (
-    	       M#d = (coefficients(matrix {p}, Monomials => flatten take(dmons,{0,d})))#1;
-	       ) else (
-	       M#d = map(R^(#flatten take(dmons,{0,d})),R^0,0);
-	       );
-	  --print M#d;
-	  kern := findKernel(transpose M#d, tol);
+     	  M := DZmatrix(igens, d, true);
+	  dmons = append(dmons, first entries basis(d,R));
+	  kern := findKernel(transpose M, tol);
 	  newBasis := first entries parseKernel(kern, dmons, tol);
 	  newMGs := newMonomialGens(monGens, newBasis, take(dmons,{d-ecart,d}), d);
 	  --print(d, " newMGs: ",newMGs);
@@ -267,7 +254,14 @@ DZSmatrix (Matrix, RR) := o -> (igens, tol) -> (
      	  d = d+1;
 	  oldBasis = newBasis;
 	  );
-     (monGens, select(oldBasis,i->(gDegree i < d-ecart)), d-ecart-1, sbReduce SBasis)
+     
+     (
+	  monGens,
+	  select(oldBasis,i->(gDegree i < d-ecart)),
+	  d-ecart-1,
+	  sbReduce SBasis,
+	  hilbertPolynomial ideal toList apply(monGens,g->g#0)
+	  )
      );
 
 newMonomialGens = (oldGens, newBasis, dmons, d) -> (
@@ -284,19 +278,20 @@ newMonomialGens = (oldGens, newBasis, dmons, d) -> (
      newGens
      );
 
---Dayton-Zeng algorithm to find the matrices corresponding to the dual space
---up to degree d.
+--Dayton-Zeng matrix to find the the dual space up to degree d.
 DZmatrix = method(TypicalValue => List, Options => {Point => {}})
-DZmatrix (Matrix, ZZ) := o -> (igens, d) -> (
+DZmatrix (Matrix, ZZ, Boolean) := o -> (igens, d, syl) -> (
      R := ring igens;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
+     igens = first entries igens;
+     genDegs := apply(igens, if syl then gDegree else lDegree);
      dmons := apply(d+1, i->first entries basis(i,R));
-     M := k -> ( --# of dual space generators with lead term of deg k or less
-    	  p := igens;
-    	  for m in flatten take(dmons,{1,k-1}) do p = p|(m*igens);
-    	  (coefficients(p, Monomials => flatten take(dmons,{1,k})))#1
-  	  );
-     new List from apply(1..d, M)
+     p := map(R^1,R^0,0);
+     for i from 0 to #igens-1 do (
+	  newp := apply(flatten take(dmons,{0,d-genDegs#i}), m->(m*(igens#i)));
+          if #newp > 0 then p = p|matrix {newp};
+	  );
+     (coefficients(p, Monomials => flatten take(dmons,{0,d})))#1
      );
 
 --Stetter-Thallinger algorithm to find the matrices corresponding to the dual space
@@ -330,7 +325,7 @@ STmatrix (Matrix, ZZ) := o -> (igens, d) -> (
      new List from Ms
      );
 
---checks each monomial of degree d and counts ones in the monomial basis of the quotient space.
+--checks each monomial of degree d and counts ones in the monomial basis of the quotient space
 hilbertB = method(TypicalValue => ZZ)
 hilbertB (List, ZZ) := (sbElements, d) -> (
      R := ring first sbElements;
@@ -338,59 +333,55 @@ hilbertB (List, ZZ) := (sbElements, d) -> (
      #select(first entries basis(d,R), m->(#select(G, g->isDivisible(m,g)) == 0))
      );
 
---takes alternating sum of number of all monomials, number that are a multiple of the lead term of
---each Groebner basis element, number in each pair-wise intersection, etc.
+--finds Hilbert series values combinatorially using inclusion-exclusion
 hilbertC = method(TypicalValue => ZZ)
 hilbertC (List, ZZ) := (sbElements, d) -> (
      R := ring first sbElements;
-     G := apply(sbElements, e -> (listForm e)#0#0); --store lead monomials as n-tuples of integers
-     bin := (n,k) -> (if n >= 0 then binomial(n,k) else 0);
-     listFormLCM := (a,b) -> apply(#a, i->(max {a#i,b#i}));
-     recurC := (m, gIndex, coef) -> ( --for each subset S of G add or subtract # of d monomials that are divisible by lcm of S
-    	  if gIndex == #G then
-      	       coef*bin(d - sum m + #(gens R) - 1, #(gens R) - 1)
-    	  else
-      	       recurC(m, gIndex+1, coef) +
-      	       recurC(listFormLCM(m,G#gIndex), gIndex+1, -1*coef)
-  	  );
-     newm := apply(#gens R, i->0);
-     recurC(newm, 0, 1)
+     n := #gens R;
+     sbListForm := apply(sbElements, e -> (listForm e)#0#0); --store lead monomials as n-tuples of integers
+     bin := (m,k) -> (if m >= 0 then binomial(m,k) else 0);
+     listFormLcm := L -> apply(n, i->max{max(apply(L,l->l#i)), 0});
+     coef := s -> if even(#s) then 1 else -1;
+     hsum := 0;
+     for s in subsets sbListForm do
+	  hsum = hsum + (coef s)*bin(d - sum listFormLcm s + n-1, n-1);
+     hsum
      );
 
 deflation = method(TypicalValue => ZZ, Options => {Point => matrix {{}}, Size => 0})
 deflation (Matrix) := o -> (igens) -> (
-  R := ring igens;
-  n := #(gens R);
-  epsilon := .001;
-  p := sub(o.Point,CC);
-  m := o.Size;
-  if p == 0 then p = matrix {apply(n, i->0_CC)};
-  if m == 0 then m = n;
-  A := jacobian igens;
-  Asub := sub(A, p);
-  svs := (SVD(Asub))#0;
-  r := 0;
-  for v in svs do
-    if clean(epsilon,v) != 0 then r = r + 1;
-  if r == n then return take((entries p)#0,m);
-  h := randomVector(r+1);
-  Br := matrix apply(n, i->randomVector(r+1));
-  Bl := matrix apply(r, i->randomVector(n));
-  C := (Bl*Asub*Br) || matrix{h};
-  p = p | transpose solve(C, transpose matrix{(apply(r,i->0_CC))|{1_CC}});
-  lambda := symbol lambda;
-  R = CC[gens R,lambda_n..lambda_(n+r)];
-  lvec := transpose matrix{new List from lambda_n..lambda_(n+r)};
-  igens = sub(igens,R) | transpose (sub(A,R)*Br*lvec) | transpose (matrix{h}*lvec - 1);
-  print transpose igens;
-  deflation(igens, Point => p, Size => m)
-);
+     R := ring igens;
+     n := #(gens R);
+     epsilon := .001;
+     p := sub(o.Point,CC);
+     m := o.Size;
+     if p == 0 then p = matrix {apply(n, i->0_CC)};
+     if m == 0 then m = n;
+     A := jacobian igens;
+     Asub := sub(A, p);
+     svs := (SVD(Asub))#0;
+     r := 0;
+     for v in svs do
+          if clean(epsilon,v) != 0 then r = r + 1;
+     if r == n then return take((entries p)#0,m);
+     h := randomVector(r+1);
+     Br := matrix apply(n, i->randomVector(r+1));
+     Bl := matrix apply(r, i->randomVector(n));
+     C := (Bl*Asub*Br) || matrix{h};
+     p = p | transpose solve(C, transpose matrix{(apply(r,i->0_CC))|{1_CC}});
+     lambda := symbol lambda;
+     R = CC[gens R,lambda_n..lambda_(n+r)];
+     lvec := transpose matrix{new List from lambda_n..lambda_(n+r)};
+     igens = sub(igens,R) | transpose (sub(A,R)*Br*lvec) | transpose (matrix{h}*lvec - 1);
+     print transpose igens;
+     deflation(igens, Point => p, Size => m)
+     );
 
 --returns if lead term of a is divisible by lead term of b
 isDivisible = (a, b) -> (
-  dif := (listForm a)#0#0 - (listForm b)#0#0;
-  all(dif, i->(i >= 0))
-);
+     dif := (listForm a)#0#0 - (listForm b)#0#0;
+     all(dif, i->(i >= 0))
+     );
 
 --lead monomial and lead monomial degree according to ordering associated with
 --the ring (local) and reverse ordering (global)
@@ -401,27 +392,28 @@ gDegree = f -> first degree gLeadMonomial f;
 
 --performs Gaussian reduction on M but starting from the bottom right
 rowReduce = (M,epsilon) -> (
-  R := ring M;
-  n := (numgens source M) - 1;
-  m := (numgens target M) - 1;
-  rindex := m;
-  M = new MutableMatrix from M;
-  for k from 0 to n do (
-    if epsilon > 0 then M = new MutableMatrix from clean(epsilon,new Matrix from M);
-    a := -1;
-    for l from 0 to rindex do
-      if (entries M)#l#(n-k) != 0 then (a = l; break);
-    if a == -1 then continue;
-    rowSwap(M,a,rindex);
-    rowMult(M,rindex,1_R/M_(rindex,(n-k)));
-    for l from 0 to m do
-      if l != rindex then rowAdd(M,l,-1*(entries M)#l#(n-k),rindex);
-    rindex = rindex-1;
-    --print new Matrix from M;
-  );
-  M = new Matrix from M
-);
+     R := ring M;
+     n := (numgens source M) - 1;
+     m := (numgens target M) - 1;
+     rindex := m;
+     M = new MutableMatrix from M;
+     for k from 0 to n do (
+    	  if epsilon > 0 then M = new MutableMatrix from clean(epsilon,new Matrix from M);
+    	  a := -1;
+    	  for l from 0 to rindex do
+      	       if M_(l,n-k) != 0 then (a = l; break);
+    	  if a == -1 then continue;
+    	  rowSwap(M,a,rindex);
+    	  rowMult(M,rindex,1_R/M_(rindex,(n-k)));
+    	  for l from 0 to m do
+      	       if l != rindex then rowAdd(M,l,-1*M_(l,n-k),rindex);
+    	  rindex = rindex-1;
+    	  --print new Matrix from M;
+  	  );
+     M = new Matrix from M
+     );
 
+--auxilary function
 sbReduce = L -> (
      L = L / first;
      Lgood := select(#L, i->(
@@ -432,75 +424,123 @@ sbReduce = L -> (
 
 --generates a vector of specified length of random complex numbers with unit modulus
 randomVector = (dimension) -> (
-  apply(dimension, i -> exp((random 2.*pi)*ii))
-);
+     apply(dimension, i -> exp((random 2.*pi)*ii))
+     );
 
 --build a matrix from a nested list of matrices of uniform size
 blockMatrix = (blist) -> (
-  R := ring (blist#0#0);
-  m := #blist;
-  n := #(blist#0);
-  a := dim target (blist#0#0);
-  b := dim source (blist#0#0); 
-  M := map(R^0,R^(n*b),0);
-  for i from 0 to m-1 do (
-    N := map(R^a,R^0,0);
-    for j from 0 to n-1 do
-      N = N | (blist#i#j);
-    M = M || N;
-  );
-  M
-);
+     R := ring (blist#0#0);
+     m := #blist;
+     n := #(blist#0);
+     a := dim target (blist#0#0);
+     b := dim source (blist#0#0); 
+     M := map(R^0,R^(n*b),0);
+     for i from 0 to m-1 do (
+    	  N := map(R^a,R^0,0);
+    	  for j from 0 to n-1 do
+      	  N = N | (blist#i#j);
+    	  M = M || N;
+  	  );
+     M
+     );
 
 --evaluation of a dual element v on a polynomial w
 innerProduct = (v,w) -> (
-  c := entries (coefficients matrix{{v,w}})#1;
-  sum(#c,i->(c#i#0)*(c#i#1))
-);
+     c := entries (coefficients matrix{{v,w}})#1;
+     sum(#c,i->(c#i#0)*(c#i#1))
+     );
 
 newtonsMethod = (eqns, p, n) -> (
-  elist := (entries eqns)#0;
-  A := entries transpose jacobian eqns;
-  for i from 1 to n do (
-    for j from 0 to #elist-1 do (
-      val := sub(elist#j, p);
-      grad := sub(A#j, p);
-    );
-  );
-);
-
+     elist := (entries eqns)#0;
+     A := entries transpose jacobian eqns;
+     for i from 1 to n do (
+    	  for j from 0 to #elist-1 do (
+      	       val := sub(elist#j, p);
+      	       grad := sub(A#j, p);
+    	       );
+  	  );
+     );
+{*
 beginDocumentation()
-document { 
-  Key => NumericalHilbert,
-  Headline => "some local Hilbert series functions",
-  EM "NumericalHilbert", " is a basic package to be used as an example."
-}
 
-///
-document {
-  Key => hilbertA,
-  Headline => "local Hilbert series of the dual space of an ideal",
-  Usage => "hilbertA(igens,d)",
-  Inputs => { "igens", "d" },
-  Outputs => {{ "the", TT "d", "th element of the Hilbert series corresponding to the ideal with generators", TT "igens" }},
-}
+doc ///
+     Key
+     	  NumericalHilbert
+     Headline
+     	  functions for numerically computing local dual space and Hilbert functions
+     Description
+     	  Text
+	       @EM "NumericalHilbert"@ gets stuff done.
 ///
 
-document {
-  Key => hilbertB,
-  Headline => "local Hilbert series of the quotient space of an ideal",
-  Usage => "hilbertB(igens,d)",
-  Inputs => { "igens", "d" },
-  Outputs => {{ "the", TT "d", "th element of the Hilbert series corresponding to the ideal with generators", TT "igens" }},
-}
-document {
-  Key => hilbertC,
-  Headline => "local Hilbert series of the quotient space of an ideal",
-  Usage => "hilbertC(igens,d)",
-  Inputs => { "igens", "d" },
-  Outputs => {{ "the", TT "d", "th element of the Hilbert series corresponding to the ideal with generators", TT "igens" }},
-}
+doc ///
+     Key
+          DualSpace
+     Description
+          Text
+	        a Type.
+///
 
+doc ///
+     Key
+          dualHilbert
+     Headline
+          Calculate Hilbert series of the dual of a polynomial ideal
+     Usage
+          dualHilbert(gns, d)
+     Inputs
+          gns:Matrix
+	       generators of an ideal in a one-row matrix
+	  d:ZZ
+     Outputs
+          :List
+     Description
+          Text
+	       Calculates dimension of the dual space of an ideal at each degree from 0 to d inclusive.
+	  Example
+///
+
+doc ///
+     Key
+          dualBasis
+     Headline
+          Calculate basis of the dual space of a polynomial ideal
+     Usage
+          dualBasis(gns, d)
+     Inputs
+          gns:Matrix
+	       generators of an ideal in a one-row matrix
+	  d:ZZ
+     Outputs
+          :dualSpace
+	       basis of the dual space in a one-row matrix
+     Description
+          Text
+	       Calculates a reduced basis of the truncated dual space of an ideal.  It's truncated at degree d.
+	       Elements are expressed as elements of the polynomial ring of the ideal although this is an abuse of notation.
+	       They are really elements of the dual ring.
+	  Example
+///
+
+doc ///
+     Key
+          standardBasis
+     Headline
+          Calculate the standard basis of a polynomial ideal numerically
+     Usage
+          standardBasis(gns)
+     Inputs
+          gns:Matrix
+	       generators of an ideal in a one-row matrix
+	  d:ZZ
+     Outputs
+          :Matrix
+     Description
+          Text
+	       Finds a standard basis of the ideal using the dual basis calculation, which is numerically stable.
+	  Example
+///
+*}
 end
 
 loadPackage "NumericalHilbert"
@@ -510,8 +550,9 @@ deflation(M)
 
 loadPackage "NumericalHilbert"
 loadPackage ("NumericalHilbert", Reload => true)
-R = RR[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
+R = CC[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = QQ[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
+M = matrix {{ii*x}}
 M = matrix {{x*y, x^2-y^2, y^3}}
 M = matrix {{x^2-y}}
 M = matrix {{x+y+x*y}}
@@ -537,11 +578,13 @@ dualHilbert(M,4)
 
 loadPackage "NumericalHilbert"
 loadPackage ("NumericalHilbert", Reload => true)
-R = RR[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
+R = CC[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = QQ[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = (ZZ/101)[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 M = matrix {{x^2-x*y^2,x^3}}
 M = matrix {{x*y}}
+M = matrix {{x^9 - y}}
 standardBasis(M)
 dualHilbert(M,25, Strategy => DZS1)
+DZSmatrix(M,0.001)
 

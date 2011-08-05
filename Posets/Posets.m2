@@ -20,8 +20,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0.2", 
-        Date => "02. August 2011",
+        Version => "1.0.3", 
+        Date => "05. August 2011",
         Authors => {
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
             {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},
@@ -63,9 +63,10 @@ export {
     "closedInterval",
     "distributiveLattice",
         "OriginalPoset",
-    "dualPoset",
+  --"dual",
     "filter",
     "flagPoset",
+    "naturalLabeling",
     "openInterval",
     "orderIdeal",
     "subPoset",
@@ -80,6 +81,7 @@ export {
     "posetProduct",
     --
     -- Enumerators
+    "booleanLattice",
     "chain",
     "divisorPoset",
     "dominanceLattice",
@@ -245,8 +247,9 @@ distributiveLattice Poset := Poset => P -> (
     POI
     )
 
-dualPoset = method()
-dualPoset Poset := Poset => P -> poset(P.GroundSet, P.Relations/reverse)
+-- The method dual is given in the Core and has options.
+-- As we don't need the options, we discard them.
+dual Poset := Poset => {} >> opts -> P -> poset(P.GroundSet, P.Relations/reverse)
 
 -- input: a poset, and an element from I
 -- output:  the filter of a, i.e. all elements in the poset that are >= a
@@ -255,6 +258,13 @@ filter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(
 
 flagPoset = method()
 flagPoset (Poset, List) := Poset => (P, L)-> subPoset(P, flatten ((rankPoset P)_L))
+
+naturalLabeling = method()
+naturalLabeling (Poset, ZZ) := Poset => (P, startIndex) -> (
+    renameMap := (topSort hasseDiagram P)#map;
+    poset(apply(P.GroundSet, p -> startIndex + renameMap#p), apply(P.Relations, r -> {startIndex + renameMap#(first r), startIndex + renameMap#(last r)}), P.RelationMatrix)            
+    )
+naturalLabeling Poset := Poset => P -> naturalLabeling(P, 0)
 
 -- input: poset and two elements
 -- output: the induced poset coming from the poset with minimal element and maximal element corresponding to the 2 given elements with these 2 elements removed 
@@ -327,6 +337,12 @@ posetProduct (Poset, Poset) := Poset => (P, Q) ->
 ------------------------------------------
 -- Enumerators
 ------------------------------------------
+booleanLattice = method()
+booleanLattice ZZ := Poset => n -> (
+    if n < 0 then ( print "Did you mean |n|?"; n = -n; );
+    poset(subsets n, isSubset)
+    )
+
 chain = method()
 chain ZZ := Poset => n -> (
     if n == 0 then error "The integer n must be non-zero.";
@@ -978,7 +994,7 @@ zetaPolynomial Poset := RingElement => opts -> P -> (
 -- Properties
 ------------------------------------------
 
--- Method given in Core
+-- The method height is given in the Core.
 height Poset := ZZ => P -> -1 + max apply (maximalChains P, s-> #s)
 
 -- P is atomic if every non-minimal, non-atom element is greater than some atom
@@ -1073,43 +1089,37 @@ isUpperSemimodular Poset := Boolean => P -> (
 
 beginDocumentation()
 
----------
--- front page
----------
-document { 
-  Key => Posets,
-  Headline => "a package for working with posets",
-  PARA{},
-  "The ", EM "Posets", " package defines Poset as a new data type and provides 
-   routines which use or produce posets.  A poset or a partially ordered set 
-   is a set together with a binary relation satisfying reflexivity, antisymmetry, and transitivity.",
-  SUBSECTION "Contributors",
-  "The following people have generously contributed code or worked on our code.",
-  UL {
-    {HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html","Josephine Yu")},
-    {HREF("http://www.math.purdue.edu/~nkummini/","Manoj Kumminni")},
-    {HREF("http://www.math.cornell.edu/People/Grads/fisher.html","Kristine Fisher")},
-    {HREF("http://www.mathstat.dal.ca/~handrew/","Andrew Hoefel")},
-    {HREF("mailto:stephen.sturgeon@uky.edu", "Stephen Sturgeon")} 
-    },
-  }
+-- Front Page
+doc ///
+    Key
+        Posets
+    Headline
+        a package for working with partially ordered sets
+    Description
+        Text
+            This package defines @TO "Poset"@ as a new data type and provides
+            routines which use or produce posets.  A poset (partially ordered
+            set) is a set together with a binary relation satisfying reflexivity,
+            antisymmetry, and transitivity.
+        Text
+            @SUBSECTION "Contributors"@
+            --
+            The following people have generously contributed code or worked on the package code.@BR{}@
+            --
+            @HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html", "Josephine Yu")@,
+            @HREF("http://www.math.purdue.edu/~nkummini/","Manoj Kummini")@,
+            @HREF("http://www.math.cornell.edu/People/Grads/fisher.html","Kristine Fisher")@,
+            @HREF("http://www.mathstat.dal.ca/~handrew/","Andrew Hoefel")@,
+            @HREF("mailto:stephen.sturgeon\@uky.edu", "Stephen Sturgeon")@
+///
 
+-- Types
+    
 
---doc ///
---     Key
---           Posets
---     Headline
---          A package for working with posets. 
---     Description
---          Text
---           {\em Posets} package defines Poset as a new data type and provides 
---           routines which use or produce posets.   A poset or a partially ordered set is a set together with a binary relation satisfying reflexivity, antisymmetry, and transitivity.
---           Contributors
---           The following people have contributed code or have worked on this package.
---           {HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html","Josephine Yu"")},     
-           
---///
-     
+end;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+loadPackage("Posets",FileName=>"./Posets.m2")
+
 ---------
 -- types
 ----------           

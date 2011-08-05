@@ -140,10 +140,6 @@ interpolate(Ring, List) := (T,L) ->(
      if #L != #unique(L/first) then error"arguments not distinct";
      sum(L, l-> (last l)*product(select(L, l1->first l1 != first l), l1-> (t - first l1)/(first l-first l1))
 	  ))
-///
-interpolate(QQ[t], {{0,-1}, {1,0}, {2,3}})
-sub(oo, t=>-1)
-///
 
 eulerPolynomial = method()
 eulerPolynomial(PolynomialRing, CohomologyTally) := (T,C) ->(
@@ -184,6 +180,12 @@ loadPackage ("BoijSoederbergExtension", Reload => true)
 
 ///
 TEST///
+
+p=interpolate(QQ[t], {{0,-1}, {1,0}, {2,3/2}}) 
+sub(p, t=>-1) -- NOTE that the value should be made a QQ, as follows:
+sub(p, t=>(-1)_QQ)
+
+
 S = ZZ/101[a..d]
 C1 = cohomologyTable (sheaf coker koszul(3, vars S), -3,3)
 C2 =(cohomologyTable (sheaf coker koszul(3, vars S), -4,2))

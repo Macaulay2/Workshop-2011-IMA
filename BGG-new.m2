@@ -24,7 +24,8 @@ export {
      "Exterior",
      "universalExtension",
      "projectiveProduct",
-     "supernatural"
+     "supernatural",
+     "decomposeC"
      }
 
 symExt = method()
@@ -112,6 +113,12 @@ tateToCohomTable = (T) -> (
 	       ))
      )
 
+trimCohomologyTable=method()
+trimCohomologyTable(CohomologyTally, ZZ, ZZ) := (C,lo,hi) ->(
+newKeys := select(keys C, k -> lo <= first k + last k and first k + last k <= hi)
+new CohomologyTally from apply(newKeys, k-> k => C_k)
+)
+
 cohomologyTable = method()
 cohomologyTable(CoherentSheaf, ZZ, ZZ) := CohomologyTally => (F,lo,hi) -> (
      M := module F;
@@ -119,11 +126,12 @@ cohomologyTable(CoherentSheaf, ZZ, ZZ) := CohomologyTally => (F,lo,hi) -> (
      e := local e;
      E := (coefficientRing S)[e_0..e_(numgens S-1), SkewCommutative=>true];
      T := tateResolution(presentation M, E, lo, hi);
-     tateToCohomTable T
+     trimCohomologyTable(tateToCohomTable T, lo, hi)
      )
 cohomologyTable(Matrix, PolynomialRing, ZZ, ZZ) := CohomologyTally => (m,E,lo,hi) -> (
      T := tateResolution(m, E, lo, hi);
-     tateToCohomTable T
+     trimCohomologyTable(tateToCohomTable T, lo, hi)
+--     tateToCohomTable T
      )
 
 
@@ -532,21 +540,84 @@ H:= syz(map(R^{apply(Z0, i->i+1)}, R^(n+1) ** source G, L**G), DegreeLimit => 0)
 HS := sub(H,S);
 S^{-maxZ-1}**coker( ((vars S)**(S^(rank source G)))*HS)
 )
+--input: a BettiTally or a similar hash table
+--output: a triple, 
+--First element: the first summand in the (conjectural) Boij-Soederberg decomposition
+--second element: the multiplier
+--third element: the result of subtracting it.
+
+topZeroSequence = method()
+topZeroSequence CohomologyTally := C ->(
+     K := keys C;
+     K = select(K, k-> C_k !=0);
+     n := max(K/first);
+     Ki :={};
+     zl := 0;
+     apply(reverse toList(1..n), i-> (
+	       Ki = select(K, k -> first k == i);
+	       if Ki == {} then {zl = zl+1,0} else {zl = max(Ki/last)+1,C_(i,zl-1)}
+	  ))
+)
+
+decomposeC1 = method()
+decomposeC1 CohomologyTally := C->(
+     tzs :=topZeroSequence C;
+     K := keys C;
+     range := toList(min(K/last)..max(K/last));
+     Z := tzs/first;
+--     if not isStrictlyIncreasing L then print "NOT IN THIS SIMPLEX OF PURE BETTI DIAGRAMS";
+     t := symbol t;
+     T := ZZ[t];
+     p := product(Z, z ->t-z);
+     n := 0; -- -#tzs;
+     val := 0;
+     Ctop := new CohomologyTally from apply(reverse range, d -> (
+	       if (val = abs sub(p, t=>d)) == 0 then n = n+1;
+	       (n,d)=>val));
+     cornersOfCtop := apply(tzs/(m -> (first m)-1), d->abs sub(p, t=>d));
+     denoms := cornersOfCtop;
+     nums := tzs/last;
+     ratio :=  min apply(#nums, i-> if denoms_i != 0 then nums_i/denoms_i else infinity );
+     (C, ratio, merge(C,Ctop, (i,j)->i-ratio*j))
+--     new CohomologyTally from 
+--     apply(keys C, k -> k=>(C_k - ratio*Ctop_k))
+     )
+
+decomposeC = method()
+decomposeC CohomologyTally := C -> (
+     B1 := new CohomologyTally from C;
+--     B1:= new MutableHashTable from B;
+     ratio := 1;
+     Ztop := {};
+     while min values B1 >= 0 and max values B1 > 0 list (
+	  (Ztop, ratio, B1) = decomposeC1 B1;
+	  {ratio, topZeroSequence Ztop/first}))
+
 ///
 
 restart
 loadPackage ("BGG", Reload =>true)
+S = ZZ/101[a,b,c,d] -- P^3
+cohomologyTable(F136 = sheaf (M124 = supernatural(S,{-1,-2,-4})), -7, 7)
+cohomologyTable(F125 = sheaf (M125=supernatural(S,{-1,-2,-5})), -5, 5) 
+C = cohomologyTable(sheaf prune (M125**M124), -7,7)
+decomposeC C
+
 S = ZZ/101[a,b,d] -- P^2
 W = {-2,-4}
-
 M=supernatural(S,W)
 cohomologyTable(sheaf M, -5, 5) 
-cohomologyTable(sheaf supernatural(S,{-1,-2}), -5, 5) 
+C = cohomologyTable(sheaf prune (M**M), -6,5)
+decomposeC C
+
+C = cohomologyTable(sheaf supernatural(S,{-1,-2}), -5, 5) 
 cohomologyTable(sheaf supernatural(S,{-3,-2}), -5, 5) 
 isHomogeneous M
 
 S = ZZ/101[a,b,c,d] -- P^3
-cohomologyTable(F124 = sheaf (M124 = supernatural(S,{-1,-2,-4})), -5, 5) 
+C=cohomologyTable(F124 = sheaf (M124 = supernatural(S,{-1,-2,-4})), -5, 5) 
+
+
 cohomologyTable(F125 = sheaf (M125=supernatural(S,{-1,-2,-5})), -5, 5) 
 cohomologyTable(sheaf prune Hom(M125, M124), -5,5)
 cohomologyTable(sheaf prune Hom(M124, M125), -5,5)
@@ -554,9 +625,11 @@ cohomologyTable(sheaf prune (M125**M124), -5,5)
 
 cohomologyTable(F136 = sheaf (M136 = supernatural(S,{-1,-3,-6})), -7, 7)
 cohomologyTable(F125 = sheaf (M125=supernatural(S,{-1,-2,-5})), -5, 5) 
-cohomologyTable(sheaf prune Hom(M136, M125), -5,5)
-cohomologyTable(sheaf prune (M125**M136), -5,5)
 
+cohomologyTable(sheaf prune Hom(M136, M125), -5,5)
+
+C = cohomologyTable(sheaf prune (M125**M136), -5,5)
+decomposeC1 C
 cohomologyTable(F135 = sheaf (M135 = supernatural(S,{-1,-3,-5})), -7, 7)
 cohomologyTable(F125 = sheaf (M125=supernatural(S,{-1,-2,-5})), -5, 5) 
 cohomologyTable(sheaf prune Hom(M125, M135), -5,5)-- 6 homoms

@@ -37,7 +37,6 @@ decomposeMonomialCurve(List):= opts ->A -> (
    vb:=opts.verbose;
    x:=symbol x;
    
-   
    s:=symbol s;
    t:=symbol t;
    if not gcd A ==1 then print "WARNING: exponents not relatively prime";

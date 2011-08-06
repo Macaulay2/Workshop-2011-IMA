@@ -71,6 +71,7 @@ export {
   "minorsMap",
   "tensorComplex1",
   "flattenedESTensor",
+  "MonSize",
   "hyperdeterminant",
   "hyperdeterminantMatrix",
   "pureResTC1",
@@ -549,6 +550,22 @@ tensorComplex1 LabeledModuleMap := LabeledModuleMap => f -> (
 -- pure resolution.  However, this function works even in the nonbalanced
 -- case.  In that case, it produces the `natural' analogue of their tensor.
 
+flattenedESTensor = method(Options=>{MonSize => 32})
+flattenedESTensor (List, Ring) := LabeledModuleMap => o-> (L,kk)->(
+  --make ring of generic tensor
+  if #L === 0 then error "expected a nonempty list";
+  if #L === 1 then error "expected a balanced tensor";
+  n:=#L-1;
+  x:=symbol x;
+  S:=kk[x_0..x_(n-1), MonomialSize=>o.MonSize];
+  Blist := apply(#L, i->labeledModule S^(L_i));
+  --B = tensor product of all but Blist_0
+  B := tensorProduct apply(#L-1, i -> Blist_(i+1));     
+  map(B, Blist_0, 
+      (i,j) -> if 0<=j-sum fromOrdinal(i,B) then if j-sum fromOrdinal(i,B)<n 
+      then x_(j-sum fromOrdinal(i,B)) else 0 else 0)
+ )
+{*
 flattenedESTensor = method()
 flattenedESTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
   --make ring of generic tensor
@@ -564,7 +581,7 @@ flattenedESTensor (List, Ring) := LabeledModuleMap => (L,kk)->(
       (i,j) -> if 0<=j-sum fromOrdinal(i,B) then if j-sum fromOrdinal(i,B)<n 
       then x_(j-sum fromOrdinal(i,B)) else 0 else 0)
  )
-
+*}
 
 
 hyperdeterminant = method()
@@ -610,12 +627,12 @@ pureResTC (List,Ring):=ChainComplex => (d,kk)->(
 --  This code takes a degree sequence and a base field as an input, and
 --  it outputs the first map of the Eisenbud-Schreyer pure resolution 
 --  corresponding to that degree sequence.
-pureResES1=method()     
-pureResES1 (List,Ring) := LabeledModuleMap =>(d,kk)->(
+pureResES1=method(Options =>{MonSize =>32})     
+pureResES1 (List,Ring) := LabeledModuleMap => o -> (d,kk)->(
      b := apply(#d-1,i-> d_(i+1)-d_i);
      if min b<=0 then error"d is not strictly increasing";
      a := d_(#b) - d_0;
-     f := flattenedESTensor({a}|b,kk);
+     f := flattenedESTensor({a}|b,kk,MonSize => o.MonSize);
      tensorComplex1(f)
      )
 
@@ -662,7 +679,7 @@ doc ///
       
       One important construction made from such a collection of tensors is the Koszul complex 
       $$
-      \mathbf K := \cdots \wedge^2 \oplus_1^a O_X(-1,\dots, -1) \to  O_X  \to 0.
+      \mathbf K := \cdots \to \wedge^2 (\oplus_1^a O_X(-1,\dots, -1)) \to \oplus_1^a O_X(-1,\dots, -1)\to  O_X  \to 0.
       $$
       Let $\mathcal O_X(d, e_1,\dots e_n)$ be the tensor product of the pull-backs to $X$ 
       of the line bundles $\mathcal O_{\mathbb P^n}(d)$ and  $\mathcal O_{\mathbb P^{b_i-1}}(-1)$.  
@@ -1102,6 +1119,9 @@ doc ///
       
       The code gives an error if d is not strictly increasing with $d_0=0$.
       
+      There is an OPTION, MonSize => n (where n is 8,16, or 32). This sets the @TO MonomialSize@ option
+      when the base ring of flattenedESTensor is created.
+      
     Example
       d={0,2,4,5};
       p=pureResES1(d,ZZ/32003)
@@ -1296,6 +1316,10 @@ doc ///
      The format of $F$ is the one required
      by @TO tensorComplex1@, namely $f: A \to B_1\otimes \cdots \otimes B_n$, with
      $a = rank A, b_i = rank B_i$.
+     
+     There is an OPTION, MonSize => n (where n is 8,16, or 32). This sets the @TO MonomialSize@ option
+     when the base ring of flattenedESTensor is created.
+
     Example
      kk = ZZ/101
      f = flattenedESTensor({5,2,1,2},kk)
@@ -2161,3 +2185,32 @@ uninstallPackage "TensorComplexes"
 installPackage "TensorComplexes"
 viewHelp "TensorComplexes"
 check "TensorComplexes"
+
+
+
+
+--Erman's conjecture (proven by Eisenbud and Schreyer): If the regularity of one of the ES modules
+--is r, then its annihilator is exactly m^(r+1).
+--This is verified in 3 variables for r<=4 with the code below
+--for d= 4,5,6, and values up to 0,2,3,7 for d=7.
+--the call
+--pureResES1({0,2,4,7},ZZ/101);
+--or even
+--pureResES1({0,2,4,7},ZZ/101, MonSize=>8);
+--exhausts the memory of my laptop instantly!
+restart
+loadPackage ("TensorComplexes", Reload => true)
+
+
+d=7, n = 3
+LL = subsets(toList(1..d-1),n-1)
+time scan(LL, L1 -> (
+	  L := {0}|L1|{d};
+	  time f := pureResES1(L,ZZ/101,MonSize =>8);
+	  print (rank target f, L);	  
+          print betti ann(coker (f)
+--	  **coker(gens ((ideal vars ring f)^(d-n+1)))
+	  )
+     ))
+     
+

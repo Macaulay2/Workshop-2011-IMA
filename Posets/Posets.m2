@@ -342,7 +342,15 @@ product (Poset, Poset) := Poset => (P, Q) ->
 booleanLattice = method()
 booleanLattice ZZ := Poset => n -> (
     if n < 0 then ( print "Did you mean |n|?"; n = -n; );
-    poset(subsets n, isSubset)
+    if n == 0 then poset({""}, {}, matrix{{1}}) else (
+        Bn1 := booleanLattice(n-1);
+        G := apply(Bn1.GroundSet, p -> p | "0") | apply(Bn1.GroundSet, p -> p | "1");
+        R := apply(Bn1.Relations, r -> {(first r) | "0", (last r) | "0"}) | 
+             apply(Bn1.Relations, r -> {(first r) | "1", (last r) | "1"}) |
+             apply(Bn1.GroundSet, p -> {p | "0", p | "1"});
+        M := matrix {{Bn1.RelationMatrix, Bn1.RelationMatrix}, {0, Bn1.RelationMatrix}};
+        poset(G, R, M)
+        )
     )
 
 chain = method()
@@ -892,7 +900,7 @@ isAntichain (Poset, List) := Boolean => (P, L) -> (
 -- Ported from Stembridge's Maple Package
 linearExtensions = method()
 linearExtensions Poset := List => P -> (
-    linExtRec = (G, cr) -> (
+    linExtRec := (G, cr) -> (
         if #cr == 0 then permutations toList G else 
         flatten apply(toList (G - apply(cr, last)), m -> apply(linExtRec(G - {m}, select(cr, c -> first c =!= m)), e -> prepend(m, e)))
         );

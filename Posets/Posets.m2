@@ -20,8 +20,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0.3", 
-        Date => "05. August 2011",
+        Version => "1.0.3.1", 
+        Date => "07. August 2011",
         Authors => {
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
             {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},
@@ -107,6 +107,7 @@ export {
     "atoms",
     "compare",
     "connectedComponents",
+    "filtration",
     "joinExists",
     "joinIrreducibles",
     "maximalElements",
@@ -261,8 +262,9 @@ flagPoset (Poset, List) := Poset => (P, L)-> subPoset(P, flatten ((rankPoset P)_
 
 naturalLabeling = method()
 naturalLabeling (Poset, ZZ) := Poset => (P, startIndex) -> (
-    renameMap := (topSort hasseDiagram P)#map;
-    poset(apply(P.GroundSet, p -> startIndex + renameMap#p), apply(P.Relations, r -> {startIndex + renameMap#(first r), startIndex + renameMap#(last r)}), P.RelationMatrix)            
+    F := flatten filtration P;
+    renameMap := hashTable for i to #F - 1 list F_i => startIndex + i;
+    poset(apply(P.GroundSet, p -> renameMap#p), apply(P.Relations, r -> {renameMap#(first r), renameMap#(last r)}), P.RelationMatrix)            
     )
 naturalLabeling Poset := Poset => P -> naturalLabeling(P, 0)
 
@@ -640,7 +642,8 @@ outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     fn:=openOut name;
     fn << "\\documentclass[8pt]{article}"<< endl;
     fn << "\\usepackage{tikz}" << endl;
-    fn << "\\begin{document}" << endl << endl;
+    fn << "\\begin{document}" << endl;
+    fn << "\\pagestyle{empty}" << endl << endl;
     fn << texPoset(P, opts) << endl;
     fn << "\\end{document}" << endl;
     close fn;
@@ -651,29 +654,25 @@ texPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, sy
 texPoset (Poset) := String => opts -> (P) -> (
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
-    C := maximalChains P;
-    --hash table of variable labels:
-    idx:= hashTable apply(#P.GroundSet, i-> P.GroundSet_i=> i);
-    --edge list to be read into TikZ:
-    edgelist:= apply(coveringRelations P, r-> concatenate(toString idx#(first r),"/",toString idx#(last r)));
-    --height of poset:
-    L := max apply(C, c-> #c) - 1;
-    heightpairs := apply(P.GroundSet, g -> {g, L - max flatten apply(C, c-> positions(reverse c, i-> g === i))});
-    protoH := partition(g-> last g, heightpairs);
-    H := hashTable apply(keys protoH, k-> k=>apply(protoH#k, h-> first h));
-    levelsets := apply(values H, v-> #v-1);
-    scalew := min{1.5,15/ (1 + max levelsets)};
-    scaleh := min{2/scalew,15/(L+1)};
-    halflevelsets := apply(levelsets, j-> scalew*j/2.0);
-    spacings := apply(toList(0..L), j-> scalew*toList(0..levelsets_j));
+    -- hash table of variable labels
+    idx:= hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    -- edge list to be read into TikZ
+    edgelist:= apply(coveringRelations P, r -> concatenate(toString idx#(first r),"/",toString idx#(last r)));
+    -- Find each level of P and set up the positioning of the vertices.
+    F := filtration P;
+    levelsets := apply(F, v -> #v-1);
+    scalew := min{1.5, 15 / (1 + max levelsets)};
+    scaleh := min{2 / scalew, 15 / #levelsets};
+    halflevelsets := apply(levelsets, lvl -> scalew * lvl / 2);
+    spacings := apply(levelsets, lvl -> scalew * toList(0..lvl));
     -- The TeX String
     "\\begin{tikzpicture}[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]\n" |
-        concatenate(
-            for i from 0 to L list for j from 0 to levelsets_i list
-                {"\t\\node [vertices", if opts.SuppressLabels then "]" else (", label=right:{" | tex (values H)_i_j | "}]"),
-                 " (",toString idx#((values H)_i_j),") at (-",toString halflevelsets_i,"+",
-                 toString ((if opts.Jitter then random(scalew*0.2) else 0) + spacings_i_j),",",toString (scaleh*i),"){};\n"}
-            ) |
+    concatenate(
+        for i from 0 to #levelsets - 1 list for j from 0 to levelsets_i list
+            {"\t\\node [vertices", if opts.SuppressLabels then "]" else (", label=right:{" | tex F_i_j | "}]"),
+             " (",toString idx#(F_i_j),") at (-",toString halflevelsets_i,"+",
+             toString ((if opts.Jitter then random(scalew*0.2) else 0) + spacings_i_j),",",toString (scaleh*i),"){};\n"}
+        ) |
     concatenate("\\foreach \\to/\\from in ", toString edgelist, "\n\\draw [-] (\\to)--(\\from);\n\\end{tikzpicture}\n")
     )
 
@@ -704,6 +703,20 @@ connectedComponents Poset := List => P -> (
         );
     L = toList L;
     P.cache.connectedComponents = apply(unique L, l -> P.GroundSet_(positions(L, t -> t == l)))
+    )
+
+-- Ported from Stembridge's Maple Package
+-- F = filtration P; F_0 is the minimal elements of P, F_1 is the minimal elements of P-F_0, &c.
+-- Notice that flatten filtration P is a linear extension of P.
+filtration = method()
+filtration Poset := List => P -> (
+    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
+    cr := coveringRelations P;
+    up := for p in P.GroundSet list apply(select(cr, c -> first c === p), c -> idx#(last c));
+    cnt := new MutableList from for p in P.GroundSet list #select(cr, c -> last c === p);
+    neu := positions(cnt, c -> c == 0);
+    ret := {neu} | while #neu != 0 list neu = for i in flatten up_neu list if cnt#i == 1 then i else ( cnt#i = cnt#i - 1; continue );
+    apply(drop(ret, -1), lvl -> P.GroundSet_lvl)
     )
 
 joinExists = method()

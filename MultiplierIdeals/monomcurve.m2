@@ -1,7 +1,7 @@
 -- Copyright 1996 Michael E. Stillman
 -- Based on the Macaulay script written by David Eisenbud
 
-monomialCurveIdeal = { Affine => false } -> (S, a) -> (
+monomialCurveIdeal = { Affine => false } >> o -> (S, a) -> (
     -- check that S is a polynomial ring over a field
     n := # a;
     if not all(a, i -> instance(i,ZZ) and i >= 1)
@@ -14,6 +14,7 @@ monomialCurveIdeal = { Affine => false } -> (S, a) -> (
     local R1;
     local R2;
     local mm;
+    local j;
     if o.Affine then (
       M1 = monoid [t];
       M2 = monoid [Variables=>n];
@@ -21,6 +22,8 @@ monomialCurveIdeal = { Affine => false } -> (S, a) -> (
       R2 = k M2;
       t = R1_0;
       mm = matrix table(1, n, (j,i) -> t^(a#i));
+      j = generators kernel map(R1, R2, mm);
+      return ideal substitute(j, submatrix(vars S, {0..n-1}));
     ) else (
       topa := max a;
       a = prepend(0,a);
@@ -31,9 +34,9 @@ monomialCurveIdeal = { Affine => false } -> (S, a) -> (
       s = R1_0;
       t = R1_1;
       mm = matrix table(1, n+1, (j,i) -> s^(a#i) * t^(topa - a#i));
-    )
-    j := generators kernel map(R1, R2, mm);
-    ideal substitute(j, submatrix(vars S, {0..n}))
+      j = generators kernel map(R1, R2, mm);
+      return ideal substitute(j, submatrix(vars S, {0..n}));
+    );
     )
 
 -- Local Variables:

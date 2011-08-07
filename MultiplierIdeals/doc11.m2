@@ -57,7 +57,7 @@ document {
 	Usage => "I = monomialCurveIdeal(R,a)",
 	Inputs => {
 		"R" => Ring => {},
-		"a" => {"a list of integers to be used as exponents in the parametrization of a rational curve"}
+		"a" => {"a list of integers to be used as exponents in the parametrization of a rational curve"},
 		Affine => Boolean => {"whether to compute the ideal of an affine or projective curve"}
 		},
 	Outputs => {"I" => Ideal => {}},
@@ -109,6 +109,14 @@ TEST ///
     -- smooth rational quartic in P^3
     I4 := monomialCurveIdeal(R,{1,3,4});
     assert(I4 == image matrix {{b*c-a*d, c^3-b*d^2, a*c^2-b^2*d, b^3-a^2*c}});
+    
+    assert( (monomialCurveIdeal(QQ[x,y,z],{4,5,11},Affine=>true))
+             == ideal(y^3-x*z,x^4-y*z,x^3*y^2-z^2) );
+
+    assert( (monomialCurveIdeal(QQ[x_1..x_5],{6,7,8,9,11},Affine=>true))
+             == ideal(x_4^2-x_2*x_5,x_3*x_4-x_1*x_5,x_3^2-x_2*x_4,x_2*x_3-x_1*x_4,
+                      x_2^2-x_1*x_3,x_1*x_2*x_4-x_5^2,x_1^2*x_3-x_4*x_5,x_1^2*x_2-x_3*x_5,
+                      x_1^3-x_2*x_5) );
 ///
 
 document {

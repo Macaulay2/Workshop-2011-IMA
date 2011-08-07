@@ -178,9 +178,10 @@ poset(List, List, Matrix) := Poset => (I,C,M) -> (
 poset (List, List) := Poset => (I, C) -> poset(I, C, transitiveClosure(I, C))
 poset (List, Function) := Poset => (I, cmp) -> (
     try (
-        rel := flatten for a in I list for b in I list if cmp(a,b) then {a,b} else continue;
+        M := matrix for a in I list for b in I list if cmp(a,b) then 1 else 0;
+        rel := flatten for i to #I-1 list for j to #I-1 list if i != j and M_j_i == 1 then {I_i, I_j} else continue;
     ) else error "The comparison function cmp must (i) take two inputs, (ii) return a Boolean, and (iii) be defined for all pairs of I.";
-    poset(I, rel)
+    poset(I, rel, M)
     )
 poset List := Poset => C -> poset(unique flatten C, C);
 

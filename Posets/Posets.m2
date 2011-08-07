@@ -892,8 +892,11 @@ isAntichain (Poset, List) := Boolean => (P, L) -> (
 -- Ported from Stembridge's Maple Package
 linearExtensions = method()
 linearExtensions Poset := List => P -> (
-    if #P.GroundSet <= 1 then return {P.GroundSet};
-    flatten apply(minimalElements P, m -> apply(linearExtensions dropElements(P, {m}), e -> prepend(m, e)))
+    linExtRec = (G, cr) -> (
+        if #cr == 0 then permutations toList G else 
+        flatten apply(toList (G - apply(cr, last)), m -> apply(linExtRec(G - {m}, select(cr, c -> first c =!= m)), e -> prepend(m, e)))
+        );
+    linExtRec(set P.GroundSet, coveringRelations P)
     )
 
 maximalChains = method()

@@ -362,18 +362,13 @@ chain ZZ := Poset => n -> (
 
 divisorPoset = method()
 divisorPoset RingElement := Poset => m -> (
-    allMultiDegreesLessThan := d -> (
-        L := {{}};
-        for i from 0 to #d - 1 do L = flatten apply(L, H -> apply(d#i + 1, i -> H | {i}));
-        L
-        );
-    makeMonomialFromDegree := (R, d) -> product apply(numgens R, i-> R_i^(d#i));
-    d := flatten exponents m;
-    Ground := apply(allMultiDegreesLessThan d, e -> makeMonomialFromDegree(ring m, e));
-    Rels :=  unique flatten apply (Ground, r-> apply(Ground, s-> if s % r == 0 then (r,s)));
-    Rels = select(Rels, r -> r =!= null);
-    RelsMatrix :=  matrix apply (Ground, r-> apply(Ground, s-> if s%r == 0 then 1 else 0));
-    poset (Ground, Rels, RelsMatrix)
+    if m == 0 then error "The RingElement m must be non-zero.";
+    if #support m == 0 then return poset({m}, {}); -- Non-zero constants are special
+    M := toList \ toList factor m;
+    F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
+    -- D is the set of all (positive) divisors of m
+    D := sort (product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F));
+    poset(D, (a,b) -> b % a == 0)
     )
 
 divisorPoset ZZ := Poset => m -> (
@@ -381,16 +376,10 @@ divisorPoset ZZ := Poset => m -> (
     if m < 0 then ( print "Did you mean |m|?"; m=-m; );
     if m == 1 then return poset({1}, {}); -- 1 is special
     M := toList \ toList factor m;
-    p := local p;
-    Pset := apply(#M, i-> p_i);
-    R := QQ[Pset];
-    numHash := hashTable apply(#M, i-> R_i=>first M_i);
-    P := product apply(#M, p-> R_p^(last M_p));
-    subFunc := apply(pairs numHash, q-> q_0=>q_1);
-    Q := divisorPoset P;
-    G := sort apply(Q.GroundSet, g-> sub(g, subFunc));
-    L := apply(Q.Relations, g-> {sub(first g, subFunc), sub(last g, subFunc)});
-    poset(G,L)
+    F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
+    -- D is the set of all (positive) divisors of m
+    D := sort (product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F));
+    poset(D, (a,b) -> b % a == 0)
     )
 
 divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (

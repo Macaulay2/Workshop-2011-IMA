@@ -23,9 +23,9 @@ newPackage select((
         Version => "1.0.3.1", 
         Date => "07. August 2011",
         Authors => {
+            {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
-            {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"},
-            {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"}
+            {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"}
         },
         Headline => "Package for processing posets and order complexes",
         Configuration => {"DefaultPDFViewer" => "open", "DefaultSuppressLabels" => true},
@@ -1091,13 +1091,12 @@ doc ///
         Text
             @SUBSECTION "Contributors"@
             --
-            The following people have generously contributed code or worked on the package code.@BR{}@
-            --
-            @HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html", "Josephine Yu")@,
-            @HREF("http://www.math.purdue.edu/~nkummini/","Manoj Kummini")@,
+            The following people have generously contributed code to the package: 
             @HREF("http://www.math.cornell.edu/People/Grads/fisher.html","Kristine Fisher")@,
             @HREF("http://www.mathstat.dal.ca/~handrew/","Andrew Hoefel")@,
-            @HREF("mailto:stephen.sturgeon\@uky.edu", "Stephen Sturgeon")@
+            @HREF("http://www.math.purdue.edu/~nkummini/","Manoj Kummini")@,
+            @HREF("mailto:stephen.sturgeon\@uky.edu", "Stephen Sturgeon")@, and 
+            @HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html", "Josephine Yu")@.
 ///
 
 -- Types

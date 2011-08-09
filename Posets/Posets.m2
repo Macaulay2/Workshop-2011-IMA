@@ -184,6 +184,9 @@ poset (List, Function) := Poset => (G, cmp) -> (
     poset(G, R, M)
     )
 poset List := Poset => R -> poset(unique flatten R, R);
+Poset _ ZZ := Thing => (P, i) -> if P.GroundSet#?i then P.GroundSet_i else error "Index out of bounds."
+
+toString Poset := toExternalString Poset := String => P -> "poset(" | toExternalString P.GroundSet | ", " | toExternalString P.Relations | ", " | toString P.RelationMatrix | ")"
 
 -- Returns a matrix M such that M_(i,j) = 1 if G_i <= G_j, and 0 otherwise
 transitiveClosure = method()
@@ -321,6 +324,7 @@ dropElements (Poset, List) := Poset => (P, L) -> (
     newRelations := select(allRelations(P, true), r -> not member(first r, L) and not member(last r, L));
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
+dropElements (Poset, Thing) := Poset => (P, a) -> dropElements(P, {a})
 dropElements (Poset, Function) := Poset => (P, f) -> (
     keptIndices := select(toList(0..#P.GroundSet-1), i-> not f(P.GroundSet#i));
     newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
@@ -328,15 +332,19 @@ dropElements (Poset, Function) := Poset => (P, f) -> (
     newRelations := select(allRelations(P, true), r -> not f(first r) and not f(last r));
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
+Poset - Thing := dropElements
+Poset - List := dropElements
 
 -- The product method is defined in the Core.
 product (Poset, Poset) := Poset => (P, Q) -> 
     poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
           join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
            flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})))
+Poset * Poset := product
 
 union = method()
 union (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations))
+Poset + Poset := union
 
 ------------------------------------------
 -- Enumerators
@@ -1128,6 +1136,26 @@ doc ///
 -- METHODS
 -----------
 
+-- _
+doc ///
+    Key
+        (symbol _,Poset,ZZ)
+    Headline
+        gets an element of the ground set
+    Usage
+        P_i
+    Inputs
+        P:Poset
+        i:ZZ
+    Outputs
+        a:Thing
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
 -- poset
 doc ///
     Key
@@ -1540,14 +1568,18 @@ doc ///
 doc ///
     Key
         dropElements
+        (dropElements,Poset,Thing)
         (dropElements,Poset,Function)
         (dropElements,Poset,List)
+        (symbol -,Poset,Thing)
+        (symbol -,Poset,List)
     Headline
         computes the induced subposet of a poset given a list of elements to remove
     Usage
         TODO
     Inputs
         P:Poset
+        a:Thing
         L:List
         f:Function
     Outputs
@@ -1563,8 +1595,9 @@ doc ///
 doc ///
     Key
         (product,Poset,Poset)
+        (symbol *,Poset,Poset)
     Headline
-        computes the cartesian product of two posets
+        computes the product of two posets
     Usage
         TODO
     Inputs
@@ -1584,6 +1617,7 @@ doc ///
     Key
         union
         (union,Poset,Poset)
+        (symbol +,Poset,Poset)
     Headline
         computes the union of two posets
     Usage
@@ -2899,7 +2933,7 @@ doc ///
         Posets
 ///
 
-undocumented { "VariableName" };
+undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };
 
 ------------------------------------------
 -- Tests

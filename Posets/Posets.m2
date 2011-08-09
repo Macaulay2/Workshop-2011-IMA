@@ -676,6 +676,7 @@ texPoset (Poset) := String => opts -> (P) -> (
         ) |
     concatenate("\\foreach \\to/\\from in ", toString edgelist, "\n\\draw [-] (\\to)--(\\from);\n\\end{tikzpicture}\n")
     )
+tex Poset := texPoset
 
 ------------------------------------------
 -- Vertices & vertex properties
@@ -2006,6 +2007,7 @@ doc ///
         [texPoset,Jitter]
         Jitter
         SuppressLabels
+        (tex, Poset)
     Headline
         generates a string containg a TikZ-figure of a poset
     Usage
@@ -2019,6 +2021,8 @@ doc ///
     Description
         Text
             TODO
+    Caveat
+        Calling texPoset via the command @TO "tex"@ expects that no options are given.
     SeeAlso
         Posets
 ///

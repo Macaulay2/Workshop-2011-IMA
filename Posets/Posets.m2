@@ -3,6 +3,7 @@
 ------------------------------------------
 -- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
 -- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular
+-- greeneKleitmanPartition
 
 
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
@@ -122,6 +123,7 @@ export {
     -- Relations & relation properties
     "allRelations",
     "antichains",
+    "chains",
     "coveringRelations",
     "flagChains",
     "isAntichain",
@@ -133,6 +135,7 @@ export {
     "flagfPolynomial",
     "flaghPolynomial",
     "fPolynomial",
+    "greeneKleitmanPartition",
     "hPolynomial",
     "moebiusFunction",
     "rankGeneratingFunction",
@@ -498,7 +501,7 @@ lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
     )
 lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts)
 
--- Used by lcmLattice for Straegy 1
+-- Used by lcmLattice for Strategy 1
 protect next
 lcmLatticeProduceGroundSet = G -> (
     degreeNextPair := (D, nextDegrees) -> hashTable {symbol degree => D, symbol next => nextDegrees};
@@ -852,6 +855,10 @@ antichains Poset := List => P -> (
     apply(flatten apply(1 + dim S, d -> flatten entries faces(d, S)), a -> P.GroundSet_(indices a))
     )
 
+chains = method()
+chains Poset := P -> sort unique flatten (subsets \ maximalChains P)
+chains (Poset, ZZ) := (P, k) -> sort unique flatten apply(maximalChains P, c -> subsets(c, k))
+
 coveringRelations = method()
 coveringRelations Poset := List => P -> (
     if P.cache.?coveringRelations then return P.cache.coveringRelations;
@@ -946,6 +953,23 @@ fPolynomial Poset := RingElement => opts -> P -> (
     fV := fVector oP;
     R := ZZ(monoid [opts.VariableName]);
     sum(-1..dim oP, i -> fV#i * R_0^(i + 1))
+    )
+
+-- The union of k chains in P has maximum size equal to the 
+-- sum of the first k terms in the Greene-Kleitman partition.
+greeneKleitmanPartition = method(Options => {symbol Strategy => "antichains"})
+greeneKleitmanPartition Poset := Partition => opts -> P -> (
+    if P.cache.?greeneKleitmanPartition then return P.cache.greeneKleitmanPartition;
+    (C, f) := if opts.Strategy === "chains" then (chains P, identity)
+        else if opts.Strategy === "antichains" then (antichains P, conjugate)
+        else error "The option Strategy must either by 'chains' or 'antichains'.";
+    lambda := {};
+    k := 0;
+    while sum lambda < #P.GroundSet do (
+        lk := max apply(subsets(C, k = k + 1), c -> #unique flatten c);
+        lambda = append(lambda, lk - sum lambda);
+        );
+    f new Partition from lambda
     )
 
 hPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
@@ -2359,6 +2383,28 @@ doc ///
         Posets
 ///
 
+-- chains
+doc ///
+    Key
+        chains
+        (chains,Poset)
+        (chains,Poset,ZZ)
+    Headline
+        computes all chains of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        k:ZZ
+    Outputs
+        L:List
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
 -- coveringRelations
 doc ///
     Key
@@ -2542,6 +2588,28 @@ doc ///
         VariableName=>Symbol
     Outputs
         f:RingElement
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- greeneKleitmanPartition
+doc ///
+    Key
+        greeneKleitmanPartition
+        (greeneKleitmanPartition,Poset)
+        [greeneKleitmanPartition,Strategy]
+    Headline
+        computes the Greene-Kleitman partition of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        Strategy=>String
+    Outputs
+        l:Partition
     Description
         Text
             TODO

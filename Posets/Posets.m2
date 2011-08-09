@@ -21,7 +21,7 @@ if version#"VERSION" <= "1.4" then (
 newPackage select((
     "Posets",
         Version => "1.0.3.1", 
-        Date => "07. August 2011",
+        Date => "09. August 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -419,20 +419,20 @@ dominanceLattice ZZ := Poset => n -> (
 
 facePoset = method()
 facePoset SimplicialComplex := Poset => D -> (
-    testmax := L -> min apply(L, j->#j) > 1;
-    faceset := apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i, D)), r -> support r);
-    chainheads := apply(flatten entries facets D, i-> support i);
+    testmax := L -> min apply(L, j -> #j) > 1;
+    faceset := support \ flatten apply(toList(0..dim D), i -> toList flatten entries faces(i, D));
+    chainheads := support \ flatten entries facets D;
     maxchains := apply(chainheads, i-> {i});
     while any(maxchains, testmax) do (
-        nextstage:={};
-        holdover:=select(maxchains,c-> not testmax c);
-        for m in select(maxchains,testmax) do (
-            minsize:=min apply(m, i-> #i);
-            minset:=first select(m, i-> #i == minsize);
-            coveredfaces:=subsets(minset,minsize-1);
-            nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
-            );
-        maxchains = join(nextstage,holdover);
+        maxtest := partition(testmax, maxchains);
+        holdover := maxtest#false;
+        nextstage := flatten apply(maxtest#true, m -> (
+            minsize := min apply(m, i -> #i);
+            minset := first select(m, i -> #i == minsize);
+            coveredfaces := subsets(minset, minsize - 1);
+            apply(coveredfaces, c -> append(m, c))
+            ));
+        maxchains = join(nextstage, holdover);
         );    
     poset(faceset, unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
     )

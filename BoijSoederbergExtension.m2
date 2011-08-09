@@ -97,11 +97,8 @@ CohomologyTally ++ CohomologyTally := (C,D) -> (
      	  else unique join (keys (C1= trimCohomologyTable(C,lo,hi)), keys (D1=trimCohomologyTable(D,lo,hi)));
      new CohomologyTally from apply(K, k-> k=>C1_k+D1_k)
      )
-{*	  
-topZeroSequence = method()
 
-topZeroSequence CohomologyTally := C ->(
-*}
+--topZeroSequence1 should ultimately replace topZeroSequence, which is defined in some other package. (BoijSoederberg??)
 topZeroSequence1 = C ->(
      K := keys C;
      K = select(K, k-> C_k !=0);
@@ -186,6 +183,7 @@ range =method()
 range CohomologyTally := C ->(
      n := dim C;
      K := keys C;
+     if K =={} then return (-infinity,infinity);
      if min (K/first) != 0 then return false; -- no H^0 present
      lo := min (K/last)+n;
      hi := max (K/last);
@@ -284,47 +282,73 @@ zeroesOfMonadTensorSupernatural(Ring,CohomologyTally,ZZ,List):=(S,C,k,L)->(
      n:=dim S-1;
      Qs:=apply(n+1,i->image (koszul(n-i+1, vars S))**S^{n-i+1});
  --    apply(Qs,Q->cohomologyTable(sheaf Q,-5,5))
-     lo:=min L-2,hi:=n;
+     lo:=min L +n-2;
+     hi:=1;
      M:=supernatural(S,L) ;
-     cMQs:=apply(Qs,Q->cohomologyTable(prune sheaf( Q**M),lo,hi)) ;   
+     cMQs0:=apply(Qs,Q->cohomologyTable(prune sheaf( Q**M),lo,hi)) ;   
+     cMQs:=apply(cMQs0,Q->extendCohomologyTable(Q,lo,1)) ;   
      Md:=beilinsonData(C,k); 
+     --select the nonzero terms, with their bidegrees and values
      Md1:=select(flatten apply(toList(-n..n),
 	       j->apply(n+1,i->(n-i+j,j,Md_(i,j-i)))),t->t_2 !=0);
      homologicalRange := sort unique apply(Md1,k->k_1);
-     zeroes:=apply(homologicalRange,j->
-	  (j,(sum(apply(select(Md1,kk->kk_1==j),
-			 kk->kk_2*cMQs_(kk_0))))(-k-1)
+     Mdj :={};
+     zsum := symbol zsum;
+     z := supernaturalCohomologyTable(toList(-n+k..-1+k));
+     zeroes:=apply(homologicalRange,j->(
+	       Mdj = select(Md1,kk->kk_1==j);
+     	       zsum = z;
+
+	       scan(Mdj,  kk->zsum = zsum++(kk_2*cMQs_(kk_0)));
+	  (j,(zsum++(-1)*z)(-k-1))
 	       ));
      zeroes
      )
-supernaturalCohomologyTable = method()
-supernaturalCohomologyTable List := L -> (
-     n:=#L;
-     x:=symbol x;
-     S:=ZZ/101[x_0..x_n];
-     C1:=cohomologyTable(sheaf supernatural(S,L),min L+n-1,1);
-     trimCohomologyTable(C1,min L+n-1,0))
 
-sct=supernaturalCohomologyTable    
 ///
 restart
 loadPackage ("BGG", Reload => true)
 loadPackage ("BoijSoederbergExtension", Reload => true)
-LF={ -1,-6,-7}
-C=supernaturalCohomologyTable(LF) 
-n=3
-S=ZZ/101[x_0..x_n] -- P^3
-LF={ -1,-6,-7},L={ -1,-2,-4}
-C=cohomologyTable(sheaf supernatural(S,LF),min LF+n-1,1)
-k=-2
+--small example
+n=2
+S=ZZ/101[x_0..x_n] --P^n
+LF={ -1,-2}
+L={ -1,-3}
+sct LF
+sct L
+k=0
+C = sct LF
+
+--C = cohomologyTable(sheaf (supernatural(S,LF)),min LF+n-1,1)
+D=cohomologyTable(sheaf (supernatural(S,LF)**supernatural(S,L)),min(min LF, min L),1)
+
+
 beilinsonData(C,k)
-zeroesOfMonadTensorSupernatural(S,C,k,LF)
-cohomologyTable(sheaf supernatural(S,L),min L+n-1,1)
+Z = zeroesOfMonadTensorSupernatural(S,C,k,L)
+///
+
+TEST///
+n=3
+S=ZZ/101[x_0..x_n] -- P^n
+LF={ -1,-6,-7}
+L={ -1,-2,-4}
+C=cohomologyTable(sheaf supernatural(S,LF),min LF+n-1,1)
+k=10
+--beilinsonData(C,k)
+Z = zeroesOfMonadTensorSupernatural(S,C,k,L)
+
+z=sct(toList(-n..-1))
+zsum = z
+scan(Z, z-> zsum = zsum++((-1)^(z_0)*z_1))
+A=zsum ++(-1)*z
+D=cohomologyTable(sheaf (supernatural(S,LF)**supernatural(S,L)),min(min LF, min L),1)
+D = extendCohomologyTable(D, 10,11)
+assert(A_(0,10) == D_(0,10))
 ///
 
 trivialZeroesFromMonad=method()
 trivialZeroesFromMonad(List):= L ->(
--- input: list of cohomology tables of a monad
+-- input: list of cohomology tables of the terms of a monad
 -- output: range of cohomological vanishing for the homology sheaf.  
 -- method:
      -- if ... -> F^(-1) -> F^0 ->F^1 -> ... is a monad 
@@ -339,19 +363,24 @@ trivialZeroesFromMonad(List):= L ->(
      D:=new CohomologyTally from Kvalues; 
      trimCohomologyTable(D,lo,hi))
 
-{*
-trivialZeroesFromMonad(Ring,CohomologyTally,List):=(S,C,LF)->(
-     (lo,hi):=range C;
-     n:= dim C;
-     C1:=extendCohomologyTable(C,lo,hi+n);
-     monads:=apply(toList(lo..hi),k->zeroesOfMonadTensorSupernatural(S,C1,k,LF));
-     tops1:=apply(monads,m->apply(m,mm->
-	       (mm_0,(topZeroSequence mm_1)/first)));
-     reverse apply(n,i->min apply(zz,z->z_i)))     
+///
+restart
+loadPackage ("BGG", Reload => true)
+loadPackage ("BoijSoederbergExtension", Reload => true)
+--small example
+n=3
+S=ZZ/101[x_0..x_n] --P^n
+LF={ -1,-4,-5}
+L={ -1,-3,-7}
+C = sct LF
+sct L
+k=0
+D=cohomologyTable(sheaf (supernatural(S,LF)**supernatural(S,L)),min(min LF, min L),1)
+beilinsonData(C,k)
+Z = zeroesOfMonadTensorSupernatural(S,C,k,L)
+trivialZeroesFromMonad Z
+///
 
-
-----
-*}
 trivialZeroesFromMonad(Ring,CohomologyTally,List):=(S,C,LF)->(
      (lo,hi):=range C;
      n:= dim C;w:=0;
@@ -365,6 +394,7 @@ trivialZeroesFromMonad(Ring,CohomologyTally,List):=(S,C,LF)->(
 	  trimCohomologyTable(trivialZeroesFromMonad(L),
 	       -n+lo+min LF,n));
      zz:=apply(zeroes1,z->(topZeroSequence1 z)/first);
+     --when topZeroSequence is fixed, replace topZeroSequence1 in the line above.
      reverse apply(n,i->min apply(zz,z->z_i))
      )     
 ///
@@ -373,9 +403,11 @@ restart
 loadPackage ("BGG", Reload => true)
 loadPackage ("BoijSoederbergExtension", Reload => true)
 S=ZZ/101[a..c] -- P^2
-LF={ -1,-6},LG={ -1,-5}
-CF=cohomologyTable(sheaf supernatural(S,LF),-5,6)
+LF={ -1,-6}
+LG={ -1,-5}
+C=cohomologyTable(sheaf supernatural(S,LF),-5,6)
 apply(toList(-6..6),k->trivialZeroesFromMonad zeroesOfMonadTensorSupernatural(S,C,k,LF))
+
 trivialZeroesFromMonad zeroesOfMonadTensorSupernatural(S,C,-1,LF)
 C
 beilinsonData(C,-1),beilinsonData(C,0)
@@ -525,6 +557,19 @@ H:= syz(map(R^{apply(Z0, i->i+1)}, R^(n+1) ** source G, L**G), DegreeLimit => 0)
 HS := sub(H,S);
 S^{-maxZ-1}**coker( ((vars S)**(S^(rank source G)))*HS)
 )
+
+supernaturalCohomologyTable = method()
+supernaturalCohomologyTable List := L -> (
+     n:=#L;
+     x:=symbol x;
+     S:=ZZ/101[x_0..x_n];
+     C1:=cohomologyTable(sheaf supernatural(S,L),min L+n-1,1);
+     trimCohomologyTable(C1,min L+n-1,0))
+
+sct=supernaturalCohomologyTable    
+
+
+
 --input: a BettiTally or a similar hash table
 --output: a triple, 
 --First element: the first summand in the (conjectural) Boij-Soederberg decomposition

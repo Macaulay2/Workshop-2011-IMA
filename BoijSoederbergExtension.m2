@@ -26,8 +26,10 @@ export {
      "topZeroSequence1",
      "trimCohomologyTable",
      "trivialZeroesFromMonad",
-     "supernaturalCohomologyTable",
-     "sct"
+     "supernaturalCohomologyTable","sct",
+     "partitionToZeroSequence","ptzs",
+     "dualZeroSequence",
+     "zeroSequenceToPartition","zstp"
      }
 {*The version of projectiveProduct in
 BGG.m2
@@ -184,7 +186,7 @@ range CohomologyTally := C ->(
      n := dim C;
      K := keys C;
      if K =={} then return (-infinity,infinity);
-     if min (K/first) != 0 then return false; -- no H^0 present
+     --if min (K/first) != 0 then return false; -- no H^0 present
      lo := min (K/last)+n;
      hi := max (K/last);
      (lo,hi))
@@ -298,7 +300,6 @@ zeroesOfMonadTensorSupernatural(Ring,CohomologyTally,ZZ,List):=(S,C,k,L)->(
      zeroes:=apply(homologicalRange,j->(
 	       Mdj = select(Md1,kk->kk_1==j);
      	       zsum = z;
-
 	       scan(Mdj,  kk->zsum = zsum++(kk_2*cMQs_(kk_0)));
 	  (j,(zsum++(-1)*z)(-k-1))
 	       ));
@@ -362,23 +363,66 @@ trivialZeroesFromMonad(List):= L ->(
      Kvalues:=apply(K, k->((i,d)=k;k=>sum(homologicalRange,j->((L_(j-hRo))_1)_(i-j,d))));
      D:=new CohomologyTally from Kvalues; 
      trimCohomologyTable(D,lo,hi))
+partitionToZeroSequence = method()
+partitionToZeroSequence List := Lambda -> (
+     n:=#Lambda;
+     apply(n,k->-k-Lambda_(n-k-1)-1))
+ptzs = partitionToZeroSequence
+dualZeroSequence = method()
+dualZeroSequence List := L -> (
+     zn:=min L;
+     reverse sort apply(L,z->zn-z-1))
+zeroSequenceToPartition=method()
+zstp =zeroSequenceToPartition
+zeroSequenceToPartition List := z -> (
+     n:= #z;
+     apply(n,p->-n+p-z_(n-p-1)))
 
 ///
 restart
 loadPackage ("BGG", Reload => true)
 loadPackage ("BoijSoederbergExtension", Reload => true)
 --small example
+
 n=3
 S=ZZ/101[x_0..x_n] --P^n
-LF={ -1,-4,-5}
-L={ -1,-3,-7}
-C = sct LF
-sct L
-k=0
-D=cohomologyTable(sheaf (supernatural(S,LF)**supernatural(S,L)),min(min LF, min L),1)
-beilinsonData(C,k)
+LF=ptzs {4,2,1}
+zstp LF
+
+
+LF, LFdual =dualZeroSequence LF
+--LF={ -1,-5,-6},LFdual={-1,-2,-6}
+--L={ -1,-6,-8}
+C = sct LF,Cdual=sct LFdual
+--sct L
+D=cohomologyTable(sheaf (supernatural(S,LFdual)**supernatural(S,LFdual)),min(min LFdual, min LFdual)-1,1)
+D=cohomologyTable(sheaf (supernatural(S,LF)**supernatural(S,LF)),min(min LF, min LF)-1,1)
+loadPackage("SchurRings")
+viewHelp SchurRings
+R=schurRing(s,3)
+s_{3,3}*s_{3,3}
+s_{2,2,2}*s_{2,2,2}
+s_{3,2}*s_{4,3}
+s_{3,2}*s_{3,2}
+s_{2,2}*s_{2,1} -- our bound not sharp
+s_{2,2}*s_{1,1} -- our bound not sharp
+s_{1,1}*s_{1,1} -- our bound not sharp
+ s_{2,1,1}*s_{3,1}
+s_{4,3}*s_{4,4}
+(s_{1,1}+s_{1,1,1})*s_{1,1}
+s_{2}*s_{2}
+vars R
+
+beilinsonData(C,1)
 Z = zeroesOfMonadTensorSupernatural(S,C,k,L)
 trivialZeroesFromMonad Z
+D
+apply(toList(-2..0), k-> trivialZeroesFromMonad zeroesOfMonadTensorSupernatural(S,C,k,L))
+D
+-- bug :
+zeroesOfMonadTensorSupernatural(S,C,1,L)
+C
+range C
 ///
 
 trivialZeroesFromMonad(Ring,CohomologyTally,List):=(S,C,LF)->(

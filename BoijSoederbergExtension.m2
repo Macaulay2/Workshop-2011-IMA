@@ -23,7 +23,11 @@ export {
      "zeroesOfMonadTensorSupernatural",
      "supernatural",
      "decomposeC",
-     "trimCohomologyTable"
+     "topZeroSequence1",
+     "trimCohomologyTable",
+     "trivialZeroesFromMonad",
+     "supernaturalCohomologyTable",
+     "sct"
      }
 {*The version of projectiveProduct in
 BGG.m2
@@ -95,18 +99,22 @@ CohomologyTally ++ CohomologyTally := (C,D) -> (
      )
 {*	  
 topZeroSequence = method()
+
 topZeroSequence CohomologyTally := C ->(
+*}
+topZeroSequence1 = C ->(
      K := keys C;
      K = select(K, k-> C_k !=0);
      n := max(K/first);
      Ki :={};
-     zl := 0;
+     zl := -infinity;
      apply(reverse toList(1..n), i-> (
 	       Ki = select(K, k -> first k == i);
-	       if Ki == {} then {zl = zl+1,0} else {zl = max(Ki/last)+1,C_(i,zl-1)}
+	       if max(Ki/last)<zl+1 then {zl = zl+1,0} else {zl = max(Ki/last)+1,C_(i,zl-1)}
 	  ))
 )
-*}
+
+
 decomposeCohomologyTable1 = method()
 decomposeCohomologyTable1 CohomologyTally := C->(
      tzs :=topZeroSequence C;
@@ -234,22 +242,16 @@ extendCohomologyTable(CohomologyTally,ZZ,ZZ) := (C,lo,hi) ->(
 beilinsonData=method()
 
 beilinsonData(CohomologyTally,ZZ):=(C,d)->(
+     --C = cohomology table of a vector bundle F.
+     --C must be at least as wide as from the coregularity to the
+     --regularity of F or the program returns an error.
+     --returns
+     --Beilinson Monad data for F(d) 
      n:=dim C;
      Cd:=(extendCohomologyTable(C,d-n,d+n))(d);
      Kd:=select(keys Cd,k->last k<=0 and last k>=-n); 
-     Md:=new CohomologyTally from apply(Kd,k-> k=>Cd_k))
-
-///
-     Md1:=select(flatten apply(n+1,i->apply(toList(-n..n),j->(i-j,j,Md_(i,j-i)))),t->t_2 !=0)
-     sort(Md1,k->k_1)
-     homologicalRange := sort unique apply(Md1,k->k_1)
-     Qs=apply(n+1,i->image koszul(i+1,vars S)**S^{i})     
-     F:= new ChainComplex
-     F.ring=S
-     Fs=apply(homologicalRange,j->(j,(directSum(apply(select(Md1,k->k_1==j),k->directSum(apply(k_2,g->Qs_(k_0))))))**S^{-d}))
-     apply(Fs,m->(m_0,betti m_1))
-///
-
+     Md:=new CohomologyTally from apply(Kd,k-> k=>Cd_k)
+     )
 
 
 ///
@@ -259,8 +261,9 @@ loadPackage ("BoijSoederbergExtension", Reload => true)
 
 ///
 TEST///
-S = ZZ/101[a..d]
-C1 = cohomologyTable (sheaf coker koszul(3, vars S), -3,3)
+S = ZZ/101[x_0..x_3]
+C = cohomologyTable (sheaf coker koszul(3, vars S), -3,3)
+d=3
 C2 =(cohomologyTable (sheaf coker koszul(3, vars S), -4,2))(+1)
 C3 =(cohomologyTable (sheaf image matrix"a,b,c", -4,2))
 C1++C3
@@ -271,11 +274,150 @@ beilinsonData(C,-2)
 beilinsonData(C4,2)
 ///
 
+zeroesOfMonadTensorSupernatural=method()
+zeroesOfMonadTensorSupernatural(Ring,CohomologyTally,ZZ,List):=(S,C,k,L)->(
+     --C is a cohomology table representing a vector bundle F.
+     --L a zero sequence of a supernatural bundle G.
+     --computes Md = Beilinson monad data for F(k).
+     --returns list of the cohomology tables corresponding to the 
+     --terms of a monad for F ** G.
+     n:=dim S-1;
+     Qs:=apply(n+1,i->image (koszul(n-i+1, vars S))**S^{n-i+1});
+ --    apply(Qs,Q->cohomologyTable(sheaf Q,-5,5))
+     lo:=min L-2,hi:=n;
+     M:=supernatural(S,L) ;
+     cMQs:=apply(Qs,Q->cohomologyTable(prune sheaf( Q**M),lo,hi)) ;   
+     Md:=beilinsonData(C,k); 
+     Md1:=select(flatten apply(toList(-n..n),
+	       j->apply(n+1,i->(n-i+j,j,Md_(i,j-i)))),t->t_2 !=0);
+     homologicalRange := sort unique apply(Md1,k->k_1);
+     zeroes:=apply(homologicalRange,j->
+	  (j,(sum(apply(select(Md1,kk->kk_1==j),
+			 kk->kk_2*cMQs_(kk_0))))(-k-1)
+	       ));
+     zeroes
+     )
+supernaturalCohomologyTable = method()
+supernaturalCohomologyTable List := L -> (
+     n:=#L;
+     x:=symbol x;
+     S:=ZZ/101[x_0..x_n];
+     C1:=cohomologyTable(sheaf supernatural(S,L),min L+n-1,1);
+     trimCohomologyTable(C1,min L+n-1,0))
+
+sct=supernaturalCohomologyTable    
+///
+restart
+loadPackage ("BGG", Reload => true)
+loadPackage ("BoijSoederbergExtension", Reload => true)
+LF={ -1,-6,-7}
+C=supernaturalCohomologyTable(LF) 
+n=3
+S=ZZ/101[x_0..x_n] -- P^3
+LF={ -1,-6,-7},L={ -1,-2,-4}
+C=cohomologyTable(sheaf supernatural(S,LF),min LF+n-1,1)
+k=-2
+beilinsonData(C,k)
+zeroesOfMonadTensorSupernatural(S,C,k,LF)
+cohomologyTable(sheaf supernatural(S,L),min L+n-1,1)
+///
+
+trivialZeroesFromMonad=method()
+trivialZeroesFromMonad(List):= L ->(
+-- input: list of cohomology tables of a monad
+-- output: range of cohomological vanishing for the homology sheaf.  
+-- method:
+     -- if ... -> F^(-1) -> F^0 ->F^1 -> ... is a monad 
+     -- with H^*(F^*)=H^0(F^*)=B then
+     -- H^i B(d)=0 if all H^(i-j) F^j(d) = 0
+     homologicalRange:=L/first;hRo:=min homologicalRange;
+     C0:=L_0_1;
+     n:=dim C0;
+     (lo,hi):=range C0;i:=0,d:=0;
+     K:=flatten apply(n+1,i->apply(toList(lo-n..hi),d->(i,d)));
+     Kvalues:=apply(K, k->((i,d)=k;k=>sum(homologicalRange,j->((L_(j-hRo))_1)_(i-j,d))));
+     D:=new CohomologyTally from Kvalues; 
+     trimCohomologyTable(D,lo,hi))
+
+{*
+trivialZeroesFromMonad(Ring,CohomologyTally,List):=(S,C,LF)->(
+     (lo,hi):=range C;
+     n:= dim C;
+     C1:=extendCohomologyTable(C,lo,hi+n);
+     monads:=apply(toList(lo..hi),k->zeroesOfMonadTensorSupernatural(S,C1,k,LF));
+     tops1:=apply(monads,m->apply(m,mm->
+	       (mm_0,(topZeroSequence mm_1)/first)));
+     reverse apply(n,i->min apply(zz,z->z_i)))     
+
+
+----
+*}
+trivialZeroesFromMonad(Ring,CohomologyTally,List):=(S,C,LF)->(
+     (lo,hi):=range C;
+     n:= dim C;w:=0;
+     C1:=extendCohomologyTable(C,lo,hi+n);C2:=C1;
+     monads:=apply(toList(lo..hi),k->
+	  zeroesOfMonadTensorSupernatural(S,C1,k,LF));
+     monads1:=apply(monads,m->apply(m,mm->
+	       (C2=extendCohomologyTable(mm_1,-n+lo+min LF,2*n);  
+	       (mm_0,C2))));
+     zeroes1:=apply(monads1,L->
+	  trimCohomologyTable(trivialZeroesFromMonad(L),
+	       -n+lo+min LF,n));
+     zz:=apply(zeroes1,z->(topZeroSequence1 z)/first);
+     reverse apply(n,i->min apply(zz,z->z_i))
+     )     
+///
+
+restart
+loadPackage ("BGG", Reload => true)
+loadPackage ("BoijSoederbergExtension", Reload => true)
+S=ZZ/101[a..c] -- P^2
+LF={ -1,-6},LG={ -1,-5}
+CF=cohomologyTable(sheaf supernatural(S,LF),-5,6)
+apply(toList(-6..6),k->trivialZeroesFromMonad zeroesOfMonadTensorSupernatural(S,C,k,LF))
+trivialZeroesFromMonad zeroesOfMonadTensorSupernatural(S,C,-1,LF)
+C
+beilinsonData(C,-1),beilinsonData(C,0)
+trivialZeroesFromMonad 
+zeroesOfMonadTensorSupernatural(S,C,0,LF)
+trivialZeroesFromMonad zeroesOfMonadTensorSupernatural(S,C,-2,LF)
+C=cohomologyTable(sheaf supernatural(S,LG),-5,2)
+time A=trivialZeroesFromMonad(S,C,LF)
+
+S=ZZ/101[a..d] -- P^3
+L={ -1,-5,-9}
+--
+L={ -1,-5,-8}
+M=supernatural(S,L);cohomologyTable(sheaf M,min L+2,1)
+cohomologyTable(sheaf Hom(M,S^1),-5,5)
+cohomologyTable(sheaf Hom(M,M),-5,5)
+
+E=ZZ/101[y_0..y_3,SkewCommutative=>true]
+betti (fm=res coker ms) 
+     
+     m=random(E^15,E^{15:-2});
+	  ms=map(target m, source m, m+transpose m)
+	  ))
+betti res(coker transpose fm.dd_2,LengthLimit=>9)
+
+LF={ -1,-3,-4},LG={ -1,-4,-5}
+L2={ -1,-4,-7}
+CF=cohomologyTable(sheaf supernatural(S,LF),-5,2)
+C=cohomologyTable(sheaf supernatural(S,LG),-5,2)
+C2=cohomologyTable(sheaf supernatural(S,L2),-5,2)
+C++(C 1)
+L=zeroesOfMonadTensorSupernatural(S,C,-3,LF)
+trivialZeroesFromMonad(L)
+time A=trivialZeroesFromMonad(S,C,LF)
+cohomologyTable(sheaf supernatural(S,A),min A,1)
+cohomologyTable(sheaf (supernatural(S,LG)**supernatural(S,LF)),-7,2)
+time B=trivialZeroesFromMonad(S,C,L2)
+cohomologyTable(sheaf supernatural(S,B),min B,1)
+cohomologyTable(sheaf (supernatural(S,LG)**supernatural(S,LG)),min B ,1)
+///
 
 ///
-S=ZZ/101[a..d] -- P^3
-LF={-1,-3,-4},LG={-1,-4,-5}
-
 C=cohomologyTable(sheaf supernatural(S,LG),-5,5)
 
 MG=supernatural(S,LG);cG=cohomologyTable(sheaf MG,-5,5)
@@ -283,6 +425,9 @@ MF=supernatural(S,LF);cF=cohomologyTable(sheaf MF,-5,5)
 time cFG=cohomologyTable(sheaf (MF**MG), -5,5)
 
 zeroesOfMonadTensorSupernatural(S,C,2,LF) --does not work for H^2(-4)
+
+
+
 zeroesOfMonadTensorSupernatural(S,C,1,LF) --does not work for H^2(-4)
 zeroesOfMonadTensorSupernatural(S,C,0,LF) --does not work for H^2(-4)
 zeroesOfMonadTensorSupernatural(S,C,-1,LF) --does not work for H^2(-4)
@@ -300,10 +445,10 @@ C
 
 ///
 S=ZZ/101[a..e] -- P^4
-LF={-1,-2,-4,-5},LG={-1,-2,-5,-6}
+LF={-1,-4,-6,-8},LG={-1,-2,-5,-6}
 
-C=cohomologyTable(sheaf supernatural(S,LG),-5,5)
-
+time C=cohomologyTable(sheaf (MF= supernatural(S,LF)),-5,5)
+cohomologyTable(sheaf Hom(MF,S^1),-3,1)
 MG=supernatural(S,LG);cG=cohomologyTable(sheaf MG,-5,5)
 MF=supernatural(S,LF);cF=cohomologyTable(sheaf MF,-5,5)
 time cFG=cohomologyTable(sheaf (MF**MG), -5,5)
@@ -358,22 +503,10 @@ o132 = 3: 385 150  27   8   1   .   .   .   .   .   .
        0:   .   .   .   .   .   1   8  27 150 385 756
 *}
 ///
-zeroesOfMonadTensorSupernatural=method()
-zeroesOfMonadTensorSupernatural(Ring,CohomologyTally,ZZ,List):=(S,C,k,L)->(
-     n:=dim S-1;
-     Qs:=apply(n+1,i->image (koszul(n-i+1, vars S))**S^{n-i+1});
- --    apply(Qs,Q->cohomologyTable(sheaf Q,-5,5))
-     lo:=min L-2,hi:=1;
-     M:=supernatural(S,L) ;
-     cMQs:=apply(Qs,Q->cohomologyTable(prune sheaf( Q**M),lo,hi)) ;   
-     Md:=beilinsonData(C,k);
-     Md1:=select(flatten apply(toList(-n..n),j->apply(n+1,i->(n-i+j,j,Md_(i,j-i)))),t->t_2 !=0);
-     homologicalRange := sort unique apply(Md1,k->k_1);
-     zeroes:=apply(homologicalRange,j->(j,(sum(apply(select(Md1,kk->kk_1==j),
-			 kk->kk_2*cMQs_(kk_0))))(-k-1)
-	       ));
-     zeroes
-     )
+
+
+
+
 
 supernatural = method()
 supernatural(Ring, List) := (S,Z) -> (

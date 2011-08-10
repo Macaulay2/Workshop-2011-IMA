@@ -21,8 +21,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0.3.1", 
-        Date => "09. August 2011",
+        Version => "1.0.3.2", 
+        Date => "10. August 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -429,24 +429,7 @@ dominanceLattice ZZ := Poset => n -> (
     )
 
 facePoset = method()
-facePoset SimplicialComplex := Poset => D -> (
-    testmax := L -> min apply(L, j -> #j) > 1;
-    faceset := support \ flatten apply(toList(0..dim D), i -> toList flatten entries faces(i, D));
-    chainheads := support \ flatten entries facets D;
-    maxchains := apply(chainheads, i-> {i});
-    while any(maxchains, testmax) do (
-        maxtest := partition(testmax, maxchains);
-        holdover := maxtest#false;
-        nextstage := flatten apply(maxtest#true, m -> (
-            minsize := min apply(m, i -> #i);
-            minset := first select(m, i -> #i == minsize);
-            coveredfaces := subsets(minset, minsize - 1);
-            apply(coveredfaces, c -> append(m, c))
-            ));
-        maxchains = join(nextstage, holdover);
-        );    
-    poset(faceset, unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
-    )
+facePoset SimplicialComplex := Poset => D -> poset(support \ flatten apply(toList(0..dim D), i -> toList flatten entries faces(i, D)), isSubset)
 
 -- Hyperplane Arrangement Lattice: 
 -- As written, this would most likely work for any type of arrangement lattice.
@@ -605,11 +588,11 @@ setPartition List := List => S -> (
 projectivizeArrangement = method()
 projectivizeArrangement (List, Ring) := Poset => (L, R) -> (
     Z := local Z;
-    S := coefficientRing R[gens R|{(symbol Z)}];
+    S := coefficientRing R(monoid [gens R|{(symbol Z)}]);
     newL := apply(L, h->homogenize(sub(h,S),Z));
     G := hyperplaneEquivalence(newL,S);
     rel := hyperplaneInclusions(G,S);
-    poset(G,rel)
+    poset(G, rel)
     )
 
 randomPoset = method(Options => {symbol Bias => 0.5})
@@ -714,11 +697,12 @@ connectedComponents Poset := List => P -> (
 filtration = method()
 filtration Poset := List => P -> (
     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
-    cr := coveringRelations P;
-    up := for p in P.GroundSet list apply(select(cr, c -> first c === p), c -> idx#(last c));
-    cnt := new MutableList from for p in P.GroundSet list #select(cr, c -> last c === p);
+    cp := partition(last, coveringRelations P);
+    cnt := new MutableList from for p in P.GroundSet list if cp#?p then #cp#p else 0;
+    cp = partition(first, coveringRelations P);
+    cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {});
     neu := positions(cnt, c -> c == 0);
-    ret := {neu} | while #neu != 0 list neu = for i in flatten up_neu list if cnt#i == 1 then i else ( cnt#i = cnt#i - 1; continue );
+    ret := {neu} | while #neu != 0 list neu = for i in flatten cvrby_neu list if cnt#i == 1 then i else ( cnt#i = cnt#i - 1; continue );
     apply(drop(ret, -1), lvl -> P.GroundSet_lvl)
     )
 
@@ -849,7 +833,7 @@ allRelations Poset := List => P -> allRelations(P, false)
 antichains = method()
 antichains Poset := List => P -> (
     v := local v;
-    R := (ZZ/2)(monoid [v_1..v_(#P.GroundSet)]);
+    R := ZZ(monoid [v_1..v_(#P.GroundSet)]);
     S := simplicialComplex monomialIdeal flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list 
         if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then R_i * R_j else continue;
     apply(flatten apply(1 + dim S, d -> flatten entries faces(d, S)), a -> P.GroundSet_(indices a))
@@ -882,7 +866,7 @@ flagChains (Poset,List) := List => (P, L) -> (
 isAntichain = method()
 isAntichain (Poset, List) := Boolean => (P, L) -> (
     Q := subposet(P, L);
-    minimalElements(Q) == maximalElements(Q)
+    minimalElements Q === maximalElements Q
     )
 
 -- Ported from Stembridge's Maple Package
@@ -898,16 +882,13 @@ linearExtensions Poset := List => P -> (
 maximalChains = method()
 maximalChains Poset := List => P -> (
     if P.cache.?maximalChains then return P.cache.maximalChains;
-    nonMaximalChains := apply(minimalElements(P), x -> {x});
+    nonMaximalChains := apply(minimalElements P, x -> {x});
+    cp := partition(first, coveringRelations P);
+    cvrby := hashTable apply(P.GroundSet, p -> p => if cp#?p then last \ cp#p else {});
     maxChains := {};
-    while #nonMaximalChains =!= 0 do (
-        nonMaximalChains = flatten apply(nonMaximalChains, c -> (
-                nexts := select(coveringRelations P, r -> first r === last c);
-                if #nexts == 0 then maxChains = append(maxChains, c);
-                apply(nexts, r -> c | {last r})
-                )
-            )
-        );
+    while #nonMaximalChains != 0 do 
+        nonMaximalChains = flatten for c in nonMaximalChains list 
+            if #cvrby#(last c) == 0 then (maxChains = append(maxChains, c); continue) else apply(cvrby#(last c), v -> append(c, v));
     P.cache.maximalChains = maxChains
     )
 
@@ -942,7 +923,7 @@ flaghPolynomial Poset := RingElement => opts -> P -> (
     if not isRanked P then error "The poset must be ranked.";
     ff := flagfPolynomial(P, opts);
     R := ring ff;
-    lift(product(gens R, r -> 1 - r)* sub(ff, apply(gens R, r -> r => r/(1 - r))), R)
+    lift(product(gens R, r -> 1 - r) * sub(ff, apply(gens R, r -> r => r/(1 - r))), R)
     )
 
 -- f_i*q^i: f_i is the number of chains of i vertices in P
@@ -1077,8 +1058,8 @@ isLowerSemimodular Poset := Boolean => P -> (
     if P.cache.?isLowerSemimodular then return P.cache.isLowerSemimodular;
     if not isLattice P then error "The poset must be a lattice.";
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    cr := coveringRelations P;
-    cvrs := for a in P.GroundSet list for c in cr list if c_1 === a then idx#(c_0) else continue;
+    cp := partition(last, coveringRelations P);
+    cvrs := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(first q)) else {});
     P.cache.isLowerSemimodular = all(#P.GroundSet, i -> all(#cvrs#i, j -> all(j, k -> #(set cvrs#(cvrs#i#j) * set cvrs#(cvrs#i#k)) === 1)))
     )
 
@@ -1101,8 +1082,8 @@ isUpperSemimodular Poset := Boolean => P -> (
     if P.cache.?isUpperSemimodular then return P.cache.isUpperSemimodular;
     if not isLattice P then error "The poset must be a lattice.";
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    cr := coveringRelations P;
-    cvrby := for a in P.GroundSet list for c in cr list if c_0 === a then idx#(c_1) else continue;
+    cp := partition(first, coveringRelations P);
+    cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {});
     P.cache.isUpperSemimodular = all(#P.GroundSet, i -> all(#cvrby#i, j -> all(j, k -> #(set cvrby#(cvrby#i#j) * set cvrby#(cvrby#i#k)) === 1)))
     )
 

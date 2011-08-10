@@ -16,7 +16,7 @@ export {
      Point,
      Tolerance,
      DZ,
-     ST,
+     --ST,
      BM,
      GB1,
      GB2,
@@ -67,7 +67,7 @@ dualBasis (Matrix, ZZ) := o -> (igens, d) -> (
      R := ring igens;
      tol := if o.Tolerance == -1. then (if precision 1_R == infinity then 0. else defaultT()) else o.Tolerance;
      if      o.Strategy == DZ then dualBasisDZST(igens, d, tol, Point => o.Point)
-     else if o.Strategy == ST then dualBasisDZST(igens, d, tol, Point => o.Point, Strategy => ST)
+     --else if o.Strategy == ST then dualBasisDZST(igens, d, tol, Point => o.Point, Strategy => ST)
      else if o.Strategy == BM then dualBasisBM(igens, d, tol, Point => o.Point)
      else error "unrecognized strategy"
      );
@@ -87,7 +87,7 @@ dualHilbert (Matrix, ZZ) := o -> (igens, d) -> (
      tol := if o.Tolerance == -1. then (if precision 1_R == infinity then 0. else defaultT()) else o.Tolerance;
      if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
      if      o.Strategy == DZ then dualHilbertDZST(igens, d, tol)
-     else if o.Strategy == ST then dualHilbertDZST(igens, d, tol, Strategy => ST)
+     --else if o.Strategy == ST then dualHilbertDZST(igens, d, tol, Strategy => ST)
      else if o.Strategy == GB1 then apply(0..d, i->hilbertB(flatten entries gens gb igens,i))
      else if o.Strategy == GB2 then apply(0..d, i->hilbertC(flatten entries gens gb igens,i))
      else if o.Strategy == DZS1 or o.Strategy == DZS2 then (
@@ -203,21 +203,19 @@ dualBasisBM (Matrix, ZZ, RR) := o -> (igens, d, tol) -> (
 dualHilbertDZST = method(TypicalValue => List, Options => {Point => {}, Strategy => DZ})
 dualHilbertDZST (Matrix, ZZ, RR) := o -> (igens, d, tol) -> (
      R := ring igens;
-     mList := new Matrix;
-     if      o.Strategy == DZ then mList = DZmatrix(igens, d, Point => o.Point)
-     else if o.Strategy == ST then mList = STmatrix(igens, d, Point => o.Point)
-     else error "unrecognized strategy";
-     fs := apply(mList, M->(
-	  if tol > 0 then (
-	       svs := {};
-    	       if M != 0 then svs = (SVD sub(M,coefficientRing ring igens))#0;
-    	       (numgens target M) - #select(svs, v->(abs v > tol)) + 1
-	       ) else (
-	       1 + numgens kernel transpose M
-	       )
-  	  ));
-     fs = {0,1}|fs;
-     apply(d+1, i->(fs#(i+1) - fs#i))
+     n := #gens R;
+     genDegs := (first entries igens)/lDegree;
+     cList := apply(d+1, i->bin(i + n, n));
+     rList := apply(d+1, i->sum(genDegs, j->bin(i-j+n,n)));
+     M := new Matrix;
+     if o.Strategy == DZ then M = transpose DZmatrix(igens, d, false, Point => o.Point)
+     else                     M = transpose STmatrix(igens, d, Point => o.Point);
+     L := apply(d+1, i->(
+	       subM := M_(toList (0..(cList#i)-1))^(toList (0..(rList#i)-1));
+	       numgens source findKernel(subM, tol)
+	       ));
+     L = {0}|L;
+     apply(d+1, i->(L#(i+1)-L#i))
      );
 
 --Constructs Sylvester array matrix using DZ algorithm
@@ -287,10 +285,12 @@ DZmatrix (Matrix, ZZ, Boolean) := o -> (igens, d, syl) -> (
      genDegs := apply(igens, if syl then gDegree else lDegree);
      dmons := apply(d+1, i->first entries basis(i,R));
      p := map(R^1,R^0,0);
-     for i from 0 to #igens-1 do (
-	  newp := apply(flatten take(dmons,{0,d-genDegs#i}), m->(m*(igens#i)));
-          if #newp > 0 then p = p|matrix {newp};
-	  );
+     for j from 0 to d do (
+     	  for i from 0 to #igens-1 do (
+	       newp := if j >= genDegs#i then apply(dmons#(j-genDegs#i), m->(m*(igens#i))) else {};
+               if #newp > 0 then p = p|matrix {newp};
+	       );
+     	  );
      (coefficients(p, Monomials => flatten take(dmons,{0,d})))#1
      );
 
@@ -339,7 +339,6 @@ hilbertC (List, ZZ) := (sbElements, d) -> (
      R := ring first sbElements;
      n := #gens R;
      sbListForm := apply(sbElements, e -> (listForm e)#0#0); --store lead monomials as n-tuples of integers
-     bin := (m,k) -> (if m >= 0 then binomial(m,k) else 0);
      listFormLcm := L -> apply(n, i->max{max(apply(L,l->l#i)), 0});
      coef := s -> if even(#s) then 1 else -1;
      hsum := 0;
@@ -381,6 +380,11 @@ deflation (Matrix) := o -> (igens) -> (
 isDivisible = (a, b) -> (
      dif := (listForm a)#0#0 - (listForm b)#0#0;
      all(dif, i->(i >= 0))
+     );
+
+--binomial coefficient 
+bin = (m,k) -> (
+     if m >= 0 then binomial(m,k) else 0
      );
 
 --lead monomial and lead monomial degree according to ordering associated with

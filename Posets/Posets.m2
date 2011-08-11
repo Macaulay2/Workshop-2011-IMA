@@ -3,7 +3,7 @@
 ------------------------------------------
 -- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
 -- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular
--- greeneKleitmanPartition
+-- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner
 
 
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
@@ -11,7 +11,9 @@
 -- License Version 2 as published by the Free Software Foundation.
 
 ------------------------------------------
+------------------------------------------
 -- Header 
+------------------------------------------
 ------------------------------------------
 
 if version#"VERSION" <= "1.4" then (
@@ -95,6 +97,7 @@ export {
     "projectivizeArrangement",
     "randomPoset",
         "Bias",
+    "youngSubposet",
     --
     -- TeX
     "displayPoset",
@@ -128,6 +131,7 @@ export {
     "flagChains",
     "isAntichain",
     "linearExtensions",
+    "maximalAntichains",
     "maximalChains",
     --
     -- Enumerative invariants
@@ -155,18 +159,28 @@ export {
     "isLowerSemimodular",
     "isModular",
     "isRanked",
+    "isSperner",
+    "isStrictSperner",
     "isUpperSemilattice",
     "isUpperSemimodular"
     }
 
 ------------------------------------------
+------------------------------------------
+-- Methods
+------------------------------------------
+------------------------------------------
+
+------------------------------------------
 -- Non-exported, strongly prevalent functions
 ------------------------------------------
+
 indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
 
 ------------------------------------------
 -- Data type & constructor
 ------------------------------------------
+
 Poset = new Type of HashTable
 
 poset = method()
@@ -352,6 +366,7 @@ Poset + Poset := union
 ------------------------------------------
 -- Enumerators
 ------------------------------------------
+
 booleanLattice = method()
 booleanLattice ZZ := Poset => n -> (
     if n < 0 then ( print "Did you mean |n|?"; n = -n; );
@@ -606,6 +621,22 @@ randomPoset (List) := Poset => opts -> (G) -> (
     )
 randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
 
+youngSubposet = method()
+youngSubposet (List, List) := Poset => (lo, hi) -> (
+    if min (drop(lo, -1) - drop(lo, 1)) < 0 or min (drop(hi, -1) - drop(hi, 1)) < 0 then error "The bounds must be weakly decreasing.";
+    if #lo > #hi or any(#lo, i -> lo_i > hi_i) then error "The bounds are either incomparable or reversed.";
+    allIncreases := (hi, L, i) -> if i == #hi then L else 
+        allIncreases(hi, flatten if i == 0 then apply(L, d -> apply(toList(d_0..hi_0), j -> replace(0, j, d))) else
+            apply(L, d -> apply(toList(d_i..min(hi_i, d_(i-1))), j -> replace(i, j, d))), i+1);
+    G := apply(allIncreases(hi, {join(lo, toList((#hi-#lo):0))}, 0), d -> d_(positions(d, i -> i != 0)));
+    poset(G, (a,b) -> #a <= #b and all(#a, i -> a_i <= b_i))
+    )
+youngSubposet List := Poset => hi -> youngSubposet({0}, hi)
+youngSubposet ZZ := Poset => n -> (
+    if n < 0 then ( print "Did you mean |n|?"; n = -n; );
+    poset(toList \ flatten apply(n+1, i -> partitions i), (a,b) -> #a <= #b and all(#a, i -> a_i <= b_i))
+    )
+
 ------------------------------------------
 -- TeX
 ------------------------------------------
@@ -625,7 +656,7 @@ outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabe
 outputTexPoset(Poset,String) := String => opts -> (P,name)->(
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
-    fn:=openOut name;
+    fn := openOut name;
     fn << "\\documentclass[8pt]{article}"<< endl;
     fn << "\\usepackage{tikz}" << endl;
     fn << "\\newcommand{\\text}{\\mbox}" << endl;
@@ -675,7 +706,7 @@ compare = method()
 compare(Poset, Thing, Thing) := Boolean => (P, a, b) -> (
     aindex := indexElement(P, a);
     bindex := indexElement(P, b);
-    P.RelationMatrix_b_a != 0
+    P.RelationMatrix_bindex_aindex != 0
     )
 
 connectedComponents = method()
@@ -812,7 +843,9 @@ rankFunction Poset := List => P -> (
 rankPoset = method()
 rankPoset Poset := List => P -> (
     rk := rankFunction P;
-    if rk === null then error "The poset must be ranked." else apply(max rk + 1, r -> P.GroundSet_(positions(rk, i -> i == r)))
+    if rk === null then error "The poset must be ranked.";
+    rks := partition(i -> rk_i, 0..#rk-1);
+    apply(max rk + 1, r -> P.GroundSet_(toList (rks#r)))
     )
 
 ------------------------------------------
@@ -831,13 +864,7 @@ allRelations (Poset, Boolean) := List => (P, NoLoops) -> (
 allRelations Poset := List => P -> allRelations(P, false)
 
 antichains = method()
-antichains Poset := List => P -> (
-    v := local v;
-    R := ZZ(monoid [v_1..v_(#P.GroundSet)]);
-    S := simplicialComplex monomialIdeal flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list 
-        if P.RelationMatrix_i_j == 1 or P.RelationMatrix_j_i == 1 then R_i * R_j else continue;
-    apply(flatten apply(1 + dim S, d -> flatten entries faces(d, S)), a -> P.GroundSet_(indices a))
-    )
+antichains Poset := List => P -> sort unique flatten (subsets \ maximalAntichains P)
 
 chains = method()
 chains Poset := P -> sort unique flatten (subsets \ maximalChains P)
@@ -877,6 +904,23 @@ linearExtensions Poset := List => P -> (
         flatten apply(toList (G - apply(cr, last)), m -> apply(linExtRec(G - {m}, select(cr, c -> first c =!= m)), e -> prepend(m, e)))
         );
     linExtRec(set P.GroundSet, coveringRelations P)
+    )
+
+maximalAntichains = method()
+maximalAntichains Poset := List => P -> (
+    if P.cache.?maximalAntichains then return P.cache.maximalAntichains;
+    nonrelations := flatten for i from 0 to #P.GroundSet - 1 list for j from 0 to #P.GroundSet - 1 list
+        if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
+    cp := partition(first, nonrelations);
+    cp = new HashTable from apply(#P.GroundSet, i -> i => if cp#?i then set(last \ cp#i) else set{});
+    maxAntichains := apply(select(#P.GroundSet, i -> #cp#i == 0), i -> {i});
+    nonMaxAntichains := apply(select(#P.GroundSet, i -> #cp#i != 0), i -> {i});
+    while #nonMaxAntichains != 0 do
+        nonMaxAntichains = unique flatten for a in nonMaxAntichains list (
+            nonrelated := toList fold((i,j) -> i*j, apply(a, p -> cp#p));
+            if #nonrelated == 0 then (maxAntichains = append(maxAntichains, a); continue)
+            else apply(nonrelated, p -> sort append(a, p)));
+    P.cache.maximalAntichains = apply(maxAntichains, a -> P.GroundSet_a)
     )
 
 maximalChains = method()
@@ -1072,6 +1116,25 @@ isModular Poset := Boolean => P -> (
 isRanked = method()
 isRanked Poset := Boolean => P -> rankFunction P =!= null
 
+isSperner = method()
+isSperner Poset := Boolean => P -> (
+    if P.cache.?isSperner then return P.cache.isSperner;
+    rk := rankFunction P;
+    if rk === null then error "The poset must be ranked.";
+    maxrk := max apply(values partition(i -> rk_i, 0..#rk-1), r -> #r);
+    maxac := max apply(maximalAntichains P, r -> #r);
+    P.cache.isSperner = maxrk == maxac
+    )
+
+isStrictSperner = method()
+isStrictSperner Poset := Boolean => P -> (
+    if P.cache.?isStrictSperner then return P.cache.isStrictSperner;
+    if not isRanked P then error "The poset must be ranked.";
+    rk := sort \ rankPoset P;
+    ac := sort \ maximalAntichains P;
+    P.cache.isStrictSperner = (#rk == #ac and isSubset(rk, ac))
+    )
+
 isUpperSemilattice = method()
 isUpperSemilattice Poset := Boolean => P -> if P.cache.?isUpperSemilattice then P.cache.isLowerSemilattice else
     P.cache.isUpperSemilattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> meetExists(P, P.GroundSet#i, P.GroundSet#j)))
@@ -1088,7 +1151,9 @@ isUpperSemimodular Poset := Boolean => P -> (
     )
 
 ------------------------------------------
+------------------------------------------
 -- Documentation
+------------------------------------------
 ------------------------------------------
 
 beginDocumentation()
@@ -1116,6 +1181,10 @@ doc ///
             @HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html", "Josephine Yu")@.
 ///
 
+------------------------------------------
+-- Data type & constructor
+------------------------------------------
+
 -- The Poset Type
 doc ///
     Key
@@ -1137,10 +1206,6 @@ doc ///
     SeeAlso
         poset
 ///
-
------------
--- METHODS
------------
 
 -- _
 doc ///
@@ -1208,6 +1273,10 @@ doc ///
     SeeAlso
         Posets
 ///
+
+------------------------------------------
+-- Derivative combinatorial structures
+------------------------------------------
 
 -- comparabilityGraph
 doc ///
@@ -1292,6 +1361,10 @@ doc ///
     SeeAlso
         Posets
 ///
+
+------------------------------------------
+-- Derivative posets
+------------------------------------------
 
 -- closedInterval
 doc ///
@@ -1482,6 +1555,10 @@ doc ///
         Posets
 ///
 
+------------------------------------------
+-- Operations
+------------------------------------------
+
 -- adjoinMax
 doc ///
     Key
@@ -1639,6 +1716,10 @@ doc ///
     SeeAlso
         Posets
 ///
+
+------------------------------------------
+-- Enumerators
+------------------------------------------
 
 -- booleanLattice
 doc ///
@@ -1952,6 +2033,34 @@ doc ///
         Posets
 ///
 
+-- youngSubposet
+doc ///
+    Key
+        youngSubposet 
+        (youngSubposet,List,List)
+        (youngSubposet,List)
+        (youngSubposet,ZZ)
+    Headline
+        generates a subposet of Young's lattice
+    Usage
+        TODO
+    Inputs
+        lo:List
+        hi:List
+        n:ZZ
+    Outputs
+        P:Poset
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+------------------------------------------
+-- TeX
+------------------------------------------
+
 -- displayPoset
 doc ///
     Key
@@ -2031,6 +2140,10 @@ doc ///
     SeeAlso
         Posets
 ///
+
+------------------------------------------
+-- Vertices & vertex properties
+------------------------------------------
 
 -- atoms
 doc ///
@@ -2322,6 +2435,10 @@ doc ///
         Posets
 ///
 
+------------------------------------------
+-- Relations & relation properties
+------------------------------------------
+
 -- allRelations
 doc ///
     Key
@@ -2468,6 +2585,26 @@ doc ///
         Posets
 ///
 
+-- maximalAntichains
+doc ///
+    Key
+        maximalAntichains
+        (maximalAntichains,Poset)
+    Headline
+        computes all maximal antichains of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+    Outputs
+        M:List
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
 -- maximalChains
 doc ///
     Key
@@ -2487,6 +2624,10 @@ doc ///
     SeeAlso
         Posets
 ///
+
+------------------------------------------
+-- Enumerative invariants
+------------------------------------------
 
 -- characteristicPolynomial
 doc ///
@@ -2706,6 +2847,10 @@ doc ///
     SeeAlso
         Posets
 ///
+
+------------------------------------------
+-- Properties
+------------------------------------------
 
 -- height
 doc ///
@@ -2932,7 +3077,47 @@ doc ///
         isRanked
         (isRanked,Poset)
     Headline
-        determines if a poste is ranked
+        determines if a poset is ranked
+    Usage
+        TODO
+    Inputs
+        P:Poset
+    Outputs
+        i:Boolean
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- isSperner
+doc ///
+    Key
+        isSperner
+        (isSperner,Poset)
+    Headline
+        determines if a poset has the Sperner property
+    Usage
+        TODO
+    Inputs
+        P:Poset
+    Outputs
+        i:Boolean
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- isStrictSperner
+doc ///
+    Key
+        isStrictSperner
+        (isStrictSperner,Poset)
+    Headline
+        determines if a poset has the strict Sperner property
     Usage
         TODO
     Inputs
@@ -2989,14 +3174,19 @@ doc ///
 undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };
 
 ------------------------------------------
+------------------------------------------
 -- Tests
+------------------------------------------
 ------------------------------------------
 
 end;
 
 ------------------------------------------
+------------------------------------------
 -- Extra Code
 ------------------------------------------
+------------------------------------------
+
 restart
 needsPackage("Posets", FileName => "./Posets.m2")
 

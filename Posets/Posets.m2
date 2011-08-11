@@ -77,9 +77,11 @@ export {
     -- Operations
     "adjoinMax",
     "adjoinMin",
+    "areIsomorphic",
     "augmentPoset",
     "diamondProduct",
     "dropElements",
+    "isomorphism",
   --"product",
     "union",
     --
@@ -320,6 +322,10 @@ adjoinMin (Poset,Thing) := Poset => (P, a) ->
           )
 adjoinMin Poset := Poset => P -> adjoinMin(P, 0)
 
+areIsomorphic = method()
+areIsomorphic (Poset, Poset) := Boolean => (P, Q) -> isomorphism(P, Q) =!= null
+Poset == Poset := areIsomorphic
+
 augmentPoset = method()
 augmentPoset (Poset, Thing, Thing) := Poset => (P, a, b) -> adjoinMin(adjoinMax(P, b), a)
 augmentPoset Poset := Poset => P -> adjoinMin adjoinMax P
@@ -351,6 +357,58 @@ dropElements (Poset, Function) := Poset => (P, f) -> (
     )
 Poset - Thing := dropElements
 Poset - List := dropElements
+
+-- Ported from Stembridge's Maple Package
+isomorphism = method()
+isomorphism (Poset, List, Poset, List) := HashTable => (P, muP, Q, muQ) -> (
+    -- 1. Do the graphs have incompatible vertex partitions?
+    if #muP != #muQ or any(#muP, i -> #muP#i != #muQ#i) then return null;
+    muP = sort \ muP; 
+    muQ = sort \ muQ;
+    if #coveringRelations P != #coveringRelations Q then return null;
+    -- 2. Is there a lucky isomorphism?
+    muP' := flatten muP; 
+    muQ' := flatten muQ;
+    isom' := hashTable apply(#muP', i -> muP'_i => muQ'_i);
+    if isSubset(apply(coveringRelations P, r -> {isom'#(first r), isom'#(last r)}), coveringRelations Q) then return isom';
+    -- 3. Partition the vertices of P and Q based on the number of in and out edges.
+    cvrSep := (P, mu, q) -> (
+        cp := partition(first, coveringRelations P);
+        cvrby := apply(P.GroundSet, g -> if cp#?g then last \ cp#g else {});
+        cp = partition(last, coveringRelations P);
+        cvr := apply(P.GroundSet, g -> if cp#?g then first \ cp#g else {});
+        mugrp := hashTable flatten apply(#mu, i -> apply(mu_i, p -> p => i));
+        partition(first, apply(#P.GroundSet, i -> {sum(cvrby_i, j -> q^(-mugrp#j-1)) + sum(cvr_i, j -> q^(mugrp#j+1)), P.GroundSet_i}))
+        );
+    q := local q;
+    R := ZZ(monoid[q, Inverses => true, MonomialOrder => Lex]);
+    sepP := cvrSep(P, muP, R_0);
+    sepQ := cvrSep(Q, muQ, R_0);
+    -- 4. Was the repartition non-trivial?  If so, recurse.
+    kP := sort keys sepP;
+    if kP =!= sort keys sepQ or any(keys sepP, k -> #sepP#k != #sepQ#k) then return null;
+    muP' = apply(kP, k -> last \ sepP#k);
+    muQ' = apply(kP, k -> last \ sepQ#k);
+    if #muP' > #muP then return isomorphism(P, muP', Q, muQ');
+    -- 4a. Restrict P and Q to non-singleton sets.
+    sP := flatten select(muP', a -> #a == 1);
+    P' := dropElements(P, sP);
+    muP' = select(muP', a -> #a > 1);
+    sQ := flatten select(muQ', a -> #a == 1);
+    Q' := dropElements(Q, sQ);
+    muQ' = select(muQ', a -> #a > 1);
+    sisom := hashTable apply(#sP, i -> sP_i => sQ_i);
+    m := min apply(muP', a -> #a);
+    j := position(muP', a -> #a == m);
+    pick := (i, j, mu) -> join(take(mu, j), {{mu_j_i}, drop(mu_j, {i,i})}, take(mu, j+1-#mu));
+    muP' = pick(0, j, muP');
+    for i from 0 to m-1 do (
+        isom' = isomorphism(P', muP', Q', pick(i, j, muQ'));
+        if isom' =!= null then return merge(sisom, isom', (a,b) -> error "Something broke!");
+        );
+    null
+    )
+isomorphism (Poset, Poset) := HashTable => (P, Q) -> isomorphism(P, {P.GroundSet}, Q, {Q.GroundSet})
 
 -- The product method is defined in the Core.
 product (Poset, Poset) := Poset => (P, Q) -> 
@@ -1603,6 +1661,28 @@ doc ///
         Posets
 ///
 
+-- areIsomorphic
+doc ///
+    Key
+        areIsomorphic
+        (areIsomorphic,Poset,Poset)
+        (symbol ==,Poset,Poset)
+    Headline
+        determines if two posets are isomorphic
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        Q:Poset
+    Outputs
+        r:Boolean
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
 -- augmentPoset
 doc ///
     Key
@@ -1667,6 +1747,30 @@ doc ///
         f:Function
     Outputs
         Q:Poset
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- isomorphism
+doc ///
+    Key
+        isomorphism
+        (isomorphism,Poset,Poset)
+        (isomorphism,Poset,List,Poset,List)
+    Headline
+        computes an isomorphism between isomorphic posets
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        m:List
+        Q:Poset
+        n:List
+    Outputs
+        M:HashTable
     Description
         Text
             TODO

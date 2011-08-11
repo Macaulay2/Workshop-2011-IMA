@@ -398,6 +398,8 @@ isomorphism (Poset, List, Poset, List) := HashTable => (P, muP, Q, muQ) -> (
     Q' := dropElements(Q, sQ);
     muQ' = select(muQ', a -> #a > 1);
     sisom := hashTable apply(#sP, i -> sP_i => sQ_i);
+    -- 5. Break the smallest part of muP into a singleton and the rest.
+    --    Check this against doing the same thing to muQ in all possible ways.
     m := min apply(muP', a -> #a);
     j := position(muP', a -> #a == m);
     pick := (i, j, mu) -> join(take(mu, j), {{mu_j_i}, drop(mu_j, {i,i})}, take(mu, j+1-#mu));

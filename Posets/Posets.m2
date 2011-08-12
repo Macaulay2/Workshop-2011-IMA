@@ -323,6 +323,7 @@ adjoinMin (Poset,Thing) := Poset => (P, a) ->
 adjoinMin Poset := Poset => P -> adjoinMin(P, 0)
 
 areIsomorphic = method()
+areIsomorphic (Poset, List, Poset, List) := Boolean => (P, mu, Q, nu) -> isomorphism(P, mu, Q, nu) =!= null
 areIsomorphic (Poset, Poset) := Boolean => (P, Q) -> isomorphism(P, Q) =!= null
 Poset == Poset := areIsomorphic
 
@@ -360,16 +361,17 @@ Poset - List := dropElements
 
 -- Ported from Stembridge's Maple Package
 isomorphism = method()
-isomorphism (Poset, List, Poset, List) := HashTable => (P, muP, Q, muQ) -> (
-    -- 1. Do the graphs have incompatible vertex partitions?
-    if #muP != #muQ or any(#muP, i -> #muP#i != #muQ#i) then return null;
-    muP = sort \ muP; 
-    muQ = sort \ muQ;
+isomorphism (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
+    -- 0. Check for non-partitions.
+    mu' := flatten mu; 
+    if #mu' != #P.GroundSet and isSubset(mu', P.GroundSet) then error "The list mu is not a partition of the ground set of P.";
+    nu' := flatten nu;
+    if #nu' != #Q.GroundSet and isSubset(nu', Q.GroundSet) then error "The list nu is not a partition of the ground set of Q.";
+    -- 1. Do the graphs have incompatible vertex partitions or number of coveringRelations?
+    if #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
     if #coveringRelations P != #coveringRelations Q then return null;
     -- 2. Is there a lucky isomorphism?
-    muP' := flatten muP; 
-    muQ' := flatten muQ;
-    isom' := hashTable apply(#muP', i -> muP'_i => muQ'_i);
+    isom' := hashTable apply(mu', nu', (i, j) -> i => j);
     if isSubset(apply(coveringRelations P, r -> {isom'#(first r), isom'#(last r)}), coveringRelations Q) then return isom';
     -- 3. Partition the vertices of P and Q based on the number of in and out edges.
     cvrSep := (P, mu, q) -> (
@@ -382,30 +384,32 @@ isomorphism (Poset, List, Poset, List) := HashTable => (P, muP, Q, muQ) -> (
         );
     q := local q;
     R := ZZ(monoid[q, Inverses => true, MonomialOrder => Lex]);
-    sepP := cvrSep(P, muP, R_0);
-    sepQ := cvrSep(Q, muQ, R_0);
+    sepP := cvrSep(P, sort \ mu, R_0);
+    sepQ := cvrSep(Q, sort \ nu, R_0);
     -- 4. Was the repartition non-trivial?  If so, recurse.
     kP := sort keys sepP;
     if kP =!= sort keys sepQ or any(keys sepP, k -> #sepP#k != #sepQ#k) then return null;
-    muP' = apply(kP, k -> last \ sepP#k);
-    muQ' = apply(kP, k -> last \ sepQ#k);
-    if #muP' > #muP then return isomorphism(P, muP', Q, muQ');
+    mu' = apply(kP, k -> last \ sepP#k);
+    nu' = apply(kP, k -> last \ sepQ#k);
+    if #mu' > #mu then return isomorphism(P, mu', Q, nu');
     -- 4a. Restrict P and Q to non-singleton sets.
-    sP := flatten select(muP', a -> #a == 1);
-    P' := dropElements(P, sP);
-    muP' = select(muP', a -> #a > 1);
-    sQ := flatten select(muQ', a -> #a == 1);
-    Q' := dropElements(Q, sQ);
-    muQ' = select(muQ', a -> #a > 1);
-    sisom := hashTable apply(#sP, i -> sP_i => sQ_i);
-    -- 5. Break the smallest part of muP into a singleton and the rest.
-    --    Check this against doing the same thing to muQ in all possible ways.
-    m := min apply(muP', a -> #a);
-    j := position(muP', a -> #a == m);
+    pp := partition(a -> #a == 1, mu');
+    sisom := hashTable if pp#?true then (
+        P = dropElements(P, flatten pp#true);
+        mu' = pp#false;
+        pq := partition(a -> #a == 1, nu');
+        Q = dropElements(Q, flatten pq#true);
+        nu' = pq#false;
+        apply(flatten pp#true, flatten pq#true, (i, j) -> i => j)
+        ) else {};
+    -- 5. Break the smallest part of mu into a singleton and the rest.
+    --    Check this against doing the same thing to nu in all possible ways.
+    m := min apply(mu', a -> #a);
+    j := position(mu', a -> #a == m);
     pick := (i, j, mu) -> join(take(mu, j), {{mu_j_i}, drop(mu_j, {i,i})}, take(mu, j+1-#mu));
-    muP' = pick(0, j, muP');
+    mu' = pick(0, j, mu');
     for i from 0 to m-1 do (
-        isom' = isomorphism(P', muP', Q', pick(i, j, muQ'));
+        isom' = isomorphism(P, mu', Q, pick(i, j, nu'));
         if isom' =!= null then return merge(sisom, isom', (a,b) -> error "Something broke!");
         );
     null
@@ -1667,6 +1671,7 @@ doc ///
 doc ///
     Key
         areIsomorphic
+        (areIsomorphic,Poset,List,Poset,List)
         (areIsomorphic,Poset,Poset)
         (symbol ==,Poset,Poset)
     Headline
@@ -1675,7 +1680,9 @@ doc ///
         TODO
     Inputs
         P:Poset
+        mu:List
         Q:Poset
+        nu:List
     Outputs
         r:Boolean
     Description
@@ -1768,11 +1775,11 @@ doc ///
         TODO
     Inputs
         P:Poset
-        m:List
+        mu:List
         Q:Poset
-        n:List
+        nu:List
     Outputs
-        M:HashTable
+        isom:HashTable
     Description
         Text
             TODO

@@ -83,6 +83,7 @@ export {
     "dropElements",
     "isomorphism",
   --"product",
+    "removeIsomorphicPosets",
     "union",
     --
     -- Enumerators
@@ -422,6 +423,17 @@ product (Poset, Poset) := Poset => (P, Q) ->
           join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
            flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})))
 Poset * Poset := product
+
+removeIsomorphicPosets = method()
+removeIsomorphicPosets List := List => L -> (
+    if any(L, p -> not instance(p, Poset)) then error "The list must contain only Posets.";
+    while #L > 0 list (
+        p := first L;
+        pp := partition(q -> areIsomorphic(p, q), drop(L, 1));
+        L = if pp#?false then pp#false else {};
+        p
+        )
+    )
 
 union = method()
 union (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations))
@@ -1801,6 +1813,26 @@ doc ///
         Q:Poset
     Outputs
         R:Poset
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- removeIsomorphicPosets
+doc ///
+    Key
+        removeIsomorphicPosets
+        (removeIsomorphicPosets,List)
+    Headline
+        returns a sub-list of non-isomorphic posets
+    Usage
+        TODO
+    Inputs
+        L:List
+    Outputs
+        N:List
     Description
         Text
             TODO

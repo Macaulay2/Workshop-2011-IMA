@@ -702,7 +702,6 @@ toH (RingElement) := (f) -> (
 	  )
      )
 
-
 -- auxiliary functions to be used in
 -- the recTrans routine
 leadTermFcn := local leadTermFcn;
@@ -720,12 +719,18 @@ toS(RingElement) := (f) -> (
      	  n := R.dim;
      	  d := first degree f;
      	  ngS := numgens S;
+--mappingFcn v is used when v = h_i for some i; it returns the Schur polynomial s_i, in the correct Schur ring
      	  mappingFcn = (v) -> (schurRingOf ring v)_{index v-2*(ring v).dim+1};
+--leadTermFcn takes as input a polynomial pl in the h-variables, 
+--and returns the variable h_i, with i maximal, such that h_i appears in the expression of pl 
      	  leadTermFcn = (pl) -> (
      	       R := ring pl;
      	       spl := select(support pl,i->index i<numgens R);
      	       if spl == {} then null else last spl
      	       );
+--retFcn takes as input a polynomial that's liftable to its coefficient ring, it lifts it and expresses it in the s-basis
+--this is used when dealing with a symmRing A of positive schurLevel, and pl appears as a coefficient of some
+--h-polynomial in A, so it is liftable to the coefficient ring of A
      	  retFcn = (pl) -> toS lift(pl,(coefficientRing ring pl));
      	  promote(recTrans(toH f),S)
 	  )
@@ -754,24 +759,31 @@ toS(RingElement,SchurRing) := (f, T) ->
 	  )
      )
 
+--recTrans is a recursive routine that transforms an h-polynomial (in a symmRing of positive schurLevel)
+--into an s-polynomial, by proceeding one level at a time
 recTrans = method()
 recTrans (RingElement) := (pl) ->
 (
+--lead = leading variable = h_i with i maximal
      lead := leadTermFcn pl;
      isSn := (ring pl).GroupActing == "Sn";
      if lead === null then retFcn pl else
      (
-	  (ex,coe) := coefficients(pl,Variables=>{lead});
-	  ex = flatten entries ex;
+--monomials/coefficients with respect to the leading variable lead
+	  (mon,coe) := coefficients(pl,Variables=>{lead});
+	  mon = flatten entries mon;
 	  coe = flatten entries coe;
      	  rez := 0;
-	  cdeg := degree(lead,ex#0)+1;
-	  for i from 0 to #ex-1 do
+	  cdeg := degree(lead,mon#0)+1;
+	  for i from 0 to #mon-1 do
 	  (
-	       fdeg := degree(lead,ex#i);
+	       fdeg := degree(lead,mon#i);
 	       while (cdeg>fdeg+1) do
 	       (
 		    cdeg = cdeg - 1;
+--if the group acting at a given level is the symmetric group
+--use internal multiplication of symmetric functions
+--otherwise use usual multiplication
 		    if isSn then rez = rez**mappingFcn(lead) else
 		    	 rez = rez*mappingFcn(lead);
 		    );
@@ -782,6 +794,9 @@ recTrans (RingElement) := (pl) ->
 	  while cdeg>0 do 
 	       (
 		    cdeg = cdeg - 1;
+--if the group acting at a given level is the symmetric group
+--use internal multiplication of symmetric functions
+--otherwise use usual multiplication
 		    if isSn then rez = rez**mappingFcn(lead) else
 		    	 rez = rez*mappingFcn(lead);
 		    );
@@ -895,6 +910,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 (
      T := ring rep;
      n := schurLevel T;
+--plets is the list of symmetric powers of the representation rep, from 0 to d
      plets := new MutableList;
      plets#0 = 1_T;
      for i from 1 to d do plets#i = symmetricPower(i,rep);
@@ -902,6 +918,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
      mods := new MutableList from (M | toList((d+1-#M):0));
      notdone := true;
      k := 0;
+--syzy is the list of the characters of the generators of the syzygy modules
      syzy := new MutableList;
      syzy#k = {};
      local mo;
@@ -916,6 +933,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 	       	    if sy#0 <= i then mo = mo + sy#1 * plets#(i-sy#0)
 		    else break;
 	       mo = mo - mods#i;
+--if there are representations with negative coefficients, then they must give rise to new syzygy modules
 	       newsyz = recsyz(mo);
 	       if newsyz != 0 then syzy#k = syzy#k | {(i,-newsyz)};
 	       mods#i = mo - newsyz;
@@ -1121,61 +1139,6 @@ chi(BasicList,BasicList) := (lambda, rho) ->
 --------------End characters-----------------------------------
 ---------------------------------------------------------------
 
----------------------------------------------------------------
------------Partitions-related functions------------------------
----------------------------------------------------------------
-parts := (d, n) -> (
-     -- d is an integer >= 0
-     -- n is an integer >= 1
-     -- returns a list of all of the partitions of d
-     --    having <= n parts.
-     x := partitions(d);
-     select(x, xi -> #xi <= n))     
-
--------Generate all the partitions of a set
--------with a given shape
-locS = local locS;
-locL = local locL;
-locLengthL = local locLengthL;
-locParts = local locParts;
-locPartitions = local locPartitions;
-locind = local locind;
-genPartitions = local genPartitions;
-
-genPartitions = method()
-genPartitions(ZZ) := (k)->
-(
-     if k==length locS then (locind = locind + 1;locPartitions#locind = set toList locParts) else
-     (
-     for i from 0 to locLengthL-1 do
-     	  if (i==0 and #locParts#0 < locL#0) or (((locL#(i-1)>locL#i) or (#locParts#(i-1)>0)) and (#locParts#i<locL#i)) then
-	  (
-	       locParts#i = locParts#i + set{locS#k};
-	       genPartitions(k+1);
-	       locParts#i = locParts#i - set{locS#k};
-	       );
-     )
-);
-
-partitions(Set,BasicList) := (S,L)->
-(
-     locS = toList S;
-     locL = L;
-     locLengthL = #L;
-     locParts = new MutableList;
-     for i from 0 to locLengthL-1 do locParts#i = set{};
-     locPartitions = new MutableList;
-     locind = -1;
-     genPartitions(0);
-     toList locPartitions
-     )
-
---------end generate partitions
-
----------------------------------------------------------------
---------End partitions-related functions-----------------------
----------------------------------------------------------------
-
 --------------------------------
 -- Dimension -------------------
 --------------------------------
@@ -1252,6 +1215,64 @@ dimSchur(RingElement) := opts -> (F) -> (
      )
 ---------------------------------------------------------------
 --------End dimension----------------------------------------------
+---------------------------------------------------------------
+
+
+---------------------------------------------------------------
+-----------Partitions-related functions------------------------
+---------------------------------------------------------------
+--this part might have to be moved elsewhere
+--since it's not directly connected to the package
+parts := (d, n) -> (
+     -- d is an integer >= 0
+     -- n is an integer >= 1
+     -- returns a list of all of the partitions of d
+     --    having <= n parts.
+     x := partitions(d);
+     select(x, xi -> #xi <= n))     
+
+-------Generate all the partitions of a set
+-------with a given shape
+locS = local locS;
+locL = local locL;
+locLengthL = local locLengthL;
+locParts = local locParts;
+locPartitions = local locPartitions;
+locind = local locind;
+genPartitions = local genPartitions;
+
+genPartitions = method()
+genPartitions(ZZ) := (k)->
+(
+     if k==length locS then (locind = locind + 1;locPartitions#locind = set toList locParts) else
+     (
+     for i from 0 to locLengthL-1 do
+     	  if (i==0 and #locParts#0 < locL#0) or (((locL#(i-1)>locL#i) or (#locParts#(i-1)>0)) and (#locParts#i<locL#i)) then
+	  (
+	       locParts#i = locParts#i + set{locS#k};
+	       genPartitions(k+1);
+	       locParts#i = locParts#i - set{locS#k};
+	       );
+     )
+);
+
+partitions(Set,BasicList) := (S,L)->
+(
+     locS = toList S;
+     locL = L;
+     locLengthL = #L;
+     locParts = new MutableList;
+     for i from 0 to locLengthL-1 do locParts#i = set{};
+     locPartitions = new MutableList;
+     locind = -1;
+     genPartitions(0);
+     toList locPartitions
+     )
+
+--------end generate partitions
+
+---------------------------------------------------------------
+--------End partitions-related functions-----------------------
 ---------------------------------------------------------------
 
 beginDocumentation()

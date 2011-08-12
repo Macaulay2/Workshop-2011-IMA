@@ -142,7 +142,6 @@ schurRingOf (Ring) := R -> (
 	  (
 	       if instance(R, SchurRing) then R else
 	       (
-		    --s := getSymbol "s";
 		    s := R.SVariable;
      	       	    if schurLevel R == 1 then R.Schur = schurRing(coefficientRing R,s,R.dim,EHPVariables => R.EHPVariables, GroupActing => R.GroupActing)
 		       else R.Schur = schurRing(schurRingOf coefficientRing R,s,R.dim,EHPVariables => R.EHPVariables, GroupActing => R.GroupActing); --symmetricRingOf is wrong, right?
@@ -293,7 +292,6 @@ SchurRingIndexedVariableTable _ Thing := (x,i) -> x#symbol _ i
 
 --construction of symmetric rings
 symmRing = method(Options => options schurRing)
---symmRing = method(Options => (options schurRing ++ {SVariable => getSymbol"s"}))
 symmRing (Ring,ZZ) := opts -> (A,n) -> (
      	  (e,h,p) := opts.EHPVariables;
      	  R := A[e_1..e_n,p_1..p_n,h_1..h_n,
@@ -311,7 +309,9 @@ symmRing (Ring,ZZ) := opts -> (A,n) -> (
      	  exteriorPower(ZZ,R) := opts -> (n,r) -> plethysm(splice{n:1},r);
 --the degrees of e_i,p_i,h_i are equal to i 
 	  degsEHP := toList(1..n);
---blocks	  
+--blocks#0 are indeces for e-variables
+--blocks#1 are indeces for p-variables
+--blocks#2 are indeces for h-variables
      	  blocks := {toList(0..(n-1)),toList(n..(2*n-1)),toList(2*n..(3*n-1))};
 --new variables for the E,H,P polynomials
      	  vrs := symbol vrs;
@@ -495,7 +495,7 @@ plethysmGL(RingElement,RingElement) := (f,g) -> (
 --if p_(maxf*maxg) hasn't been computed in terms of E-polynomial, then compute it
      if maxf*maxg >= #auxS.PtoETable then PtoE(maxf*maxg,auxS);
 --phi is the map that sends p_i to the plethystic composition p_i\circ pg
---so that phi(f) = f\circ g
+--so that phi(f) = f \circ pg (plethysm of f and pg)
      phi := map(SRg,SRf,flatten splice {nf:0_SRg,
 	       apply(1..nf, j -> (if j<=maxf then (plethysmMap(j,maxg,SRg))pg else 0_SRg)),
 	       nf:0_SRg});
@@ -668,11 +668,6 @@ toE (RingElement) := (f) -> (
      (
 	  if not R.?schurLevel then f else
 	  if R.schurLevel>1 then terms f/(i->(toE leadCoefficient i*(mapSymToE leadMonomial i)))//sum
-{*	  if R.schurLevel>1 then 
-	  (
-	       f = mapSymToE f;
-	       terms f/(i->(toE leadCoefficient i * leadMonomial i))//sum
-	       )*} -- this is much slower..
 	  else mapSymToE f
 	  )
      )
@@ -688,11 +683,6 @@ toP (RingElement) := (f) -> (
      (
 	  if not R.?schurLevel then f else
 	  if R.schurLevel>1 then terms f/(i->(toP leadCoefficient i*(mapSymToP leadMonomial i)))//sum
-{*	  if R.schurLevel>1 then 
-	  (
-	       f = mapSymToP f;
-	       terms f/(i->(toP leadCoefficient i * leadMonomial i))//sum
-	       )*}
 	  else mapSymToP f
 	  )
      )
@@ -708,11 +698,6 @@ toH (RingElement) := (f) -> (
      (
 	  if not R.?schurLevel then f else
 	  if R.schurLevel>1 then terms f/(i->(toH leadCoefficient i*(mapSymToH leadMonomial i)))//sum
-{*	  if R.schurLevel>1 then 
-	  (
-	       f = mapSymToH f;
-	       terms f/(i->(toH leadCoefficient i * leadMonomial i))//sum
-	       )*}
 	  else mapSymToH f
 	  )
      )
@@ -790,7 +775,6 @@ recTrans (RingElement) := (pl) ->
 		    if isSn then rez = rez**mappingFcn(lead) else
 		    	 rez = rez*mappingFcn(lead);
 		    );
---	       if rez == 0 then rez = recTrans(coe#i) else --this is bad
 	       if isSn then rez = rez**mappingFcn(lead)+recTrans(coe#i)
 	       else rez = rez*mappingFcn(lead)+recTrans(coe#i);
 	       cdeg = cdeg - 1;
@@ -1011,7 +995,6 @@ classFunction(RingElement) := (f)->
      	  par := multsToSeq(degs);
 	  ch#par = lift(coe#j,coefficientRing R) * centralizerSize(degs);
 	  );
---     ch.Ring = Rf;
      new ClassFunction from ch
      )
 
@@ -1036,7 +1019,6 @@ ClassFunction + ClassFunction := (ch1,ch2)->
 	       if ch2#?i then b = ch2#i;
 	       if (a+b != 0) then clSum#i = a + b;
 	       );
---     clSum.Ring = ch2.Ring;
      new ClassFunction from clSum
      )
 
@@ -1044,7 +1026,6 @@ RingElement * ClassFunction := Number * ClassFunction := (n,ch) ->
 (
      clProd := new MutableHashTable;
      for i in keysCF ch do clProd#i = n*ch#i;
---     clProd.Ring = ch.Ring;
      new ClassFunction from clProd     
      )
 
@@ -3148,216 +3129,6 @@ assert(toH toP toE (toS (jacobiTrudi({2,1},R))^2) == (h_1*h_2-h_3)^2)
 end
 
 restart
-uninstallPackage "SchurRings"
-installPackage "SchurRings"
-check SchurRings
-viewHelp SchurRings
---help SchurRings
---help (toS,RingElement,SchurRing)
---print docTemplate
-end
-
--------
-restart
-loadPackage"SchurRings"
-A = schurRing(a,2)
-B = schurRing(b,2)
-L = {(1_A,b_{3,2})}
-L = {(a_{3,2},b_{6,1})}
-i = 1
-
-select(weyman(i,L),x->x =!= null)
-end
--------
-
-S = schurRing(s,12)
-time F = s_{17,7,7,7,3,3,1} * s_{10,5,1};
-size F
-T = schurRing2(ZZ,t,12)
-T = schurRing2(ZZ,t)
-time G = t_{17,7,7,7,3,3,1} * t_{10,5,1};
-lisF = hashTable listForm F;
-lisG = hashTable listForm G;
-assert(lisF === lisG)
-
-restart
-loadPackage "SchurRings"
-S = schurRing(s,12)
-time F = s_{20,20,17,7,7,7,3,3,1} * s_{10,5,1};
-size F
-T = schurRing2(ZZ,t,20)
-time G = t_{20,20,17,7,7,7,3,3,1} * t_{10,5,1};
-time G2 = t_{10,5,1} * t_{20,20,17,7,7,7,3,3,1};
-lisF = hashTable listForm F;
-lisG = hashTable listForm G;
-lisG2 = hashTable listForm G2;
-assert(lisF === lisG)
-assert(lisF === lisG2)
-U = schurRing2(ZZ,u)
-time H = u_{20,20,17,7,7,7,3,3,1} * u_{10,5,1};
-time H3 = u_{20,20,17,7,7,7,3,3,1} * u_{10,5,1};
-time H2 = u_{10,5,1} * u_{20,20,17,7,7,7,3,3,1};
-lisH = hashTable listForm H;
-lisH2 = hashTable listForm H2;
-assert(lisF === lisH)
-assert(lisF === lisH2)
-
-S = schurRing(symbol s, 10)
-F = s_{12,3} * s_{12,4};
-
-restart
-n = 30
-time A = symmRing2(QQ, n)
-
---A = QQ[h_1..h_n,e_1..e_n,p_1..p_n,MonomialSize=>8]
-h2p = prepend(1_A, for i from 1 to n list p_i)
-time H2P = convolve(h2p,1);
-
-p2h = prepend(1_A, for i from 1 to n list -h_i)
-time P2H = convolve(p2h,2);
-
-e2p = prepend(1_A, for i from 1 to n list ((-1)^(i+1) * p_i))
-time E2P = convolve(e2p,1);
-
-p2e = prepend(1_A, for i from 1 to n list ((-1)^(i+1) * e_i))
-time P2E = - convolve(p2e,2);
-
-h2e = prepend(1_A, for i from 1 to n list (-1)^(i+1)*e_i)
-time H2E = convolve(h2e,0);
-
-e2h = prepend(1_A, for i from 1 to n list (-1)^(i+1)*h_i)
-time E2H = convolve(e2h,0);
-
-H2P - for i from 1 to n list toP h_i
-P2H - for i from 1 to n list toH p_i
-E2P - for i from 1 to n list toP e_i
-P2E + for i from 1 to n list toE p_i
-H2E - for i from 1 to n list toE h_i
-E2H - for i from 1 to n list toH e_i
---------------------------------------------------------------
-
-restart
-loadPackage"SchurRings"
-
-S = schurRing(QQ,s,10)
-T = schurRing(S,t,10)
-
-symmetricRingOf T
-
-debug SchurRings
-f = toSymm S_{2,1}
-g = toSymm T_{2,1}
-f - g
-toS oo
-
-toE s_{2,1}
-toE t_{2,1}
-toE h_3
-toE s_{3}
-toH oo
-toH s_{3}
-
-plethysm(t_{2},t_{3})
-plethysm(t_{2},s_{2})
-
-toE plethysm(t_{2},h_3)
-toE plethysm(h_2,t_{2,1})
-toS oo
-plethysm(t_{2},t_{2,1})
-plethysm(s_{2},t_{2,1})
-
-
-rep = S_{1}*T_{2}+S_{2,1}*T_{1,1}
-toSymm rep
-toE oo
-toP oo
-toH oo
-toP oo
-toS oo
-toE oo
-toS oo
-toH oo
-
-rep = s_{2}*t_{2}
-
-toP S_{2}
-toE oo
-toH oo
-toS oo
-
-plethysm(h_2,S_{3,1})
-toH oo
-plethysm(S_{2},oo)
-
-R = symmRing(QQ,10)
-e_5
-toS oo
-
-exteriorPower(2,S_{2}*T_{2}+T_{1})
-toE oo
-toS oo
-
-exteriorPower(2,T_{2})
-plethysm(S_{1,1},T_{2})
-
-
-restart
-loadPackage"SchurRings"
-
-R = schurRing(QQ,a,10)
-S = schurRing(R,b,10)
-T = schurRing(S,c,10)
-g = a_{1}*b_{1}*c_{1}
-time plethysm2({2},g)
-time plethysm({2},g)
-
-time plethysm2({1,1},a_{1}*c_{1})
-time plethysm({1,1},g)
-
-restart
-loadPackage"SchurRings"
-
-n = 30
-m = 20
-time R = symmRing(QQ,n)
-time ple = plethysm(h_5,h_6);
-
-time p = toS ple;
-size p
-p
-
-restart
-loadPackage"SchurRings"
-
-n = 30
-time R = symmRing(QQ,n)
-time ple = plethysm(h_5,h_6);
-
-time toS ple;
-
-restart
-loadPackage"SchurRings"
-
-S = schurRing(QQ,s,3,EHPVariables => {es,hs,ps})
-T = schurRing(S,t,2)
-
-symmetricPower(3,S_{1}*1_T)
-exteriorPower(3,T_{1}*S_{1})
-
-exteriorPower(3,S_{1}+T_{1})
-symmetricPower(3,S_{1}+T_{1})
-
-
-exteriorPower(3,S_{1})
-exteriorPower(3,S_{1}*T_{1})
-toH oo
-toE oo
-toP oo
-toS oo
-
-viewHelp symmetricPower 
-
-restart
 loadPackage"SchurRings"
 
 d = 11
@@ -3418,10 +3189,6 @@ installPackage"SchurRings"
 check SchurRings
 viewHelp SchurRings
 
-restart
-loadPackage"SchurRings"
-time R = symmRing 40
-time toS h_1^40;
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"
 -- End:

@@ -104,13 +104,18 @@ rawmonom2partition = (m) -> (
      reverse splice apply(rawSparseListFormMonomial m, (x,e) -> e:x)
      )
 
+--various ways of addressing elements of a Schur ring
 SchurRing _ List := (SR, L) -> new SR from rawSchurFromPartition(raw SR, L)
---SchurRing _ List := (SR, L) -> new SR from rawSchurFromPartition(raw SR,select(L,i->i>0))
 SchurRing _ Sequence := (SR, L) -> new SR from rawSchurFromPartition(raw SR, L)
 SchurRing _ ZZ := (SR, L) -> new SR from rawSchurFromPartition(raw SR, 1:L)
+--
 coefficientRing SchurRing := Ring => R -> last R.baseRings
 numgens SchurRing := Ring => R -> R.numgens
 
+--constructs the symmetric ring of a Schur ring 
+--if the Schur ring has dimension n, its symmetric ring is the polynomial ring
+--in the variables e_1,...,e_n,p_1,...,p_n,h_1,...,h_n, i.e. the other types of
+--symmetric functions (besides the Schur functions) that the package implements
 symmetricRingOf = method()
 symmetricRingOf (Ring) := R -> (
      	  if R.?symmRing then R.symmRing else
@@ -127,6 +132,9 @@ symmetricRingOf (Ring) := R -> (
 	  else R
      )
 
+--constructs the Schur ring of a symmetric ring R
+--this is a ring with basis consisting of s-polynomials (Schur functions) that
+--is abstractly isomorphic to R
 schurRingOf = method()
 schurRingOf (Ring) := R -> (
      	  if R.?Schur then R.Schur else
@@ -145,9 +153,12 @@ schurRingOf (Ring) := R -> (
 	  else error"Expected ring to have a Schur Ring"
      )
 
+--n = schurLevel R is the number of iterations of the schurRing/symmetricRing function
+--used in the construction of R
 schurLevel = method()
 schurLevel (Ring) := R -> if R.?schurLevel then R.schurLevel else 0
 
+--Construction of Schur rings
 newSchur2 = method()
 newSchur2(Ring,Symbol) := (A,p) -> newSchur2(A,p,-1)
        
@@ -160,6 +171,7 @@ newSchur2(Ring,Symbol,ZZ) := (A,p,n) -> (
      SR.generators = {};
      SR.numgens = if n < 0 then infinity else n;
      SR.degreeLength = 0;
+     --the basic features of SR are coded at the engine level
      commonEngineRingInitializations SR;
      ONE := SR#1;
      if A.?char then SR.char = A.char;
@@ -209,6 +221,8 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      symmetricPower(ZZ,S) := (n,s) -> plethysm({n},s);
      exteriorPower(ZZ,S) := opts -> (n,s) -> plethysm(splice{n:1},s);
      
+     --define the multiplication on S
+     --in the case when the group acting is a general linear group     
      if opts.GroupActing == "GL" then
      (
 	  oldmult := method();
@@ -231,6 +245,8 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
 				      )
 		       );
 	  )
+     --define the multiplication on S
+     --in the case when the group acting is a symmetric group
      else if opts.GroupActing == "Sn" then
      (
      	  S ** S := (f1,f2) -> new S from raw f1 * raw f2;
@@ -271,9 +287,11 @@ schurRing(Thing) := opts -> (s) -> schurRing(QQ,s,-1,opts)
 
 undocumented (schurRing,Ring,Symbol,InfiniteNumber)
 
+--a new type that indexes the elements in the s-basis of a Schur ring
 SchurRingIndexedVariableTable = new Type of IndexedVariableTable
 SchurRingIndexedVariableTable _ Thing := (x,i) -> x#symbol _ i
 
+--construction of symmetric rings
 symmRing = method(Options => options schurRing)
 --symmRing = method(Options => (options schurRing ++ {SVariable => getSymbol"s"}))
 symmRing (Ring,ZZ) := opts -> (A,n) -> (
@@ -287,46 +305,58 @@ symmRing (Ring,ZZ) := opts -> (A,n) -> (
        	  R.hVariable = (i) -> if 1 <= i and i <= n then R_(2*n+i-1) else error"Invalid index";
      	  R.GroupActing = opts.GroupActing;
      	  R.dim = n;
-	  R ** R := (f1,f2) -> internalProduct(f1,f2);
+	  R ** R := (f1,f2) -> internalProduct(f1,f2); --internal product of symmetric functions
      	  R @ RingElement := RingElement @ R := (f1,f2) -> plethysm(f1,f2);
      	  symmetricPower(ZZ,R) := (n,r) -> plethysm({n},r);
      	  exteriorPower(ZZ,R) := opts -> (n,r) -> plethysm(splice{n:1},r);
-     	  	  
+--the degrees of e_i,p_i,h_i are equal to i 
 	  degsEHP := toList(1..n);
+--blocks	  
      	  blocks := {toList(0..(n-1)),toList(n..(2*n-1)),toList(2*n..(3*n-1))};
+--new variables for the E,H,P polynomials
      	  vrs := symbol vrs;
      	  locVarsE := apply(blocks#0,i->vrs_i);
      	  locVarsP := apply(blocks#1,i->vrs_i);
      	  locVarsH := apply(blocks#2,i->vrs_i);
+--new rings used for conversion to E- and P- polynomials
+--they differ from R in the order of the variables
+--R is used by default for conversion to H-polynomials
           R.symRingForE = A[locVarsH | locVarsP | locVarsE ,Degrees=>flatten toList(3:degsEHP),MonomialOrder=>GRevLex, MonomialSize => 8];
      	  R.mapToE = map(R.symRingForE,R,apply(blocks#2|blocks#1|blocks#0,i->(R.symRingForE)_i));
      	  R.mapFromE = map(R,R.symRingForE,apply(blocks#2|blocks#1|blocks#0,i->R_i));
      	  R.symRingForP = A[locVarsH | locVarsE | locVarsP,Degrees=>flatten toList(3:degsEHP),MonomialOrder=>GRevLex, MonomialSize => 8];
      	  R.mapToP = map(R.symRingForP,R,apply(blocks#1|blocks#2|blocks#0,i->(R.symRingForP)_i));
      	  R.mapFromP = map(R,R.symRingForP,apply(blocks#2|blocks#0|blocks#1,i->R_i));
+--compute conversion tables
+--between E-,H- and P- polynomials
      	  EtoP(n,R);
      	  PtoE(n,R);
      	  HtoE(n,R);
      	  EtoH(n,R);
      	  PtoH(n,R);
      	  HtoP(n,R);
+--define Groebner bases used for conversion between E-,H- and P- polynomials
      	  R.grbE = forceGB matrix{flatten apply(splice{1..n},i->{R.mapToE(R_(n-1+i))-R.PtoETable#i,R.mapToE(R_(2*n-1+i))-R.HtoETable#i})};
      	  R.grbH = forceGB matrix{flatten apply(splice{1..n},i->{R_(n-1+i)-R.PtoHTable#i,R_(-1+i)-R.EtoHTable#i})};
      	  R.grbP = forceGB matrix{flatten apply(splice{1..n},i->{R.mapToP(R_(-1+i))-R.EtoPTable#i,R.mapToP(R_(2*n-1+i))-R.HtoPTable#i})};
      	  collectGarbage();
+--construct maps that convert a polynomial in the E-,H-,P- variables
+--into one involving only one of the three variables
      	  R.mapSymToE = (f) -> R.mapFromE(R.mapToE(f)%R.grbE);
      	  R.mapSymToP = (f) -> R.mapFromP(R.mapToP(f)%R.grbP);
      	  R.mapSymToH = (f) -> f%R.grbH;
---     	  R.plethysmMaps = new MutableHashTable;
+--the Schur level of R is one more than that of its base ring
 	  if (A.?schurLevel) then R.schurLevel = A.schurLevel + 1
      	  else R.schurLevel = 1;
      	  R)
 symmRing(ZZ) := opts -> n -> symmRing(QQ,n,opts)
+
 ---------------------------------------------------------------
 --------------Jacobi-Trudi-------------------------------------
 ---------------------------------------------------------------
 
 ----local variables for jacobiTrudi
+----they are used in the recursive function jT
 auxR = local auxR;
 auxn = local auxn;
 auxEH = local auxEH;
@@ -344,13 +374,13 @@ jacobiTrudi(BasicList,Ring) := opts -> (lambda,R) ->
 	  if not R.?sFunction then R.sFunction = new MutableHashTable;
 	  if opts.EorH == "E" then
 	  (
-     	       -----S#0 records S-functions in terms of e
+     	       -----sFunction#0 records s-polynomials in terms of the e-variables
 	       if not R.sFunction#?0 then R.sFunction#0 = new MutableHashTable;
 	       auxEH = 0;
 	       )
 	  else
 	  (
-	       -----S#1 records S-functions in terms of h
+     	       -----sFunction#1 records s-polynomials in terms of the h-variables
 	       if not R.sFunction#?1 then R.sFunction#1 = new MutableHashTable;
 	       auxEH = 1;
 	       );
@@ -372,6 +402,7 @@ jacobiTrudi(BasicList,Ring) := opts -> (lambda,R) ->
      rez
      )
 
+--computes the Jacobi-Trudi determinant recursively
 jT = (lambda) ->
 (
      lambda = toList lambda;
@@ -409,17 +440,19 @@ jT = (lambda) ->
 ---------------------------------------------------------------
 --------------Plethysm-----------------------------------------
 ---------------------------------------------------------------
+
+--the cycle type of the k-th power of any permutation of cycle type cyc
 powerCycleType := method()
 powerCycleType(ZZ,List) := (k,cyc) ->
 (
      rsort(flatten (for i in cyc list (g := gcd(i,k);splice{g:i//g})))
      )
 
+-- d is an integer
+-- R is symmRing n
+-- returns the plethysm map p_d : R --> R
+--    which sends p_i to p_(i*d).
 plethysmMap = (d,maxg,R) -> (
-     -- d is an integer
-     -- R is symmRing n
-     -- returns the map p_d : R --> R
-     --    which sends p_i to p_(i*d).
      nS := R.dim;
      nSd := nS // d;
      fs := splice{nS:0_R};
@@ -431,11 +464,13 @@ plethysmMap = (d,maxg,R) -> (
      map(R,R,fs)
      )
 
+-- exterior plethysm (corresponding to composition
+-- of Schur functors of GL-representations)
+-- f is a polynomial in symmRing / SchurRing SA
+-- g is a polynomial in symmRing / SchurRing SB
+-- result is in symmRing / SchurRing SB
 plethysmGL = method()
 plethysmGL(RingElement,RingElement) := (f,g) -> (
-     -- f is a polynomial in symmRing N / SchurRing SA
-     -- g is a polynomial in symmRing n / SchurRing SB
-     -- result is in symmRing n / SchurRing SB
      Rg := ring g;
      Rf := ring f;
      if schurLevel Rf > 1 then error"Undefined plethysm operation";
@@ -444,18 +479,23 @@ plethysmGL(RingElement,RingElement) := (f,g) -> (
      pg := toP g;
      pf := toP f;
      
-     SRg := ring pg;
-     SRf := ring pf;
+     SRg := ring pg; --symmetric ring of Rg
+     SRf := ring pf; --symmetric ring of Rf
           
      nf := SRf.dim;
+--maxf is the maximum i for which the variable p_i appears in the expression of pf
      maxf := max(support(pf)/index//max-nf+1,0);
      
      auxS := SRg;
      nS := auxS.dim;
      lev := schurLevel auxS;
      spg := support(pg)/index;
+--maxg is the maximum i for which the variable p_i appears in the expression of pg
      maxg := max(select(spg,i->i<3*nS)//max-nS+1,0);
+--if p_(maxf*maxg) hasn't been computed in terms of E-polynomial, then compute it
      if maxf*maxg >= #auxS.PtoETable then PtoE(maxf*maxg,auxS);
+--phi is the map that sends p_i to the plethystic composition p_i\circ pg
+--so that phi(f) = f\circ g
      phi := map(SRg,SRf,flatten splice {nf:0_SRg,
 	       apply(1..nf, j -> (if j<=maxf then (plethysmMap(j,maxg,SRg))pg else 0_SRg)),
 	       nf:0_SRg});
@@ -464,14 +504,23 @@ plethysmGL(RingElement,RingElement) := (f,g) -> (
 )
 
 
+-- interior plethysm (corresponding to the result of
+-- the application of a Schur functor to an S_n-representation)
+-- f is a polynomial in symmRing N / SchurRing SA
+-- g is a polynomial in symmRing n / SchurRing SB
+-- result is in symmRing n / SchurRing SB
 plethysmSn = method()
 plethysmSn(RingElement,RingElement) := (f,g) ->
 (
      symmetricFunction(plethysm(f,classFunction g), ring g)
      )
 
+-- plethysm of symmetric functions
 plethysm = method()
 
+-- this function is not exported
+-- it is used to compute the plethysm of f and g
+-- when f is a power-sum symmetric polynomial
 auxplet = method()
 auxplet(RingElement,RingElement) := (f,g) ->
 (
@@ -488,6 +537,9 @@ auxplet(RingElement,RingElement) := (f,g) ->
 	  );
      )
 
+-- the most general form of plethysm
+-- f is an arbitrary symmetric functions
+-- g is an element of a representation ring of a product of general linear and/or symmetric groups
 plethysm(RingElement,RingElement) := (f,g) ->
 (
      pf := toP f;
@@ -502,6 +554,7 @@ plethysm(RingElement,RingElement) := (f,g) ->
 	        (pls#i = auxplet(Rf.pVariable(i+1),g);(pls#i)^ex)))),j -> j =!= null))
      )
 
+-- plethysm of s_lambda and g
 plethysm(BasicList,RingElement) := (lambda,g) -> (
      d := sum toList lambda;
      Rf := symmRing(QQ,d);
@@ -509,6 +562,7 @@ plethysm(BasicList,RingElement) := (lambda,g) -> (
      plethysm(f,g)
      )
 
+-- (inner) plethysm of symmetric function f with the class function cF (the character of a certain S_n-representation)
 plethysm(RingElement,ClassFunction) := (f,cF) ->
 (
      R := ring(cF#(first keys cF));
@@ -530,18 +584,22 @@ plethysm(RingElement,ClassFunction) := (f,cF) ->
      new ClassFunction from newHT
      )
 
+-- (inner) plethysm of s_lambda with the class function cF (the character of a certain S_n-representation)
 plethysm(BasicList,ClassFunction) := (lambda,cF) -> (
      d := sum toList lambda;
      Rf := symmRing(QQ,d);
      f := jacobiTrudi(lambda,Rf);
      plethysm(f,cF))
 
---degree of a polynomial in a SchurRing
+{*
+-- degree of a polynomial in a SchurRing
+-- this is no longer used
 degSchurPol = method()
 degSchurPol(RingElement) := ps -> (
      tms := listForm ps;
      tms/first/sum//max
      )
+*}
 ---------------------------------------------------------------
 -----------End plethysm----------------------------------------
 ---------------------------------------------------------------
@@ -551,45 +609,58 @@ degSchurPol(RingElement) := ps -> (
 ----Transition between various types of symmetric functions----
 ---------------------------------------------------------------
 
+-- toSymm 
 toSymm = method()
---ps should be an element of a schurRing, R a symmRing
---toSymm returns the symmetric function corresponding to ps
 
+-- if ps is an element of a schurRing R
+-- toSymm returns the symmetric function corresponding to ps, as an element of a symmRing, the symmetricRingOf R;
+-- otherwise ps is returned;
 toSymm(RingElement) := (ps) ->
 (
      S := ring ps;
-     if class S =!= SchurRing then ps else
+     if instance(S, SchurRing) then
      (
      R := symmetricRingOf S;
      tms := listForm ps;
+--each term s_lambda in ps is transformed into an element of R using the jacobiTrudi routine
      sum apply(tms,(p,a)->(
 	       (try b:=jacobiTrudi(p,R) then b else error"Need symmetric ring of higher dimension")*
 	       toSymm(lift(a,coefficientRing S))))
      )
+     else return ps
 )
 
-toSymm(Thing) := (ps) -> ps
+-- this is the base case of the recursive operation in the general case
+-- needed when ps is an element of ZZ or QQ, because ZZ, QQ don't have
+-- RingElement as an ancestor
+toSymm(Number) := (ps) -> ps
 
 mapSymToE = method()
+-- writes the symmetric functions of maximal schurLevel in f (i.e. those
+-- not contained in the coefficient ring of R) in terms of the e-polynomials
 mapSymToE (RingElement) := (f) -> (
      R:=ring f; 
      if R.?mapSymToE then R.mapSymToE f else f
 )
 mapSymToH = method()
+-- writes the symmetric functions of maximal schurLevel in f (i.e. those
+-- not contained in the coefficient ring of R) in terms of the h-polynomials
 mapSymToH (RingElement) := (f) -> (
      R:=ring f; 
      if R.?mapSymToH then R.mapSymToH f else f
 )
 mapSymToP = method()
+-- writes the symmetric functions of maximal schurLevel in f (i.e. those
+-- not contained in the coefficient ring of R) in terms of the p-polynomials
 mapSymToP (RingElement) := (f) -> (
      R:=ring f; 
      if R.?mapSymToP then R.mapSymToP f else f
 )
 
 toE = method()
---writes a symmetric function in terms of
---elementary symmetric polynomials
---toE (RingElement) := (f) -> (ring f).mapSymToE f
+-- writes a symmetric function (possibly in a ring
+-- with schurLevel larger than one) in terms of
+-- elementary symmetric polynomials
 toE (RingElement) := (f) -> (
      R := ring f;
      if class R === SchurRing then toE toSymm f
@@ -607,9 +678,9 @@ toE (RingElement) := (f) -> (
      )
 
 toP = method()
---writes a symmetric function in terms of
---power sums
---toP (RingElement) := (f) -> (ring f).mapSymToP f
+-- writes a symmetric function (possibly in a ring
+-- with schurLevel larger than one) in terms of
+-- power sums
 toP (RingElement) := (f) -> (
      R := ring f;
      if class R === SchurRing then toP toSymm f
@@ -627,9 +698,9 @@ toP (RingElement) := (f) -> (
      )
 
 toH = method()
---writes a symmetric function in terms of
---complete symmetric polynomials
---toH (RingElement) := (f) -> (ring f).mapSymToH f
+-- writes a symmetric function (possibly in a ring
+-- with schurLevel larger than one) in terms of
+-- complete symmetric polynomials
 toH (RingElement) := (f) -> (
      R := ring f;
      if class R === SchurRing then toH toSymm f
@@ -646,11 +717,15 @@ toH (RingElement) := (f) -> (
 	  )
      )
 
+
+-- auxiliary functions to be used in
+-- the recTrans routine
 leadTermFcn := local leadTermFcn;
 retFcn := local retFcn;
 mappingFcn := local mappingFcn;
 
 toS = method()
+
 toS(RingElement) := (f) -> (
      R := ring f;
      if (schurLevel R == 0 or class R === SchurRing) then f else
@@ -667,8 +742,6 @@ toS(RingElement) := (f) -> (
      	       if spl == {} then null else last spl
      	       );
      	  retFcn = (pl) -> toS lift(pl,(coefficientRing ring pl));
---	  error"debug";
---    	  recTrans(toH(f))*1_S
      	  promote(recTrans(toH f),S)
 	  )
      )
@@ -735,12 +808,18 @@ recTrans (RingElement) := (pl) ->
 recTrans(Thing) := p -> p
 
 --------
+--------
+--given a recursive relation for a sequence a_n, given by a convolution of (a_n) with (L_n)
+--convolve computes formulas for a_n in terms of L_n
+--the main routine is written in the engine
 convolve = method()
 convolve(List,ZZ) := (L,conv) -> (
      A := ring L_0;
      toList drop(apply(rawConvolve(L/raw//toSequence, conv), f -> new A from f),1)
      )
 
+--a_n = p_n
+--L_n = e_n
 PtoE = (m,R) -> (
      n := R.dim;
      A := R.symRingForE;
@@ -749,6 +828,8 @@ PtoE = (m,R) -> (
      R.PtoETable = {1_A} | (- convolve(p2e,2));
      )
 
+--a_n = h_n
+--L_n = e_n
 HtoE = (m,R) -> (
      n := R.dim;
      A := R.symRingForE;
@@ -756,6 +837,8 @@ HtoE = (m,R) -> (
      R.HtoETable = {1_A} | convolve(h2e,0);
      )
 
+--a_n = h_n
+--L_n = p_n
 HtoP = (m,R) -> (
      n := R.dim;
      A := R.symRingForP;
@@ -763,6 +846,8 @@ HtoP = (m,R) -> (
      R.HtoPTable = {1_A} | convolve(h2p,1);
      )
 
+--a_n = e_n
+--L_n = p_n
 EtoP = (m,R) -> (
      n := R.dim;
      A := R.symRingForP;
@@ -770,6 +855,8 @@ EtoP = (m,R) -> (
      R.EtoPTable = {1_A} | convolve(e2p,1);
      )
 
+--a_n = p_n
+--L_n = h_n
 PtoH = (m,R) -> (
      n := R.dim;
      A := R;
@@ -777,6 +864,8 @@ PtoH = (m,R) -> (
      R.PtoHTable = {1_A} | convolve(p2h,2);
      )
 
+--a_n = e_n
+--L_n = h_n
 EtoH = (m,R) -> (
      n := R.dim;
      A := R;

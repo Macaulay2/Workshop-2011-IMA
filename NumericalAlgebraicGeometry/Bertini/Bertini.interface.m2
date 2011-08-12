@@ -1,8 +1,10 @@
 -- Bertini interface for NAG4M2
 -- used by ../NumericalAlgebraicGeometry.m2
+needsPackage "Bertini"
 
 solveBertini = method(TypicalValue => List)
 solveBertini (List,HashTable) := List => (F,o) -> (
+          -- return bertiniZeroDimSolve F; -- !!!
   	  dir := makeBertiniInput F; 
   	  run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");
 	  readSolutionsBertini(dir,"finite_solutions") -- might not be the right file to read!!!
@@ -126,6 +128,7 @@ trackBertini = method(TypicalValue => List)
 trackBertini (List,List,List,HashTable) := List => (S,T,solsS,o) -> (
      -- tempdir := temporaryFileName() | "NumericalAlgebraicGeometry-bertini";
      -- mkdir tempdir; 	  
+     -- return bertiniParameterHomotopy(T, StartSystem=>S, StartSolutions=>solsS, gamma=>o.gamma); --!!!
      dir := makeBertiniInput(T, StartSystem=>S, StartSolutions=>solsS, gamma=>o.gamma);
      compStartTime := currentTime();      
      run("cd "|dir|"; "|BERTINIexe|" >bertini_session.log");

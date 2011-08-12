@@ -547,13 +547,12 @@ doc ///
 *}
 end
 
-loadPackage "NumericalHilbert"
+needsPackage "NumericalHilbert"
 R = CC[x,y]
 M = matrix {{y,x^2-y}}
 deflation(M)
 
-loadPackage "NumericalHilbert"
-loadPackage ("NumericalHilbert", Reload => true)
+needsPackage "NumericalHilbert"
 R = CC[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = QQ[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 M = matrix {{ii*x}}
@@ -563,24 +562,19 @@ M = matrix {{x+y+x*y}}
 M = matrix {{x+y+y^3}}
 V = dualBasis(M,5, Strategy => BM)
 V = dualBasis(M,5, Strategy => DZ)
-V = dualBasis(M,5, Strategy => ST)
-transpose matrix entries gens V
-degree V
-hilbertSeries V
-isBasis V
+--V = dualBasis(M,5, Strategy => ST)
 dualHilbert(M,4, Strategy => DZ)
-dualHilbert(M,4, Strategy => ST)
+--dualHilbert(M,4, Strategy => ST)
 dualHilbert(M,4, Strategy => GB1)
 dualHilbert(M,4, Strategy => GB2)
 
-loadPackage "NumericalHilbert"
+loadPackage ("NumericalHilbert", Reload => true)
 R = CC[x,y,z, MonomialOrder => {Weights=>{-1,-1,-1}}, Global => false]
 M = matrix {{x*y+z, y*z+x, x^2-z^2}}
 M = matrix {{z*y-x^2, y^2}}
 dualBasis(M,5)
 dualHilbert(M,4)
 
-loadPackage "NumericalHilbert"
 loadPackage ("NumericalHilbert", Reload => true)
 R = CC[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
 R = QQ[x,y, MonomialOrder => {Weights=>{-1,-1}}, Global => false]
@@ -590,5 +584,19 @@ M = matrix {{x*y}}
 M = matrix {{x^9 - y}}
 standardBasis(M)
 dualHilbert(M,25, Strategy => DZS1)
-DZSmatrix(M,0.001)
+DZSmatrix(M,0.)
 
+-- small example
+restart
+loadPackage ("NumericalHilbert", Reload => true)
+R = QQ[x,y,z, MonomialOrder => {Weights=>{-1,-1,-1}}, Global => false]
+M = matrix {{x-y^2, y-z^2}}
+RH = QQ[t,x,y,z,MonomialOrder => {Weights=>{-1,-1,-1,-1}}, Global => false]
+MH = homogenize(sub(M,RH),t)	  
+DH = flatten entries gens dualBasis(MH,4)
+DHhat = sub(matrix{select(DH, Q->first first last listForm Q >= 1)}, {t=>1})
+(
+     sort flatten entries gens dualBasis(M,3)
+     ) == (
+     sort unique flatten entries sub(DHhat,R)
+     )

@@ -64,6 +64,7 @@ export {
     --
     -- Derivative posets
     "closedInterval",
+    "dilworthLattice",
     "distributiveLattice",
         "OriginalPoset",
   --"dual",
@@ -261,10 +262,18 @@ orderComplex (Poset) := SimplicialComplex => opts -> (P) -> (
 ------------------------------------------
 
 closedInterval = method()
-closedInterval (Poset, Thing, Thing) := Poset => (P, p, q) ->(
+closedInterval (Poset, Thing, Thing) := Poset => (P, p, q) -> (
     if compare(P, p, q) then subposet(P, select(P.GroundSet, x -> compare(P, p, x) and compare(P, x, q)))
     else if compare(P, q, p) then subposet(P, select(P.GroundSet, x -> compare(P, q, x) and compare(P, x, p)))
     else error "The elements are incomparable."
+    )
+
+dilworthLattice = method()
+dilworthLattice Poset := Poset => P -> (
+    d := dilworthNumber P;
+    G := select(maximalAntichains P, a -> #a == d);
+    cmp := (a, b) -> all(#a, i -> compare(P, a_i, b_i));
+    poset(G, cmp)
     )
 
 distributiveLattice = method()
@@ -1460,6 +1469,26 @@ doc ///
         q:Thing
     Outputs
         I:Poset
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- dilworthLattice
+doc ///
+    Key
+        dilworthLattice
+        (dilworthLattice,Poset)
+    Headline
+        computes the Dilworth lattice of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+    Outputs
+        D:Poset
     Description
         Text
             TODO

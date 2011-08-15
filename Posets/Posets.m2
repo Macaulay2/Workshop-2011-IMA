@@ -150,6 +150,7 @@ export {
     "zetaPolynomial",
     --
     -- Properties
+    "dilworthNumber",
   --"height", -- exported by Core
     "isAtomic",
     "isBounded",
@@ -1124,8 +1125,11 @@ zetaPolynomial Poset := RingElement => opts -> P -> (
 -- Properties
 ------------------------------------------
 
+dilworthNumber = method()
+dilworthNumber Poset := ZZ => P -> max apply(maximalAntichains P, a -> #a)
+
 -- The method height is given in the Core.
-height Poset := ZZ => P -> -1 + max apply (maximalChains P, s-> #s)
+height Poset := ZZ => P -> -1 + max apply(maximalChains P, c -> #c)
 
 isAtomic = method()
 isAtomic Poset := Boolean => P -> (
@@ -1198,8 +1202,7 @@ isSperner Poset := Boolean => P -> (
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
     maxrk := max apply(values partition(i -> rk_i, 0..#rk-1), r -> #r);
-    maxac := max apply(maximalAntichains P, r -> #r);
-    P.cache.isSperner = maxrk == maxac
+    P.cache.isSperner = maxrk == dilworthNumber P
     )
 
 isStrictSperner = method()
@@ -2996,6 +2999,26 @@ doc ///
 ------------------------------------------
 -- Properties
 ------------------------------------------
+
+-- dilworthNumber
+doc ///
+    Key
+        dilworthNumber
+        (dilworthNumber,Poset)
+    Headline
+        computes the Dilworth number of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+    Outputs
+        d:ZZ
+    Description
+        Text
+            The Dilworth number of a poset is the maximal length of an antichain.
+    SeeAlso
+        Posets
+///
 
 -- height
 doc ///

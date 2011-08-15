@@ -75,7 +75,8 @@ modGb=(I,primes)->(
      	  Sp:=ZZ/p[gens ring I];
      	  phi:=map(Sp,ring I, vars Sp);
      	  Ip:=phi(I);
-     	  gens gb Ip);
+	  print("p="|toString(p));
+          time gens gb Ip);
      monoms:=sub((coefficients(query(primes_0)))_0,ring I);
      -- here we assume that primes_0 is not a bad reduction
      f:=(p)->(
@@ -88,9 +89,10 @@ end;
          
 restart;
 load"modularGroebnerbases.m2";
+setRandomSeed("modGB");
 #(primes=reverse(select(toList(30000..32000),i->isPrime i)))
 R=QQ[x_0..x_5];
-I=ideal random(R^1,R^{4:-3});
+I=ideal random(R^1,R^{3:-3});
 time gens gb I;
 Imod= ideal modGb(I,primes);
 s1=netList Imod_*

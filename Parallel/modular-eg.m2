@@ -77,9 +77,40 @@ m=fp_0;
 scan(1..#primes-1,i->(
 	  m=map(RZ,rawMatrixCRA(raw m, raw fp#i, q, primes#i));
 	  q=q*primes#i));
- apply(#primes,i->sub(sub(m, Rp_i),RZ) == fp_i)
+tally apply(#primes,i->sub(sub(m, Rp_i),RZ) == fp_i)
 
 CRAcheck(fp#0,fp#1,primes#0,primes#1)
 
 time g = new RZ from rawRingElementCRA(raw f1, raw f2, 32003, 32009);
+///
+
+
+TEST ///
+restart
+version
+debug Core 
+R=QQ[x_0..x_5];
+F = random(2,R);
+RZ = ZZ (monoid R);
+R32003 = (ZZ/32003)(monoid R)
+f1 = sub(sub((map(R32003, R)) F, R32003),RZ)
+ring f1
+F
+rawRingElementRatConversion(raw f1,32003,raw R)
+F - new R from oo
+///
+
+TEST ///
+restart
+version
+debug Core 
+R=QQ[x_0..x_5];
+F = random(R^2,R^{2:-1});
+RZ = ZZ (monoid R);
+R32003 = (ZZ/32003)(monoid R)
+f1 = sub(sub((map(R32003, R)) F, R32003),RZ)
+ring f1
+out=rawMatrixRatConversion(raw f1,32003,raw R);
+Fout=map(target F,source F,out)
+F==Fout
 ///

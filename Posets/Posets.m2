@@ -94,12 +94,12 @@ export {
     "facePoset",
     "intersectionLattice",
     "lcmLattice",
-    "monomialPoset",
     "partitionLattice",
         "setPartition",
     "projectivizeArrangement",
     "randomPoset",
         "Bias",
+    "standardMonomialPoset",
     "youngSubposet",
     --
     -- TeX
@@ -618,10 +618,6 @@ lcmLatticeProduceGroundSet = G -> (
     sort apply(lcmDegrees, D -> D.degree)
     )
 
-monomialPoset = method()
-monomialPoset (MonomialIdeal, ZZ, ZZ) := Poset => (I, minDeg, maxDeg) -> poset(first entries basis(minDeg, maxDeg, quotient I), (m, n) -> n % m == 0)
-monomialPoset MonomialIdeal := Poset => I -> poset(first entries basis quotient I, (m, n) -> n % m == 0)
-
 partitionLattice = method()
 partitionLattice ZZ := Poset => n -> (
      L := toList (1..n);
@@ -697,6 +693,10 @@ randomPoset (List) := Poset => opts -> (G) -> (
     poset(G, flatten for i from 0 to #G-1 list for j from i+1 to #G-1 list if random 1.0 < opts.Bias then {G_i, G_j} else continue)
     )
 randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
+
+standardMonomialPoset = method()
+standardMonomialPoset (MonomialIdeal, ZZ, ZZ) := Poset => (I, minDeg, maxDeg) -> poset(first entries basis(minDeg, maxDeg, quotient I), (m, n) -> n % m == 0)
+standardMonomialPoset MonomialIdeal := Poset => I -> poset(first entries basis quotient I, (m, n) -> n % m == 0)
 
 youngSubposet = method()
 youngSubposet (List, List) := Poset => (lo, hi) -> (
@@ -2071,29 +2071,6 @@ doc ///
         Posets
 ///
 
--- monomialPoset
-doc ///
-    Key
-        monomialPoset
-        (monomialPoset,MonomialIdeal)
-        (monomialPoset,MonomialIdeal,ZZ,ZZ)
-    Headline
-        generates the poset of divisibility in the monomial basis of an ideal
-    Usage
-        TODO
-    Inputs
-        I:MonomialIdeal
-        minDeg:ZZ
-        maxDeg:ZZ
-    Outputs
-        P:Poset
-    Description
-        Text
-            TODO
-    SeeAlso
-        Posets
-///
-
 -- partitionLattice
 doc ///
     Key
@@ -2172,6 +2149,29 @@ doc ///
         n:ZZ
         G:List
         Bias=>RR
+    Outputs
+        P:Poset
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- standardMonomialPoset
+doc ///
+    Key
+        standardMonomialPoset
+        (standardMonomialPoset,MonomialIdeal)
+        (standardMonomialPoset,MonomialIdeal,ZZ,ZZ)
+    Headline
+        generates the poset of divisibility in the monomial basis of an ideal
+    Usage
+        TODO
+    Inputs
+        I:MonomialIdeal
+        minDeg:ZZ
+        maxDeg:ZZ
     Outputs
         P:Poset
     Description

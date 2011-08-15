@@ -9,6 +9,19 @@ newPackage(
         DebuggingMode => true
         )
 
+-- todo list:
+-- 1. in the engine: improve all error checks.
+-- 2. impelement over ZZ
+-- 3. add documentation for the functions
+-- 4. add tests
+-- 5. collect benchmark examples
+-- 6. work on certified result
+-- 7. write documentation about how to program in the engine!!!
+--
+
+
+
+
 export {
      rationalConversion, chineseRemainder,myReduce, reconstruct, modGb}
 

@@ -977,7 +977,6 @@ flagChains (Poset,List) := List => (P, L) -> (
     flatten for c in flagChains(P, drop(L, 1)) list for p in rkP_(first L) list if compare(P, p, first c) then prepend(p, c) else continue
     )
 
-
 isAntichain = method()
 isAntichain (Poset, List) := Boolean => (P, L) -> (
     Q := subposet(P, L);
@@ -1292,7 +1291,7 @@ doc ///
         Example
             G = {1,2,3,4};                  -- the ground set
             R = {{1,2},{1,3},{2,4},{3,4}};  -- a list of relations "generating" all relations
-            P = poset(G, R)                 -- the poset with matrix computed
+            P = poset(G, R)                 -- the poset with its relations matrix computed
     SeeAlso
         poset
 ///

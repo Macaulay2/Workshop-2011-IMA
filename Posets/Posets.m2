@@ -272,7 +272,7 @@ dilworthLattice = method()
 dilworthLattice Poset := Poset => P -> (
     d := dilworthNumber P;
     G := select(maximalAntichains P, a -> #a == d);
-    cmp := (a, b) -> all(#a, i -> compare(P, a_i, b_i));
+    cmp := (A, B) -> all(A, a -> any(B, b -> compare(P, a, b)));
     poset(G, cmp)
     )
 

@@ -5,6 +5,8 @@
 -- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular
 -- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner
 
+-- Everything above the line below should be removed before the package is submitted.
+------------------------------------------
 
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
@@ -24,7 +26,7 @@ if version#"VERSION" <= "1.4" then (
 newPackage select((
     "Posets",
         Version => "1.0.3.2", 
-        Date => "10. August 2011",
+        Date => "16. August 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -3375,6 +3377,11 @@ undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };
 -- Tests
 ------------------------------------------
 ------------------------------------------
+
+-- DC2, 1725, 16. August 2011:
+-- I think tests should be structured systematically.  I propose two possible styles:
+--  * Each test would generate one or more posets and then run most if not all methods on the given poset(s).
+--  * Each test only tests one method but on a variety of posets. 
 
 end;
 

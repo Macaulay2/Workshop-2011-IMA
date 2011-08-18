@@ -822,17 +822,24 @@ compare(Poset, Thing, Thing) := Boolean => (P, a, b) -> (
     P.RelationMatrix_bindex_aindex != 0
     )
 
+-- Ported from Stembridge's Maple Package
 connectedComponents = method()
 connectedComponents Poset := List => P -> (
-    if P.cache.?connectedComponents then return P.cache.connectedComponents;
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    L := new MutableList from toList(0..#P.GroundSet-1);
-    for c in coveringRelations P do (
-        i := idx#(c#0); j := idx#(c#1);
-        if i < j then (L#j = L#i;) else (L#i = L#j;);
+    if not P.cache.?connectedComponents then (
+        C := new MutableList from apply(toList(0..#P.GroundSet-1), i -> {i});
+        Q := new MutableList from toList(#P.GroundSet:1);
+        idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+        cr := apply(coveringRelations P, c -> {idx#(c_0), idx#(c_1)});
+        while (#cr > 0 and sum toList Q > 1) do (
+            i := first first cr;
+            j := last first cr;
+            C#j = join(C#i, C#j);
+            cr = apply(drop(cr, 1), c -> { if c_0 == i then j else c_0, if c_1 == i then j else c_1 });
+            Q#i = 0;
         );
-    L = toList L;
-    P.cache.connectedComponents = apply(unique L, l -> P.GroundSet_(positions(L, t -> t == l)))
+        P.cache.connectedComponents = (toList C)_(positions(toList Q, i -> i == 1));
+    );
+    apply(P.cache.connectedComponents, r -> P.GroundSet_r)
     )
 
 -- Ported from Stembridge's Maple Package

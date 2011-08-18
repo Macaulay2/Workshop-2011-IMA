@@ -60,6 +60,8 @@ export {
     -- Derivative combinatorial structures
     "comparabilityGraph",
     "hasseDiagram",
+    "hibiIdeal",
+    "hibiRelationsIdeal",
     "incomparabilityGraph",
     "orderComplex",
         "VariableName",
@@ -240,6 +242,29 @@ hasseDiagram Poset := Digraph => P -> (
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     cr := apply(coveringRelations P, c -> {idx#(first c), idx#(last c)});
     digraph hashTable apply(#P.GroundSet, i -> i => set apply(select(cr, c -> c_0 == i), c -> c_1))
+    )
+
+-- NB: Renames vertices, otherwise it produces the wrong ideal in some cases.
+hibiIdeal = method(Options => { symbol CoefficientRing => QQ })
+hibiIdeal (Poset) := MonomialIdeal => opts -> (P) -> (
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    G := set toList(0..(#P.GroundSet-1));
+    O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
+    J := unique apply(subsets(#O), s -> sort unique flatten O_s);
+    x := local x;
+    y := local y;
+    R := (opts.CoefficientRing)(monoid [x_0..x_(#P.GroundSet-1),y_0..y_(#P.GroundSet-1)]);
+    monomialIdeal apply(J, I -> product(I, i -> R_i) * product(toList(G - I), j -> R_(#P.GroundSet + j)))
+    )
+
+-- NB: Renames vertices, otherwise it produces the wrong ideal in some cases.
+hibiRelationsIdeal = method(Options => { symbol CoefficientRing => QQ })
+hibiRelationsIdeal (Poset) := Ideal => opts -> (P) -> (
+    H := hibiIdeal(P, opts);
+    R := ring H;
+    t := local t;
+    S := (opts.CoefficientRing)(monoid[t_0..t_(#H_* - 1)]);
+    kernel map(R, S, gens H)
     )
 
 -- NB: Renames vertices, otherwise it produces the wrong graph in some cases.
@@ -495,7 +520,7 @@ divisorPoset ZZ := Poset => m -> (
     M := toList \ toList factor m;
     F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
     -- D is the set of all (positive) divisors of m
-    D := sort (product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F));
+    D := sort if #F == 1 then toList first F else product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F);
     poset(D, (a,b) -> b % a == 0)
     )
 
@@ -1400,6 +1425,50 @@ doc ///
         P:Poset
     Outputs
         D:Digraph
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- hibiIdeal
+doc ///
+    Key
+        hibiIdeal
+        (hibiIdeal,Poset)
+        [hibiIdeal,CoefficientRing]
+    Headline
+        produces the Hibi ideal of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        CoefficientRing=>Ring
+    Outputs
+        H:MonomialIdeal
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- hibiRelationsIdeal
+doc ///
+    Key
+        hibiRelationsIdeal
+        (hibiRelationsIdeal,Poset)
+        [hibiRelationsIdeal,CoefficientRing]
+    Headline
+        produces the ideal of Hibi relations of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        CoefficientRing=>Ring
+    Outputs
+        H:Ideal
     Description
         Text
             TODO

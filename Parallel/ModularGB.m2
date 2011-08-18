@@ -10,6 +10,7 @@ newPackage(
         )
 
 -- todo list:
+-- 0. write tests for rational Conversion.
 -- 1. in the engine: improve all error checks.
 -- 2. impelement over ZZ
 -- 3. add documentation for the functions
@@ -23,7 +24,7 @@ newPackage(
 
 
 export {
-     rationalConversion, chineseRemainder,myReduce, reconstruct, modGb}
+     rationalConversion, chineseRemainder,myReduce, reconstruct, modGb,reduceViaPrimes, majorityRule}
 
 debug Core
 -- Code here
@@ -53,6 +54,15 @@ chineseRemainder=method()
 -- two polynomials over the integers, m and n coprime
 chineseRemainder(RingElement,RingElement,ZZ,ZZ):=(f,g,m,n)->new (ring f) from rawRingElementCRA(raw f, raw g, m, n)
 chineseRemainder(Matrix, Matrix, ZZ,ZZ):=(M,N,m,n)->map(ring M,rawMatrixCRA(raw M, raw N, m,n))
+chineseRemainder(List,List):=(Ms,ms)->(
+     -- Ms is a list of matrices over RZ
+     -- ms is a list of pairwise coprime integers
+     Mr:=Ms_0;
+     mr:=ms_0;
+     for i from 1 to #Ms-1 do (
+	  Mr=chineseRemainder(Mr,Ms_i,mr,ms_i);
+	  mr=mr*ms_i);
+     Mr)
 
 reconstruct=(f,primes,RQ)->(
       mZZ:=(f(primes_0),primes_0);
@@ -71,15 +81,44 @@ reconstruct=(f,primes,RQ)->(
 	   );
       <<"d'oh! could not lift. Use more primes" << endl;
       )
+ 
+reduceViaPrimes=(I,primes,RZ)->(
+     apply(primes,p->(
+	        Sp:=(ZZ/p)(monoid ring I);
+     	  	phi:=map(Sp,ring I, vars Sp);
+     	  	Ip:=phi(I);
+	  	print("p="|toString(p));
+          	time sub(gens gb Ip,RZ))))
+
+
+majorityRule=(Gs,primes)->(
+     GLeadTerms:=apply(Gs, g-> flatten entries leadTerm g);
+     tGLeadTerms:=tally GLeadTerms;
+     maxVal:=max values tGLeadTerms;
+     if maxVal==#primes then (
+         (Gs,primes))
+     else    
+         (
+	    L0:=select(1,GLeadTerms,g->tGLeadTerms#g==maxVal);
+            pos:=positions(GLeadTerms,g->g==L0_0);
+ 	    << "badprimes:" << sort toList(set primes - set (primes_pos)) << endl;
+	    (Gs_pos,primes_pos)
+	 )
+     )
+
+reconstructFromCollection=(I,primes,RZ)->(
+     Gs:=reduceViaPrimes(I,primes,RZ);
+     GsAndPrimes:=majorityRule(Gs,primes);
+     )
+
 
 modGb=(I,primes)->(
-     RZ:=ZZ[gens ring I];
+     RZ:=ZZ(monoid ring I);
      query:=(p)->(
-     	  Sp:=ZZ/p[gens ring I];
+     	  Sp:=(ZZ/p)(monoid ring I);
      	  phi:=map(Sp,ring I, vars Sp);
      	  Ip:=phi(I);
-	  print("p="|toString(p));
-          time sub(gens gb Ip,RZ));
+          sub(gens gb Ip,RZ));
      reconstruct(query,primes,ring I))       
      
 
@@ -107,7 +146,37 @@ Flifted=rationalConversion(f,32003,R);
 assert(Flifted==F)
 ///
 
+TEST ///
+-- grapped from symbolicdata.m2 in packages/ExampleIdeals
+example1=(kk)->(
+     R=kk[a,b,x,y,z,u,v,w, MonomialOrder=>Lex];
+     ideal"136z-136,  
+     -240a+112y+420z-64v,  
+     66az+78zv-1056a+90x+336y-90u,  
+     -162a2+50ay+180az+55zu-284av+60yv-112b+260x+70w,  
+     28azv-648a2+36bx+128ay+36bz-300au+40yu+44xv+192w,  
+     15azu-162a2v+18ayv-312ab+84ax+24by+27xu+24aw+30vw,  
+     6abz-162a2u+8ayu+10axv+14bx+48aw+16uw,  
+     -162a2b+2aby+3axu+4avw+6bw");
+I=example1(QQ);
+--IQQ=gens gb I;
+primes=reverse(select(toList(30000..32000),i->isPrime i));
+primes2={2,5}|select(toList(101..200),i->isPrime i);
+primes2=primes_{0..10}
+RZ=ZZ(monoid R);
+product primes2
+time Gs=reduceViaPrimes(I,primes2,RZ);
+GoodGsAndps=majorityRule(Gs,primes2);
+time ICRA=chineseRemainder GoodGsAndps;
+time ILifted=rationalConversion(ICRA,product GoodGsAndps#1,ring I);
+see ideal ILifted
 
+
+tally apply(Gs, g-> flatten entries leadTerm g)
+factor product apply(flatten entries leadTerm gens I, f-> leadCoefficient(f))
+
+time Imod= ideal modGb(I,primes);
+///
 
 
 
@@ -132,6 +201,16 @@ parisilias13=(kk)->(
           S1^2*s1^3-3*S1^2*s1^2*d1+3*S1^2*s1*d1^2-S1^2*d1^3+4*S1*s1^3*D2-12*S1*s1^2*d1*D2+12*S1*s1*d1^2*D2-4*S1*d1^3*D2+4*s1^3*D2^2-12*s1^2*d1*D2^2+12*s1*d1^2*D2^2-4*d1^3*D2^2-32,
           S1^2*s1^3+3*S1^2*s1^2*d1+3*S1^2*s1*d1^2+S1^2*d1^3-4*S1*s1^3*D2-12*S1*s1^2*d1*D2-12*S1*s1*d1^2*D2-4*S1*d1^3*D2+4*s1^3*D2^2+12*s1^2*d1*D2^2+12*s1*d1^2*D2^2+4*d1^3*D2^2-32))
  
+example1=(kk)->(
+     R=kk[a,b,x,y,z,u,v,w, MonomialOrder=>Lex];
+     ideal"136z-136,  
+     -240a+112y+420z-64v,  
+     66az+78zv-1056a+90x+336y-90u,  
+     -162a2+50ay+180az+55zu-284av+60yv-112b+260x+70w,  
+     28azv-648a2+36bx+128ay+36bz-300au+40yu+44xv+192w,  
+     15azu-162a2v+18ayv-312ab+84ax+24by+27xu+24aw+30vw,  
+     6abz-162a2u+8ayu+10axv+14bx+48aw+16uw,  
+     -162a2b+2aby+3axu+4avw+6bw")
 
 beginDocumentation()
 
@@ -166,6 +245,8 @@ TEST ///
 -- test code and assertions here
 -- may have as many TEST sections as needed
 ///
+
+
 
 
 restart;

@@ -82,6 +82,9 @@ modGb=(I,primes)->(
           time sub(gens gb Ip,RZ));
      reconstruct(query,primes,ring I))       
      
+
+
+     
      
 
 TEST ///
@@ -109,7 +112,26 @@ assert(Flifted==F)
 
 
 end
-
+parisilias13=(kk)->(    
+     R=kk[S1,s1,d1,S2,D2,s2,d2];
+     ideal(
+	  -8*d1*D2+2*S2*s2-2*D2*d2-8*S2-4*s2+16,
+           8*d1*D2-2*S2*s2+2*D2*d2+8*S2+4*s2-16
+          -8*d1*S2-16*s1*D2+2*D2*s2-2*S2*d2+16*d1+8*D2+4*d2,
+          8*d1*S2+16*s1*D2-2*D2*s2+2*S2*d2-16*d1-8*D2-4*d2,
+          -8*S1*S2+4*S2^2-20*D2^2+16*S1-16,
+          8*S1*S2-4*S2^2+20*D2^2-16*S1+16,
+          -16*d1^2-8*s1*s2+s2^2-8*d1*d2-d2^2+32*s1-16,
+          16*d1^2+8*s1*s2-s2^2+8*d1*d2+d2^2-32*s1+16,
+          -16*S1*d1+8*d1*S2-10*D2*s2-4*S1*d2+2*S2*d2+16*d1+40*D2+4*d2,
+          16*S1*d1-8*d1*S2+10*D2*s2+4*S1*d2-2*S2*d2-16*d1-40*D2-4*d2,
+          -32*S1*s1+16*s1*S2+40*d1*D2+4*S1*s2-2*S2*s2+10*D2*d2+16*S1+32*s1-8*S2-4*s2-16,
+          32*S1*s1-16*s1*S2-40*d1*D2-4*S1*s2+2*S2*s2-10*D2*d2-16*S1-32*s1+8*S2+4*s2+16,
+          S2^2*s2^3-2*S2*D2*s2^3+D2^2*s2^3+3*S2^2*s2^2*d2-6*S2*D2*s2^2*d2+3*D2^2*s2^2*d2+3*S2^2*s2*d2^2-6*S2*D2*s2*d2^2+3*D2^2*s2*d2^2+S2^2*d2^3-2*S2*D2*d2^3+D2^2*d2^3-32,
+          S2^2*s2^3+2*S2*D2*s2^3+D2^2*s2^3-3*S2^2*s2^2*d2-6*S2*D2*s2^2*d2-3*D2^2*s2^2*d2+3*S2^2*s2*d2^2+6*S2*D2*s2*d2^2+3*D2^2*s2*d2^2-S2^2*d2^3-2*S2*D2*d2^3-D2^2*d2^3-32,
+          S1^2*s1^3-3*S1^2*s1^2*d1+3*S1^2*s1*d1^2-S1^2*d1^3+4*S1*s1^3*D2-12*S1*s1^2*d1*D2+12*S1*s1*d1^2*D2-4*S1*d1^3*D2+4*s1^3*D2^2-12*s1^2*d1*D2^2+12*s1*d1^2*D2^2-4*d1^3*D2^2-32,
+          S1^2*s1^3+3*S1^2*s1^2*d1+3*S1^2*s1*d1^2+S1^2*d1^3-4*S1*s1^3*D2-12*S1*s1^2*d1*D2-12*S1*s1*d1^2*D2-4*S1*d1^3*D2+4*s1^3*D2^2+12*s1^2*d1*D2^2+12*s1*d1^2*D2^2+4*d1^3*D2^2-32))
+ 
 
 beginDocumentation()
 
@@ -147,9 +169,14 @@ TEST ///
 
 
 restart;
-loadPackage"ModularGB";
---installPackage"ModularGB";
+installPackage"ModularGB";
+-- loadPackage"ModularGB";
 --check"ModularGB";
+kk=ZZ/101;
+I=parisilias13(kk);
+see=method()
+see Ideal := (I)->netList I_*
+time GB = gens gb I;
 
 setRandomSeed("modGB");
 #(primes=reverse(select(toList(30000..32000),i->isPrime i)))

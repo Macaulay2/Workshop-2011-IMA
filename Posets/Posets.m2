@@ -57,14 +57,15 @@ export {
     "poset",
     "transitiveClosure",
     --
-    -- Derivative combinatorial structures
+    -- Derivative non-poset structures
     "comparabilityGraph",
     "hasseDiagram",
     "hibiIdeal",
-    "hibiRelationsIdeal",
+    "hibiRing",
     "incomparabilityGraph",
     "orderComplex",
         "VariableName",
+    "pPartitionRing",
     --
     -- Derivative posets
     "closedInterval",
@@ -224,7 +225,7 @@ transitiveClosure (List, List) := Matrix => (G, R) -> (
     )
 
 ------------------------------------------
--- Derivative combinatorial structures
+-- Derivative non-poset structures
 ------------------------------------------
 
 -- NB: Renames vertices, otherwise it produces the wrong graph in some cases.
@@ -258,13 +259,19 @@ hibiIdeal (Poset) := MonomialIdeal => opts -> (P) -> (
     )
 
 -- NB: Renames vertices, otherwise it produces the wrong ideal in some cases.
-hibiRelationsIdeal = method(Options => { symbol CoefficientRing => QQ })
-hibiRelationsIdeal (Poset) := Ideal => opts -> (P) -> (
-    H := hibiIdeal(P, opts);
-    R := ring H;
+hibiRing = method(Options => { symbol CoefficientRing => QQ })
+hibiRing (Poset) := QuotientRing => opts -> (P) -> (
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    G := set toList(0..(#P.GroundSet-1));
+    O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
+    J := unique apply(subsets(#O), s -> sort unique flatten O_s);
+    x := local x;
+    y := local y;
+    R := (opts.CoefficientRing)(monoid [x_0..x_(#P.GroundSet-1),y_0..y_(#P.GroundSet-1)]);
+    H := ideal apply(J, I -> product(I, i -> R_i) * product(toList(G - I), j -> R_(#P.GroundSet + j)));
     t := local t;
-    S := (opts.CoefficientRing)(monoid[t_0..t_(#H_* - 1)]);
-    kernel map(R, S, gens H)
+    S := (opts.CoefficientRing)(monoid[apply(J, I -> t_I)]);
+    S/kernel map(R, S, gens H)
     )
 
 -- NB: Renames vertices, otherwise it produces the wrong graph in some cases.
@@ -282,6 +289,19 @@ orderComplex (Poset) := SimplicialComplex => opts -> (P) -> (
     R := (opts.CoefficientRing)(monoid [s_0..s_(#P.GroundSet - 1)]);
     variableMap := hashTable apply(#P.GroundSet, i -> P.GroundSet#i => R_i);
     simplicialComplex apply(maximalChains P, c -> product apply(c, x -> variableMap#x))
+    )
+
+pPartitionRing = method(Options => { symbol CoefficientRing => QQ })
+pPartitionRing (Poset) := QuotientRing => opts -> (P) -> (
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    G := set toList(0..(#P.GroundSet-1));
+    O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
+    J := select(unique apply(subsets(#O), s -> sort unique flatten O_s), I -> isConnected subposet(P, P.GroundSet_I));
+    t := local t;
+    R := (opts.CoefficientRing)(monoid [t_0..t_(#P.GroundSet-1)]);
+    I := ideal apply(J, I -> product(I, i -> R_i)); print(J, I);
+    S := (opts.CoefficientRing)(monoid [apply(J, I -> t_I)]);
+    S/kernel map(R, S, gens I)
     )
 
 ------------------------------------------
@@ -1396,7 +1416,7 @@ doc ///
 ///
 
 ------------------------------------------
--- Derivative combinatorial structures
+-- Derivative non-poset structures
 ------------------------------------------
 
 -- comparabilityGraph
@@ -1461,21 +1481,21 @@ doc ///
         Posets
 ///
 
--- hibiRelationsIdeal
+-- hibiRing
 doc ///
     Key
-        hibiRelationsIdeal
-        (hibiRelationsIdeal,Poset)
-        [hibiRelationsIdeal,CoefficientRing]
+        hibiRing
+        (hibiRing,Poset)
+        [hibiRing,CoefficientRing]
     Headline
-        produces the ideal of Hibi relations of a poset
+        produces the Hibi ring of a poset
     Usage
         TODO
     Inputs
         P:Poset
         CoefficientRing=>Ring
     Outputs
-        H:Ideal
+        H:QuotientRing
     Description
         Text
             TODO
@@ -1520,6 +1540,28 @@ doc ///
         CoefficientRing=>Ring
     Outputs
         O:SimplicialComplex
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- pPartitionRing
+doc ///
+    Key
+        pPartitionRing
+        (pPartitionRing,Poset)
+        [pPartitionRing,CoefficientRing]
+    Headline
+        produces the p-partition ring of a poset
+    Usage
+        TODO
+    Inputs
+        P:Poset
+        CoefficientRing=>Ring
+    Outputs
+        R:QuotientRing
     Description
         Text
             TODO

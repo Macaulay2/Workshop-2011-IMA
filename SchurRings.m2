@@ -30,19 +30,6 @@ newPackage(
 	AuxiliaryFiles => true
     	)
 
---schurRing(coefficientRing)
---schurRing(coefficientRing,ZZ)
---symmRing(coefficientRing,ZZ)
---symmRing(coefficientRing) -- options -> names of e,h,p variables
---     	    	      	    -- maybe coefficientRing is an option
-
---longer names for
---toE => 
---toH =>
---toP =>
---toS =>
-
-
 export {schurRing, SchurRing, symmRing,
      symmetricRingOf, schurRingOf,
      toS, toE, toP, toH,
@@ -54,8 +41,7 @@ export {schurRing, SchurRing, symmRing,
      schurResolution,
      
      Memoize, Schur, EorH, GroupActing,
-     eVariable, pVariable, hVariable --, getSchur
---     cauchy, wedge, preBott, bott, doBott, weyman
+     eVariable, pVariable, hVariable
      }
 
 debug Core
@@ -170,7 +156,7 @@ newSchur2(Ring,Symbol,ZZ) := (A,p,n) -> (
      SR.generators = {};
      SR.numgens = if n < 0 then infinity else n;
      SR.degreeLength = 0;
-     --the basic features of SR are coded at the engine level
+--the basic features of SR are coded at the engine level
      commonEngineRingInitializations SR;
      ONE := SR#1;
      if A.?char then SR.char = A.char;
@@ -810,7 +796,8 @@ recTrans(Thing) := p -> p
 --------
 --given a recursive relation for a sequence a_n, given by a convolution of (a_n) with (L_n)
 --convolve computes formulas for a_n in terms of L_n
---the main routine is written in the engine
+--the main routine is coded in the engine
+--the value of conv is used to indicate one of several types of convolution
 convolve = method()
 convolve(List,ZZ) := (L,conv) -> (
      A := ring L_0;
@@ -881,6 +868,10 @@ EtoH = (m,R) -> (
 -------------Schur Resolutions---------------------------------
 ---------------------------------------------------------------
 
+--recsyz is a recursive method that takes as input an element el of a SchurRing of positive schurLevel
+--and returns the sum of the terms having negative coefficients
+--it is used in the routine schurRes to determine representations that are forced to be generators
+--of syzygy modules in an equivariant resolution
 recsyz = method()
 recsyz (Thing) := (el) -> min(el,0)
 recsyz (RingElement) := (el) ->
@@ -924,6 +915,9 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
      local mo;
      local newsyz;
      
+--syzygy modules are constructed step by step
+--the stopping condition is either reaching the limit c of syzygy modules that are computed
+--or not finding any new syzygies at a given step
      while notdone do
      (
 	  for i from 0 to d do
@@ -932,8 +926,14 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 	       for sy in syzy#k do
 	       	    if sy#0 <= i then mo = mo + sy#1 * plets#(i-sy#0)
 		    else break;
+--mods is a sequence of representations, mods#i being the degree i of a module that needs to be ``covered''
+--by the differential in the equivariant complex
+--mo is the degree i part of the new syzygy module
+--it needs to ``cover'' mods#i, i.e. there has to exist a surjective map of representations from
+--mo to mods#i
 	       mo = mo - mods#i;
---if there are representations with negative coefficients, then they must give rise to new syzygy modules
+--if there are representations with negative coefficients in mo-mods#i, it means that mo doesn't cover mods#i
+--the representations with negative signs must be ``covered'' by new syzygies
 	       newsyz = recsyz(mo);
 	       if newsyz != 0 then syzy#k = syzy#k | {(i,-newsyz)};
 	       mods#i = mo - newsyz;
@@ -955,6 +955,9 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 --------------Characters of Symmetric Group--------------------
 ---------------------------------------------------------------
 
+--given a partition lambda as a nonincreasing sequence of positive integers
+--seqToMults returns the representation of this partition as a sequence
+--of multiplicities: rez#i is the number of parts of lambda of size (i+1)
 seqToMults = method()
 seqToMults(List) := (lambda) ->
 (
@@ -969,6 +972,9 @@ seqToMults(List) := (lambda) ->
      rez 
      )
 
+--given a partition lambda represented in as a sequence of multiplicities mults
+--where mults#i is the number of parts of lambda of size (i+1)
+--multsToSeq represents lambda as a nonincreasing sequence of positive integers
 multsToSeq = method()
 multsToSeq(List) := (mults) ->
 (
@@ -979,6 +985,7 @@ multsToSeq(List) := (mults) ->
      reverse par
      )
 
+--the size of the centralizer of a permutation of cycle type lambda
 centralizerSize = method()
 centralizerSize(List) := lambda ->
 (
@@ -994,6 +1001,7 @@ degree(ClassFunction) := ch ->
      if #ke == 0 then -1 else sum(first ke)
      )
 
+--go from symmetric functions to class functions
 classFunction = method()
 classFunction(RingElement) := (f)->
 (
@@ -1064,6 +1072,7 @@ ClassFunction == ClassFunction := (ch1,ch2) ->
      equ
      )
 
+--go from class functions to symmetric functions
 symmetricFunction = method()
 symmetricFunction(ClassFunction,Ring) := (ch,S)->
 (

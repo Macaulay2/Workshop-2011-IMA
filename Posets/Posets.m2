@@ -1,8 +1,13 @@
 ------------------------------------------
+-- Current work:
+------------------------------------------
+-- David: I'm working on the documentation.
+
+------------------------------------------
 -- Currently caching:
 ------------------------------------------
 -- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
--- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular
+-- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular,
 -- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner
 
 -- Everything above the line below should be removed before the package is submitted.
@@ -21,12 +26,13 @@
 if version#"VERSION" <= "1.4" then (
     needsPackage "SimplicialComplexes";
     needsPackage "Graphs";
+    needsPackage "FourTiTwo";
     )
 
 newPackage select((
     "Posets",
         Version => "1.0.3.2", 
-        Date => "16. August 2011",
+        Date => "22. August 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -35,12 +41,13 @@ newPackage select((
         Headline => "Package for processing posets and order complexes",
         Configuration => {"DefaultPDFViewer" => "open", "DefaultSuppressLabels" => true},
         DebuggingMode => true,
-        if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes", "Graphs"}
+        if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes", "Graphs", "FourTiTwo"}
         ), x -> x =!= null)
 
 if version#"VERSION" <= "1.4" then (
     needsPackage "SimplicialComplexes";
     needsPackage "Graphs";
+    needsPackage "FourTiTwo";
     )
 
 -- Load configurations
@@ -259,19 +266,22 @@ hibiIdeal (Poset) := MonomialIdeal => opts -> (P) -> (
     )
 
 -- NB: Renames vertices, otherwise it produces the wrong ideal in some cases.
-hibiRing = method(Options => { symbol CoefficientRing => QQ })
+hibiRing = method(Options => { symbol CoefficientRing => QQ, symbol Strategy => "kernel" })
 hibiRing (Poset) := QuotientRing => opts -> (P) -> (
+    if opts.Strategy =!= "kernel" and opts.Strategy =!= "4ti2" then error "The option Strategy must either be 'kernel' or '4ti2'.";
+    t := local t; x := local x; y := local y;
+    R := (opts.CoefficientRing)(monoid [x_0..x_(#P.GroundSet-1),y_0..y_(#P.GroundSet-1)]);
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    G := set toList(0..(#P.GroundSet-1));
     O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
-    x := local x;
-    y := local y;
-    R := (opts.CoefficientRing)(monoid [x_0..x_(#P.GroundSet-1),y_0..y_(#P.GroundSet-1)]);
-    H := ideal apply(J, I -> product(I, i -> R_i) * product(toList(G - I), j -> R_(#P.GroundSet + j)));
-    t := local t;
     S := (opts.CoefficientRing)(monoid[apply(J, I -> t_I)]);
-    S/kernel map(R, S, gens H)
+    G := set toList(0..(#P.GroundSet-1));
+    M := apply(J, I -> product(I, i -> R_i) * product(toList(G - I), j -> R_(#P.GroundSet + j)));
+    if opts.Strategy === "kernel" then S/kernel map(R, S, matrix {M})
+    else if opts.Strategy === "4ti2" then (
+        N := matrix transpose apply(indices \ M, I -> apply(numgens R, j -> if member(j, I) then 1 else 0));
+        S/toricGroebner(N, S)
+        )
     )
 
 -- NB: Renames vertices, otherwise it produces the wrong graph in some cases.
@@ -1126,7 +1136,7 @@ greeneKleitmanPartition Poset := Partition => opts -> P -> (
     if P.cache.?greeneKleitmanPartition then return P.cache.greeneKleitmanPartition;
     (C, f) := if opts.Strategy === "chains" then (chains P, identity)
         else if opts.Strategy === "antichains" then (antichains P, conjugate)
-        else error "The option Strategy must either by 'chains' or 'antichains'.";
+        else error "The option Strategy must either be 'chains' or 'antichains'.";
     lambda := {};
     k := 0;
     while sum lambda < #P.GroundSet do (
@@ -1487,6 +1497,7 @@ doc ///
         hibiRing
         (hibiRing,Poset)
         [hibiRing,CoefficientRing]
+        [hibiRing,Strategy]
     Headline
         produces the Hibi ring of a poset
     Usage

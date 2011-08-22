@@ -515,10 +515,10 @@ booleanLattice ZZ := Poset => n -> (
     if n < 0 then ( print "Did you mean |n|?"; n = -n; );
     if n == 0 then poset({""}, {}, matrix{{1}}) else (
         Bn1 := booleanLattice(n-1);
-        G := apply(Bn1.GroundSet, p -> p | "0") | apply(Bn1.GroundSet, p -> p | "1");
-        R := apply(Bn1.Relations, r -> {(first r) | "0", (last r) | "0"}) | 
-             apply(Bn1.Relations, r -> {(first r) | "1", (last r) | "1"}) |
-             apply(Bn1.GroundSet, p -> {p | "0", p | "1"});
+        G := apply(Bn1.GroundSet, p -> "0" | p) | apply(Bn1.GroundSet, p -> "1" | p);
+        R := apply(Bn1.Relations, r -> {"0" | first r, "0" | last r}) | 
+             apply(Bn1.Relations, r -> {"1" | first r, "1" | last r}) |
+             apply(Bn1.GroundSet, p -> {"0" | p, "1" | p});
         M := matrix {{Bn1.RelationMatrix, Bn1.RelationMatrix}, {0, Bn1.RelationMatrix}};
         poset(G, R, M)
         )
@@ -1369,13 +1369,19 @@ doc ///
     Inputs
         P:Poset
         i:ZZ
+            index in the ground set
     Outputs
         a:Thing
+            the $i$-th vertex in the ground set
     Description
         Text
-            TODO
+            This method allows easy access to the vertices of the poset.
+        Example
+            P = booleanLattice 3;
+            P_0
+            P_3
     SeeAlso
-        Posets
+        Poset
 ///
 
 -- poset
@@ -1389,19 +1395,62 @@ doc ///
     Headline
         creates a new Poset object
     Usage
-        TODO
+        P = poset R
+        P = poset(G, cmp)
+        P = poset(G, R)
+        P = poset(G, R, M)
     Inputs
         G:List
+            elements in the ground set of $P$
         R:List
+            pairs {$a,b$} which indicate that $a \leq b$
         M:Matrix
+            with entries $(i,j)$ equal to 1 if $G_j \leq G_i$ and 0 otherwise
         cmp:Function
+            a binary function such that $cmp(G_i, G_j)$ is true if and only if $G_i \leq G_j$ in the partial order
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            This method creates a @TO "Poset"@ by defining the set and giving the order relations
+            between the elements in the set.  The function assumes that each element in the
+            ground set $G$ is distinct and operates by taking the transitive and reflexive closure
+            of the relations in $R$.  The function returns an error if the input relations are
+            incompatible with creating a poset.
+        Example
+            G = {a,b,c,d};
+            R = {{a,b}, {a,c}, {c,d}};
+            P = poset(G, R)
+        Text
+            It is unnecessary to pass the ground set if every vertex of the poset is a member
+            of at least one relation in $R$.
+        Example
+            poset {{1,2},{2,3},{3,4}}
+        Text
+            Sometimes it is easier to create a poset by passing the ground set and a binary function
+            which compares elements in the ground set.
+        Example
+            cmp = (a,b) -> b % a == 0;
+            G = toList(1..10);
+            P = poset(G, cmp)
+        Text
+            And, in other cases, it may be easy to find all relations in the poset.  In this case, if
+            the matrix encoding all the relations is passed to the poset method, then it is not
+            necessary to compute the transitive closure.  However, it should be noted that the method
+            makes no checks on either the relations or the matrix in this case.
+        Example
+            S = QQ[x,y,z];
+            G = {x^2, x*y, z^2, x^2*y*z, x*y*z^3, x^2*y^2*z^3};
+            R = flatten for g in G list for h in G list if h %g == 0 then {g,h} else continue;
+            M = matrix apply(G, g -> apply(G, h -> if h %g == 0 then 1 else 0));
+            P = poset(G, R, M)
+        Text
+            In the previous example the vertices of the poset were @TO "RingElements"@.  In fact,
+            the Posets package does not require the vertices to be of any particular type.  However,
+            this also means when the package makes calls to external methods, it sometimes must
+            relabel the vertices (usually to the index of the vertex in $G$).
     SeeAlso
-        Posets
+        Poset
 ///
 
 -- transitiveClosure
@@ -1412,17 +1461,25 @@ doc ///
     Headline
         computes the transitive closure of a set of relations
     Usage
-        TODO
+        M = transitiveClosure(G, R)
     Inputs
         G:List
+            the ground set
         R:List
+            pairs {$a,b$} which indicate that $a \leq b$
     Outputs
         M:Matrix
+            with entries $(i,j)$ equal to 1 if $G_j \leq G_i$ and 0 otherwise
     Description
         Text
-            TODO
+            This method uses the @TO "floydWarshall"@ method from the @TO "Graphs"@ package
+            to compute the @TO "RelationMatrix"@ from the relations $R$.
+        Example
+            G = {1,2,3,4,5};
+            R = {{1,2}, {1,3}, {2,4}, {3,4}, {4,5}};
+            transitiveClosure(G, R)
     SeeAlso
-        Posets
+        poset
 ///
 
 ------------------------------------------

@@ -289,29 +289,38 @@ incomparabilityGraph = method()
 incomparabilityGraph Poset := Graph => P -> (
     E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
         if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
-    fE := unique flatten E;
-    graph(E, Singletons => select(#P.GroundSet, i -> not member(i, fE)))
+    S := toList(set(0..#P.GroundSet - 1) - unique flatten E);
+    graph(E, Singletons => S)
     )
 
+-- NB: Renames vertices, otherwise it produces the wrong simplicial complex in some cases.
 orderComplex = method(Options => { symbol VariableName => getSymbol "v", symbol CoefficientRing => QQ })
 orderComplex (Poset) := SimplicialComplex => opts -> (P) -> (
+    E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
+        if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
     s := opts.VariableName;
     R := (opts.CoefficientRing)(monoid [s_0..s_(#P.GroundSet - 1)]);
-    variableMap := hashTable apply(#P.GroundSet, i -> P.GroundSet#i => R_i);
-    simplicialComplex apply(maximalChains P, c -> product apply(c, x -> variableMap#x))
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet#i => R_i);
+    simplicialComplex if #E > 0 then monomialIdeal apply(E, e -> R_(e_0) * R_(e_1)) else {product gens R}
     )
 
-pPartitionRing = method(Options => { symbol CoefficientRing => QQ })
+pPartitionRing = method(Options => { symbol CoefficientRing => QQ, symbol Strategy => "kernel" })
 pPartitionRing (Poset) := QuotientRing => opts -> (P) -> (
+    if opts.Strategy =!= "kernel" and opts.Strategy =!= "4ti2" then error "The option Strategy must either be 'kernel' or '4ti2'.";
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    G := set toList(0..(#P.GroundSet-1));
     O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
     J := select(unique apply(subsets(#O), s -> sort unique flatten O_s), I -> isConnected subposet(P, P.GroundSet_I));
     t := local t;
-    R := (opts.CoefficientRing)(monoid [t_0..t_(#P.GroundSet-1)]);
-    I := ideal apply(J, I -> product(I, i -> R_i)); print(J, I);
     S := (opts.CoefficientRing)(monoid [apply(J, I -> t_I)]);
-    S/kernel map(R, S, gens I)
+    if opts.Strategy === "kernel" then (
+        R := (opts.CoefficientRing)(monoid [t_0..t_(#P.GroundSet-1)]);   
+        M := matrix{apply(J, I -> product(I, i -> R_i))};
+        S/kernel map(R, S, M)
+        )
+    else if opts.Strategy === "4ti2" then (
+        N := matrix transpose apply(J, I -> apply(#P.GroundSet, j -> if member(j, I) then 1 else 0));
+        S/toricGroebner(N, S)
+        )
     )
 
 ------------------------------------------
@@ -1494,16 +1503,25 @@ doc ///
     Headline
         produces the comparability graph of a poset
     Usage
-        TODO
+        G = comparabilityGraph P
     Inputs
         P:Poset
     Outputs
         G:Graph
+            which has an edge between two vertices if they are comparable in $P$
     Description
         Text
-            TODO
+            The comparability graph of a poset $P$ is the @TO "Graph"@ with vertices given
+            by the ground set of $P$ and which has edges between two vertices if
+            they are comparable in $P$.
+        Example
+            comparabilityGraph booleanLattice 3
+    Caveat
+        This method renames the vertices with integers $0, 1, \ldots$ corresponding to the
+        index of the vertices in the @TO "GroundSet"@.
     SeeAlso
-        Posets
+        compare
+        incomparabilityGraph
 ///
 
 -- hasseDiagram
@@ -1514,16 +1532,25 @@ doc ///
     Headline
         produces the Hasse diagram of a poset
     Usage
-        TODO
+        D = hasseDiagram P
     Inputs
         P:Poset
     Outputs
         D:Digraph
+            which has the direct edge $(a,b)$ if and only if $a < b$ in $P$ and if
+            $a \leq c \leq b$ then $c = a$ or $c = b$.
     Description
         Text
-            TODO
+            The Hasse diagram of a poset is a @TO "Digraph"@ with vertices given by
+            the ground set of $P$ and which has the direct edge $(a,b)$ if and only
+            if $a < b$ in $P$ and there exists no $c$ such that $a < c < b$.
+        Example
+            hasseDiagram booleanLattice 3
+    Caveat
+        This method renames the vertices with integers $0, 1, \ldots$ corresponding to the
+        index of the vertices in the @TO "GroundSet"@.
     SeeAlso
-        Posets
+        coveringRelations
 ///
 
 -- hibiIdeal
@@ -1535,17 +1562,26 @@ doc ///
     Headline
         produces the Hibi ideal of a poset
     Usage
-        TODO
+        H = hibiIdeal P
     Inputs
         P:Poset
         CoefficientRing=>Ring
+            which specifies the coefficient ring of the @TO "PolynomialRing"@ $H$ is constructed in
     Outputs
         H:MonomialIdeal
+            the Hibi ideal of $P$
     Description
         Text
-            TODO
+            The Hibi ideal of $P$ is a @TO "MonomialIdeal"@ built over a ring in $2n$ variables
+            $x_0, \ldots, x_{n-1}, y_0, \ldots, y_{n-1}$, where $n$ is the size of the ground set of $P$.  
+            The generators of the ideal are in bijection with order ideals in $P$.  Let $I$ be 
+            an order ideal of $P$.  Then the associated monomial is the product of the $x_i$ associated
+            with members of $I$ and the $y_i$ associated with non-members of $I$.
+        Example
+            hibiIdeal chain 3
     SeeAlso
-        Posets
+        hibiRing
+        orderIdeal
 ///
 
 -- hibiRing
@@ -1558,17 +1594,45 @@ doc ///
     Headline
         produces the Hibi ring of a poset
     Usage
-        TODO
+        H = hibiRing P
+        H = hibiRing(P, Strategy => "kernel")
+        H = hibiRing(P, Strategy => "4ti2")
     Inputs
         P:Poset
         CoefficientRing=>Ring
+            which specifies the coefficient ring of the @TO "PolynomialRing"@ $H$
+        Strategy=>String
+            which specifies whether to use Macaulay2's native @TO "kernel"@ method (Strategy => "kernel") or the package @TO "FourTiTwo"@ (Strategy => "4ti2")
     Outputs
         H:QuotientRing
+            the toric algebra which is isomorphic to the Hibi ring of $P$
     Description
         Text
-            TODO
+            The Hibi ring of $P$ is a monomial algebra generated by the monomials which generate the 
+            Hibi ideal (@TO "hibiIdeal"@).  That is, the monomials built in $2n$ variables
+            $x_0, \ldots, x_{n-1}, y_0, \ldots, y_{n-1}$, where $n$ is the size of the ground set of $P$.  
+            The monomials are in bijection with order ideals in $P$.  Let $I$ be an order ideal of $P$.
+            Then the associated monomial is the product of the $x_i$ associated with members of $I$ and 
+            the $y_i$ associated with non-members of $I$.
+        Text
+            This method returns the toric quotient algebra isomorphic to the Hibi ring.  The ideal is
+            the ideal of Hibi relations.  The generators of the @TO "PolynomialRing"@ $H$ is built
+            over are of the form $t_I$ where $I$ is an order ideal of $P$.
+        Example
+            hibiRing booleanLattice 2
+        Text
+            The Hibi ring of the $n$ chain is just a polynomial ring in $n+1$ variables.
+        Example
+            hibiRing chain 4
+        Text
+            In some cases, it may be faster to use the @TO "FourTiTwo"@ method @TO "toricGroebner"@ to
+            generate the Hibi relations.  Using the Strategy "4ti2" tells the method to use this approach.
+        Example
+            hibiRing(divisorPoset 6, Strategy => "4ti2")
     SeeAlso
-        Posets
+        hibiIdeal
+        orderIdeal
+        pPartitionRing
 ///
 
 -- incomparabilityGraph
@@ -1579,16 +1643,25 @@ doc ///
     Headline
         produces the incomparability graph of a poset
     Usage
-        TODO
+        G = incomparabilityGraph P
     Inputs
         P:Poset
     Outputs
         G:Graph
+            which has an edge between two vertices if they are incomparable in $P$
     Description
         Text
-            TODO
+            The comparability graph of a poset $P$ is the @TO "Graph"@ with vertices given
+            by the ground set of $P$ and which has edges between two vertices if
+            they are incomparable in $P$.
+        Example
+            incomparabilityGraph booleanLattice 3
+    Caveat
+        This method renames the vertices with integers $0, 1, \ldots$ corresponding to the
+        index of the vertices in the @TO "GroundSet"@.
     SeeAlso
-        Posets
+        comparabilityGraph
+        compare
 ///
 
 -- orderComplex
@@ -1601,18 +1674,35 @@ doc ///
     Headline
         produces the order complex of a poset
     Usage
-        TODO
+        O = orderComplex P
     Inputs
         P:Poset
         VariableName=>Symbol
         CoefficientRing=>Ring
     Outputs
         O:SimplicialComplex
+            the order complex of $P$
     Description
         Text
-            TODO
+            The order complex of a poset is the @TO "SimplicialComplex"@ with vertices
+            corresponding to the ground set of $P$ and faces corresponding to the 
+            @TO "chains"@ of $P$.
+        Example
+            orderComplex booleanLattice 3
+        Text
+            The minimal non-faces are given by the incomparable pairs of vertices
+            in $P$.  Thus the order complex is the independence complex of the 
+            @TO "incomparabilityGraph"@ of $P$ and the clique complex of the
+            @TO "comparabilityGraph"@ of $P$.  Moreover, the facets are given
+            by the @TO "maximalChains"@ of $P$.
+    Caveat
+        This method renames the vertices with integers $0, 1, \ldots$ corresponding to the
+        index of the vertices in the @TO "GroundSet"@.
     SeeAlso
-        Posets
+        chains
+        comparabilityGraph
+        incomparabilityGraph
+        maximalChains
 ///
 
 -- pPartitionRing
@@ -1624,17 +1714,42 @@ doc ///
     Headline
         produces the p-partition ring of a poset
     Usage
-        TODO
+        R = pPartitionRing P
+        R = pPartitionRing(P, Strategy => "kernel")
+        R = pPartitionRing(P, Strategy => "4ti2")
     Inputs
         P:Poset
         CoefficientRing=>Ring
+        Strategy=>String
+            which specifies whether to use Macaulay2's native @TO "kernel"@ method (Strategy => "kernel") or the package @TO "FourTiTwo"@ (Strategy => "4ti2")
     Outputs
         R:QuotientRing
+            the toric algebra which is isomorphic to the $P$-partition ring
     Description
         Text
-            TODO
+            Recall that a $P$-partition for a naturally labeled poset $P$ on
+            vertices $1, \ldots, n$ is a function $f: P \rightarrow \mathbb{NN}$ which
+            is order-reversing, i.e., if $i < j$ in $P$ then $f(i) \geq f(j)$ in $\mathbb{NN}$.
+            To a $P$-partition $f$ we can assign the monomial $t_1^{f(1)} \ldots t_n^{f(n)}$.
+            The $P$-partition ring is the ring spanned by the monomials corresponding
+            to $P$-partitions.
+        Text
+            The $P$-partition ring is more simply generated by the monomials corresponding
+            to the connected order ideals of $P$.  This method returns the toric quotient algebra,
+            whose toric ideal is minimially generated, isomorphic to the $P$-partition ring.
+        Example
+            P = poset {{1,2}, {2,4}, {3,4}, {3,5}};
+            pPartitionRing P
+        Text
+            In some cases, it may be faster to use the @TO "FourTiTwo"@ method @TO "toricGroebner"@ to
+            generate the toric relations.  Using the Strategy "4ti2" tells the method to use this approach.
+        Example
+            pPartitionRing(divisorPoset 6, Strategy => "4ti2")
     SeeAlso
-        Posets
+        hibiRing
+        isConnected
+        naturalLabeling
+        orderIdeal
 ///
 
 ------------------------------------------

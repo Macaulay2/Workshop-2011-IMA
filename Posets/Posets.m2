@@ -1694,7 +1694,10 @@ doc ///
             in $P$.  Thus the order complex is the independence complex of the 
             @TO "incomparabilityGraph"@ of $P$ and the clique complex of the
             @TO "comparabilityGraph"@ of $P$.  Moreover, the facets are given
-            by the @TO "maximalChains"@ of $P$.
+            by the @TO "maximalChains"@ of $P$.  Thus, the order complex of a 
+            @TO "chain"@ poset is a simplex.
+        Example
+            orderComplex chain 5
     Caveat
         This method renames the vertices with integers $0, 1, \ldots$ corresponding to the
         index of the vertices in the @TO "GroundSet"@.

@@ -82,6 +82,7 @@ export {
   --"dual",
     "filter",
     "flagPoset",
+    "indexLabeling",
     "naturalLabeling",
     "openInterval",
     "orderIdeal",
@@ -218,7 +219,8 @@ poset (List, Function) := Poset => (G, cmp) -> (
     poset(G, R, M)
     )
 poset List := Poset => R -> poset(unique flatten R, R);
-Poset _ ZZ := Thing => (P, i) -> if P.GroundSet#?i then P.GroundSet_i else error "Index out of bounds."
+Poset _ ZZ := Thing => (P, i) -> P.GroundSet#i
+Poset _ List := List => (P, L) -> P.GroundSet_L
 
 toString Poset := toExternalString Poset := String => P -> "poset(" | toExternalString P.GroundSet | ", " | toExternalString P.Relations | ", " | toString P.RelationMatrix | ")"
 
@@ -363,11 +365,17 @@ flagPoset (Poset, List) := Poset => (P, L)-> (
     subposet(P, flatten ((rankPoset P)_L))
     )
 
+indexLabeling = method()
+indexLabeling Poset := Poset => P -> (
+    idx:= hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    poset(apply(P.GroundSet, p -> idx#p), apply(P.Relations, r -> {idx#(first r), idx#(last r)}), P.RelationMatrix)
+    )
+
 naturalLabeling = method()
 naturalLabeling (Poset, ZZ) := Poset => (P, startIndex) -> (
     F := flatten filtration P;
     renameMap := hashTable for i to #F - 1 list F_i => startIndex + i;
-    poset(apply(P.GroundSet, p -> renameMap#p), apply(P.Relations, r -> {renameMap#(first r), renameMap#(last r)}), P.RelationMatrix)            
+    poset(apply(P.GroundSet, p -> renameMap#p), apply(P.Relations, r -> {renameMap#(first r), renameMap#(last r)}), P.RelationMatrix)
     )
 naturalLabeling Poset := Poset => P -> naturalLabeling(P, 0)
 
@@ -1371,17 +1379,23 @@ doc ///
 doc ///
     Key
         (symbol _,Poset,ZZ)
+        (symbol _,Poset,List)
     Headline
-        gets an element of the ground set
+        returns an elements of the ground set
     Usage
-        P_i
+        a = P_i
+        V = P_L
     Inputs
         P:Poset
         i:ZZ
             index in the ground set
+        L:ZZ
+            indices in the ground set
     Outputs
         a:Thing
             the $i$-th vertex in the ground set
+        V:List
+            the vertices indexed by $L$ in the ground set
     Description
         Text
             This method allows easy access to the vertices of the poset.
@@ -1389,6 +1403,7 @@ doc ///
             P = booleanLattice 3;
             P_0
             P_3
+            P_{2,4,5}
     SeeAlso
         Poset
 ///
@@ -1876,6 +1891,26 @@ doc ///
         L:List
     Outputs
         F:Poset
+    Description
+        Text
+            TODO
+    SeeAlso
+        Posets
+///
+
+-- indexLabeling
+doc ///
+    Key
+        indexLabeling
+        (indexLabeling,Poset)
+    Headline
+        relabels a poset with the labeling based on the indices of the vertices
+    Usage
+        TODO
+    Inputs
+        P:Poset
+    Outputs
+        Q:Poset
     Description
         Text
             TODO

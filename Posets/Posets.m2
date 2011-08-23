@@ -358,6 +358,7 @@ dual Poset := Poset => {} >> opts -> P -> poset(P.GroundSet, P.Relations/reverse
 
 filter = method()
 filter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
+filter (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> filter(P, l))
 
 flagPoset = method()
 flagPoset (Poset, List) := Poset => (P, L)-> (
@@ -384,6 +385,7 @@ openInterval (Poset, Thing, Thing) := Poset => (P, p, q) -> dropElements(closedI
 
 orderIdeal = method()
 orderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
+orderIdeal (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> orderIdeal(P, l))
 
 subposet = method()
 subposet (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L))
@@ -1379,23 +1381,17 @@ doc ///
 doc ///
     Key
         (symbol _,Poset,ZZ)
-        (symbol _,Poset,List)
     Headline
-        returns an elements of the ground set
+        returns an element of the ground set
     Usage
         a = P_i
-        V = P_L
     Inputs
         P:Poset
         i:ZZ
             index in the ground set
-        L:ZZ
-            indices in the ground set
     Outputs
         a:Thing
             the $i$-th vertex in the ground set
-        V:List
-            the vertices indexed by $L$ in the ground set
     Description
         Text
             This method allows easy access to the vertices of the poset.
@@ -1403,8 +1399,33 @@ doc ///
             P = booleanLattice 3;
             P_0
             P_3
+    SeeAlso
+        (symbol _,Poset,List)
+        Poset
+///
+
+doc ///
+    Key
+        (symbol _,Poset,List)
+    Headline
+        returns elements of the ground set
+    Usage
+        V = P_L
+    Inputs
+        P:Poset
+        L:List
+            indices in the ground set
+    Outputs
+        V:List
+            the vertices indexed by $L$ in the ground set
+    Description
+        Text
+            This method allows easy access to the vertices of the poset.
+        Example
+            P = booleanLattice 3;
             P_{2,4,5}
     SeeAlso
+        (symbol _,Poset,ZZ)
         Poset
 ///
 
@@ -1782,18 +1803,24 @@ doc ///
     Headline
         computes the subposet contained between two points
     Usage
-        TODO
+        I = closedInterval(P, p, q)
     Inputs
         P:Poset
         p:Thing
         q:Thing
     Outputs
         I:Poset
+            the closed interval in $P$ between $p$ and $q$
     Description
         Text
-            TODO
+            The closed interval between $p$ and $q$ is the subposet of $P$
+            induced by the elements $z$ such that $p \leq z \leq q$.  If 
+            $p$ and $q$ are incomparable, then an error is thrown.
+        Example
+            P = booleanLattice 3;
+            closedInterval(P, "001", "111")
     SeeAlso
-        Posets
+        openInterval
 ///
 
 -- dilworthLattice
@@ -1804,16 +1831,24 @@ doc ///
     Headline
         computes the Dilworth lattice of a poset
     Usage
-        TODO
+        D = dilworthLattice P
     Inputs
         P:Poset
     Outputs
         D:Poset
+            the Dilworth lattice of $P$
     Description
         Text
-            TODO
+            The Dilworth lattice of $P$ is the lattice of maximum length (the
+            @TO "dilworthNumber"@) antichains in $P$.  Two such antichains have
+            $A \leq B$ if and only if every member of $A$ is less than or equal
+            (in $P$) to some member of $B$.
+        Example
+            P = poset {{0, 2}, {1, 2}, {1, 3}, {2, 5}, {3, 4}, {3, 5}};
+            dilworthLattice P
     SeeAlso
-        Posets
+        dilworthNumber
+        maximalAntichains
 ///
 
 -- distributiveLattice
@@ -1825,16 +1860,26 @@ doc ///
     Headline
         computes the lattice of order ideals of a poset
     Usage
-        TODO
+        L = distributiveLattice P
     Inputs
         P:Poset
     Outputs
         L:Poset
+            the distributive lattice of $P$
     Description
         Text
-            TODO
+            The distributive lattice of a poset $P$ is the poset of all order ideals
+            of $P$ ordered by inclusion.  
+        Example
+            P = poset {{1,2}, {1,3}};
+            distributiveLattice P
+        Text
+            The distributive lattice of a @TO "chain"@ poset of length $n$ is the
+            chain poset of length $n+1$.
+        Example
+            distributiveLattice chain 3
     SeeAlso
-        Posets
+        orderIdeal
 ///
 
 -- dual
@@ -1844,16 +1889,27 @@ doc ///
     Headline
         produces the derived poset with relations reversed
     Usage
-        TODO
+        P' = dual P
     Inputs
         P:Poset
     Outputs
         P':Poset
+            the dual of $P$
     Description
         Text
-            TODO
-    SeeAlso
-        Posets
+            The dual of a poset is the poset on the same ground set
+            but with all relations reversed. 
+        Example
+            P = divisorPoset 12;
+            dual P
+        Text
+            Clearly then, the @TO "chain"@ posets and @TO "booleanLattice"@s
+            are all self-dual.
+        Example
+            C = chain 5;
+            areIsomorphic(C, dual C)
+            B = booleanLattice 4;
+            areIsomorphic(B, dual B)
 ///
 
 -- filter
@@ -1861,15 +1917,17 @@ doc ///
     Key
         filter
         (filter,Poset,Thing)
+        (filter,Poset,List)
     Headline
-        computes the elements above a given element in a poset
+        computes the elements above given elements in a poset
     Usage
         TODO
     Inputs
         P:Poset
         a:Thing
-    Outputs
         L:List
+    Outputs
+        F:List
     Description
         Text
             TODO
@@ -1966,15 +2024,17 @@ doc ///
     Key
         orderIdeal
         (orderIdeal,Poset,Thing)
+        (orderIdeal,Poset,List)
     Headline
-        computes the elements below a given element in a poset
+        computes the elements below given elements in a poset
     Usage
         TODO
     Inputs
         P:Poset
         a:Thing
-    Outputs
         L:List
+    Outputs
+        I:List
     Description
         Text
             TODO

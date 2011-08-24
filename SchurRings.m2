@@ -880,25 +880,13 @@ recsyz (RingElement) := (el) ->
      listForm el/((u,v)->T_u*recsyz(v))//sum
      )
 
-schurResolution = method()
-schurResolution(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
+schurResolution = method(Options => {DegreeLimit => 0, SyzygyLimit => 0})
+schurResolution(RingElement,List) := opts -> (rep,M) ->
 (
-     schurRes(rep,M,d,c)
-     )
+     d := opts.DegreeLimit;
+     if d == 0 then d = #M-1;
+     c := opts.SyzygyLimit;
 
-schurResolution(RingElement,List,ZZ) := (rep,M,d) ->
-(
-     schurRes(rep,M,d,0)
-     )
-
-schurResolution(RingElement,List) := (rep,M) ->
-(
-     schurRes(rep,M,#M-1,0)
-     )
-
-schurRes = method()
-schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
-(
      T := ring rep;
      n := schurLevel T;
 --plets is the list of symmetric powers of the representation rep, from 0 to d
@@ -906,6 +894,25 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
      plets#0 = 1_T;
      for i from 1 to d do plets#i = symmetricPower(i,rep);
 
+     schurRes(rep,M,new List from plets,DegreeLimit => d,SyzygyLimit => c)
+     )
+
+schurResolution(RingElement,List,List) := opts -> (rep,M,plets) ->
+(
+     d := opts.DegreeLimit;
+     if d == 0 then d = #M-1;
+     c := opts.SyzygyLimit;
+     
+     schurRes(rep,M,plets,DegreeLimit => d,SyzygyLimit => c)
+     )
+
+schurRes = method(Options => options schurResolution)
+schurRes(RingElement,List,List) := opts -> (rep,M,plets) ->
+(
+     T := ring rep;
+     d := opts.DegreeLimit;
+     c := opts.SyzygyLimit;
+     
      mods := new MutableList from (M | toList((d+1-#M):0));
      notdone := true;
      k := 0;
@@ -924,7 +931,7 @@ schurRes(RingElement,List,ZZ,ZZ) := (rep,M,d,c) ->
 	  (
      	       mo = 0_T;	       
 	       for sy in syzy#k do
-	       	    if sy#0 <= i then mo = mo + sy#1 * plets#(i-sy#0)
+	       	    if sy#0 <= i then mo = mo + plets#(i-sy#0) * sy#1
 		    else break;
 --mods is a sequence of representations, mods#i being the degree i of a module that needs to be ``covered''
 --by the differential in the equivariant complex
@@ -1531,7 +1538,7 @@ Description
   Example
     n = 4
     M = {1_S}
-    schurResolution(V,M,n)
+    schurResolution(V,M,DegreeLimit => n)
     
   Text
   
@@ -1545,7 +1552,7 @@ Description
   Example
     rep = q_n + q_(n-1,1)
     M = {q_n}
-    schurResolution(rep,M,n)
+    schurResolution(rep,M,DegreeLimit => n)
 ///
 
 doc ///
@@ -2297,24 +2304,20 @@ Description
 doc ///
 Key
   schurResolution
-  (schurResolution,RingElement,List,ZZ,ZZ)
-  (schurResolution,RingElement,List,ZZ)
+  (schurResolution,RingElement,List,List)
   (schurResolution,RingElement,List)
 Headline
   Compute an ``approximate'' equivariant resolution of a module.
 Usage
-  resol = schurResolution(rep,M,d,c)
-  resol = schurResolution(rep,M,d)
+  resol = schurResolution(rep,M,plets)
   resol = schurResolution(rep,M)
 Inputs
   rep:RingElement
       element of a SchurRing
   M:List
     list of representations, corresponding to the homogeneous components of a module {\tt M}.
-  d:ZZ
-    degree limit
-  c:ZZ
-    syzygy limit
+  plets:List
+    list of representations, corresponding to the homogeneous components of a polynomial ring {\tt S}.
 Outputs
   resol:List
 Description
@@ -2369,7 +2372,7 @@ Description
     rep = s_{3}
     M = {1_S,s_{3},s_{6},s_{9},s_{12},s_{15},s_{18},s_{21},s_{24},s_{27}}
     d = 7
-    schurResolution(rep,M,d)
+    schurResolution(rep,M,DegreeLimit => d)
 
   Text
     
@@ -2393,7 +2396,7 @@ Description
     S = schurRing(QQ,s,n,GroupActing => "Sn");
     rep = s_n + s_{n-1,1};
     M = {s_n}
-    schurResolution(rep,M,n)    
+    schurResolution(rep,M,DegreeLimit => n)
 
   Text
   

@@ -5,12 +5,12 @@
 -----------------------------------------
 -- Header
 -----------------------------------------
-newPackage(
+newPackage (
     "GAP4M2",
-    Version => "0.0.1", 
-    Date => "28. July 2011",
+    Version => "0.1", 
+    Date => "24. August 2011",
     Authors => {{Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"}},
-    Headline => "Package for interfacing Macaulay2 with GAP",
+    Headline => "an interface for GAP in Macaulay2",
     Configuration => {"path" => "", "workspace" => ""},
     DebuggingMode => true
 )
@@ -56,7 +56,7 @@ gapCall String := opts -> str -> (
     removeFile infn;
     removeFile erfn;
     r
-);
+)
 
 -- Creates the GAP workspace, if necessary.
 gapCreateWorkspace = method(Options => {AdditionalCall => "", OverwriteOld => false});
@@ -64,21 +64,22 @@ installMethod(gapCreateWorkspace, opts -> () -> (
     if not instance(opts#AdditionalCall, String) then error "Option AdditionalCall should be a String.";
     if not instance(opts#OverwriteOld, Boolean) then error "Option OverwriteOld should be a Boolean.";
     if opts#OverwriteOld or not gapHasWorkspace() then gapCall(opts.AdditionalCall | "\n" | "SaveWorkspace(\"" | gap'workspace | "\");\n quit;\n", NoWorkspace => true);
-));
+))
 
 -- Checks for the existence of the GAP workspace.
 gapHasWorkspace = method();
-installMethod(gapHasWorkspace, () -> fileExists gap'workspace);
+installMethod(gapHasWorkspace, () -> fileExists gap'workspace)
 
 -- Removes the GAP workspace, if it exists.
 gapRemoveWorkspace = method();
-installMethod(gapRemoveWorkspace, () -> if fileExists gap'workspace then removeFile gap'workspace);
+installMethod(gapRemoveWorkspace, () -> if fileExists gap'workspace then removeFile gap'workspace)
 
 -----------------------------------------
 -- Documentation
 -----------------------------------------
 beginDocumentation()
 
+-- GAP4M2
 doc ///
     Key
         GAP4M2
@@ -87,15 +88,24 @@ doc ///
     Description
         Text
             This package provides a basic interface from Macaulay2 to GAP.  The
-            code automatically handles a workspace from which GAP is used. This
-            allows GAP to quickly load for rapid calls.
+            code automatically handles a workspace from which GAP is used.  Using
+            workspaces allows GAP to quickly load for more rapid calls.
+
+            The configuration file @TT "~/.Macaulay2/GAP4M2-init.m2"@ contains two
+            configuration data points: @TT "path"@ and @TT "workspace"@.  The @TT "path"@
+            refers to the location of the GAP executable itself.  If, however, GAP is
+            on the system path, then this can be left blank.  The @TT "workspace"@ 
+            allows the user to configure where the workspace will be stored.  It
+            is always named @TT "GAP4M2.workspace"@.
 ///
 
+-- gapCall
 doc ///
     Key
         gapCall
         (gapCall, String)
         [gapCall, NoWorkspace]
+        NoWorkspace
     Headline
         calls GAP and executes a string
     Usage
@@ -111,35 +121,59 @@ doc ///
             containing all the lines of outputted text from GAP
     Description
         Text
-            This method executes GAP on a String of commands and
-            returns a list containing the outputted text from GAP.
-            The user is expected to parse the GAP results.
+            This method executes GAP on a @TO "String"@ of commands and
+            returns a @TO "List"@ containing the output text from GAP.
+            The user is expected to parse the GAP results themselves.
         Example
-            gapCall("1+1; 1+2; 1+3;")
+            "TODO: This should be in a PRE environment."
+            L = gapCall("1+1; 1+2; 1+3;")
+            instance(first L, String)
+            L' = value \ L
+            sum L'
+        Text
+            If the GAP workspace does not exist (@TO "gapHasWorkspace"@)
+            and the user has not specified @TT "NoWorkspace"@, then a 
+            new workspace is created (@TO "gapCreateWorkspace"@).
+    SeeAlso
+        gapCreateWorkspace
 ///
 
+-- gapCreateWorkspace
 doc ///
     Key
         gapCreateWorkspace
         1:(gapCreateWorkspace)
         [gapCreateWorkspace, AdditionalCall]
         [gapCreateWorkspace, OverwriteOld]
+        AdditionalCall
+        OverwriteOld
     Headline
         creates a GAP workspace
     Usage
         gapCreateWorkspace()
-        gapCreateWorkspace(AdditionalCall => str)
-        gapCreateWorkspace(OverwriteOld => true)
+        gapCreateWorkspace(AdditionalCall => String)
+        gapCreateWorkspace(OverwriteOld => Boolean)
     Inputs
         AdditionalCall=>String
             contains additional code to be executed and saved as part of the workspace
         OverwriteOld=>Boolean
-            determines whether an already existing workspace will be overwritten
+            determines whether an already extant workspace will be overwritten
     Description
         Text
-            This method creates a new GAP workspace.
+            This method creates a new GAP workspace.  It will only overwrite an old
+            workspace if told to via the @TT "OverwriteOld"@ option.  The user can 
+            optionally run extra commands which are stored in the workspace (such
+            as loading packages) via the @TT "AdditionalCall"@ option.
+    Caveat
+        The GAP workspace exists in the @TT "~/.Macaulay2"@ directory and takes several
+        megabytes of space.  If this is a concern, then when calling @TO "gapCall"@ the
+        user should use the @TO "NoWorkspace"@ option.
+    SeeAlso
+        gapHasWorkspace
+        gapRemoveWorkspace
 ///
 
+-- gapHasWorkspace
 doc ///
     Key
         gapHasWorkspace
@@ -150,9 +184,12 @@ doc ///
         gapHasWorkspace()
     Description
         Text
-            Checks if the GAP workspace exists.
+            Determines if the GAP workspace which Macaulay2 will use exists.
+    SeeAlso
+        gapCreateWorkspace
 ///
 
+-- gapRemoveWorkSpace
 doc ///
     Key
         gapRemoveWorkspace
@@ -164,7 +201,12 @@ doc ///
     Description
         Text
             Removes an extant GAP workspace.
+    SeeAlso
+        gapCreateWorkspace
+        gapHasWorkspace
 ///
 
-undocumented { NoWorkspace, AdditionalCall, OverwriteOld };
+-----------------------------------------
+-- Tests
+-----------------------------------------
 

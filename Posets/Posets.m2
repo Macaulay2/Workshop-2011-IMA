@@ -32,11 +32,11 @@ if version#"VERSION" <= "1.4" then (
 newPackage select((
     "Posets",
         Version => "1.0.3.2", 
-        Date => "22. August 2011",
+        Date => "24. August 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
-            {Name => "Gwyn Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Grads/whieldon.html"}
+            {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://www.hood.edu/Academics/Departments/Mathematics/Faculty/Gwyneth-Whieldon.html"}
         },
         Headline => "Package for processing posets and order complexes",
         Configuration => {"DefaultPDFViewer" => "open", "DefaultSuppressLabels" => true},
@@ -219,10 +219,13 @@ poset (List, Function) := Poset => (G, cmp) -> (
     poset(G, R, M)
     )
 poset List := Poset => R -> poset(unique flatten R, R);
+
 Poset _ ZZ := Thing => (P, i) -> P.GroundSet#i
 Poset _ List := List => (P, L) -> P.GroundSet_L
+installMethod(symbol _*, Poset, P -> P.GroundSet)
 
-toString Poset := toExternalString Poset := String => P -> "poset(" | toExternalString P.GroundSet | ", " | toExternalString P.Relations | ", " | toString P.RelationMatrix | ")"
+toString Poset := 
+toExternalString Poset := String => P -> "poset(" | toExternalString P.GroundSet | ", " | toExternalString P.Relations | ", " | toString P.RelationMatrix | ")"
 
 -- Returns a matrix M such that M_(i,j) = 1 if G_i <= G_j, and 0 otherwise
 transitiveClosure = method()
@@ -531,7 +534,7 @@ Poset + Poset := union
 
 booleanLattice = method()
 booleanLattice ZZ := Poset => n -> (
-    if n < 0 then ( print "Did you mean |n|?"; n = -n; );
+    if n < 0 then n = -n; 
     if n == 0 then poset({""}, {}, matrix{{1}}) else (
         Bn1 := booleanLattice(n-1);
         G := apply(Bn1.GroundSet, p -> "0" | p) | apply(Bn1.GroundSet, p -> "1" | p);
@@ -546,7 +549,7 @@ booleanLattice ZZ := Poset => n -> (
 chain = method()
 chain ZZ := Poset => n -> (
     if n == 0 then error "The integer n must be non-zero.";
-    if n < 0 then ( print "Did you mean |n|?"; n = -n; );
+    if n < 0 then n = -n;
     -- The matrix is known, so give it.
     poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1)))
     )
@@ -564,7 +567,7 @@ divisorPoset RingElement := Poset => m -> (
 
 divisorPoset ZZ := Poset => m -> (
     if m == 0 then error "The integer m must be non-zero.";
-    if m < 0 then ( print "Did you mean |m|?"; m=-m; );
+    if m < 0 then m = -m;
     if m == 1 then return poset({1}, {}); -- 1 is special
     M := toList \ toList factor m;
     F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
@@ -795,7 +798,7 @@ youngSubposet (List, List) := Poset => (lo, hi) -> (
     )
 youngSubposet List := Poset => hi -> youngSubposet({0}, hi)
 youngSubposet ZZ := Poset => n -> (
-    if n < 0 then ( print "Did you mean |n|?"; n = -n; );
+    if n < 0 then n = -n;
     poset(toList \ flatten apply(n+1, i -> partitions i), (a,b) -> #a <= #b and all(#a, i -> a_i <= b_i))
     )
 
@@ -803,8 +806,8 @@ youngSubposet ZZ := Poset => n -> (
 -- TeX
 ------------------------------------------
 
-displayPoset=method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer, symbol Jitter => false })
-displayPoset(Poset):=opts->(P)->(
+displayPoset = method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer, symbol Jitter => false })
+displayPoset (Poset) := opts -> (P) -> (
     if not instance(opts.PDFViewer, String) then error "The option PDFViewer must be a string.";
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
@@ -815,7 +818,7 @@ displayPoset(Poset):=opts->(P)->(
     )
 
 outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, symbol Jitter => false});
-outputTexPoset(Poset,String) := String => opts -> (P,name)->(
+outputTexPoset (Poset,String) := String => opts -> (P,name) -> (
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
     fn := openOut name;
@@ -855,6 +858,7 @@ texPoset (Poset) := String => opts -> (P) -> (
         ) |
     concatenate("\\foreach \\to/\\from in ", toString edgelist, "\n\\draw [-] (\\to)--(\\from);\n\\end{tikzpicture}\n")
     )
+-- Caveat: tex doesn't allow options to be passed.
 tex Poset := texPoset
 
 ------------------------------------------
@@ -862,7 +866,7 @@ tex Poset := texPoset
 ------------------------------------------
 
 atoms = method()
-atoms Poset := List => P -> unique apply(select(coveringRelations P, R -> any(minimalElements P, elt -> (elt === R#0))), rels-> rels_1)
+atoms Poset := List => P -> unique apply(select(coveringRelations P, R -> any(minimalElements P, elt -> (elt === R#0))), rels -> rels_1)
 
 compare = method()
 compare(Poset, Thing, Thing) := Boolean => (P, a, b) -> (
@@ -885,9 +889,9 @@ connectedComponents Poset := List => P -> (
             C#j = join(C#i, C#j);
             cr = apply(drop(cr, 1), c -> { if c_0 == i then j else c_0, if c_1 == i then j else c_1 });
             Q#i = 0;
-        );
+            );
         P.cache.connectedComponents = (toList C)_(positions(toList Q, i -> i == 1));
-    );
+        );
     apply(P.cache.connectedComponents, r -> P.GroundSet_r)
     )
 
@@ -1401,6 +1405,7 @@ doc ///
             P_3
     SeeAlso
         (symbol _,Poset,List)
+        (symbol _*,Poset)
         Poset
 ///
 
@@ -1426,6 +1431,32 @@ doc ///
             P_{2,4,5}
     SeeAlso
         (symbol _,Poset,ZZ)
+        (symbol _*,Poset)
+        Poset
+///
+
+-- symbol _*
+doc ///
+    Key
+        (symbol _*,Poset)
+    Headline
+        returns the ground set of a poset
+    Usage
+        G = P_*
+    Inputs
+        P:Poset
+    Outputs
+        G:List
+            the ground set of $P$
+    Description
+        Text
+            This method allows easy access to ground set of a poset.
+        Example
+            P = booleanLattice 3;
+            P_*
+    SeeAlso
+        (symbol _,Poset,ZZ)
+        (symbol _,Poset,List)
         Poset
 ///
 
@@ -1650,7 +1681,7 @@ doc ///
             The monomials are in bijection with order ideals in $P$.  Let $I$ be an order ideal of $P$.
             Then the associated monomial is the product of the $x_i$ associated with members of $I$ and 
             the $y_i$ associated with non-members of $I$.
-        Text
+
             This method returns the toric quotient algebra isomorphic to the Hibi ring.  The ideal is
             the ideal of Hibi relations.  The generators of the @TO "PolynomialRing"@ $H$ is built
             over are of the form $t_I$ where $I$ is an order ideal of $P$.
@@ -1772,7 +1803,7 @@ doc ///
             To a $P$-partition $f$ we can assign the monomial $t_1^{f(1)} \ldots t_n^{f(n)}$.
             The $P$-partition ring is the ring spanned by the monomials corresponding
             to $P$-partitions.
-        Text
+
             The $P$-partition ring is more simply generated by the monomials corresponding
             to the connected order ideals of $P$.  This method returns the toric quotient algebra,
             whose toric ideal is minimially generated, isomorphic to the $P$-partition ring.

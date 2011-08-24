@@ -98,6 +98,22 @@ dualHilbert (Matrix, ZZ) := o -> (igens, d) -> (
      else error "unrecognized strategy"
      );
 
+--Returns a list of the dimensions of the quotient space at each degree up to a degree at which it coincides
+--with the Hilbert polynomial.
+dualHilbert = method(TypicalValue => List, Options => {Point => {}, Strategy => DZS1, Tolerance => -1.})
+dualHilbert (Matrix) := o -> (igens) -> (
+     R := ring igens;
+     n := numgens R;
+     tol := if o.Tolerance == -1. then (if precision 1_R == infinity then 0. else defaultT()) else o.Tolerance;
+     if o.Point != {} then igens = sub(igens, matrix{gens R + o.Point});
+     sbMons := sbReduce (DZSmatrix(igens,tol))#0;
+     sbListForm := apply(sbMons, e -> (listForm e)#0#0); --store lead monomials as n-tuples of integers
+     d := sum(n, i->max(apply(sbListForm, l->l#i)));
+     if      o.Strategy == DZS1 then apply(0..d, i->hilbertB(sbMons,i))
+     else if o.Strategy == DZS2 then apply(0..d, i->hilbertC(sbMons,i))
+     else error "unrecognized strategy"
+     );
+
 --Generators of the dual space with all terms of degree d or less.
 --Uses ST algorithm by default, but can use DZ instead if specified.
 dualBasisDZST = method(TypicalValue => DualSpace, Options => {Point => {}, Strategy => DZ})
@@ -402,10 +418,10 @@ rowReduce = (M,epsilon) -> (
      rindex := m;
      M = new MutableMatrix from M;
      for k from 0 to n do (
-    	  if epsilon > 0 then M = new MutableMatrix from clean(epsilon,new Matrix from M);
+    	  --if epsilon > 0 then M = new MutableMatrix from clean(epsilon,new Matrix from M);
     	  a := -1;
     	  for l from 0 to rindex do
-      	       if M_(l,n-k) != 0 then (a = l; break);
+      	       if abs M_(l,n-k) > epsilon then (a = l; break);
     	  if a == -1 then continue;
     	  rowSwap(M,a,rindex);
     	  rowMult(M,rindex,1_R/M_(rindex,(n-k)));
@@ -584,7 +600,8 @@ M = matrix {{x*y}}
 M = matrix {{x^9 - y}}
 standardBasis(M)
 dualHilbert(M,25, Strategy => DZS1)
-DZSmatrix(M,0.)
+--DZSmatrix(M,0.001)
+dualHilbert(M)
 
 -- small example
 restart

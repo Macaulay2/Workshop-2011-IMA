@@ -1838,7 +1838,9 @@ doc ///
     Inputs
         P:Poset
         p:Thing
+            an element of the poset
         q:Thing
+            an element of the poset
     Outputs
         I:Poset
             the closed interval in $P$ between $p$ and $q$
@@ -1952,18 +1954,28 @@ doc ///
     Headline
         computes the elements above given elements in a poset
     Usage
-        TODO
+        F = filter(P, a)
+        F = filter(P, L)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         L:List
+            containing elements in the poset
     Outputs
         F:List
+            containing all elements greater than at least one of the given elements
     Description
         Text
-            TODO
+            The filter of a given set of elements of a poset is all the
+            elements in the poset which are greater than at least one
+            of the elements in the given set.
+        Example
+            P = booleanLattice 3;
+            filter(P, "101")
+            filter(P, {"001", "100"})
     SeeAlso
-        Posets
+        orderIdeal
 ///
 
 -- flagPoset
@@ -1974,17 +1986,28 @@ doc ///
     Headline
         computes the subposet of specified ranks of a ranked poset
     Usage
-        TODO
+        F = flagPoset(P, L)
     Inputs
         P:Poset
         L:List
+            containing rank indices
     Outputs
         F:Poset
+            the subposet of $P$ of only the ranks specified in $L$
     Description
         Text
-            TODO
+            The flag poset with respect to a list of rank indices
+            is the subposet induced by the specified ranks.  The
+            maximal chains of the flag poset can be computed with
+            the @TO "flagChains"@ method.
+        Example
+            P = booleanLattice 4;
+            flagPoset(P, {2,3})
+            flagPoset(P, {1})
     SeeAlso
-        Posets
+        flagChains
+        isRanked
+        rankPoset
 ///
 
 -- indexLabeling
@@ -1995,16 +2018,26 @@ doc ///
     Headline
         relabels a poset with the labeling based on the indices of the vertices
     Usage
-        TODO
+        Q = indexLabeling P
     Inputs
         P:Poset
     Outputs
         Q:Poset
     Description
         Text
-            TODO
+            This method simply relabels the ground set of the poset
+            based on the indices of the vertices.
+        Example
+            P = booleanLattice 3;
+            Q = indexLabeling P;
+            P.GroundSet
+            Q.GroundSet
+        Text
+            This can be useful for posets whose vertices have unruly names.
     SeeAlso
-        Posets
+        (symbol _, Poset, ZZ)
+        (symbol _, Poset, List)
+        naturalLabeling
 ///
 
 -- naturalLabeling
@@ -2016,16 +2049,35 @@ doc ///
     Headline
         relabels a poset with a natural labeling
     Usage
-        TODO
+        Q = naturalLabeling P
+        Q = naturalLabeling(P, startIndex)
     Inputs
         P:Poset
+        startIndex:ZZ
+            the starting index from which the poset is relabeled (default 0)
     Outputs
         Q:Poset
     Description
         Text
-            TODO
+            A poset is naturally labeled if the ground set is ordered
+            $v_1, \ldots, v_n$ and if $v_i \leq v_j$ in $P$ implies
+            $i \leq j$.  This method relabels the ground set of the
+            poset (suppose it has $n$ vertices) to be $0, 1, \ldots, n-1$.
+        Example
+            P = booleanLattice 3;
+            Q = naturalLabeling P
+            all(allRelations Q, r -> r_0 <= r_1)
+        Text
+            If @TT "startIndex"@ is specified, then the values are shifted
+            by that amount.  This can be useful for making a disjoint
+            union of posets.
+        Example
+            C = chain 3;
+            Q' = sum(3, i -> naturalLabeling(C, 3*i))
+            all(allRelations Q', r -> r_0 <= r_1)
     SeeAlso
-        Posets
+        filtration
+        indexLabeling
 ///
 
 -- openInterval
@@ -2036,18 +2088,26 @@ doc ///
     Headline
         computes the subposet contained strictly between two points
     Usage
-        TODO
+        I = openInterval(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         I:Poset
+            the open interval in $P$ between $a$ and $b$
     Description
         Text
-            TODO
+            The closed interval between $a$ and $b$ is the subposet of $P$
+            induced by the elements $z$ such that $p < z < q$.  If 
+            $a$ and $b$ are incomparable, then an error is thrown.
+        Example
+            P = booleanLattice 3;
+            openInterval(P, "001", "111")
     SeeAlso
-        Posets
+        closedInterval
 ///
 
 -- orderIdeal
@@ -2059,18 +2119,28 @@ doc ///
     Headline
         computes the elements below given elements in a poset
     Usage
-        TODO
+        I = orderIdeal(P, a)
+        I = orderIdeal(P, L)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         L:List
+            containing elements in the poset
     Outputs
         I:List
+            containing all elements less than at least one of the given elements
     Description
         Text
-            TODO
+            The order ideal of a given set of elements of a poset is all the
+            elements in the poset which are less than at least one
+            of the elements in the given set.
+        Example
+            P = booleanLattice 3;
+            orderIdeal(P, "101")
+            orderIdeal(P, {"011", "110"})
     SeeAlso
-        Posets
+        filter
 ///
 
 -- subposet
@@ -2081,17 +2151,24 @@ doc ///
     Headline
         computes the induced subposet of a poset given a list of elements
     Usage
-        TODO
+        Q = subposet(P, L)
     Inputs
         P:Poset
         L:List
+            containing elements in the poset
     Outputs
         Q:Poset
+            the induced subposet of $P$ with ground set $L$
     Description
         Text
-            TODO
+            The induced subposet $Q$ on ground set $L$ of a poset $P$ has
+            a partial order induced by the partial order on $P$.
+        Example
+            C = chain 7;
+            subposet(C, {2,3,5,6})
     SeeAlso
-        Posets
+        dropElements
+        poset
 ///
 
 ------------------------------------------

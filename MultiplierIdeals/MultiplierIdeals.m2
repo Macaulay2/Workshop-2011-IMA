@@ -88,60 +88,81 @@ exportMutable {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- multIdeal
---
--- Compute multiplier ideal of an ideal, using various strategies.
--- - For general ideals, use Dmodules package.
--- - For hyperplane arrangement, use HyperplaneArrangements package.
--- - For monomial ideals, use Howald's theorem, implemented in this package.
--- - For ideal of monomial curve, use Howard Thompson's theorem, implemented
---   in this package.
---
--- Optional argument: Strategy
--- Possible values: Dmodules, Monomial, MonomialCurve, HyperplaneArrangement
--- Default value: 'Automatic'
--- 'Automatic' strategy tries strategies from "cheapest" to most general:
--- 1. if input ideal is a MonomialIdeal, use Monomial strategy
--- 2. else if input ideal defines a monomial curve, use MonomialCurve strategy
--- 3. else if input ideal defines a hyperplane arrangement, use that strategy
---    (not yet sure how to test for this)
--- 4. else use Dmodules strategy.
---
--- Input:
--- With Dmodules strategy:
---  * ideal I
---  * rational t
--- With Monomial strategy:
---  * MonomialIdeal I
---  * rational t
--- With MonomialCurve strategy:
---  * ring S
---  * list of integers {a1,...,an} (exponents in parametrization of curve)
---  * rational t
---  OR
---  * ideal I which happens to be the defining ideal of a monomial curve
---  * rational t
--- With HyperplaneArrangement strategy:
---  * CentralArrangement A
---  * rational t
---  * (optional) list of multiplicities M
---  OR (can we do this?)
---  * ideal I which happens to be the defining ideal of a central arrangement
---    (with multiplicities)
---  * rational t
---
--- Output:
---  * Ideal or MonomialIdeal
+
+
+multIdealViaDmodules := (I,t) -> (
+  Dmodules$multiplierIdeal(I,t)
+  );
+
+
+{*
+  multIdeal
+
+   Compute multiplier ideal of an ideal, using various strategies.
+   - For general ideals, use Dmodules package.
+   - For hyperplane arrangement, use HyperplaneArrangements package.
+   - For monomial ideals, use Howald's theorem, implemented in this package.
+   - For ideal of monomial curve, use Howard Thompson's theorem, implemented
+     in this package.
+  
+   Optional argument: Strategy
+   Possible values: DmodulesMultIdealStrat, MonomialMultIdealStrat,
+    MonomialCurveMultIdealStrat, HyperplaneArrangementMultIdealStrat,
+    AutomaticMultIdealStrat
+   Default value: 'AutomaticMultIdealStrat'
+   'Automatic' strategy tries strategies from "cheapest" to most general:
+   1. if input ideal is a MonomialIdeal, use Monomial strategy
+   2. else if input ideal defines a monomial curve, use MonomialCurve strategy
+   3. else if input ideal defines a hyperplane arrangement, use that strategy
+      (not yet sure how to test for this)
+   4. else use Dmodules strategy.
+  
+   Input:
+   With Dmodules strategy:
+    * ideal I
+    * rational t
+   With Monomial strategy:
+    * MonomialIdeal I
+    * rational t
+   With MonomialCurve strategy:
+    * ring S
+    * list of integers {a1,...,an} (exponents in parametrization of curve)
+    * rational t
+    OR
+    * ideal I which happens to be the defining ideal of a monomial curve
+    * rational t
+   With HyperplaneArrangement strategy:
+    * CentralArrangement A
+    * rational t
+    * (optional) list of multiplicities M
+    OR (can we do this?)
+    * ideal I which happens to be the defining ideal of a central arrangement
+      (with multiplicities)
+    * rational t
+  
+   Output:
+    * Ideal or MonomialIdeal
+*}
+
 
 multIdeal = method(TypicalValue=>Ideal,
                          Options=>{Strategy=>AutomaticMultIdealStrat});
 
+-- with integer input:
+-- promote to rational number, keep options the same
 multIdeal(Ideal,ZZ) := opt -> (I,t) ->
-  multIdeal(I,promote(t,QQ),Strategy=>opt.Strategy);
+  multIdeal(I,promote(t,QQ),opt);
+
 
 multIdeal(Ideal,QQ) := opt -> (I,t) -> (
-  Dmodules$multiplierIdeal(I,t)
+  if (opt.Strategy == DmodulesMultIdealStrat) then (
+    return multIdealViaDmodules(I,t);
+  ) else if (opt.Strategy == AutomaticMultIdealStrat) then (
+    return multIdeal(I,t,Strategy=>DmodulesMultIdealStrat);
   );
+  );
+
+
 
 end
 

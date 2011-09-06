@@ -1,4 +1,4 @@
--- -*- coding: utf-8 -*-
+/////-- -*- coding: utf-8 -*-
 --------------------------------------------------------------------------------
 -- Copyright 2007, 2011 Michael Stillman
 --
@@ -539,7 +539,7 @@ plethysm(RingElement,RingElement) := (f,g) ->
      m := (ring pf).dim;
      sum for t in lpf list ((last t) * product select(apply(splice{0..m-1}, i -> (ex := (first t)#(m+i);
      	       if ex > 0 then (if pls#?i then (pls#i)^ex else 
-	        (pls#i = auxplet(Rf.pVariable(i+1),g);(pls#i)^ex)))),j -> j =!= null))
+	        (pls#i = auxplet(Rf.pVariable(i+1),g);(pls#i)^ex)))),j -> j =!= null)) -- this is bad when g is not in a SchurRing
      )
 
 -- plethysm of s_lambda and g
@@ -1160,7 +1160,7 @@ chi(BasicList,BasicList) := (lambda, rho) ->
 --------------------------------
 -- Dimension -------------------
 --------------------------------
--- Function to compute the dimension of a Schur module
+-- Function to compute the dimension of a virtual representation
 
 hooklengths = (lambda) -> (
      mu := conjugate lambda;
@@ -3090,9 +3090,29 @@ assert(dim(4,f) == 220)
 -- end test Jacobi-Trudi
 ------------------------
 
-------------------------
--- test of plethysm, toS
-------------------------
+-----------
+-- test dim
+-----------
+
+TEST ///
+R = schurRing(r,3,GroupActing => "Sn")
+S = schurRing(R,s,2)
+T = schurRing(S,t,4,GroupActing => "Sn")
+assert( (dim(r_1)) == 1 )
+assert( (dim(s_2)) == 3 )
+assert( (dim(s_3)) == 4 )
+assert( (dim(t_4)) == 1 )
+assert( (dim(r_1 * s_2 * t_3)) == 3 )
+assert( (dim(r_1 * s_3 + t_4)) == 5 )
+///
+
+---------------
+-- end test dim
+---------------
+
+---------------------
+-- test plethysm, toS
+---------------------
 TEST ///
 R = symmRing(QQ,4)
 pl = plethysm({1,1},jacobiTrudi({2},R))
@@ -3115,9 +3135,8 @@ assert (dim(pl) == 120)
 
 TEST ///
 R = symmRing(QQ,3)
---S = schurRing(QQ,s,3)
 S = schurRingOf R
-assert(toS(plethysm(h_3,e_3)) == S_{3,3,3})
+assert(toS(h_3 @ e_3) == S_{3,3,3})
 ///
 
 TEST ///
@@ -3129,7 +3148,7 @@ TEST ///
 R = symmRing(QQ, 12)
 f = e_4
 lambda = new Partition from {3}
-assert(plethysm(lambda,f) == plethysm(h_3,e_4))
+assert(plethysm(lambda,f) == h_3 @ e_4)
 ///
 
 TEST ///
@@ -3145,20 +3164,52 @@ assert(#listForm(toS plethysm(h_5,h_4)) == 95)
 
 TEST ///
 R = symmRing(QQ, 10)
---S = schurRing(QQ,o,5)
 S = schurRingOf R
 sch = toS(plethysm({2,1},h_3))
---assert(dim sch == 14770)
 assert(dim(5,sch) == 14280)
-/// --maybe this is wrong??
+///
+
+TEST ///
+R = symmRing 5
+S = schurRing(s,3)
+assert( ((h_2 + p_2) @ s_{2,1}) == 2*s_(4,2)-s_(4,1,1)-s_(3,3)+s_(3,2,1)+2*s_(2,2,2) )
+///
+
+TEST ///
+S = schurRing(s,3)
+T = schurRing(S,t,4,GroupActing => "Sn")
+Q = schurRing(T,q,2)
+assert( (s_2 @ q_{2,1}) == q_(4,2) )
+assert( (s_{2,1} - s_{1,1,1} @ (t_3 + t_(2,1))) == -s_()*t_(1,1,1)+s_(2,1)*t_() )
+assert( (plethysm({3},s_1 * t_1 * q_1)) == s_3*t_1*q_3+s_(2,1)*t_1*q_(2,1) )
+assert( (plethysm({2,1},s_1 + t_1 + q_1)) == q_(2,1)+(t_1+s_1*t_())*q_2+(t_1+s_1*t_())*q_(1,1)+((2*s_1+s_())*t_1+(s_2+s_(1,1))*t_())*q_1+((s_2+s_(1,1)+s_1)*t_1+s_(2,1)*t_())*q_() )
+///
 
 ----------------------------
 -- end test of plethysm, toS
 ----------------------------
 
---------------------------------------------------------------
------ test characters of symmetric groups, scalarProd, intProd
---------------------------------------------------------------
+------------------------------------
+----- symmetricPower & exteriorPower
+------------------------------------
+
+TEST ///
+S = schurRing(s,5)
+T = schurRing(S,t,3,GroupActing => "Sn")
+assert( (symmetricPower(2,s_3)) == s_6+s_(4,2) )
+assert( (symmetricPower(2,t_2)) == t_2 )
+assert( (symmetricPower(2,s_3+t_2)) == (s_3+s_())*t_2+(s_6+s_(4,2))*t_() )
+assert( (exteriorPower(3,s_3 * t_{2,1} - t_3)) == (s_(7,1,1)+s_(6,3)+s_(5,3,1)-s_(5,1)+s_(3,3,3)-s_(3,3)-s_())*t_3+(s_(8,1)+s_(7,2)+s_(7,1,1)+2*s_(6,3)+s_(6,2,1)+s_(5,4)+2*s_(5,3,1)-s_(5,1)+s_(4,3,2)+s_(3,3,3)-s_(3,3)+s_3)*t_(2,1)+(s_(7,1,1)+s_(6,3)-s_6+s_(5,3,1)-s_(4,2)+s_(3,3,3))*t_(1,1,1) )
+assert( (exteriorPower(5,s_1 * t_1)) == s_(1,1,1,1,1)*t_1 )
+///
+
+----------------------------------------
+----- end symmetricPower & exteriorPower
+----------------------------------------
+
+-------------------------------------------------------------------
+----- test characters of symmetric groups, scalarProd, internalProd
+-------------------------------------------------------------------
 TEST ///
 R = symmRing(QQ,20)
 S = schurRing(QQ,o,20)
@@ -3193,9 +3244,9 @@ ch2 = classFunction(g)
 assert(symmetricFunction(internalProduct(ch1,ch2),R) == 0)
 assert(internalProduct(f,g) == 0)
 ///
-----------------------------------------------------------------
---- end test characters of symmetric groups, scalarProd, intProd
-----------------------------------------------------------------
+---------------------------------------------------------------------
+--- end test characters of symmetric groups, scalarProd, internalProd
+---------------------------------------------------------------------
 
 ---------------------------
 --- test toS, toP, toE, toH
@@ -3228,9 +3279,134 @@ TEST ///
 R = symmRing(QQ,7)
 assert(toH toP toE (toS (jacobiTrudi({2,1},R))^2) == (h_1*h_2-h_3)^2)
 ///
+
+TEST ///
+S = schurRing(s,5,GroupActing => "Sn")
+R = symmetricRingOf S
+T = schurRing(S,t,3,EHPVariables => (getSymbol "eT", getSymbol "hT", getSymbol "pT"))
+Q = symmetricRingOf T
+a = toS((R.pVariable 2) * (R.eVariable 3))
+b = a * (t_3 - t_{2,1})
+c = toH(a + b)
+d = toE(a - b)
+f = toP b
+assert( (a) == s_(3,1,1)-s_(2,2,1)-s_(1,1,1,1,1) )
+assert( (b) == (s_(3,1,1)-s_(2,2,1)-s_(1,1,1,1,1))*t_3+(-s_(3,1,1)+s_(2,2,1)+s_(1,1,1,1,1))*t_(2,1) )
+assert( (c) == (h_1^5-4*h_1^3*h_2+4*h_1*h_2^2+h_1^2*h_3-2*h_2*h_3)*hT_1*hT_2+(-2*h_1^5+8*h_1^3*h_2-8*h_1*h_2^2-2*h_1^2*h_3+4*h_2*h_3)*hT_3-h_1^5+4*h_1^3*h_2-4*h_1*h_2^2-h_1^2*h_3+2*h_2*h_3 )
+assert( (d) == (-e_1^2*e_3+2*e_2*e_3)*eT_1^3+(3*e_1^2*e_3-6*e_2*e_3)*eT_1*eT_2+(-2*e_1^2*e_3+4*e_2*e_3)*eT_3+e_1^2*e_3-2*e_2*e_3 )
+assert( (f) == (-(1/36)*p_1^3*p_2+(1/12)*p_1*p_2^2-(1/18)*p_2*p_3)*pT_1^3+((1/12)*p_1^3*p_2-(1/4)*p_1*p_2^2+(1/6)*p_2*p_3)*pT_1*pT_2+((1/9)*p_1^3*p_2-(1/3)*p_1*p_2^2+(2/9)*p_2*p_3)*pT_3 )
+assert( (toH(c - d - 2*f)) == 0 )
+assert( (toE(c - d - 2*f)) == 0 )
+assert( (toP(c - d - 2*f)) == 0 )
+///
 -------------------------------
 --- end test toS, toP, toE, toH
 -------------------------------
+
+-------------------------------------------------
+--- test schurLevel, symmetricRingOf, schurRingOf
+-------------------------------------------------
+
+TEST ///
+R = symmRing 5
+S = schurRingOf R
+S1 = schurRing(R,s1,3,GroupActing => "Sn")
+R1 = symmetricRingOf S1
+R2 = symmRing(R1,3,GroupActing => "Sn")
+S2 = schurRingOf R2
+assert( (schurLevel QQ) == 0 )
+assert( schurLevel (ZZ/5) == 0 )
+assert( (schurLevel R) == 1 )
+assert( (schurLevel R1) == 2 )
+assert( (schurLevel R2) == 3 )
+assert( (schurLevel S) == 1 )
+assert( (schurLevel S1) == 2 )
+assert( (schurLevel S2) == 3 )
+///
+
+-----------------------------------------------------
+--- end test schurLevel, symmetricRingOf, schurRingOf
+-----------------------------------------------------
+
+-----------------------
+-- test centralizerSize
+-----------------------
+
+TEST ///
+assert( (centralizerSize{3,2,1}) === 144 )
+assert( (centralizerSize{1,1,1}) === 6 )
+assert( (centralizerSize{3}) === 6 )
+assert( (centralizerSize{5,2,1,1,1}) === 57600 )
+assert( (centralizerSize{5,5,5}) === 13436928000 )
+assert( (centralizerSize{4,4,2,2}) === 5308416 )
+assert( (centralizerSize{1}) === 1 )
+///
+
+---------------------------
+-- end test centralizerSize
+---------------------------
+
+-----------------------
+-- test schurResolution
+-----------------------
+
+TEST ///
+S = schurRing(QQ,s,3)
+rep = s_{2}
+M = {1_S,s_{2},s_{4},s_{6},s_{8},s_{10},s_{12}}
+sR = schurResolution(rep,M)
+assert( (#sR) == 4 )
+assert( (sR#2#0#1) == s_(3,2,1) )
+assert( (last last sR) == (4,s_(3,3,2)) )
+
+rep = s_{3}
+M = {1_S,s_{3},s_{6},s_{9},s_{12},s_{15},s_{18},s_{21},s_{24},s_{27}}
+d = 7
+sR = schurResolution(rep,M,DegreeLimit => d)
+assert( (#sR) == 7 )
+assert( (sR#2#0#0) == 3 )
+
+l = apply(sR,i -> i / (j -> dim last j))
+assert( (l) == {{1}, {27}, {105}, {189}, {189}, {105}, {27}} )
+
+T = schurRing(S,t,4)
+rep = s_1 * t_1
+M = {1_T} | apply(splice{1..8},i -> s_i * t_i)
+sR = schurResolution(rep,M)
+assert( (last last sR) == (8,s_(3,3,2)*t_(2,2,2,2)) )
+assert( (first first sR) == (0,t_()) )
+assert( (sR#1#0) == (2,s_(1,1)*t_(1,1)) )
+assert( (sR#4#1) == (6,s_(2,2,2)*t_(2,2,2)) )
+
+l = apply(sR,i -> i / (j -> dim last j))
+assert( (l) == {{1},{18},{52},{60},{24,10},{12},{3}} )
+
+n = 5;
+S = schurRing(QQ,s,n,GroupActing => "Sn");
+rep = s_n + s_{n-1,1};
+M = {s_n}
+sR = schurResolution(rep,M,DegreeLimit => n)
+assert( (last sR#2) == (2,s_(4,1)+s_(3,1,1)) )
+assert( (first sR#3) == (3,s_(3,1,1)+s_(2,1,1,1)) )
+assert( (last last sR) == (5,s_(1,1,1,1,1)) )
+
+l = apply(sR,i -> i / (j -> dim last j))
+assert( (l) == {{1},{5},{10},{10},{5},{1}} )
+
+M = {s_n} | splice{n:rep};
+sR = schurResolution(rep,M)    
+assert( (last sR#2) == (3,s_(4,1)+s_(3,2)+s_(3,1,1)+s_(2,2,1)) )
+assert( (first sR#3) == (4,s_(3,1,1)+s_(2,2,1)+s_(2,1,1,1)) )
+assert( (last last sR) == (5,s_(2,1,1,1)) )
+
+l = apply(sR,i -> i / (j -> dim last j))
+assert( (l) == {{1},{10},{20},{15},{4}} )
+///
+
+---------------------------
+-- end test schurResolution
+---------------------------
+
 
 end
 
@@ -3294,6 +3470,15 @@ uninstallPackage"SchurRings"
 installPackage"SchurRings"
 check SchurRings
 viewHelp SchurRings
+
+
+restart
+loadPackage"SchurRings"
+
+S = schurRing(QQ,s,3)
+T = schurRing(S,t,4)
+rep = s_1 * t_1
+symmetricPower(8,rep)
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"

@@ -598,7 +598,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R#gaussianRing = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
-     R.graph = G; ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
+     R.digraph = G; --chagned 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
      gaussianRingList#((kk,s,vv)) = R;); 
      gaussianRingList#((kk,s,vv))
      )

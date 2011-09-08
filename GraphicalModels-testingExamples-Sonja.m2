@@ -83,6 +83,7 @@ loadPackage "GraphicalModels"
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
        R = gaussianRing G
        S = covarianceMatrix R
+-- break
 G1 = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}, {e,{a,b}}}
 R1 = gaussianRing G1
 S1=covarianceMatrix R1
@@ -115,3 +116,8 @@ r=gaussianRing g
 covarianceMatrix r
 --OMG THIS IS JUST like:
 genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k variables!
+
+-------------------------------------------------
+-------------------------------------------------
+-- SETH'S PLAN: (25Aug2011)
+

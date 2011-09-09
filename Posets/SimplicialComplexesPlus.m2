@@ -31,7 +31,9 @@ export {
 	originalvars,
 	nerveComplex,
 	IsMultigraded,
-	inducedSubcomplex
+	inducedSubcomplex,
+	randomSquarefreeIdeal,
+	randomSimplicialComplex
 }
 
 needsPackage"SimplicialComplexes"
@@ -313,6 +315,9 @@ nerveComplex(SimplicialComplex):= opts -> (D)->(
      simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
 )
 
+--Probably not the best way of doing this, seems really slow on easy examples.
+--Better to compute star and take difference of facets?
+
 inducedSubcomplex=method();
 
 inducedSubcomplex(SimplicialComplex, List):= (D,W)->(
@@ -333,6 +338,21 @@ inducedSubcomplex(SimplicialComplex, List):= (D,W)->(
      simplicialComplex J
      )
 
+randomSquarefreeIdeal = method();
+
+randomSquarefreeIdeal(Ring,ZZ,ZZ):=(R,d,k)->(
+     n:=numgens R;
+     L:=gens R;
+     ideal apply(k, i-> product take(random L, d))
+     )
+
+randomSimplicialComplex = method();
+
+randomSimplicialComplex(Ring,ZZ,ZZ):=(R,d,k)->(
+     n:=numgens R;
+     L:=gens R;
+     simplicialComplex apply(k, i-> product take(random L, d))
+     )
 
 
 beginDocumentation();

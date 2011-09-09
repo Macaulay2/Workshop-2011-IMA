@@ -2,6 +2,7 @@
 -- Current work:
 ------------------------------------------
 -- David: I'm working on the documentation.
+-- Gwyn:  Guess it's time to write some tests.
 
 ------------------------------------------
 -- Currently caching:

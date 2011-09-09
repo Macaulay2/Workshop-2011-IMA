@@ -1,4 +1,4 @@
--- -*- coding: utf-8 -*-
+---*- coding: utf-8 -*-
 --------------------------------------------------------------------------------
 -- Copyright 2007, 2011 Michael Stillman
 --
@@ -235,8 +235,10 @@ schurRing(Ring,Symbol,ZZ) := SchurRing => opts -> (R,p,n) -> (
      else if opts.GroupActing == "Sn" then
      (
      	  S ** S := (f1,f2) -> new S from raw f1 * raw f2;
-	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
-	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
+--	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
+--	  S ** RingElement := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
+	  RingElement ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g
+	       	    	      	   	else if member(S,(ring f).baseRings | {ring f}) then f ** promote(g,S);
 	  Number ** S := (f,g) -> if member(ring f,S.baseRings | {S}) then promote(f,S) ** g;
 	  S ** Number := (f,g) -> if member(ring g,S.baseRings | {S}) then f ** promote(g,S);
 	       	  
@@ -537,9 +539,16 @@ plethysm(RingElement,RingElement) := (f,g) ->
      pls := new MutableHashTable from {};
      lpf := listForm pf;
      m := (ring pf).dim;
-     sum for t in lpf list ((last t) * product select(apply(splice{0..m-1}, i -> (ex := (first t)#(m+i);
+     isSchur := instance(ring g,SchurRing);
+
+     auxg := local auxg;
+     if isSchur then auxg = g else auxg = toS g;
+
+     pl := sum for t in lpf list ((last t) * product select(apply(splice{0..m-1}, i -> (ex := (first t)#(m+i);
      	       if ex > 0 then (if pls#?i then (pls#i)^ex else 
-	        (pls#i = auxplet(Rf.pVariable(i+1),g);(pls#i)^ex)))),j -> j =!= null)) -- this is bad when g is not in a SchurRing
+	        (pls#i = auxplet(Rf.pVariable(i+1),auxg);(pls#i)^ex)))),j -> j =!= null)); -- this is bad when g is not in a SchurRing
+
+     if isSchur then pl else toSymm pl
      )
 
 -- plethysm of s_lambda and g
@@ -3183,6 +3192,7 @@ assert( (s_2 @ q_{2,1}) == q_(4,2) )
 assert( (s_{2,1} - s_{1,1,1} @ (t_3 + t_(2,1))) == -s_()*t_(1,1,1)+s_(2,1)*t_() )
 assert( (plethysm({3},s_1 * t_1 * q_1)) == s_3*t_1*q_3+s_(2,1)*t_1*q_(2,1) )
 assert( (plethysm({2,1},s_1 + t_1 + q_1)) == q_(2,1)+(t_1+s_1*t_())*q_2+(t_1+s_1*t_())*q_(1,1)+((2*s_1+s_())*t_1+(s_2+s_(1,1))*t_())*q_1+((s_2+s_(1,1)+s_1)*t_1+s_(2,1)*t_())*q_() )
+assert( toH plethysm({2,1},s_1 + t_1 + q_1) == toH plethysm({2,1},toE(s_1 + t_1 + q_1)) )
 ///
 
 ----------------------------
@@ -3201,6 +3211,21 @@ assert( (symmetricPower(2,t_2)) == t_2 )
 assert( (symmetricPower(2,s_3+t_2)) == (s_3+s_())*t_2+(s_6+s_(4,2))*t_() )
 assert( (exteriorPower(3,s_3 * t_{2,1} - t_3)) == (s_(7,1,1)+s_(6,3)+s_(5,3,1)-s_(5,1)+s_(3,3,3)-s_(3,3)-s_())*t_3+(s_(8,1)+s_(7,2)+s_(7,1,1)+2*s_(6,3)+s_(6,2,1)+s_(5,4)+2*s_(5,3,1)-s_(5,1)+s_(4,3,2)+s_(3,3,3)-s_(3,3)+s_3)*t_(2,1)+(s_(7,1,1)+s_(6,3)-s_6+s_(5,3,1)-s_(4,2)+s_(3,3,3))*t_(1,1,1) )
 assert( (exteriorPower(5,s_1 * t_1)) == s_(1,1,1,1,1)*t_1 )
+///
+
+TEST ///
+R = symmRing(3,GroupActing => "Sn")
+S = symmRing(R,4)
+T = symmRing(S,2,GroupActing => "Sn")
+
+a = R.hVariable 3
+b = S.eVariable 4
+c = T.pVariable 2
+
+assert (toS(symmetricPower(3,a*b*c)) == symmetricPower(3,toS(a*b*c)))
+assert (toS(exteriorPower(3,a*b*c)) == exteriorPower(3,toS(a*b*c)))
+assert (toS(symmetricPower(3,a+b-c)) == symmetricPower(3,toS(a+b-c)))
+assert (toS(exteriorPower(3,a*b-c)) == exteriorPower(3,toS(a*b-c)))
 ///
 
 ----------------------------------------
@@ -3447,7 +3472,7 @@ for i from 2 to 4 do
 (
     T_i = schurRing(T_(i-1),value concatenate("t",toString i),2);
     l = l | {(T_i)_{1}};
-)f
+)
 rep = product l
 
 mods = new MutableList;
@@ -3462,7 +3487,7 @@ for i from 1 to d do
 M = toList mods		  
 
 
-resol = schurResolution(rep,M,d)
+resol = schurResolution(rep,M,DegreeLimit => d)
 resol/(i->(sum apply(i,j->dim(last j))))				    						  											    																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																													 											    
 
 restart
@@ -3470,7 +3495,6 @@ uninstallPackage"SchurRings"
 installPackage"SchurRings"
 check SchurRings
 viewHelp SchurRings
-
 
 restart
 loadPackage"SchurRings"

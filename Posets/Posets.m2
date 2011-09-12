@@ -207,11 +207,11 @@ poset(List, List, Matrix) := Poset => (G, R, M) -> (
     if rank M =!= #G then error "The relations failed anti-symmetry.";
     new Poset from {
         symbol GroundSet => G,
-        symbol Relations => R,
+        symbol Relations => toList \ R,
         symbol RelationMatrix => M,
         symbol cache => new CacheTable
         })
-poset (List, List) := Poset => (G, R) -> poset(G, R, transitiveClosure(G, R))
+poset (List, List) := Poset => (G, R) -> poset(G, R = toList \ R, transitiveClosure(G, R))
 poset (List, Function) := Poset => (G, cmp) -> (
     try (
         M := matrix for a in G list for b in G list if cmp(a,b) then 1 else 0;
@@ -219,7 +219,7 @@ poset (List, Function) := Poset => (G, cmp) -> (
     ) else error "The comparison function cmp must (i) take two inputs, (ii) return a Boolean, and (iii) be defined for all pairs of G.";
     poset(G, R, M)
     )
-poset List := Poset => R -> poset(unique flatten R, R);
+poset List := Poset => R -> poset(unique flatten (R = toList \ R), R);
 
 Poset _ ZZ := Thing => (P, i) -> P.GroundSet#i
 Poset _ List := List => (P, L) -> P.GroundSet_L

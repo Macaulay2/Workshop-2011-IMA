@@ -362,7 +362,6 @@ dual Poset := Poset => {} >> opts -> P -> poset(P.GroundSet, P.Relations/reverse
 
 filter = method()
 filter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
-filter (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> filter(P, l))
 
 flagPoset = method()
 flagPoset (Poset, List) := Poset => (P, L)-> (
@@ -389,7 +388,6 @@ openInterval (Poset, Thing, Thing) := Poset => (P, p, q) -> dropElements(closedI
 
 orderIdeal = method()
 orderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
-orderIdeal (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> orderIdeal(P, l))
 
 subposet = method()
 subposet (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L))
@@ -424,11 +422,11 @@ augmentPoset Poset := Poset => P -> adjoinMin adjoinMax P
 
 diamondProduct = method()
 diamondProduct (Poset, Poset) := Poset => (P, Q)->(
-    if isLattice P and isLattice Q then (
+    if isRanked P and isRanked Q then (
         P':=product(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
         poset(prepend({first minimalElements P, first minimalElements Q}, P'.GroundSet), 
               join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations))
-    ) else error "The posets must be lattices."
+    ) else error "The posets must be ranked."
     )
 
 dropElements = method()
@@ -912,7 +910,7 @@ filtration Poset := List => P -> (
     )
 
 joinExists = method()
-joinExists (Poset,Thing,Thing) := Boolean => (P,a,b) -> (
+joinExists (Poset,Thing,Thing) := Boolean => (P, a, b) -> (
     OIa := filter(P, a);     
     OIb := filter(P, b);
     upperBounds := toList (set(OIa)*set(OIb));
@@ -1354,6 +1352,12 @@ doc ///
             @HREF("http://www.math.purdue.edu/~nkummini/","Manoj Kummini")@,
             @HREF("mailto:stephen.sturgeon\@uky.edu", "Stephen Sturgeon")@, and 
             @HREF("http://people.math.gatech.edu/~jyu67/Josephine_Yu/Main.html", "Josephine Yu")@.
+        Text
+            @SUBSECTION "Other acknowledgements"@
+            --
+            A few methods in this package have been ported from John Stembridge's Maple 
+            package implementing posets, which is available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
 ///
 
 ------------------------------------------
@@ -1951,30 +1955,24 @@ doc ///
     Key
         filter
         (filter,Poset,Thing)
-        (filter,Poset,List)
     Headline
-        computes the elements above given elements in a poset
+        computes the elements above a given element in a poset
     Usage
         F = filter(P, a)
-        F = filter(P, L)
     Inputs
         P:Poset
         a:Thing
             an element of the poset
-        L:List
-            containing elements in the poset
     Outputs
         F:List
-            containing all elements greater than at least one of the given elements
+            containing all elements greater than the given element
     Description
         Text
-            The filter of a given set of elements of a poset is all the
-            elements in the poset which are greater than at least one
-            of the elements in the given set.
+            The filter of a given element of a poset is all the
+            elements in the poset which are greater than the element.
         Example
             P = booleanLattice 3;
             filter(P, "101")
-            filter(P, {"001", "100"})
     SeeAlso
         orderIdeal
 ///
@@ -2116,30 +2114,24 @@ doc ///
     Key
         orderIdeal
         (orderIdeal,Poset,Thing)
-        (orderIdeal,Poset,List)
     Headline
-        computes the elements below given elements in a poset
+        computes the elements below a given element in a poset
     Usage
         I = orderIdeal(P, a)
-        I = orderIdeal(P, L)
     Inputs
         P:Poset
         a:Thing
             an element of the poset
-        L:List
-            containing elements in the poset
     Outputs
         I:List
-            containing all elements less than at least one of the given elements
+            containing all elements less than the given elements
     Description
         Text
-            The order ideal of a given set of elements of a poset is all the
-            elements in the poset which are less than at least one
-            of the elements in the given set.
+            The order ideal of a element of a poset is all the
+            elements in the poset which are less than the given element.
         Example
             P = booleanLattice 3;
             orderIdeal(P, "101")
-            orderIdeal(P, {"011", "110"})
     SeeAlso
         filter
 ///
@@ -2185,17 +2177,24 @@ doc ///
     Headline
         computes the poset with a new maximum element
     Usage
-        TODO
+        Q = adjoinMax P
+        Q = adjoinMax(P, a)
     Inputs
         P:Poset
         a:Thing
+            the new maximal element of $P$
     Outputs
         Q:Poset
     Description
         Text
-            TODO
+            This method simply creates a new poset $Q$ with the maximal
+            element $a$.  If $a$ is unspecified, the element $1$ is used.
+        Example
+            P = poset {{1,2},{1,3},{1,4}};
+            adjoinMax(P, 100)
     SeeAlso
-        Posets
+        adjoinMin
+        augmentPoset
 ///
 
 -- adjoinMin
@@ -2207,17 +2206,24 @@ doc ///
     Headline
         computes the poset with a new minimum element
     Usage
-        TODO
+        Q = adjoinMin P
+        Q = adjoinMin(P, a)
     Inputs
         P:Poset
         a:Thing
+            the new minimal element of $P$
     Outputs
         Q:Poset
     Description
         Text
-            TODO
+            This method simply creates a new poset $Q$ with the minimal
+            element $a$.  If $a$ is unspecified, the element $1$ is used.
+        Example
+            P = poset {{1,4},{2,4},{3,4}};
+            adjoinMin(P, 0)
     SeeAlso
-        Posets
+        adjoinMax
+        augmentPoset
 ///
 
 -- areIsomorphic
@@ -2230,19 +2236,47 @@ doc ///
     Headline
         determines if two posets are isomorphic
     Usage
-        TODO
+        r = areIsomorphic(P, Q)
+        r = areIsomorphic(P, mu, Q, nu)
+        r = P == Q
     Inputs
         P:Poset
         mu:List
+            a partition of the ground set of $P$ into classes
         Q:Poset
         nu:List
+            a partition of the ground set of $Q$ into classes
     Outputs
         r:Boolean
+            whether $P$ and $Q$ are isomorphic as posets
     Description
         Text
-            TODO
+            Two posets are isomorphic if there is a partial order
+            preserving bijection between the ground sets of the posets
+            which preserves the specified ground set partitions.
+
+            If $mu$ and $nu$ are not specified, then the trivial partitions
+            (the entire ground set in a single part) are used.
+        Example
+            C = chain 5;
+            P = poset {{a,b},{b,c},{c,d},{d,e}};
+            areIsomorphic(C, P)
+        Text
+            The product of $n$ chains of length $2$ is isomorphic to
+            the boolean lattice on $n$ elements.  These are also
+            isomorphic to the divisor lattice on the product of $n$ distinct primes.
+        Example
+            B = booleanLattice 5;
+            B == product(5, i -> chain 2)
+            B == divisorPoset (2*3*5*7*11)
+            B == divisorPoset (2^2*3*5*7)
+        Text
+            This method uses the method @TO "isomorphism"@, which was ported
+            from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        isomorphism
+        removeIsomorphicPosets
 ///
 
 -- augmentPoset
@@ -2254,18 +2288,24 @@ doc ///
     Headline
         computes the poset with an adjoined minimum and maximum
     Usage
-        TODO
+        Q = augmentPoset P
+        Q = augmentPoset(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            the new minimal element of $P$
         b:Thing
+            the new maximal element of $P$
     Outputs
         Q:Poset
     Description
         Text
-            TODO
+            This method simply creates a new poset $Q$ with the minimal
+            element $a$ and the maximal element $b$.  If $a$ and $b$ are
+            unspecified, the elements $0$ and $1$ are used, respectively.
     SeeAlso
-        Posets
+        adjoinMax
+        adjoinMin
 ///
 
 -- diamondProduct
@@ -2274,19 +2314,25 @@ doc ///
         diamondProduct
         (diamondProduct,Poset,Poset)
     Headline
-        computes the diamond product of two lattices
+        computes the diamond product of two ranked posets
     Usage
-        TODO
+        D = diamondProduct(P, Q)
     Inputs
         P:Poset
+            which is ranked
         Q:Poset
+            which is ranked
     Outputs
         D:Poset
     Description
         Text
-            TODO
+            The diamond product of two ranked posets is the cartesian 
+            product of the posets with their minimal elements removed
+            and a new minimal element adjoined to the product.
+        Example
+            diamondProduct(chain 3, chain 3)
     SeeAlso
-        Posets
+        isRanked
 ///
 
 -- dropElements
@@ -2325,19 +2371,35 @@ doc ///
     Headline
         computes an isomorphism between isomorphic posets
     Usage
-        TODO
+        pi' = isomorphism(P, Q)
+        pi' = isomorphism(P, mu, Q, nu) 
     Inputs
         P:Poset
         mu:List
+            a partition of the ground set of $P$ into classes
         Q:Poset
         nu:List
+            a partition of the ground set of $Q$ into classes
     Outputs
-        isom:HashTable
+        pi':HashTable
+            which specifies a partial order preserving bijection 
+            from the ground set of $P$ to the ground set of $Q$
     Description
         Text
-            TODO
+            Two posets are isomorphic if there is a partial order
+            preserving bijection between the ground sets of the posets
+            which preserves the specified ground set partitions.
+
+            If $mu$ and $nu$ are not specified, then the trivial partitions
+            (the entire ground set in a single part) are used.
+        Example
+            isomorphism(divisorPoset (2*3*5), booleanLattice 3)
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        areIsomorphic
+        removeIsomorphicPosets
 ///
 
 -- product
@@ -2377,6 +2439,10 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method uses the method @TO "isomorphism"@, which was ported
+            from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -2889,6 +2955,9 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -2909,6 +2978,9 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3097,6 +3169,9 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3117,6 +3192,10 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method uses the method @TO "rankFunction"@, which was ported
+            from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3267,6 +3346,9 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3753,6 +3835,9 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3773,6 +3858,11 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method uses the methods @TO "isLowerSemimodular"@ and
+            @TO "isUpperSemimodular"@, which were ported
+            from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3793,6 +3883,10 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method uses the method @TO "rankPoset"@, which was ported
+            from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///
@@ -3873,6 +3967,9 @@ doc ///
     Description
         Text
             TODO
+        Text
+            This method was ported from John Stembridge's Maple package available at
+            @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
         Posets
 ///

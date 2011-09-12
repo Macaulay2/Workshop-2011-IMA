@@ -1,4 +1,4 @@
-------------------------------------------
+principalO-----------------------------------------
 -- Current work:
 ------------------------------------------
 -- David: I'm working on the documentation.
@@ -87,6 +87,8 @@ export {
     "naturalLabeling",
     "openInterval",
     "orderIdeal",
+    "principalFilter",
+    "principalOrderIdeal",
     "subposet",
     --
     -- Operations
@@ -263,7 +265,7 @@ hibiIdeal = method(Options => { symbol CoefficientRing => QQ })
 hibiIdeal (Poset) := MonomialIdeal => opts -> (P) -> (
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     G := set toList(0..(#P.GroundSet-1));
-    O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
+    O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
     x := local x;
     y := local y;
@@ -278,7 +280,7 @@ hibiRing (Poset) := QuotientRing => opts -> (P) -> (
     t := local t; x := local x; y := local y;
     R := (opts.CoefficientRing)(monoid [x_0..x_(#P.GroundSet-1),y_0..y_(#P.GroundSet-1)]);
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
+    O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
     S := (opts.CoefficientRing)(monoid[apply(J, I -> t_I)]);
     G := set toList(0..(#P.GroundSet-1));
@@ -314,7 +316,7 @@ pPartitionRing = method(Options => { symbol CoefficientRing => QQ, symbol Strate
 pPartitionRing (Poset) := QuotientRing => opts -> (P) -> (
     if opts.Strategy =!= "kernel" and opts.Strategy =!= "4ti2" then error "The option Strategy must either be 'kernel' or '4ti2'.";
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    O := unique apply(P.GroundSet, p -> apply(orderIdeal(P, p), q -> idx#q));
+    O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
     J := select(unique apply(subsets(#O), s -> sort unique flatten O_s), I -> isConnected subposet(P, P.GroundSet_I));
     t := local t;
     S := (opts.CoefficientRing)(monoid [apply(J, I -> t_I)]);
@@ -350,7 +352,7 @@ dilworthLattice Poset := Poset => P -> (
 
 distributiveLattice = method()
 distributiveLattice Poset := Poset => P -> (
-    O := unique apply(P.GroundSet, p -> orderIdeal(P, p));
+    O := unique apply(P.GroundSet, p -> principalOrderIdeal(P, p));
     POI := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset);
     POI.cache.OriginalPoset = P;
     POI
@@ -361,7 +363,7 @@ distributiveLattice Poset := Poset => P -> (
 dual Poset := Poset => {} >> opts -> P -> poset(P.GroundSet, P.Relations/reverse, transpose P.RelationMatrix)
 
 filter = method()
-filter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
+filter (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> principalFilter(P, l)) 
 
 flagPoset = method()
 flagPoset (Poset, List) := Poset => (P, L)-> (
@@ -387,7 +389,13 @@ openInterval = method()
 openInterval (Poset, Thing, Thing) := Poset => (P, p, q) -> dropElements(closedInterval(P, p, q), {p, q})
 
 orderIdeal = method()
-orderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
+orderIdeal (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> principalOrderIdeal(P, l))
+
+principalOrderIdeal = method()
+principalOrderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
+
+principalFilter = method()
+principalFilter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
 
 subposet = method()
 subposet (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L))
@@ -437,7 +445,6 @@ dropElements (Poset, List) := Poset => (P, L) -> (
     newRelations := select(allRelations(P, true), r -> not member(first r, L) and not member(last r, L));
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
-dropElements (Poset, Thing) := Poset => (P, a) -> dropElements(P, {a})
 dropElements (Poset, Function) := Poset => (P, f) -> (
     keptIndices := select(toList(0..#P.GroundSet-1), i-> not f(P.GroundSet#i));
     newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
@@ -445,7 +452,6 @@ dropElements (Poset, Function) := Poset => (P, f) -> (
     newRelations := select(allRelations(P, true), r -> not f(first r) and not f(last r));
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
-Poset - Thing := dropElements
 Poset - List := dropElements
 
 -- Ported from Stembridge's Maple Package
@@ -911,8 +917,8 @@ filtration Poset := List => P -> (
 
 joinExists = method()
 joinExists (Poset,Thing,Thing) := Boolean => (P, a, b) -> (
-    OIa := filter(P, a);     
-    OIb := filter(P, b);
+    OIa := principalFilter(P, a);     
+    OIb := principalFilter(P, b);
     upperBounds := toList (set(OIa)*set(OIb));
     if upperBounds == {} then false else (
         M := P.RelationMatrix;
@@ -938,8 +944,8 @@ maximalElements Poset := List => P -> (
 
 meetExists = method()
 meetExists (Poset, Thing, Thing) := Boolean => (P,a,b) -> (
-    Fa:= orderIdeal(P, a);
-    Fb:= orderIdeal(P, b);
+    Fa := principalOrderIdeal(P, a);
+    Fb := principalOrderIdeal(P, b);
     lowerBounds:= toList (set(Fa)*set(Fb));
     if lowerBounds == {} then false else (
         M := P.RelationMatrix;
@@ -966,8 +972,8 @@ minimalElements Poset := List => P -> (
 
 posetJoin = method()     
 posetJoin (Poset,Thing,Thing) := List => (P,a,b)  -> (
-    OIa := filter(P, a);     
-    OIb := filter(P, b);
+    OIa := principalFilter(P, a);     
+    OIb := principalFilter(P, b);
     upperBounds := toList (set(OIa)*set(OIb));
     if upperBounds == {} then error "The elements do not share any upper bounds."
     else (
@@ -980,8 +986,8 @@ posetJoin (Poset,Thing,Thing) := List => (P,a,b)  -> (
 
 posetMeet = method()
 posetMeet (Poset,Thing,Thing) := List => (P,a,b) ->(
-    Fa := orderIdeal(P,a);
-    Fb := orderIdeal(P,b);
+    Fa := principalOrderIdeal(P,a);
+    Fb := principalOrderIdeal(P,b);
     lowerBounds:= toList (set(Fa)*set(Fb));
     if lowerBounds == {} then error "The elements do not share any lower bounds."
     else (
@@ -1654,6 +1660,7 @@ doc ///
     SeeAlso
         hibiRing
         orderIdeal
+        principalOrderIdeal
 ///
 
 -- hibiRing
@@ -1704,6 +1711,7 @@ doc ///
     SeeAlso
         hibiIdeal
         orderIdeal
+        principalOrderIdeal
         pPartitionRing
 ///
 
@@ -1825,6 +1833,7 @@ doc ///
         isConnected
         naturalLabeling
         orderIdeal
+        principalOrderIdeal
 ///
 
 ------------------------------------------
@@ -1954,27 +1963,30 @@ doc ///
 doc ///
     Key
         filter
-        (filter,Poset,Thing)
+        (filter,Poset,List)
     Headline
-        computes the elements above a given element in a poset
+        computes the elements above given elements in a poset
     Usage
-        F = filter(P, a)
+        F = filter(P, L)
     Inputs
         P:Poset
-        a:Thing
-            an element of the poset
+        L:List
+            elements of the poset
     Outputs
         F:List
-            containing all elements greater than the given element
+            containing all elements greater than at least one of the given elements 
     Description
         Text
-            The filter of a given element of a poset is all the
-            elements in the poset which are greater than the element.
+            The filter of a given set of elements of a poset is all the 
+            elements in the poset which are greater than at least one 
+            of the elements in the given set. 
         Example
             P = booleanLattice 3;
-            filter(P, "101")
+            filter(P, {"001", "100"})
     SeeAlso
         orderIdeal
+        principalFilter
+        principalOrderIdeal
 ///
 
 -- flagPoset
@@ -2113,11 +2125,70 @@ doc ///
 doc ///
     Key
         orderIdeal
-        (orderIdeal,Poset,Thing)
+        (orderIdeal,Poset,List)
+    Headline
+        computes the elements above given elements in a poset
+    Usage
+        I = orderIdeal(P, L)
+    Inputs
+        P:Poset
+        L:List
+            elements of the poset
+    Outputs
+        I:List
+            containing all elements greater than at least one of the given elements 
+    Description
+        Text
+           The filter of a given set of elements of a poset is all the 
+           elements in the poset which are greater than at least one 
+           of the elements in the given set. 
+        Example
+            P = booleanLattice 3;
+            orderIdeal(P, {"001", "100"})
+    SeeAlso
+        filter
+        principalFilter
+        principalOrderIdeal
+///
+
+-- principalFilter
+doc ///
+    Key
+        principalFilter
+        (principalFilter,Poset,Thing)
+    Headline
+        computes the elements above a given element in a poset
+    Usage
+        F = principalFilter(P, a)
+    Inputs
+        P:Poset
+        a:Thing
+            an element of the poset
+    Outputs
+        F:List
+            containing all elements greater than the given element
+    Description
+        Text
+            The filter of a given element of a poset is all the
+            elements in the poset which are greater than the element.
+        Example
+            P = booleanLattice 3;
+            principalFilter(P, "101")
+    SeeAlso
+        filter
+        orderIdeal
+        principalOrderIdeal
+///
+
+-- principalOrderIdeal
+doc ///
+    Key
+        principalOrderIdeal
+        (principalOrderIdeal,Poset,Thing)
     Headline
         computes the elements below a given element in a poset
     Usage
-        I = orderIdeal(P, a)
+        I = principalOrderIdeal(P, a)
     Inputs
         P:Poset
         a:Thing
@@ -2131,9 +2202,11 @@ doc ///
             elements in the poset which are less than the given element.
         Example
             P = booleanLattice 3;
-            orderIdeal(P, "101")
+            principalOrderIdeal(P, "101")
     SeeAlso
         filter
+        orderIdeal
+        principalFilter
 ///
 
 -- subposet
@@ -2333,33 +2406,48 @@ doc ///
             diamondProduct(chain 3, chain 3)
     SeeAlso
         isRanked
+        product
 ///
 
 -- dropElements
 doc ///
     Key
         dropElements
-        (dropElements,Poset,Thing)
         (dropElements,Poset,Function)
         (dropElements,Poset,List)
-        (symbol -,Poset,Thing)
         (symbol -,Poset,List)
     Headline
         computes the induced subposet of a poset given a list of elements to remove
     Usage
-        TODO
+        Q = dropElements(P, f)
+        Q = dropElements(P, L)
+        Q = P - L
     Inputs
         P:Poset
-        a:Thing
         L:List
+            containing elements of $P$ to remove
         f:Function
+            which returns true for elements to remove and false otherwise
     Outputs
         Q:Poset
     Description
         Text
-            TODO
+            This method computes the induced subposet $Q$ of $P$ with the
+            elements of $L$ removed from the poset.
+        Example
+            P = chain 5;
+            dropElements(P, {3})
+            P - {4, 5}
+        Text
+            Alternatively, this method computes the induced subposet $Q$
+            of $P$ with the elements removed which return true when 
+            $f$ is applied.
+        Example
+            P = divisorPoset (2*3*5*7);
+            Q = dropElements(P, e -> e % 3 == 0)
+            Q == divisorPoset(2*5*7)
     SeeAlso
-        Posets
+        subposet
 ///
 
 -- isomorphism
@@ -2410,17 +2498,34 @@ doc ///
     Headline
         computes the product of two posets
     Usage
-        TODO
+        R = product(P, Q)
+        R = P * Q
     Inputs
         P:Poset
         Q:Poset
     Outputs
         R:Poset
+            the cartesian product of $P$ and $Q$
     Description
         Text
-            TODO
+            The cartesian product of the posets $P$ and $Q$ is the 
+            new poset whose ground set is the cartesian product of
+            the ground sets of $P$ and $Q$ and with partial order
+            given by $(a,b) \leq (c,d)$ if and only if $a \leq c$
+            and $b \leq d$.
+        Example
+            product(chain 3, poset {{a,b},{b,c}})
+        Text
+            The product of $n$ chains of length $2$ is isomorphic to
+            the boolean lattice on $n$ elements.  These are also
+            isomorphic to the divisor lattice on the product of $n$ distinct primes.
+        Example
+            B = booleanLattice 5;
+            B == product(5, i -> chain 2)
+            B == divisorPoset (2*3*5*7*11)
+            B == divisorPoset (2^2*3*5*7)
     SeeAlso
-        Posets
+        diamondProduct
 ///
 
 -- removeIsomorphicPosets
@@ -2431,14 +2536,21 @@ doc ///
     Headline
         returns a sub-list of non-isomorphic posets
     Usage
-        TODO
+        N = removeIsomorphicPosets L
     Inputs
         L:List
+            containing posets
     Outputs
         N:List
+            containing posets with non-isomorphic elements
     Description
         Text
-            TODO
+            This method returns a sublist $N$ of $L$ containing the 
+            elements of $L$, in order, where the first instance of
+            each isomorphism class is retained.
+        Example
+            L = {chain 4, divisorPoset (2^3), booleanLattice 3, booleanLattice 2, product(3, i -> chain 2)};
+            removeIsomorphicPosets L
         Text
             This method uses the method @TO "isomorphism"@, which was ported
             from John Stembridge's Maple package available at
@@ -2456,17 +2568,22 @@ doc ///
     Headline
         computes the union of two posets
     Usage
-        TODO
+        R = union(P, Q)
+        R = P + Q
     Inputs
         P:Poset
         Q:Poset
     Outputs
         R:Poset
+            the union of $P$ and $Q$
     Description
         Text
-            TODO
+            The union of two posets is the poset induced by the union
+            of the ground sets and the covering relations.
+        Example
+            union(chain 3, poset {{1,4},{4,5},{5,3}})
     SeeAlso
-        Posets
+        product
 ///
 
 ------------------------------------------

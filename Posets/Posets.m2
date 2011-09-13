@@ -566,7 +566,7 @@ divisorPoset RingElement := Poset => m -> (
     M := toList \ toList factor m;
     F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
     -- D is the set of all (positive) divisors of m
-    D := sort (product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F));
+    D := sort if #F == 1 then toList first F else product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F);
     poset(D, (a,b) -> b % a == 0)
     )
 
@@ -585,7 +585,7 @@ divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
     if ring m === ring n then (
         if n % m === sub(0, ring m) then (
             P := divisorPoset (n//m);
-            poset(apply(P.GroundSet, v -> v * m), apply(P.Relations, r -> (m * first r, m * last r)), P.RelationMatrix)
+            poset(apply(P.GroundSet, v -> v * m), apply(P.Relations, r -> {m * first r, m * last r}), P.RelationMatrix)
             ) else error "The first monomial does not divide the second."
         ) else error "The monomials must be in same ring."
     )
@@ -2596,18 +2596,39 @@ doc ///
         booleanLattice
         (booleanLattice,ZZ)
     Headline
-        generates the $n$-boolean lattice
+        generates the boolean lattice on $n$ elements
     Usage
-        TODO
+        B = booleanLattice n
     Inputs
         n:ZZ
     Outputs
         B:Poset
     Description
         Text
-            TODO
+            The boolean lattice on $n$ elements is the poset of
+            binary strings of length $n$ with order given by
+            componentwise ordering.  
+        Example
+            n = 3;
+            B = booleanLattice n
+        Text
+            It can also be seen as the poset of subsets of a set
+            of $n$ elements with order given by containment.
+        Example
+            B == poset(subsets n, isSubset)
+        Text
+            It is also the $n$-fold product of the @TO "chain"@
+            of length $2$.
+        Example
+            B == product(n, i -> chain 2)
+        Text
+            Further, it is the @TO "divisorPoset"@ of the 
+            product of $n$ distinct primes.
+        Example
+            B == divisorPoset (2*3*5)
     SeeAlso
-        Posets
+        chain
+        divisorPoset
 ///
 
 -- chain
@@ -2616,18 +2637,29 @@ doc ///
         chain
         (chain,ZZ)
     Headline
-        generates the $n$-chain poset
+        generates the chain poset on $n$ elements
     Usage
-        TODO
+        C = chain n
     Inputs
         n:ZZ
+            the length of the chain
     Outputs
         C:Poset
     Description
         Text
-            TODO
+            The chain poset on $n$ elements is the total
+            order on the integers $1..n$.
+        Example
+            n = 5;
+            C = chain n
+            C == poset(toList(1..n), (a,b) -> a <= b)
+        Text
+            It is also the @TO "divisorPoset"@ of a prime
+            $p$ to the $n-1$ power.
+        Example
+            C == divisorPoset(2^(n-1))
     SeeAlso
-        Posets
+        divisorPoset
 ///
 
 -- divisorPoset
@@ -2638,16 +2670,24 @@ doc ///
     Headline
         generates the poset of divisors
     Usage
-        TODO
+        P = divisorPoset n
     Inputs
         n:ZZ
+            which is not zero
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The divisor poset of an integer is the poset
+            of positive divisors of an integer $n$ with order
+            induced by divisibility.
+        Example
+            divisorPoset 12
+            divisorPoset 30
     SeeAlso
-        Posets
+        (divisorPoset,RingElement)
+        (divisorPoset,RingElement,RingElement)
+        (divisorPoset,List,List,PolynomialRing)
 ///
 
 doc ///
@@ -2656,35 +2696,57 @@ doc ///
     Headline
         generates the poset of divisors
     Usage
-        TODO
+        P = divisorPoset m
     Inputs
         m:RingElement
+            which is a polynomial
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The divisor poset of a polynomial $m$ is the
+            poset of divisors with order induced by
+            divisibility.
+        Example
+            R = QQ[x,y];
+            divisorPoset(x^2*y)
+        Text
+            The method works with non-monomial divisors as well.
+        Example
+            divisorPoset(x*y^2 - 2*x*y + x)
     SeeAlso
-        Posets
+        divisorPoset
+        (divisorPoset,ZZ)
+        (divisorPoset,RingElement,RingElement)
+        (divisorPoset,List,List,PolynomialRing)
 ///
 
 doc ///
     Key
         (divisorPoset,RingElement,RingElement)
     Headline
-        generates the poset of divisors
+        generates the poset of divisors with a lower and upper bound
     Usage
-        TODO
+        P = divisorPoset(m, n)
     Inputs
         m:RingElement
+            the lower bound, which divides $n$
         n:RingElement
+            the upper bound, which is a multiple of $m$
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            This method generates the divisor poset of $n$ with
+            elements which are multiples of $n$.
+        Example
+            R = QQ[x,y];
+            divisorPoset(x*y-x, x^2*y^2 - 2*x^2*y + x^2)
     SeeAlso
-        Posets
+        divisorPoset
+        (divisorPoset,ZZ)
+        (divisorPoset,RingElement)
+        (divisorPoset,List,List,PolynomialRing)
 ///
 
 doc ///
@@ -2693,18 +2755,28 @@ doc ///
     Headline
         generates the poset of divisors
     Usage
-        TODO
+        P = divisorPoset(m, n, R)
     Inputs
         m:List
+            an exponent vector of the lower bound monomial in $R$
         n:List
+            an exponent vector of the upper bound monomial in $R$
         R:PolynomialRing
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            This method generates the divisor poset of the monomials in $R$
+            whose exponent vectors are given by $m$ and $n$.
+        Example
+            R = QQ[x,y];
+            D = divisorPoset({0,1}, {2,2}, R)
+            D == divisorPoset(y, x^2*y^2)
     SeeAlso
-        Posets
+        divisorPoset
+        (divisorPoset,ZZ)
+        (divisorPoset,RingElement)
+        (divisorPoset,RingElement,RingElement)
 ///
 
 -- dominanceLattice

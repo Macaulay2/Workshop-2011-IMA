@@ -594,7 +594,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R#gaussianRing = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
-     R.digraph = G; --chagned 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
+     R.digraph = G; --changed 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
      gaussianRingList#((kk,s,vv)) = R;); 
      gaussianRingList#((kk,s,vv))
      )
@@ -843,13 +843,13 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
 conditionalIndependenceIdeal (Ring,Digraph) := Ideal => (R,G) ->(
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      g := G;
-     if not R.?graph then (
+     if not R.?digraph then (
      	  if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
      	  Stmts := globalMarkov G; 
      	  conditionalIndependenceIdeal (R,Stmts)
      )
      else(
-     	  if not sort (vertices (R.graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
+     	  if not sort (vertices (R.digraph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
      	  Stmts = globalMarkov G; 
      	  conditionalIndependenceIdeal (R,Stmts))  -- Need to make a pass to the version that goes (R,List,List)
      )

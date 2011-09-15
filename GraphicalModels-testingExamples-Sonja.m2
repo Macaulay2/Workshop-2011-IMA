@@ -82,8 +82,8 @@ restart
 loadPackage "GraphicalModels"
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
        R = gaussianRing G
+  conditionalIndependenceIdeal(R,G)
        S = covarianceMatrix R
--- break
 G1 = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}, {e,{a,b}}}
 R1 = gaussianRing G1
 S1=covarianceMatrix R1

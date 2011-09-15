@@ -794,7 +794,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if R#?gaussianRing then (
         if (R.?graph or R.?digraph) then (
-	   if R.?graph then g := R.graph else g:=R.digraph;
+	   if R.?graph then g := R.graph else g:= R.digraph;
            vv := sort vertices g;
            SM := covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 
@@ -1567,6 +1567,7 @@ doc ///
   Key 
     gaussianRing
     (gaussianRing,ZZ)
+    (gaussianRing, Graph)
     (gaussianRing,Digraph)
     (gaussianRing,MixedGraph)
     [gaussianRing, Coefficients]
@@ -1581,8 +1582,8 @@ doc ///
   Inputs
     n:ZZ
       the number of random variables
-    G:Digraph
-      @ofClass Graph@, or a directed acyclic graph, 
+    G:Graph
+      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
     :Ring
@@ -1611,7 +1612,12 @@ doc ///
       R.graph  
       covarianceMatrix R
       undirectedEdgesMatrix(R,G)
-        
+    Text
+      For directed graphs......
+    Example
+      G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
+      R = gaussianRing G;
+      R.digraph --the digraph gets stored in the ring
     Text
       For mixed graphs, there is a variable $l_{(i,j)}$ for
       each directed edge i->j, a variable $w_{(i,i)}$ for each node i, and a variable $w_{(i,j)}$ 

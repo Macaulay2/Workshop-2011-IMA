@@ -75,11 +75,8 @@ newPackage(
 --   gaussianRing (Digraph G)
 --   covarianceMatrix (Ring R)
 --   covarianceMatrix (Ring R, Digraph G)
---   gaussianMinors (Digraph G, Matrix M, List S) -- [internal routine]
 --   gaussianMatrix (Ring R, Digraph G, List S) -- [internal routine]
 --   gaussianMatrices (Ring R, Digraph G, List S) 
---   gaussianIdeal (Ring R, Digraph G, List S) 
---   gaussianIdeal (Ring R, Digraph G) 
 --   trekIdeal (Ring R, Digraph D)
 --    
 -- Gaussian mixed graphs (DAG + Bidirected)
@@ -104,7 +101,6 @@ export {bidirectedEdgesMatrix,
        Coefficients,
        covarianceMatrix,
        directedEdgesMatrix,
-       gaussianIdeal, 
        gaussianMatrices,
        gaussianParametrization,
        SimpleTreks,
@@ -633,54 +629,11 @@ covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names according
      matrix SM) 
 
 
-----------------------
---- gaussianMinors ---
-----------------------
-
-gaussianMinors = method()
-gaussianMinors(Digraph,Matrix,List) :=  Ideal => (G,M,Stmt) -> (
-     -- M should be an n by n symmetric matrix, Stmts mentions variables 1..n 
-     -- the list Stmt is one statement {A,B,C}.
-     -- this function is NOT exported; it is called from gaussianIdeal.
-     -- This function does not work if called directly but it works within gaussianIdeal!!!
-     rows := join(getPositionOfVertices(G,Stmt#0), getPositionOfVertices(G,Stmt#2)); 
-     cols := join(getPositionOfVertices(G,Stmt#1), getPositionOfVertices(G,Stmt#2));  
-     M1 := submatrix(M,rows,cols);
-     minors(#Stmt#2+1,M1)     
-     )
--- ///EXAMPLE:
--- G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
--- R = gaussianRing G
--- describe R 
--- M = covarianceMatrix R;
--- peek M
--- submatrix(M,{0},{1})
--- Stmts = pairMarkov G
--- D=Stmts_0
--- gaussianMinors(G,M,D)
--- ///
 
 
 ------------------------------------------------------------------------------------------------------------------------------
 -- THe following WILL BE CHANGED TO MATCH CONDITIONALINDEPENDENCEIDEAL! -- 28.july2011.
 ------------------------------------------------------------------------------------------------------------------------------
----------------------
---- gaussianIdeal ---
----------------------
-
-gaussianIdeal = method()
-gaussianIdeal(Ring, Digraph, List) := Ideal =>  (R,G,Stmts) -> (
-     -- for each statement, we take a set of minors
-     -- Stmts = global markov statements of G
-     -- R = gaussianRing of G
-     --NOTE we force the user to give us the digraph G due to flexibility in labeling!!
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
-     M := covarianceMatrix R;
-     sum apply(Stmts, D -> gaussianMinors(G,M,D))     
-     )
-
---in case the global Stmts are not computed already 
-gaussianIdeal(Ring,Digraph) := Ideal =>  (R,G) -> gaussianIdeal(R,G,globalMarkov G)
 
 ----------------------
 --- gaussianMatrix ---

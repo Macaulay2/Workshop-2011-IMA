@@ -1590,8 +1590,9 @@ doc ///
       additionally $l_{(i,j)}, w_{(i,j)}$ for mixed graphs
   Description
     Text
-      The routines  @TO gaussianIdeal@ and @TO trekIdeal@ require that the ring      
-      be created by this function. 
+      The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
+      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, and
+      @TO gaussianParametrization@ require that the ring be created by this function. 
     Example
       R = gaussianRing 5;
       gens R
@@ -1624,65 +1625,14 @@ doc ///
       bidirectedEdgesMatrix(R,G)
 
   SeeAlso
-    gaussianIdeal
+    conditionalIndependenceIdeal
     covarianceMatrix
     directedEdgesMatrix
     bidirectedEdgesMatrix
     trekIdeal
 ///
 
-------------------------------------
--- Documentation gaussianIdeal    --
-------------------------------------
 
-doc ///
-   Key
-     gaussianIdeal
-     (gaussianIdeal,Ring,Digraph)
-     (gaussianIdeal,Ring,Digraph,List)
-   Headline
-     correlation ideal of a Bayesian network of joint Gaussian variables
-   Usage
-     I = gaussianIdeal(R,G) or I = gaussianIdeal(R,G,S)
-   Inputs
-     R:Ring
-       created with @TO gaussianRing@
-     G:Digraph
-       an acyclic directed graph
-     S:List
-       a list of independence statements for the graph G
-   Outputs
-     I:Ideal
-        in R, of the relations in the correlations of the random variables implied by the independence statements 
-	of the graph G, or the list of independence statements G
-   Description
-     Text
-       The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
-       are disjoint lists of integers in the range 1..n (n is the number of random variables)
-       is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
-       rows are in A union C, and whose columns are in B union C.  In general, this ideal need not be prime.
-       
-       These ideals were first written down by Seth Sullivant, in "Algebraic geometry of Gaussian Bayesian networks". 
-       The routines in this package involving Gaussian variables are all based on that paper.
-     Example
-       R = gaussianRing 5;
-       G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } 
-       (globalMarkov G)/print; 
-       J = gaussianIdeal(R,G) 
-     Text
-       A list of independence statements (as for example returned by globalMarkov)
-       can be provided instead of a graph:
-     Example
-       S=pairMarkov G 
-       I = gaussianIdeal(R,G,S) 
-       codim I
-   SeeAlso
-     globalMarkov
-     localMarkov
-     gaussianRing
-     gaussianMatrices
-     trekIdeal
-///
 
 ---------------------------------------
 -- Documentation gaussianMatrices    --
@@ -1721,7 +1671,7 @@ doc///
        gaussianMatrices(R,G)
    SeeAlso
      gaussianRing
-     gaussianIdeal
+     conditionalIndependenceIdeal
 ///
 
 ---------------------------------------
@@ -2461,19 +2411,7 @@ S = covarianceMatrix R
 assert(0==S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)}, {s_(a,d), s_(b,d), s_(c,d), s_(d,d)}})
 ///
 
-----------------------------
---- TEST gaussianIdeal   ---
-----------------------------
 
-TEST /// 
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-R = gaussianRing G
-S = globalMarkov G
-I = gaussianIdeal (R, G, S)
-L = gaussianMatrices(R,G)
-J = minors(2, L#0)
-assert(I == J)
-///
 
 ------------------------------
 --- TEST gaussianMatrices  ---

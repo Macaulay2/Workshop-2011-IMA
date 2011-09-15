@@ -793,8 +793,16 @@ conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if R#?gaussianRing then (
-        if (R.?graph or R.?digraph) then (
-	   if R.?graph then g := R.graph else g:= R.digraph;
+        if R.?graph then (
+	   g := R.graph;
+           vv := sort vertices g;
+           SM := covarianceMatrix(R);
+           sum apply(Stmts, s -> minors(#s#2+1, 
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          )
+        else if R.?digraph then (
+	   g:= R.digraph;
            vv := sort vertices g;
            SM := covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 
@@ -2067,59 +2075,70 @@ doc ///
 --------------------------------------------
 -- Documentation conditionalIndependenceIdeal
 --------------------------------------------
-
 doc///
-   Key
-     conditionalIndependenceIdeal
-     (conditionalIndependenceIdeal, Ring, Graph)
-     (conditionalIndependenceIdeal, Ring, List)
-   Headline
-     the ideal of CI relations for a given graph or a given list of CI statements
-   Usage
-     conditionalIndependenceIdeal(R,G)
-     conditionalIndependenceIdeal(R,S)
-   Inputs
-     R:Ring
-       which must be a gaussianRing or a markovRing (error will be returned otherwise)
-     G:Graph
-       undirected graph
-     S:List
-       of conditional independence statements
-   Outputs
-     :Ideal
-       of CI relations
-   Description 
-     Text
-       If a Graph is passed to the method, it calculates the CI ideal based on global markov statements. 
-       PROBLEM: this should be globalMarkov but it is currently localMarkob b/c we didn't yet fix globalMarkov :(
-     Example
-       G = graph({{a,b},{b,c},{c,d},{d,a}})
-       R=gaussianRing G 
-       I=conditionalIndependenceIdeal (R,G)
-     Text
-       We can also compute the CI ideal of a set of statements:
-     Example
-       G = graph({{a,b},{b,c},{c,d},{d,a}})
-       R=gaussianRing G 
-       S={{{a},{c},{b,d}}}
-       I=conditionalIndependenceIdeal (R,S)              
-     Text
-       If the gaussianRing was created without a graph, this still works:
-     Example
-       R=gaussianRing 5
-       S={{{1},{2},{3,4}}}
-       I=conditionalIndependenceIdeal (R,S)       
-     Text
-       However, the set of labels on the graph nodes should match those used in the statements:
-     Example
-       R=gaussianRing 4
-       G = graph({{a,b},{b,c},{c,d},{d,a}})  -- I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
-     Text
-       TO DO : the method needs to merge old code from markovIdeal to also handle the discrete case.
-     Example
-       G = graph({{a,b},{b,c},{c,d},{d,a}})
-       -- R=markovRing G
-   SeeAlso
+  Key
+    conditionalIndependenceIdeal
+    (conditionalIndependenceIdeal, Ring, Graph)
+    (conditionalIndependenceIdeal, Ring, Digraph)
+    (conditionalIndependenceIdeal, Ring, List)
+    (conditionalIndependenceIdeal, Ring, List, List)
+  Headline
+    the ideal of CI relations for a given graph or a given list of CI statements
+  Usage
+    conditionalIndependenceIdeal(R,G)
+    conditionalIndependenceIdeal(R,Stmts)
+    conditionalIndependenceIdeal(R,VarNames,Stmts)
+  Inputs
+    R:Ring
+      which must be a gaussianRing or a markovRing (error will be returned otherwise)
+    G:Graph
+      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@
+    Stmts:List
+      of conditional independence statements
+    VarNames:List
+       of names of random variables in conditional independence statements in S.  If this is omited
+       it is assumed that these are integers 1 to n where n is the number of variables in the
+       declaration of markovRing or gaussianRing
+  Outputs
+    :Ideal
+      of CI relations
+  Description
+    Text
+      If a Graph is passed to the method, it calculates the CI ideal based on global markov statements.
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,a}})
+      R=gaussianRing G
+      I=conditionalIndependenceIdeal (R,G)
+    Text
+      If a Diraph is passed to the method, it calculates the CI ideal based on global markov statements.
+    Example
+      G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+      R = gaussianRing G
+      conditionalIndependenceIdeal(R,G)
+    Text
+      We can also compute the CI ideal of a set of statements:
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,a}})
+      R=gaussianRing G
+      S={{{a},{c},{b,d}}}
+      I=conditionalIndependenceIdeal (R,S)
+    Text
+      If the gaussianRing was created without a graph, this still works:
+    Example
+      R=gaussianRing 5
+      S={{{1},{2},{3,4}}}
+      I=conditionalIndependenceIdeal (R,S)
+    Text
+      However, the set of labels on the graph nodes should match those used in the statements:
+    Example
+      R=gaussianRing 4
+      G = graph({{a,b},{b,c},{c,d},{d,a}})  --I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
+    Text
+      TO DO : need examples in the discrete case, and illustrating conditionalIndependenceIdeal(R,List,List)
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,a}})
+      -- R=markovRing G
+  SeeAlso
 ///
 
 --------------------------------------------

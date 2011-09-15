@@ -793,8 +793,8 @@ conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if R#?gaussianRing then (
-        if R.?graph then (
-	   g := R.graph;
+        if (R.?graph or R.?digraph) then (
+	   if R.?graph then g := R.graph else g:=R.digraph;
            vv := sort vertices g;
            SM := covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 

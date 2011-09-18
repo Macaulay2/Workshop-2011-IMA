@@ -769,8 +769,9 @@ setPartition List := List => S -> (
 projectivizeArrangement = method()
 projectivizeArrangement (List, Ring) := Poset => (L, R) -> (
     Z := local Z;
-    S := coefficientRing R(monoid [gens R|{(symbol Z)}]);
-    newL := apply(L, h->homogenize(sub(h,S),Z));
+    S := (coefficientRing R)(monoid [append(gens R, Z)]);
+    Z = last gens S;
+    newL := apply(L, h->homogenize(sub(h,S), Z));
     G := hyperplaneEquivalence(newL,S);
     rel := hyperplaneInclusions(G,S);
     poset(G, rel)
@@ -2787,16 +2788,35 @@ doc ///
     Headline
         generates the dominance lattice of partitions of $n$
     Usage
-        TODO
+        P = dominanceLattice n
     Inputs
         n:ZZ
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The dominance lattice of partitons of $n$ is the
+            lattice of partitons of $n$ under the dominance
+            ordering.  Suppose $p$ and $q$ are two partitions
+            of $n$.  Then $p$ is less than or equal to $q$
+            if and only if the $k$-th partial sum of $p$
+            is at most the $k$-th partial sum of $q$, where
+            the partitions are extended with zeros, as needed.
+        Example
+            D = dominanceLattice 6;
+            closedInterval(D, {2,2,1,1}, {4,2})
+        Text
+            For $n \leq 5$, the dominance lattice of $n$ is
+            isomorphic to an appropriately long chain poset.
+        Example
+            dominanceLattice 2 == chain 2
+            dominanceLattice 3 == chain 3
+            dominanceLattice 4 == chain 5
+            dominanceLattice 5 == chain 7
     SeeAlso
-        Posets
+        partitionLattice
+        partitions
+        youngSubposet
 ///
 
 -- facePoset
@@ -2807,16 +2827,20 @@ doc ///
     Headline
         generates the face poset of a simplicial complex
     Usage
-        TODO
+        F = facePoset D
     Inputs
         D:SimplicialComplex
     Outputs
         F:Poset
     Description
         Text
-            TODO
+            The face poset of a @TO "SimplicialComplex"@ is the poset
+            of faces with partial ordering given by inclusion.
+        Example
+            R = QQ[a..d];
+            facePoset simplicialComplex {a*b*c, c*d}
     SeeAlso
-        Posets
+        faces
 ///
 
 -- intersectionLattice
@@ -2827,17 +2851,24 @@ doc ///
     Headline
         generates the intersection lattice of a hyperplane arrangement
     Usage
-        TODO
+        P = intersectionLattice(L, R)
     Inputs
         L:List
+            which gives the equations defining the hyperplane arrangement
         R:Ring
+            which the hyperplanes are defined over
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The intersection lattice of a hyperplane arrangement is the 
+            lattice of intersections in the arrangement partially ordered
+            by containment.
+        Example
+            R = QQ[x,y,z];
+            intersectionLattice({x+y, x+z, y+z}, R)
     SeeAlso
-        Posets
+        projectivizeArrangement 
 ///
 
 -- lcmLattice
@@ -2850,18 +2881,33 @@ doc ///
     Headline
         generates the lattice of lcms in an ideal
     Usage
-        TODO
+        P = lcmLattice I
+        P = lcmLattice(I, Strategy => 0)
     Inputs
-        M:MonomialIdeal
+        I:MonomialIdeal
         I:Ideal
         Strategy=>ZZ
+            which is either $0$ or $1$
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The LCM lattice of a @TO "MonomialIdeal"@ is the set of all
+            LCMs of subsets of the generators of the ideal with partial
+            ordering given by divisbility.  These are particularly useful
+            in the study of resolutions of monomial ideals.
+        Example
+            R = QQ[x,y];
+            lcmLattice monomialIdeal(x^2, x*y, y^2)
+        Text
+            If a non-monomial ideal is passed in, then the @TO "monomialIdeal"@
+            of the ideal is used instead.
+        Example
+           S = QQ[a,b,c,d];
+           lcmLattice ideal (b^2-a*d, a*d-b*c, c^2-b*d)
     SeeAlso
-        Posets
+        lcm
+        monomialIdeal
 ///
 
 -- partitionLattice
@@ -2872,16 +2918,24 @@ doc ///
     Headline
         computes the lattice of set-partitions of size $n$
     Usage
-        TODO
+        P = partitionLattice n
     Inputs
         n:ZZ
+            the size of the set to partition
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The partition lattice of order $n$ is the lattice
+            of @TO "setPartition"@s of the set $\{1,\ldots,n\}$
+            with ordering given by refinement.  That is, the
+            set-partition $p$ is greater than or equal to the 
+            set-partition $q$ if each part of $p$ is contained in
+            exactly one part of $q$.
+        Example
+            partitionLattice 3
     SeeAlso
-        Posets
+        setPartition
 ///
 
 -- setPartition
@@ -2893,16 +2947,29 @@ doc ///
     Headline
         computes the list of set-partitions of size $n$
     Usage
-        TODO
+        L = setPartition n
+        L = setPartition S
     Inputs
+        S:List
+            to be partitioned
         n:ZZ
+            the size of the set to partition
     Outputs
         L:List
     Description
         Text
-            TODO
+            A set-partition of a @TO "List"@ is a partitioning
+            of the list into a finite number of non-empty
+            disjoint pieces whose union is the original list.
+        Example
+            setPartition {2,3,5}
+        Text
+            The set-partitions of $n$ is the collection of set-partitions
+            of the set $\{1,\ldots,n\}$.
+        Example
+            setPartition 4
     SeeAlso
-        Posets
+        partitionLattice
 ///
 
 -- projectivizeArrangement
@@ -2913,17 +2980,26 @@ doc ///
     Headline
         computes the intersection poset of a projectivized hyperplane arrangement
     Usage
-        TODO
+        P = projectivizeArrangement(L, R)
     Inputs
         L:List
+            which gives the equations defining the (possibly non-projective) hyperplane arrangement
         R:Ring
+            which the hyperplanes are defined over
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            This method returns the @TO "intersectionLattice"@ of the projectivization
+            of the specified hyperplane arrangement.
+        Example
+            R = QQ[x,y,z];
+            projectivizeArrangement({x^2-y, y^2-z}, R)
+    Caveat
+        The variable used for homogenization is $Z$, and so the ring $R$ should not already have this
+        variable in use.
     SeeAlso
-        Posets
+        intersectionLattice
 ///
 
 -- randomPoset
@@ -2935,20 +3011,36 @@ doc ///
         [randomPoset,Bias]
         Bias
     Headline
-        generates a random poset with a given edge probability
+        generates a random poset with a given relation probability
     Usage
-        TODO
+        P = randomPoset n
+        P = randomPoset G
+        P = randomPoset(n, Bias => RR)
+        P = randomPoset(G, Bias => RR)
     Inputs
         n:ZZ
+            the number of vertices in the poset
         G:List
+            the ground set of the poset
         Bias=>RR
+            the probability that a given relation will be present
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            This method generates a random poset with a given ground
+            set ($\{1, \ldots, n\}$, if $n$ is specified).  
+        Example
+            randomPoset 10
+        Text
+            The option Bias determines the probability that a given
+            relation will be present.  A higher Bias will lead to more
+            relations.
+        Example
+            randomPoset(10, Bias => 0.1)
+            randomPoset(10, Bias => 0.9)
     SeeAlso
-        Posets
+        random
 ///
 
 -- standardMonomialPoset
@@ -2960,18 +3052,34 @@ doc ///
     Headline
         generates the poset of divisibility in the monomial basis of an ideal
     Usage
-        TODO
+        P = standardMonomialPoset I
+        P = standardMonomialPoset(I, minDeg, maxDeg)
     Inputs
         I:MonomialIdeal
         minDeg:ZZ
+            the minimum degree of a monomial in the poset
         maxDeg:ZZ
+            the maximum degree of a monomial in the poset
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            The standard monomial poset of a @TO "MonomialIdeal"@ is the poset
+            of monomials in the @TO "quotient"@ with partial ordering given by
+            divisibility.
+        Example
+            R = QQ[x,y,z];
+            standardMonomialPoset monomialIdeal(x^2, y^2, z^2, x*y*z)
+        Text
+            If the integers minDeg and maxDeg are specified, then only the monomials
+            with degrees between minDeg and maxDeg are used.  As the standard monomial
+            poset is ranked, this is the same as taking all the ranks between minDeg
+            and maxDeg.
+        Example
+            standardMonomialPoset(monomialIdeal(x^4, y^4, z^4, x*y*z), 3, 4)
     SeeAlso
-        Posets
+        basis
+        monomialIdeal
 ///
 
 -- youngSubposet
@@ -2984,18 +3092,37 @@ doc ///
     Headline
         generates a subposet of Young's lattice
     Usage
-        TODO
+        P = youngSubposet(lo, hi)
+        P = youngSubposet hi
+        P = youngSubposet n
     Inputs
         lo:List
+            which represents a partition
         hi:List
+            which represents a partition
         n:ZZ
+            the maximum size of a partition
     Outputs
         P:Poset
     Description
         Text
-            TODO
+            Young's lattice is the infinite lattice of all @TO "partitions"@
+            with partial ordering given by componentwise linear ordering.
+        
+            If $n$ is specified, then the poset returned is the subposet
+            of Young's lattice given by the induced @TO "subposet"@ of
+            all partitions of size at most $n$.
+        Example
+            youngSubposet 4
+        Text
+            If an upper partition, hi, is specified, then the returned
+            poset is the @TO "closedInterval"@ of the Young's lattice
+            between lo and hi, where lo either is the empty partition
+            or is specified.
+        Example
+            youngSubposet({3,1}, {4,2,1})
     SeeAlso
-        Posets
+        partitions
 ///
 
 ------------------------------------------

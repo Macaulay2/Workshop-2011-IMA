@@ -379,11 +379,12 @@ markovRing Sequence := Ring => opts -> d -> (
      	  start := (#d):1;
 	  vlist := start .. d;
 	  R := kk(monoid [p_start .. p_d, MonomialSize=>16]);
-	  markovRingList#(d,kk,toString p) = R;
-	  R.markovRing = d;
+	  R.markov = d;
 	  H := new HashTable from apply(#vlist, i -> vlist#i => R_i);
 	  R.markovVariables = H;
-	  markovRingList#(d,kk,toString p).markov = d;);
+	  markovRingList#(d,kk,toString p) = R;
+	 -- markovRingList#(d,kk,toString p).markov = d;
+	  );
      markovRingList#(d,kk,toString p))
 
  ----------------
@@ -821,12 +822,19 @@ conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
 
 
 conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      g := G;
      if not R.?graph then (
-     	  if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
-     	  Stmts := globalMarkov G; 
-     	  conditionalIndependenceIdeal (R,Stmts)
+	  if R#?gaussianRing then (
+     	      if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
+     	      Stmts := globalMarkov G; 
+     	      conditionalIndependenceIdeal (R,Stmts) )
+	  else (
+	      if not length R.markov === length (vertices(g)) then error "graph does not have correct number of vertices";
+	      Stmts = globalMarkov G;
+	      VarNames := sort(vertices(g));
+	      conditionalIndependenceIdeal (R, VarNames,Stmts) 
+	       )
      )
      else(
      	  if not sort (vertices (R.graph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
@@ -836,12 +844,19 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
 
 
 conditionalIndependenceIdeal (Ring,Digraph) := Ideal => (R,G) ->(
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     if not  (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      g := G;
      if not R.?digraph then (
-     	  if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
-     	  Stmts := globalMarkov G; 
-     	  conditionalIndependenceIdeal (R,Stmts)
+     	  if R#?gaussianRing then (
+	      if not toList (1..R#gaussianRing) === sort (vertices (g))  then error "vertex labels of graph do not match labels in ring"; 
+     	      Stmts := globalMarkov G; 
+     	      conditionalIndependenceIdeal (R,Stmts) )
+          else (
+	      if not length R.markov === length (vertices(g)) then error "graph does not have correct number of vertices";
+	      Stmts = globalMarkov G;
+	      VarNames := sort(vertices(g));
+	      conditionalIndependenceIdeal (R, VarNames,Stmts) 
+	       ) 
      )
      else(
      	  if not sort (vertices (R.digraph))  === sort (vertices (g)) then error "vertex labels of graph do not match labels in ring"; 
@@ -2077,10 +2092,14 @@ doc///
       R=gaussianRing 4
       G = graph({{a,b},{b,c},{c,d},{d,a}})  --I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
     Text
-      TO DO : need examples in the discrete case, and illustrating conditionalIndependenceIdeal(R,List,List)
-    Example
-      G = graph({{a,b},{b,c},{c,d},{d,a}})
-      -- R=markovRing G
+      conditionalIndependenceIdeal also works in the discrete case for both graphs, digraphs and with lists of statements.
+    Example    
+      R = markovRing (2,2,2,2)
+      G = graph{{1,2},{1,a},{2,b},{a,b}}
+      VarNames = {c,d,e,f}
+      Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
+      conditionalIndependenceIdeal(R,VarNames,Stmts)
+
   SeeAlso
 ///
 

@@ -380,6 +380,7 @@ markovRing Sequence := Ring => opts -> d -> (
 	  vlist := start .. d;
 	  R := kk(monoid [p_start .. p_d, MonomialSize=>16]);
 	  markovRingList#(d,kk,toString p) = R;
+	  R.markovRing = d;
 	  H := new HashTable from apply(#vlist, i -> vlist#i => R_i);
 	  R.markovVariables = H;
 	  markovRingList#(d,kk,toString p).markov = d;);
@@ -2033,7 +2034,7 @@ doc///
   Inputs
     R:Ring
       which must be a gaussianRing or a markovRing (error will be returned otherwise)
-    G:Graph
+    G:
       @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@
     Stmts:List
       of conditional independence statements

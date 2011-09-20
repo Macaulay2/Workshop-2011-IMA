@@ -120,4 +120,13 @@ genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k va
 -------------------------------------------------
 -------------------------------------------------
 
+R = markovRing (2,2,2,2)
+VarNames = {c,d,e,f}
+Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
+conditionalIndependenceIdeal(R,VarNames,Stmts)
+--conditionalIndependenceIdeal(R,Stmts)
 
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
+R = markovRing (2,2,2,2,2)
+R.markovRing
+conditionalIndependenceIdeal(R,G)

@@ -109,7 +109,6 @@ export {bidirectedEdgesMatrix,
        hiddenMap,
        identifyParameters, 
        localMarkov,
-       markovIdeal,
        markovMatrices, 
        markovRing,        
        marginMap, 
@@ -487,19 +486,6 @@ markovMatrices(Ring,List) := (R,Stmts) -> (
 		      		 prob(R,e))))))))
     )
 
---------------------
--- markovIdeal    --
---------------------
-
-markovIdeal = method()
-markovIdeal(Ring,Digraph,List) := (R,G,Stmts) -> (
-     -- R should be a markovRing, G a digraph
-     -- and Stmts is a list of independent statements
-     -- markovIdeal computes the ideal associated to the 
-     -- list of independent statements Stmts
-     M := markovMatrices(R,G,Stmts);
-     sum apply(M, m -> minors(2,m))
-     )
 
 --------------------------------------------------------
 -- Constructing the ideal of an independence relation --
@@ -1133,17 +1119,13 @@ doc ///
     Example
        G = digraph  {{a,{}},{b,{a}},{c,{a}},{d,{b,c}}}
        R = markovRing (2,2,2,2)
-       S = globalMarkov G 
-       I = markovIdeal(R,G,S)
-       netList pack(2,I_*)
+       S = globalMarkov G        --I = markovIdeal(R,G,S)       --netList pack(2,I_*)
     Text
       Sometimes an ideal can be simplified by changing variables.  Very often, 
       by using @TO marginMap@
       such ideals can be transformed to binomial ideals.  This is the case here.
     Example
-       F = marginMap(1,R)
-       I = F I
-       netList pack(2,I_*)
+       F = marginMap(1,R)        --I = F I --netList pack(2,I_*)
     Text
       This ideal has 5 primary components.  The first component is the one that has statistical significance.
       It is the defining ideal of the variety parameterized by the 
@@ -1151,17 +1133,13 @@ doc ///
       according to the graph G. The remaining components lie on the boundary of the simplex
       and are still poorly understood.
     Example  
-      netList primaryDecomposition I 
+      --netList primaryDecomposition I 
     Text
       The following example illustrates the caveat below.
     Example
        H = digraph {{d,{b,a}},{c,{}},{b,{c}},{a,{c}}}
        T = globalMarkov H  
-       J = markovIdeal(R,H,T);
-       netList pack(2,J_*)
-       F = marginMap(3,R);
-       J = F J;
-       netList pack(2,J_*)
+       --J = markovIdeal(R,H,T);        netList pack(2,J_*)       F = marginMap(3,R);       J = F J;       netList pack(2,J_*)
     Text
       Note that the graph $H$ is isomorphic to $G$, we have just relabeled the vertices. 
       Observe that the vertices of $H$ are stored
@@ -1529,42 +1507,6 @@ doc ///
       L = markovMatrices (R,vertices G,S)   
   SeeAlso
     markovRing
-    markovIdeal
-///
-
-------------------------------------
--- Documentation markovIdeal      --
-------------------------------------
-
-doc ///
-  Key
-    markovIdeal
-    (markovIdeal,Ring,Digraph,List) 
-  Headline
-    Ideal of constraints associated to a list of independent statements among discrete random variables.
-  Usage
-    markovIdeal(R,G,S)
-  Inputs
-    R:Ring
-      R must be a markovRing
-    G:Digraph
-      directed acyclic graph
-    S:List
-      (markovIdeal,Ring,Digraph,List) 
-  Outputs       
-    :Ideal
-  Description
-    Text
-      This method computes the ideal of constraints associated to a list of independent statements among discrete random variables.
-      These constraints are the 2x2 minors of the matrices computed by markovMatrices.
-    Example
-      G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
-      S = localMarkov G
-      R = markovRing (2,2,2,2)
-      I = markovIdeal (R,G,S)   
-  SeeAlso
-    markovRing
-    markovMatrices
 ///
 
 ------------------------------------
@@ -2311,21 +2253,6 @@ m = matrix {{p_(2,1,1,1)+p_(2,1,1,2), p_(2,1,2,1)+p_(2,1,2,2)},{p_(2,2,1,1)+p_(2
 assert(M === m)
 ///
 
-----------------------------
---- TEST markovIdeals    ---
-----------------------------
-
-TEST ///
-G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
-S = localMarkov G
-R = markovRing (2,2,2,2)
-I = markovIdeal (R,G,S) 
-J = ideal(-p_(1,1,2,1)*p_(1,2,1,1)-p_(1,1,2,2)*p_(1,2,1,1)-p_(1,1,2,1)*p_(1,2,1,2)-p_(1,1,2,2)*p_(1,2,1,2)+p_(1,1,1,1)*p_(1,2,2,1)+p_(1,1,1,2)*p_(1,2,2,1)+p_(1,1,1,1)*p_(1,2,2,2)+p_(1,1,1,2)*p_(1,2,2,2),
--p_(2,1,2,1)*p_(2,2,1,1)-p_(2,1,2,2)*p_(2,2,1,1)-p_(2,1,2,1)*p_(2,2,1,2)-p_(2,1,2,2)*p_(2,2,1,2)+p_(2,1,1,1)*p_(2,2,2,1)+p_(2,1,1,2)*p_(2,2,2,1)+p_(2,1,1,1)*p_(2,2,2,2)+p_(2,1,1,2)*p_(2,2,2,2),
--p_(1,1,1,2)*p_(2,1,1,1)+p_(1,1,1,1)*p_(2,1,1,2), -p_(1,1,2,2)*p_(2,1,2,1)+p_(1,1,2,1)*p_(2,1,2,2),
--p_(1,2,1,2)*p_(2,2,1,1)+p_(1,2,1,1)*p_(2,2,1,2),  -p_(1,2,2,2)*p_(2,2,2,1)+p_(1,2,2,1)*p_(2,2,2,2)) 	   
-assert(I === J)
-///
 
 -----------------------------------------------
 --- TEST Gaussian Directed Graphical Models ---
@@ -2615,3 +2542,73 @@ installPackage("GraphicalModels",UserMode=>true,DebuggingMode => true)
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=GraphicalModels pre-install"
 -- End:
+
+
+
+
+--------------------
+-- markovIdeal    --
+--------------------
+
+markovIdeal = method()
+markovIdeal(Ring,Digraph,List) := (R,G,Stmts) -> (
+     -- R should be a markovRing, G a digraph
+     -- and Stmts is a list of independent statements
+     -- markovIdeal computes the ideal associated to the 
+     -- list of independent statements Stmts
+     M := markovMatrices(R,G,Stmts);
+     sum apply(M, m -> minors(2,m))
+     )
+
+
+
+------------------------------------
+-- Documentation markovIdeal      --
+------------------------------------
+
+doc ///
+  Key
+    markovIdeal
+    (markovIdeal,Ring,Digraph,List) 
+  Headline
+    Ideal of constraints associated to a list of independent statements among discrete random variables.
+  Usage
+    markovIdeal(R,G,S)
+  Inputs
+    R:Ring
+      R must be a markovRing
+    G:Digraph
+      directed acyclic graph
+    S:List
+      (markovIdeal,Ring,Digraph,List) 
+  Outputs       
+    :Ideal
+  Description
+    Text
+      This method computes the ideal of constraints associated to a list of independent statements among discrete random variables.
+      These constraints are the 2x2 minors of the matrices computed by markovMatrices.
+    Example
+      G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
+      S = localMarkov G
+      R = markovRing (2,2,2,2)
+      I = markovIdeal (R,G,S)   
+  SeeAlso
+    markovRing
+    markovMatrices
+///
+
+----------------------------
+--- TEST markovIdeals    ---
+----------------------------
+
+TEST ///
+G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
+S = localMarkov G
+R = markovRing (2,2,2,2)
+I = markovIdeal (R,G,S) 
+J = ideal(-p_(1,1,2,1)*p_(1,2,1,1)-p_(1,1,2,2)*p_(1,2,1,1)-p_(1,1,2,1)*p_(1,2,1,2)-p_(1,1,2,2)*p_(1,2,1,2)+p_(1,1,1,1)*p_(1,2,2,1)+p_(1,1,1,2)*p_(1,2,2,1)+p_(1,1,1,1)*p_(1,2,2,2)+p_(1,1,1,2)*p_(1,2,2,2),
+-p_(2,1,2,1)*p_(2,2,1,1)-p_(2,1,2,2)*p_(2,2,1,1)-p_(2,1,2,1)*p_(2,2,1,2)-p_(2,1,2,2)*p_(2,2,1,2)+p_(2,1,1,1)*p_(2,2,2,1)+p_(2,1,1,2)*p_(2,2,2,1)+p_(2,1,1,1)*p_(2,2,2,2)+p_(2,1,1,2)*p_(2,2,2,2),
+-p_(1,1,1,2)*p_(2,1,1,1)+p_(1,1,1,1)*p_(2,1,1,2), -p_(1,1,2,2)*p_(2,1,2,1)+p_(1,1,2,1)*p_(2,1,2,2),
+-p_(1,2,1,2)*p_(2,2,1,1)+p_(1,2,1,1)*p_(2,2,1,2),  -p_(1,2,2,2)*p_(2,2,2,1)+p_(1,2,2,1)*p_(2,2,2,2)) 	   
+assert(I === J)
+///

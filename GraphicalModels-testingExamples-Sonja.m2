@@ -119,5 +119,5 @@ genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k va
 
 -------------------------------------------------
 -------------------------------------------------
--- SETH'S PLAN: (25Aug2011)
+
 

@@ -802,9 +802,9 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           )
         else if R.?digraph then (
-	   g:= R.digraph;
-           vv := sort vertices g;
-           SM := covarianceMatrix(R);
+	   g= R.digraph;
+           vv = sort vertices g;
+           SM = covarianceMatrix(R);
            sum apply(Stmts, s -> minors(#s#2+1, 
 	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 

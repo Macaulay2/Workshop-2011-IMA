@@ -15,13 +15,10 @@ newPackage(
 -- 2. impelement over ZZ
 -- 3. add documentation for the functions
 -- 4. add tests
--- 5. collect benchmark examples
+-- 5. collect benchmark examples: get ALL examples from Pfister's paper into M2
 -- 6. work on certified result
 -- 7. write documentation about how to program in the engine!!!
 --
-
-
-
 
 export {
      rationalConversion, chineseRemainder,myReduce, reconstruct, modGb,reduceViaPrimes, majorityRule}
@@ -43,9 +40,11 @@ myReduce(RingElement,ZZ,Ring):=(f,m,RZ)->(
 	       d*RZ_e))
      )
 
+
 rationalConversion=method()
 rationalConversion(RingElement,ZZ,Ring):=(f,m,RQ)->new RQ from rawRingElementRatConversion(raw f,m, raw RQ)
 rationalConversion(Matrix,ZZ,Ring):=(M,m,RQ)->(
+     print("----");
      F:=RQ^(-degrees target M);
      G:=RQ^(-degrees source M);
      map(F,G,rawMatrixRatConversion(raw M,m,raw RQ))) 
@@ -63,6 +62,40 @@ chineseRemainder(List,List):=(Ms,ms)->(
 	  Mr=chineseRemainder(Mr,Ms_i,mr,ms_i);
 	  mr=mr*ms_i);
      Mr)
+
+-- tests for writing in the engine:
+/// TEST
+R=ZZ[x];
+scan(11,i->scan(17,j->(
+	       f=i*x;
+	       g=j*x;
+	       h=chineseRemainder(f,g,11,17);
+	       print(h,i*j))));
+
+h=chineseRemainder(180_R,0*x,23,17*19)
+180 %23
+h % (23*(17*19))
+h %23
+h %(17*19)
+-- imitate chinese remainder:
+a=0;
+b=180;
+m=23;
+n=17*19;
+(g,um,vn)=toSequence gcdCoefficients(m,n)
+um=um*m
+vn=vn*n
+mn=m*n
+result=um*b+vn*a
+result % mn
+result % 23
+result % (17*19)
+
+viewHelp gcd
+
+	       	       )))
+
+///
 
 reconstruct=(f,primes,RQ)->(
       mZZ:=(f(primes_0),primes_0);
@@ -121,10 +154,10 @@ modGb=(I,primes)->(
           sub(gens gb Ip,RZ));
      reconstruct(query,primes,ring I))       
      
-
-
+beginDocumentation()
      
-     
+  
+end
 
 TEST ///
 R=QQ[x_0..x_5];
@@ -161,15 +194,25 @@ example1=(kk)->(
 I=example1(QQ);
 --IQQ=gens gb I;
 primes=reverse(select(toList(30000..32000),i->isPrime i));
-primes2={2,5}|select(toList(101..200),i->isPrime i);
-primes2=primes_{0..10}
+primes2=primes_{0..20}
+--primes2={2,5}|select(toList(101..200),i->isPrime i);
+--primes2=primes_{0..10}
 RZ=ZZ(monoid R);
-product primes2
+--product primes2
+--a=random(100000..100000)
+--b=random(100000..100000)
+--R=QQ[x];
+--I=ideal(a*x+b*x^2);
 time Gs=reduceViaPrimes(I,primes2,RZ);
 GoodGsAndps=majorityRule(Gs,primes2);
-time ICRA=chineseRemainder GoodGsAndps;
-time ILifted=rationalConversion(ICRA,product GoodGsAndps#1,ring I);
-see ideal ILifted
+#(GoodGsAndps#1)==#primes2
+time ICRA=chineseRemainder GoodGsAndps
+time ILifted=rationalConversion(ICRA,product GoodGsAndps#1,ring I)
+ITest=ideal apply(flatten entries ILifted, f-> myReduce(f,primes_11,RZ));
+netList flatten entries (gens gb sub(I,Rp) - sub(ILifted,Rp))
+(flatten entries gens gb sub(I,Rp))_{0}-(flatten entries sub(ILifted,Rp))_{0}
+Rp=(ZZ/primes_11)(monoid R);
+time see ideal(gens gb sub(I,Rp) - sub(ILifted,Rp))
 
 
 tally apply(Gs, g-> flatten entries leadTerm g)
@@ -250,8 +293,9 @@ TEST ///
 
 
 restart;
+uninstallPackage"ModularGB"
 installPackage"ModularGB";
--- loadPackage"ModularGB";
+ loadPackage"ModularGB";
 --check"ModularGB";
 kk=ZZ/101;
 I=parisilias13(kk);
@@ -299,3 +343,8 @@ fm=myReduce(f,m,RZ)
 fn=myReduce(f,n,RZ)
 fmn=chineseRemainder(fm,fn,m,n);
 rationalConversion(fmn,m*n,RQ)
+
+p=5*11
+apply(p, i-> sub(i,ZZ/p))
+apply(p,i->if i>(p//2) then i-p else i)
+

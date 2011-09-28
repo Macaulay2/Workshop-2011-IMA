@@ -932,7 +932,7 @@ joinIrreducibles = method()
 joinIrreducibles Poset := List => P -> (
     if not isLattice P then error "The poset is not a lattice.";
     nonComparablePairs := select(subsets(P.GroundSet,2), posspair -> not compare(P, posspair#0,posspair#1) and not compare(P,posspair#1,posspair#0));
-    joins := select(unique flatten apply(nonComparablePairs, posspair -> if joinExists(P, posspair#0, posspair#1) then posetMeet(P, posspair#0, posspair#1)), i -> i =!= null); 
+    joins := select(unique flatten apply(nonComparablePairs, posspair -> if joinExists(P, posspair#0, posspair#1) then posetJoin(P, posspair#0, posspair#1)), i -> i =!= null); 
     toList (set P.GroundSet - set joins)
     )
 
@@ -3141,19 +3141,34 @@ doc ///
     Headline
         generates a PDF representation of a poset and attempts to display it
     Usage
-        TODO
+        displayPoset P
+        displayPoset(P, SuppressLabels => Boolean)
+        displayPoset(P, PDFViewer => String)
+        displayPoset(P, Jitter => Boolean)
     Inputs
         P:Poset
         SuppressLabels=>Boolean
+            whether to display or suppress the labels of the poset
         PDFViewer=>String
+            which gives the calling path of a PDF-viewer
         Jitter=>Boolean
+            whether to randomly jitter the poset vertices
     Outputs
         n:Nothing
     Description
         Text
-            TODO
+            This method generates a PDF of the Poset view LaTeX code which
+            uses TikZ.  The method attempts to display the PDF via the 
+            specified PDFViewer.  See @TO "texPoset"@ for more about the
+            representation.
+
+            Note that @TT "PDFViewer"@ option's default value can be set in
+            the "~/.Macaulay2/init-Posets.m2" file.
     SeeAlso
-        Posets
+        outputTexPoset
+        texPoset
+        Jitter
+        SuppressLabels
 ///
 
 -- outputTexPoset
@@ -3166,18 +3181,28 @@ doc ///
     Headline
         writes a LaTeX file with a TikZ-representation of a poset
     Usage
-        TODO
+        outputTexPoset(P, f)
+        outputTexPoset(P, f, SuppressLabels => Boolean)
+        outputTexPoset(P, f, Jitter => Boolean)
     Inputs
         P:Poset
+        f:String
+            the name of the file to be created
         SuppressLabels=>Boolean
+            whether to display or suppress the labels of the poset
         Jitter=>Boolean
+            whether to randomly jitter the poset vertices
     Outputs
         n:Nothing
     Description
         Text
-            TODO
+            This method writes a TikZ-representation of the given poset to the
+            specified file.  See @TO "texPoset"@ for more about the representation.
     SeeAlso
-        Posets
+        displayPoset
+        texPoset
+        Jitter
+        SuppressLabels
 ///
 
 -- texPoset
@@ -3191,22 +3216,50 @@ doc ///
         SuppressLabels
         (tex, Poset)
     Headline
-        generates a string containg a TikZ-figure of a poset
+        generates a string containing a TikZ-figure of a poset
     Usage
-        TODO
+        texPoset P
+        texPoset(P, SuppressLabels => Boolean)
+        texPoset(P, Jitter => Boolean)
+        tex P
     Inputs
         P:Poset
         SuppressLabels=>Boolean
+            whether to display or suppress the labels of the poset
         Jitter=>Boolean
+            whether to randomly jitter the poset vertices
     Outputs
         S:String
+            a TikZ-figure of $P$
     Description
         Text
-            TODO
+            This method creates a TikZ-figure of the given poset which
+            can be included in a LaTeX file.  The representation places
+            the vertices on horizontal lines corresponding to the 
+            @TO "filtration"@ of the poset.  The only displayed edges are
+            the @TO "coveringRelations"@ which are oriented so that lower
+            vertices less than higher vertices.
+
+            The method attempts to display labels in a sane way, if they
+            are not suppressed by the @TT "SuppressLabels"@ option.  
+            Note that the @TT "SuppressLabels"@ option's default value can
+            be set in the "~/.Macaulay2/init-Posets.m2" file.
+
+            Further, sometimes the vertices of the poset line up in unfortunate
+            ways that causes edges to touch other vertices.  Using the 
+            @TT "Jitter"@ option can relieve this by adding a small random
+            horizontal shift to each vertex.
+        Example
+            texPoset booleanLattice 2
+            texPoset(booleanLattice 2, Jitter => true)
+
     Caveat
         Calling texPoset via the command @TO "tex"@ expects that no options are given.
     SeeAlso
-        Posets
+        coveringRelations
+        displayPoset
+        filtration
+        outputTexPoset
 ///
 
 ------------------------------------------
@@ -3221,16 +3274,22 @@ doc ///
     Headline
         computes the list of elements covering the minimal elements of a poset
     Usage
-        TODO
+        A = atoms P
     Inputs
         P:Poset
     Outputs
         A:List
+            elements covering the minimal elements of a poset
     Description
         Text
-            TODO
+            An atom of a poset is an element which covers a minimal element
+            of the poset.
+        Example
+            atoms booleanLattice 3
+            atoms chain 5
     SeeAlso
-        Posets
+        coveringRelations
+        minimalElements
 ///
 
 -- compare
@@ -3241,18 +3300,28 @@ doc ///
     Headline
         compares two elements in a poset
     Usage
-        TODO
+        r = compare(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         r:Boolean
+            whether $a \leq b$ in $P$
     Description
         Text
-            TODO
-    SeeAlso
-        Posets
+            This method determines if two elements are comparable and further
+            if $a$ is less than or equal to $b$ in $P$.
+        Example
+            P = poset {{a,b},{a,c}};
+            compare(P, a, b)
+            compare(P, c, a)
+        Text
+            If two elements are incomparable, then the result is false.
+        Example
+            compare(P, b, c)
 ///
 
 -- connectedComponents
@@ -3263,19 +3332,26 @@ doc ///
     Headline
         generates a list of connected components of a poset
     Usage
-        TODO
+        C = connectedComponents P
     Inputs
         P:Poset
     Outputs
         C:List
+            containing lists of vertices, each of which is a connected component of $P$   
     Description
         Text
-            TODO
+            A connected component of $P$ is a set of vertices of $P$ such that every
+            between every pair of vertices $u$ and $v$ in the set there exists a chain 
+            of vertices $(a_0=u,a_1,\ldots,a_n=v)$ such that $a_{i-1}$ and $a_i$ are 
+            comparable in $P$ for each $i$.
+        Example
+            C = chain 3;
+            connectedComponents C
+            S = sum(5, i -> naturalLabeling(C, 10*i));
+            connectedComponents S
         Text
             This method was ported from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
-    SeeAlso
-        Posets
 ///
 
 -- filtration
@@ -3286,19 +3362,38 @@ doc ///
     Headline
         generates the filtration of a posett
     Usage
-        TODO
+        F = filtration P
     Inputs
         P:Poset
     Outputs
         F:List
+            the filtration of $P$
     Description
         Text
-            TODO
+            The filtration of $P$ is a partitioning $F$ of the vertices such that 
+            $F_0$ is the set of minimal elements of $P$, $F_1$ is the set of minimal
+            elements of $P - F_0$, and so forth.  
+        Example
+            P = poset {{a,b}, {b,c}, {c,d}, {a,e}, {e,d}};
+            filtration P
+        Text
+            The filtration of a ranked poset is the same as the ranking of the poset.
+        Example
+            B = booleanLattice 3;
+            F = filtration B
+            R = rankPoset B
+            sort \ F === sort \ R
+        Text
+            The @TO "flatten"@ of the filtration is a linear extension of the poset.
+        Example
+            member(flatten F, linearExtensions B)
         Text
             This method was ported from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        linearExtensions
+        minimalElements
+        rankPoset
 ///
 
 -- joinExists
@@ -3309,18 +3404,30 @@ doc ///
     Headline
         determines if the join exists for two elements of a poset
     Usage
-        TODO
+        j = joinExists(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         j:Boolean
+            whether the join exists for $a$ and $b$ in $P$
     Description
         Text
-            TODO
+            The join of $a$ and $b$ in $P$, if it exists, is the unique
+            least element greater than both $a$ and $b$.
+        Example
+            P = poset {{a,b}, {a,c}, {a,d}, {c,e}, {d,e}};
+            joinExists(P, b, c)
+            joinExists(P, c, d)
+            Q = poset {{a,b}, {a,c}, {b,d}, {c,d}, {b,e}, {c,e}};
+            joinExists(P, b, c)
     SeeAlso
-        Posets
+        meetExists
+        posetJoin
+        posetMeet
 ///
 
 -- joinIrreducibles
@@ -3331,16 +3438,21 @@ doc ///
     Headline
         determines the join irreducible elements of a poset
     Usage
-        TODO
+        J = joinIrreducibles P
     Inputs
         P:Poset
     Outputs
         J:List
     Description
         Text
-            TODO
+            An element $a$ of $P$ is join irreducible if it is not the join
+            of any set of elements not containing $a$.
+        Example
+            joinIrreducibles booleanLattice 3
     SeeAlso
-        Posets
+        joinExists
+        meetIrreducibles
+        posetJoin
 ///
 
 -- maximalElements
@@ -3351,16 +3463,20 @@ doc ///
     Headline
         determines the maximal elements of a poset
     Usage
-        TODO
+        M = maximalElements P
     Inputs
         P:Poset
     Outputs
         M:List
     Description
         Text
-            TODO
+            An element of $P$ is a maximal element if it no other
+            element of $P$ is greater than it.
+        Example
+            P = poset {{a,b}, {a,c}, {c,d}};
+            maximalElements P
     SeeAlso
-        Posets
+        minimalElements
 ///
 
 -- meetExists
@@ -3371,18 +3487,30 @@ doc ///
     Headline
         determines if the meet exists for two elements of a poset
     Usage
-        TODO
+        m = meetExists(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         m:Boolean
+            whether the meet exists for $a$ and $b$ in $P$
     Description
         Text
-            TODO
+            The meet of $a$ and $b$ in $P$, if it exists, is the
+            unique greatest element less than both $a$ and $b$.
+        Example
+            P = poset {{a,b}, {a,c}, {b,d}, {c,d}, {e,d}};
+            meetExists(P, b, c)
+            meetExists(P, b, e)
+            Q = poset {{a,b}, {a,c}, {d,b}, {d,c}, {b,e}, {c,e}};
+            meetExists(Q, b, c)
     SeeAlso
-        Posets
+        joinExists
+        posetJoin
+        posetMeet
 ///
 
 -- meetIrreducibles
@@ -3393,16 +3521,21 @@ doc ///
     Headline
         determines the meet irreducible elements of a poset
     Usage
-        TODO
+        M = meetIrreducibles P
     Inputs
         P:Poset
     Outputs
         M:List
     Description
         Text
-            TODO
+            An element $a$ of $P$ is meet irreducible if it is not the meet
+            of any set of elements not containing $a$.
+        Example
+            meetIrreducibles booleanLattice 3
     SeeAlso
-        Posets
+        joinIrreducibles
+        meetExists
+        posetMeet
 ///
 
 -- minimalElements
@@ -3413,16 +3546,20 @@ doc ///
     Headline
         determines the minimal elements of a poset
     Usage
-        TODO
+        M = minimalElements P
     Inputs
         P:Poset
     Outputs
         M:List
     Description
         Text
-            TODO
+            An element of $P$ is a minimal element if it no other
+            element of $P$ is less than it.
+        Example
+            P = poset {{a,b}, {b,c}, {d,c}};
+            minimalElements P
     SeeAlso
-        Posets
+        maximalElements
 ///
 
 -- posetJoin
@@ -3433,18 +3570,26 @@ doc ///
     Headline
         determines the join for two elements of a poset
     Usage
-        TODO
+        j = posetJoin(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         j:Thing
+            the least element greater than both $a$ and $b$, if it exists
     Description
         Text
-            TODO
+            The join of $a$ and $b$ in $P$, if it exists, is the unique
+            least element greater than both $a$ and $b$.
+        Example
+            B = booleanLattice 3;
+            posetJoin(B, "001", "100")
     SeeAlso
-        Posets
+        joinExists
+        posetMeet
 ///
 
 -- posetMeet
@@ -3455,18 +3600,26 @@ doc ///
     Headline
         determines the meet for two elements of a poset
     Usage
-        TODO
+        m = posetMeet(P, a, b)
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         m:Thing
+            the greatest element less than both $a$ and $b$, if it exists
     Description
         Text
-            TODO
+            The meet of $a$ and $b$ in $P$, if it exists, is the
+            unique greatest element less than both $a$ and $b$.
+        Example
+            B = booleanLattice 3;
+            posetMeet(B, "011", "110")
     SeeAlso
-        Posets
+        meetExists
+        posetJoin
 ///
 
 -- rankFunction
@@ -3477,19 +3630,28 @@ doc ///
     Headline
         computes the rank function of a ranked poset
     Usage
-        TODO
+        rk = rankFunction P
     Inputs
         P:Poset
     Outputs
         rk:List
+            such that entry $i$ is the rank of the $i$th member of the ground set
     Description
         Text
-            TODO
+            The poset $P$ is ranked if there exists an integer function $r$ on
+            the vertex set of $P$ such that for each $a$ and $b$ in the poset
+            if $b$ covers $a$ then $r(b) - r(a) = 1$.  
+
+            This method returns one such ranking function.
+        Example
+            rankFunction chain 5
+            rankFunction booleanLattice 3
         Text
             This method was ported from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        isRanked
+        rankPoset
 ///
 
 -- rankPoset
@@ -3500,20 +3662,30 @@ doc ///
     Headline
         generates a list of lists representing the ranks of a ranked poset
     Usage
-        TODO
+        L = rankPoset P
     Inputs
         P:Poset
     Outputs
         L:List
+            containing lists such that the $i$th list is the set of 
+            vertices in the $i$th rank of $P$
     Description
         Text
-            TODO
+            The poset $P$ is ranked if there exists an integer function $r$ on
+            the vertex set of $P$ such that for each $a$ and $b$ in the poset
+            if $b$ covers $a$ then $r(b) - r(a) = 1$.  
+
+            This method returns the list of vertices in each rank.
+        Example
+            rankPoset chain 5
+            rankPoset booleanLattice 3
         Text
             This method uses the method @TO "rankFunction"@, which was ported
             from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        isRanked
+        rankFunction
 ///
 
 ------------------------------------------
@@ -3858,7 +4030,9 @@ doc ///
     Inputs
         P:Poset
         a:Thing
+            an element of the poset
         b:Thing
+            an element of the poset
     Outputs
         mu:HashTable
     Description

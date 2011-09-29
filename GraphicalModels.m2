@@ -1565,7 +1565,7 @@ doc ///
       R#gaussianRing
       R.graph  
       covarianceMatrix R
-      undirectedEdgesMatrix(R,G)
+      undirectedEdgesMatrix(R)
     Text
       For directed graphs......
     Example
@@ -2285,7 +2285,7 @@ assert(0 == vars R - matrix correctOutput )
 TEST ///
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R=gaussianRing G 
-M=undirectedEdgesMatrix(R,G)
+M=undirectedEdgesMatrix(R)
 correctOutput = {{k_(a,a), k_(a,b), 0, k_(a,d)}, {k_(a,b), k_(b,b), k_(b,c),0}, {0, k_(b,c), k_(c,c), k_(c,d)}, {k_(a,d), 0, k_(c,d),k_(d,d)}}
 assert(0 == M - matrix correctOutput )
 ///

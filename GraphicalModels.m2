@@ -612,10 +612,6 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
 
 
 
-------------------------------------------------------------------------------------------------------------------------------
--- THe following WILL BE CHANGED TO MATCH CONDITIONALINDEPENDENCEIDEAL! -- 28.july2011.
-------------------------------------------------------------------------------------------------------------------------------
-
 ----------------------
 --- gaussianMatrix ---
 ----------------------
@@ -1966,9 +1962,6 @@ doc///
    SeeAlso
      trekIdeal
 ///
---------------------------------------------------------------------------------------
---------New Documentations July 27, 28--------------
---------------------------------------------------------------------------------------
 
 ------------------------------------
 -- Documentation sVariableName     --
@@ -2103,26 +2096,24 @@ doc///
 doc/// 
    Key
      undirectedEdgesMatrix
-     (undirectedEdgesMatrix,Ring,Graph)
+     (undirectedEdgesMatrix,Ring)
    Headline
      the matrix corresponding to the edges of an undirected graph
    Usage
-     undirectedEdgesMatrix(R,G)
+     undirectedEdgesMatrix(R)
    Inputs
      R:Ring
-       which should be a gaussianRing
-     G:Graph
-       undirected graph
+       which should be created with @TO gaussianRing@ created with a Graph
    Outputs
      :Matrix
-       the n x n symmetric matrix ... 
+       the n x n symmetric matrix ... EXPLAIN!!
    Description 
      Text
        Note that this matrix is symmetric in the symbols.
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G
-       M = undirectedEdgesMatrix(R,G)
+       M = undirectedEdgesMatrix(R)
    SeeAlso
      gaussianRing
      gaussianParametrization
@@ -2137,23 +2128,24 @@ doc///
 doc ///
    Key
      gaussianVanishingIdeal
-     (gaussianVanishingIdeal,Ring,Graph)
+     (gaussianVanishingIdeal,Ring)
    Headline
      the vanishing ideal of the gaussian graphical model 
    Usage
-     gaussianVanishingIdeal(R,G)
+     gaussianVanishingIdeal(R)
    Inputs
      R:Ring
-       created with @TO gaussianRing@
-     G:Graph
-       an undirected graph
+       created with @TO gaussianRing@ and using a Graph
    Outputs
      :Ideal
         in R, of polynomial relations on the covariance matrices of a graphical model for G
    Description
      Text
        FIX ME!!!
-       
+       --input: graph G and a polynomial ring R created by gaussianRing (!)
+       --output: the vanishing ideal of hte parametrization
+       --currently works on really small examples! future work to make faster...
+
        The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
        are disjoint lists of integers in the range 1..n (n is the number of random variables)
        is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
@@ -2164,7 +2156,7 @@ doc ///
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R=gaussianRing G 
-       J = gaussianVanishingIdeal(R,G) --the code is not smart and it is super-slow for any larger example, unfortunately.
+       J = gaussianVanishingIdeal(R) --the code is not smart and it is super-slow for any larger example, unfortunately.
    SeeAlso
      globalMarkov
      localMarkov

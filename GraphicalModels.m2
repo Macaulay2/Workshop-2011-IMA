@@ -597,7 +597,6 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
        if R.?graph then (  
      	    g:=R.graph;
 	    vv := sort vertices g;
-     	    if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      	    n := R#gaussianRing#0;
      	    s := value R#gaussianRing#1;
      	    SM := mutableMatrix(R,n,n);
@@ -605,7 +604,7 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
      	    matrix SM	    
 	    ) 
        else (
-	    n:=R#gaussianRing; 
+	    n =R#gaussianRing; 
 	    genericSymmetricMatrix(R,n)
 	    )
   )

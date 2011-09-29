@@ -129,7 +129,18 @@ Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
 conditionalIndependenceIdeal(R,VarNames,Stmts)
 --conditionalIndependenceIdeal(R,Stmts)
 
+restart
+uninstallPackage "GraphicalModels"
+installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
-R = markovRing (2,2,2,2,2)
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = markovRing (2,2,2,2)
 R.markovRing
+R.markov
+R.markovVariables
 conditionalIndependenceIdeal(R,G)
+gens R
+
+S = gaussianRing 4
+S#gaussianRing
+if (not R.?markov) then error "expected a ring created with markovRing"

@@ -612,10 +612,28 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
 
 
 
+------------------------
+--- gaussianMatrices ---
+------------------------
+
+gaussianMatrices = method()
+gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
+     --input ring and statmetens
+     --output list of mtces whose minors give the CI ideal.
+     
+     )
+gaussianMatrices(Ring,List,List) := List =>  (R,VarNames,Stmts) -> (
+     --input ring and statmetens and variable names
+     --output list of mtces whose minors give the CI ideal.
+     
+     )
+
+
+
+----------- THE FOLLOWING IS CRAP: (TO BE DELETED)
 ----------------------
 --- gaussianMatrix ---
 ----------------------
-
 --in case user just wants to see the matrix instead of the minors.
 -- this function is not exported, it is called from gaussianMatrices
 gaussianMatrix = method()
@@ -626,17 +644,12 @@ gaussianMatrix(Ring,Digraph,List) := List =>  (R,G,s) -> (
      cols := join(getPositionOfVertices(G,s#1), getPositionOfVertices(G,s#2));  
      submatrix(M,rows,cols)
      )
-
-------------------------
---- gaussianMatrices ---
-------------------------
-
 gaussianMatrices = method()
 gaussianMatrices(Ring,Digraph,List) := List =>  (R,G,S) -> (
      apply(S, s -> gaussianMatrix(R,G,s))
      )
-
 gaussianMatrices(Ring,Digraph) := List =>  (R,G) -> gaussianMatrices(R,G,globalMarkov G)
+----------- END OF CRAP. TO BE DELETED.
 
 -----------------
 --- trekIdeal ---

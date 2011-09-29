@@ -594,27 +594,21 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 covarianceMatrix = method()
 covarianceMatrix(Ring) := Matrix => (R) -> (
        if not R#?gaussianRing then error "expected a ring created with gaussianRing";    
-       if R.?graph then (covarianceMatrixUndirected(R,R.graph))
+       if R.?graph then (  
+     	    g:=R.graph;
+	    vv := sort vertices g;
+     	    if not R#?gaussianRing then error "expected a ring created with gaussianRing";
+     	    n := R#gaussianRing#0;
+     	    s := value R#gaussianRing#1;
+     	    SM := mutableMatrix(R,n,n);
+     	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
+     	    matrix SM	    
+	    ) 
        else (
 	    n:=R#gaussianRing; 
 	    genericSymmetricMatrix(R,n)
 	    )
   )
--- just in the case when the graph is undirected, having a ring is not enough to get the generic symmetric matrix, so we do this:
-covarianceMatrixUndirected=method()
-covarianceMatrixUndirected (Ring,Graph) := (R,g) -> ( ---replace names accordingly everywhere!!! added "undirected"
-     vv := sort vertices g;
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
-     n := R#gaussianRing#0;
-     s := value R#gaussianRing#1;
-     SM := mutableMatrix(R,n,n);
-     ------------------------------------------------------------------------------------------------------------------------------
-     --QUESTION: CAN this matrix SM not be obtained via generic symmetric matrix command as in the digraph case???
-     --	    	 Sonja 29july2011
-     -- yes it can, but need to specify correct starting variable (i.e. omit the k's use only s's).
-     ------------------------------------------------------------------------------------------------------------------------------
-     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
-     matrix SM) 
 
 
 

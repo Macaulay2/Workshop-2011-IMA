@@ -2,6 +2,9 @@ restart
 installPackage "Graphs"
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 
+uninstallPackage "GraphicalModels"
+
+
 viewHelp "GraphicalModels"
 
 ------------------------------------------------------------

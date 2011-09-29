@@ -1044,6 +1044,7 @@ allRelations Poset := List => P -> allRelations(P, false)
 
 antichains = method()
 antichains Poset := List => P -> sort unique flatten (subsets \ maximalAntichains P)
+antichains (Poset, ZZ) := (P, k) -> sort unique flatten apply(maximalAntichains P, a -> subsets(a, k))
 
 chains = method()
 chains Poset := P -> sort unique flatten (subsets \ maximalChains P)
@@ -2014,6 +2015,7 @@ doc ///
             the @TO "flagChains"@ method.
         Example
             P = booleanLattice 4;
+            rankFunction P
             flagPoset(P, {2,3})
             flagPoset(P, {1})
     SeeAlso
@@ -3701,17 +3703,26 @@ doc ///
     Headline
         computes all relations of a poset
     Usage
-        TODO
+        R = allRelations P
+        R = allRelations(P, NoLoops)
     Inputs
         P:Poset
         NoLoops:Boolean
+            whether loops, i.e., relations of the form $\{a,a\}$, should be returned
     Outputs
         R:List
+            containing all relations between elements of $P$
     Description
         Text
-            TODO
+            This method returns all relations of a poset, though loops may
+            be suppressed with the input @TT "NoLoops"@.
+        Example
+            P = divisorPoset 12;
+            allRelations P
+            allRelations(P, true)
     SeeAlso
-        Posets
+        compare
+        coveringRelations
 ///
 
 -- antichains
@@ -3719,19 +3730,41 @@ doc ///
     Key
         antichains
         (antichains,Poset)
+        (antichains,Poset,ZZ)
     Headline
         computes all antichains of a poset
     Usage
-        TODO
+        L = antichains P
     Inputs
         P:Poset
+        k:ZZ
+            select on antichains of a given length
     Outputs
         L:List
+            containing all antichains of $P$
     Description
         Text
-            TODO
+            A set of elements of $P$ is called an antichain if no
+            two distinct elements of the set are comparable.
+        Example
+            D = divisorPoset 12;
+            antichains D
+        Text
+            With the input @TT "k"@, the method restricts to 
+            only antichains of that length.  In a @TO "divisorPoset"@, all
+            chains of length $2$ describe exactly the non-divisor-multiple
+            pairs.
+        Example
+            antichains(D, 2)
+        Text
+            Since every distinct pair of vertices in a @TO "chain"@
+            is comparable, the only antichains of a chain are the
+            singleton sets and the empty set.
+        Example
+            antichains chain 5
     SeeAlso
-        Posets
+        chains
+        isAntichain
 ///
 
 -- chains
@@ -3743,17 +3776,31 @@ doc ///
     Headline
         computes all chains of a poset
     Usage
-        TODO
+        L = chains P
+        L = chains(P, k)
     Inputs
         P:Poset
         k:ZZ
+            select on chains of a given length
     Outputs
         L:List
+            containing all chains of $P$
     Description
         Text
-            TODO
+            A set of elements of $P$ is called a chain if every
+            pair of elements in the set are comparable.
+        Example
+            D = divisorPoset 12;
+            chains D
+        Text
+            With the input @TT "k"@, the method restricts to 
+            only chains of that length.  In a @TO "divisorPoset"@, all
+            chains of length $2$ describe exactly the divisor-multiple
+            pairs.
+        Example
+            chains(D, 2)
     SeeAlso
-        Posets
+        antichains
 ///
 
 -- coveringRelations
@@ -3764,16 +3811,22 @@ doc ///
     Headline
         computes the minimal list of generating relations of a poset
     Usage
-        TODO
+        R = coveringRelations P
     Inputs
         P:Poset
     Outputs
         R:List
+            the minimal list of generating relations of $P$
     Description
         Text
-            TODO
+            A relation $a < b$ of elements in $P$ is a covering relation
+            if there exists no $c$ in $P$ such that $a < c < b$.  The set
+            of covering relations is the minimal list of relations in $P$
+            that describes all relations of $P$.
+        Example
+            coveringRelations divisorPoset 12
     SeeAlso
-        Posets
+        allRelations
 ///
 
 -- flagChains
@@ -3784,17 +3837,27 @@ doc ///
     Headline
         computes the maximal chains in a list of flags of a ranked poset
     Usage
-        TODO
+        C = flagChains(P, L)
     Inputs
         P:Poset
         L:List
+            containing rank indices
     Outputs
         C:List
+            all maximal chains of $P$ containing only elements in the flags indexed by $L$
     Description
         Text
-            TODO
+            The flag chains of $P$ with respect to $L$ are exactly the @TO "maximalChains"@
+            of the @TO "flagPoset"@ of $P$ with respect to $L$.
+        Example
+            D = divisorPoset(2^2*3*5);
+            rankFunction D
+            flagChains(D, {1,2,3})
     SeeAlso
-        Posets
+        flagPoset
+        isRanked
+        maximalChains
+        rankPoset
 ///
 
 -- isAntichain
@@ -3805,17 +3868,24 @@ doc ///
     Headline
         determines if a given list of vertices is an antichain of a poset
     Usage
-        TODO
+        i = isAntichain(P, L)
     Inputs
         P:Poset
         L:List
+            containing elements of $P$
     Outputs
         i:Boolean
+            whether $L$ is an antichain of $P$
     Description
         Text
-            TODO
+            A set of elements of $P$ is called an antichain if no
+            two distinct elements of the set are comparable.
+        Example
+            D = divisorPoset 12;
+            isAntichain(D, {2,3})
+            isAntichain(D, {2,6})
     SeeAlso
-        Posets
+        antichains
 ///
 
 -- linearExtensions
@@ -3826,19 +3896,35 @@ doc ///
     Headline
         computes all linear extensions of a poset
     Usage
-        TODO
+        L = linearExtensions P
     Inputs
         P:Poset
     Outputs
         L:List
+            all possible linear extensions of $P$
     Description
         Text
-            TODO
+            A linear extension of the partial order on $P$ is a total order 
+            on the elements of $P$ that is compatible with the partial order.
+        Example
+            P = divisorPoset 12;
+            L = linearExtensions P
+        Text
+            The @TO "flatten"@ of the @TO "filtration"@ of $P$ is always a 
+            linear extension.  This approach is much faster, especially for
+            posets with many linear extensions.
+        Example
+            F = flatten filtration P
+            member(F, L)
+        Text
+            The partial order of a @TO "chain"@ is the total order of the elements.
+        Example
+            linearExtensions chain 10
         Text
             This method was ported from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        filtration
 ///
 
 -- maximalAntichains
@@ -3849,16 +3935,23 @@ doc ///
     Headline
         computes all maximal antichains of a poset
     Usage
-        TODO
+        M = maximalAntichains P
     Inputs
         P:Poset
     Outputs
         M:List
+            all maximal antichains of $P$
     Description
         Text
-            TODO
+            A set of elements of $P$ is called an antichain if no
+            two distinct elements of the set are comparable.  An
+            antichain is maximal if it is not properly contained
+            in any other antichain of $P$.
+        Example
+            maximalAntichains divisorPoset 30
     SeeAlso
-        Posets
+        antichains
+        maximalChains
 ///
 
 -- maximalChains
@@ -3869,16 +3962,23 @@ doc ///
     Headline
         computes all maximal chains of a poset
     Usage
-        TODO
+        M = maximalChains P
     Inputs
         P:Poset
     Outputs
         M:List
+            all maximal chains of $P$
     Description
         Text
-            TODO
+            A set of elements of $P$ is called a chain if every
+            pair of elements of the set are comparable.  A
+            chain is maximal if it is not properly contained
+            in any other chain of $P$.
+        Example
+            maximalChains divisorPoset 30
     SeeAlso
-        Posets
+        chains
+        maximalAntichains
 ///
 
 ------------------------------------------
@@ -3894,7 +3994,8 @@ doc ///
     Headline
         computes the characteristic polynomial of a graded poset
     Usage
-        TODO
+        p = characteristicPolynomial P
+        p = characteristicPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -3916,7 +4017,8 @@ doc ///
     Headline
         computes the flag-f polynomial of a ranked poset
     Usage
-        TODO
+        ff = flagfPolynomial P
+        ff = flagfPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -3938,7 +4040,8 @@ doc ///
     Headline
         computes the flag-h polynomial of a ranked poset
     Usage
-        TODO
+        fh = flaghPolynomial P
+        fh = flaghPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -3960,7 +4063,8 @@ doc ///
     Headline
         computes the f-polynomial of a poset
     Usage
-        TODO
+        f = fPolynomial P
+        f = fPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -3982,7 +4086,9 @@ doc ///
     Headline
         computes the Greene-Kleitman partition of a poset
     Usage
-        TODO
+        l = greeneKleitmanPartition P
+        l = greeneKleitmanPartition(P, Strategy => "chains")
+        l = greeneKleitmanPartition(P, Strategy => "antichains")
     Inputs
         P:Poset
         Strategy=>String
@@ -4004,7 +4110,8 @@ doc ///
     Headline
         computes the h-polynomial of a poset
     Usage
-        TODO
+        h = hPolynomial P
+        h = hPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -4026,7 +4133,7 @@ doc ///
     Headline
         computes the Moebius function of a poset with a unique minimal element
     Usage
-        TODO
+        mu = moebiusFunction(P, a, b)
     Inputs
         P:Poset
         a:Thing
@@ -4051,7 +4158,8 @@ doc ///
     Headline
         computes the rank generating function of a ranked poset
     Usage
-        TODO
+        r = rankGeneratingFunction P
+        r = rankGeneratingFunction(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -4072,7 +4180,7 @@ doc ///
     Headline
         computes the Moebius function at every pair of elements of a poset
     Usage
-        TODO
+        mu = totalMoebiusFunction P
     Inputs
         P:Poset
     Outputs
@@ -4093,7 +4201,8 @@ doc ///
     Headline
         computes the zeta polynomial of a poset
     Usage
-        TODO
+        z = zetaPolynomial P
+        z = zetaPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
         VariableName=>Symbol
@@ -4118,7 +4227,7 @@ doc ///
     Headline
         computes the Dilworth number of a poset
     Usage
-        TODO
+        d = dilworthNumber P
     Inputs
         P:Poset
     Outputs
@@ -4137,7 +4246,7 @@ doc ///
     Headline
         computes the height of a poset
     Usage
-        TODO
+        h = height P
     Inputs
         P:Poset
     Outputs
@@ -4157,7 +4266,7 @@ doc ///
     Headline
         determines if a poset is atomic
     Usage
-        TODO
+        i = isAtomic P
     Inputs
         P:Poset
     Outputs
@@ -4177,7 +4286,7 @@ doc ///
     Headline
         determines if a poset is bounded
     Usage
-        TODO
+        i = isBounded P
     Inputs
         P:Poset
     Outputs
@@ -4197,7 +4306,7 @@ doc ///
     Headline
         determines if a poset is connected
     Usage
-        TODO
+        i = isConnected P
     Inputs
         P:Poset
     Outputs
@@ -4217,7 +4326,7 @@ doc ///
     Headline
         determines if a lattice is distributive
     Usage
-        TODO
+        i = isDistributive P 
     Inputs
         P:Poset
     Outputs
@@ -4237,7 +4346,7 @@ doc ///
     Headline
         determines if a ranked poset is Eulerian
     Usage
-        TODO
+        i = isEulerian P
     Inputs
         P:Poset
     Outputs
@@ -4257,7 +4366,7 @@ doc ///
     Headline
         determines if a poset is graded
     Usage
-        TODO
+        i = isGraded P
     Inputs
         P:Poset
     Outputs
@@ -4277,7 +4386,7 @@ doc ///
     Headline
         determines if a poset is a lattice
     Usage
-        TODO
+        i = isLattice P
     Inputs
         P:Poset
     Outputs
@@ -4297,7 +4406,7 @@ doc ///
     Headline
         determines if a poset is a lower (or meet) semilattice
     Usage
-        TODO
+        i = isLowerSemilattice P
     Inputs
         P:Poset
     Outputs
@@ -4317,7 +4426,7 @@ doc ///
     Headline
         determines if a lattice is lower (or meet) semimodular
     Usage
-        TODO
+        i = isLowerSemimodular P 
     Inputs
         P:Poset
     Outputs
@@ -4340,7 +4449,7 @@ doc ///
     Headline
         determines if a lattice is modular
     Usage
-        TODO
+        i = isModular P
     Inputs
         P:Poset
     Outputs
@@ -4365,7 +4474,7 @@ doc ///
     Headline
         determines if a poset is ranked
     Usage
-        TODO
+        i = isRanked P
     Inputs
         P:Poset
     Outputs
@@ -4389,7 +4498,7 @@ doc ///
     Headline
         determines if a poset has the Sperner property
     Usage
-        TODO
+        i = isSperner P
     Inputs
         P:Poset
     Outputs
@@ -4409,7 +4518,7 @@ doc ///
     Headline
         determines if a poset has the strict Sperner property
     Usage
-        TODO
+        i = isStrictSperner P
     Inputs
         P:Poset
     Outputs
@@ -4429,7 +4538,7 @@ doc ///
     Headline
         determines if a poset is a upper (or join) semilattice
     Usage
-        TODO
+        i = isUpperSemilattice P
     Inputs
         P:Poset
     Outputs
@@ -4449,7 +4558,7 @@ doc ///
     Headline
         determines if a lattice is upper (or join) semimoudlar
     Usage
-        TODO
+        i = isUpperSemimodular P
     Inputs
         P:Poset
     Outputs

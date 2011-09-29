@@ -703,10 +703,11 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     )
 
 undirectedEdgesMatrix = method()
-undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
-     bb := graph g;
+undirectedEdgesMatrix Ring := Matrix =>  R -> (
+     if not (R.?graph or R#?gaussianRing) then error "expected a ring created with gaussianRing graph";
+     g := R.graph;
+     bb:= graph g;
      vv := sort vertices g;
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      n := R#gaussianRing#0; --number of vertices
      p := value R#gaussianRing#2;-- this p is actually k in this case (in name).
      PM := mutableMatrix(R,n,n);
@@ -715,12 +716,10 @@ undirectedEdgesMatrix (Ring,Graph) := Matrix =>  (R,g) -> (
      matrix PM) 
 
 gaussianVanishingIdeal=method()
-gaussianVanishingIdeal (Ring,Graph):= Ideal => (R,G) -> (
-    --input: graph G and a polynomial ring R created by gaussianRing (!)
-    --output: the vanishing ideal of hte parametrization
-    --currently works on really small examples! future work to make faster...
-    g:= graph G;
-    K:= undirectedEdgesMatrix(R,G);
+gaussianVanishingIdeal Ring := Ideal => R -> (
+    if not (R.?graph or R#?gaussianRing) then error "expected a ring created with gaussianRing graph";
+    --currently works on really small examples! future work to make faster...    
+    K:= undirectedEdgesMatrix R;
     adjK := sub(det(K)*inverse(sub(K,frac R)), R);
     Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
     ideal selectInSubring(1, gens gb Itemp)
@@ -2054,7 +2053,7 @@ doc///
       R=gaussianRing G
       I=conditionalIndependenceIdeal (R,G)
     Text
-      If a Diraph is passed to the method, it calculates the CI ideal based on global markov statements.
+      If a Digraph is passed to the method, it calculates the CI ideal based on global markov statements.
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
       R = gaussianRing G
@@ -2081,7 +2080,6 @@ doc///
       conditionalIndependenceIdeal also works in the discrete case for both graphs, digraphs and with lists of statements.
     Example    
       R = markovRing (2,2,2,2)
-      G = graph{{1,2},{1,a},{2,b},{a,b}}
       VarNames = {c,d,e,f}
       Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
       conditionalIndependenceIdeal(R,VarNames,Stmts)

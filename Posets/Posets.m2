@@ -163,7 +163,6 @@ export {
     "hPolynomial",
     "moebiusFunction",
     "rankGeneratingFunction",
-    "totalMoebiusFunction",
     "zetaPolynomial",
     --
     -- Properties
@@ -1121,9 +1120,9 @@ maximalChains Poset := List => P -> (
 
 characteristicPolynomial = method(Options => {symbol VariableName => getSymbol "q"})
 characteristicPolynomial Poset := RingElement => opts -> P -> (
-    if not isGraded P then error "The poset must be graded.";
+    if not isRanked P then error "The poset must be ranked.";
     rk := rankFunction P;
-    mu := totalMoebiusFunction P;
+    mu := moebiusFunction P;
     R := ZZ(monoid [opts.VariableName]);
     zeroP := first minimalElements P;
     sum(#P.GroundSet, i -> mu#(zeroP, P.GroundSet_i) * (R_0)^(max rk - rk#i))
@@ -1185,24 +1184,7 @@ hPolynomial Poset := RingElement => opts -> P -> (
     )
 
 moebiusFunction = method()
-moebiusFunction Poset := HashTable => P -> ( 
-    if #minimalElements P > 1 then error "The poset has more than one minimal element; specify an interval.";
-    M := (P.RelationMatrix)^(-1);
-    k := position(P.GroundSet,v->v === (minimalElements P)_0);
-    hashTable apply(#P.GroundSet,i->{P.GroundSet_i,M_(k,i)})
-    )
-moebiusFunction (Poset, Thing, Thing) := HashTable => (P, elt1, elt2) -> moebiusFunction closedInterval(P,elt1,elt2)
-
--- r_i*x^i: r_i is the number of rank i vertices in P
-rankGeneratingFunction = method(Options => {symbol VariableName => getSymbol "q"})
-rankGeneratingFunction Poset := RingElement => opts -> P -> (
-    if not isRanked P then error "The poset must be ranked.";
-    R := ZZ(monoid [opts.VariableName]);
-    sum(pairs tally rankFunction P, p -> p_1 * (R_0)^(p_0))
-    )
-
-totalMoebiusFunction = method()
-totalMoebiusFunction Poset := HashTable => P -> (
+moebiusFunction Poset := HashTable => P -> (
     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
     mu := new MutableHashTable;
     for p in P.GroundSet do (
@@ -1210,6 +1192,14 @@ totalMoebiusFunction Poset := HashTable => P -> (
         for q in P.GroundSet do mu#(q, p) = if p === q then 1 else if not member(q, gtp) then 0 else -sum(gtp, z -> if mu#?(q, z) then mu#(q, z) else 0);
         );
     new HashTable from mu
+    )
+
+-- r_i*x^i: r_i is the number of rank i vertices in P
+rankGeneratingFunction = method(Options => {symbol VariableName => getSymbol "q"})
+rankGeneratingFunction Poset := RingElement => opts -> P -> (
+    if not isRanked P then error "The poset must be ranked.";
+    R := ZZ(monoid [opts.VariableName]);
+    sum(pairs tally rankFunction P, p -> p_1 * (R_0)^(p_0))
     )
 
 -- zeta(i) = the number of weak-chains of i-1 vertices in P
@@ -1259,7 +1249,7 @@ isEulerian Poset := Boolean => P -> (
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
     idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
-    mu := totalMoebiusFunction P;
+    mu := moebiusFunction P;
     P.cache.isEulerian = all(P.GroundSet, 
         p -> (
             gtp := P.GroundSet_(positions(flatten entries (P.RelationMatrix_(idx#p)), i -> i != 0));
@@ -3992,20 +3982,35 @@ doc ///
         (characteristicPolynomial,Poset)
         [characteristicPolynomial,VariableName]
     Headline
-        computes the characteristic polynomial of a graded poset
+        computes the characteristic polynomial of a ranked poset
     Usage
         p = characteristicPolynomial P
         p = characteristicPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
+            a ranked poset
         VariableName=>Symbol
     Outputs
         p:RingElement
+            the characteristic polynomial of $P$
     Description
         Text
-            TODO
+            The characteristic polynomial of a ranked poset is the generating
+            function with variable $q$ such that the coefficient of $q^r$ is
+            the sum overall vertices of rank $r$ of the Moebius function of $v$.
+        
+            The characteristic polynomial of the @TO "chain"@ of $n$ is $q^{n-1}(q-1)$.
+        Example
+            n = 5;
+            factor characteristicPolynomial chain n
+        Text
+            And the characteristic polynomial of the @TO "booleanLattice"@ of 
+            $n$ is $(q-1)^n$.
+        Example
+            factor characteristicPolynomial booleanLattice n
     SeeAlso
-        Posets
+        isRanked
+        moebiusFunction
 ///
 
 -- flagfPolynomial
@@ -4021,14 +4026,26 @@ doc ///
         ff = flagfPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
+            a ranked poset
         VariableName=>Symbol
     Outputs
         ff:RingElement
+            the flag-f polynomial of $P$
     Description
         Text
-            TODO
+            Suppose $P$ is a rank $r$ poset.  For each strictly increasing sequence
+            $(i_1, \ldots, i_k)$ with $0 \leq i_j \leq i_k$, the coefficient of
+            $q_i_1 \cdots q_i_k$ is the number of @TO "flagChains"@ in the ranks
+            $i_1, \cdots, i_k$.
+
+            The flag-f polynomial of the $n$ @TO "chain"@ is $(q_0 + 1)\cdots(q_{n-1}+1)$.
+        Example
+            n = 4;
+            factor flagfPolynomial chain n
     SeeAlso
-        Posets
+        flagChains
+        flaghPolynomial
+        isRanked
 ///
 
 -- flaghPolynomial
@@ -4044,14 +4061,25 @@ doc ///
         fh = flaghPolynomial(P, VariableName => symbol)
     Inputs
         P:Poset
+            a ranked poset
         VariableName=>Symbol
     Outputs
         fh:RingElement
+            the flag-h polynomial of $P$
     Description
         Text
-            TODO
+            Suppose $f$ is the @TO "flagfPolynomial"@ of $P$.  The flag-h polynomial
+            of $P$ is the polynomial $(1-q_0)\cdots(1-q_r)f(q_0/(1-q_0), \ldots, q_r/(1-q_r))$.
+        Example
+            flaghPolynomial booleanLattice 3
+        Text
+            The flag-h polynomial of the $n$ @TO "chain"@ is $1$.
+        Example
+            flaghPolynomial chain 5
     SeeAlso
-        Posets
+        flagChains
+        flagfPolynomial
+        isRanked
 ///
 
 -- fPolynomial
@@ -4070,11 +4098,20 @@ doc ///
         VariableName=>Symbol
     Outputs
         f:RingElement
+            the f-polynomial of $P$
     Description
         Text
-            TODO
+            The f-polynomial of $P$ is the polynomial such that the 
+            coefficient on $q^i$ is the number of @TO "chains"@ of
+            length $i$ in $P$.
+
+            The f-polynomial of the $n$ @TO "chain"@ is $(q+1)^n$.
+        Example
+            n = 5;
+            factor fPolynomial chain n
     SeeAlso
-        Posets
+        chains
+        hPolynomial
 ///
 
 -- greeneKleitmanPartition
@@ -4092,13 +4129,35 @@ doc ///
     Inputs
         P:Poset
         Strategy=>String
+            either "chains" or "antichains"
     Outputs
         l:Partition
+            the Greene-Kleitman partition of $P$
     Description
         Text
-            TODO
+            The Greene-Kleitman partition $l$ of $P$ is the partition
+            such that the sum of the first $k$ parts of $l$ is the maximal
+            number of elements in a union of $k$ @TO "chains"@ in $P$.
+        Example
+            P = poset {{1,2},{2,3},{3,4},{2,5},{6,3}};
+            greeneKleitmanPartition P
+        Text
+            The conjugate of $l$ has the same property, but with chains
+            replaced by @TO "antichains"@.  Because of this, it is often
+            better to count via antichains instead of chains.  This can
+            be done by passing "antichains" as the Strategy.
+        Example 
+            D = dominanceLattice 6;
+            time greeneKleitmanPartition(D, Strategy => "antichains")
+            time greeneKleitmanPartition(D, Strategy => "chains")
+        Text
+            The Greene-Kleitman partition of the $n$ @TO "chain"@ is the
+            partition of $n$ with $1$ part.
+        Example
+            greeneKleitmanPartition chain 10
     SeeAlso
-        Posets
+        chains
+        antichains
 ///
 
 -- hPolynomial
@@ -4117,11 +4176,21 @@ doc ///
         VariableName=>Symbol
     Outputs
         h:RingElement
+            the h-polynomial of $P$
     Description
         Text
-            TODO
+            Suppose $f$ is the @TO "fPolynomial"@ of $P$, and $d$ is the degree 
+            of $f$.  Then the h-polynomial of $P$ is the polynomial 
+            $(1-q)^d f(q/(1-q))$.
+        Example
+            hPolynomial booleanLattice 3
+        Text
+            The h-polynomial of the $n$ @TO "chain"@ is $1$.
+        Example
+            hPolynomial chain 5
     SeeAlso
-        Posets
+        chains
+        fPolynomial
 ///
 
 -- moebiusFunction
@@ -4129,24 +4198,27 @@ doc ///
     Key
         moebiusFunction
         (moebiusFunction,Poset)
-        (moebiusFunction,Poset,Thing,Thing)
     Headline
-        computes the Moebius function of a poset with a unique minimal element
+        computes the Moebius function at every pair of elements of a poset
     Usage
-        mu = moebiusFunction(P, a, b)
+        mu = moebiusFunction P
     Inputs
         P:Poset
-        a:Thing
-            an element of the poset
-        b:Thing
-            an element of the poset
     Outputs
         mu:HashTable
+            the Moebius function of $P$
     Description
         Text
-            TODO
-    SeeAlso
-        Posets
+            The Moebius function of $P$ is a function defined at pairs of
+            vertices of $P$ with the properties:
+            $mu(a,a) = 1$ for all $a$ in $P$, and $mu(a,b) = -sum(mu(a,c))$
+            over all $a \leq c < b$. 
+
+            The Moebius function of the $n$ @TO "chain"@ is $1$ at $(a,a)$ 
+            for all $a$, $-1$ at $(a, a+1)$ for $1 \leq a < n$, and $0$ 
+            every where else.
+        Example
+            moebiusFunction chain 3
 ///
 
 -- rankGeneratingFunction
@@ -4162,34 +4234,30 @@ doc ///
         r = rankGeneratingFunction(P, VariableName => symbol)
     Inputs
         P:Poset
+            a ranked poset
         VariableName=>Symbol
     Outputs
         r:RingElement
+            the rank generating function of $P$
     Description
         Text
-            TODO
-    SeeAlso
-        Posets
-///
+            The rank generating function of $P$ is the polynomial
+            with the coefficient of $q^i$ given by the number of
+            vertices in rank $i$ of $P$.
 
--- totalMoebiusFunction
-doc ///
-    Key
-        totalMoebiusFunction
-        (totalMoebiusFunction,Poset)
-    Headline
-        computes the Moebius function at every pair of elements of a poset
-    Usage
-        mu = totalMoebiusFunction P
-    Inputs
-        P:Poset
-    Outputs
-        mu:HashTable
-    Description
+            The rank generating function of the $n$ @TO "chain"@ is 
+            $q^{n-1} + \cdots + q + 1$.
+        Example
+            n = 5;
+            rankGeneratingFunction chain n
         Text
-            TODO
+            The rank generating function of the $n$ @TO "booleanLattice"@
+            is $(q+1)^n$.
+        Example
+            factor rankGeneratingFunction booleanLattice n
     SeeAlso
-        Posets
+        isRanked
+        rankPoset
 ///
 
 -- zetaPolynomial
@@ -4208,11 +4276,26 @@ doc ///
         VariableName=>Symbol
     Outputs
         z:RingElement
+            the zeta polynomial of $P$
     Description
         Text
-            TODO
+            The zeta polynomial of $P$ is the polynomial
+            $z$ such that for every $i > 1$, $z(i)$ is the number
+            of weakly increasing chains of $i-1$ vertices in $P$.
+
+            The zeta polynomial of the $n$ @TO "booleanLattice"@ is
+            $q^n$.
+        Example
+            B = booleanLattice 3;
+            z = zetaPolynomial B
+        Text
+            Thus, $z(2)$ is the number of vertices of $P$,
+            and $z(3)$ is the number of total relations in $P$.
+        Example
+            #B.GroundSet == sub(z, (ring z)_0 => 2)
+            #allRelations B == sub(z, (ring z)_0 => 3)
     SeeAlso
-        Posets
+        chains
 ///
 
 ------------------------------------------

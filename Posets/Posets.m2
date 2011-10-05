@@ -296,7 +296,7 @@ incomparabilityGraph = method()
 incomparabilityGraph Poset := Graph => P -> (
     E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
         if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
-    S := toList(0 .. #P.GroundSet) - set unique flatten E;
+    S := toList(0 ..< #P.GroundSet) - set unique flatten E;
     graph(E, Singletons => S)
     )
 

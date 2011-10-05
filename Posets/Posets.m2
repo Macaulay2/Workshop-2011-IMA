@@ -263,7 +263,7 @@ hasseDiagram Poset := Digraph => P -> (
 hibiIdeal = method(Options => { symbol CoefficientRing => QQ })
 hibiIdeal (Poset) := MonomialIdeal => opts -> (P) -> (
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    G := set toList(0..(#P.GroundSet-1));
+    G := set toList(0 ..< #P.GroundSet);
     O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
     x := local x;
@@ -282,7 +282,7 @@ hibiRing (Poset) := QuotientRing => opts -> (P) -> (
     O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
     S := (opts.CoefficientRing)(monoid[apply(J, I -> t_I)]);
-    G := set toList(0..(#P.GroundSet-1));
+    G := set toList(0 ..< #P.GroundSet);
     M := apply(J, I -> product(I, i -> R_i) * product(toList(G - I), j -> R_(#P.GroundSet + j)));
     if opts.Strategy === "kernel" then S/kernel map(R, S, matrix {M})
     else if opts.Strategy === "4ti2" then (
@@ -296,7 +296,7 @@ incomparabilityGraph = method()
 incomparabilityGraph Poset := Graph => P -> (
     E := flatten for i from 0 to #P.GroundSet - 1 list for j from i+1 to #P.GroundSet - 1 list
         if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
-    S := toList(set(0..#P.GroundSet - 1) - unique flatten E);
+    S := toList(0 .. #P.GroundSet) - set unique flatten E;
     graph(E, Singletons => S)
     )
 
@@ -445,8 +445,8 @@ dropElements (Poset, List) := Poset => (P, L) -> (
     poset(newGroundSet, newRelations, newRelationMatrix)
     )
 dropElements (Poset, Function) := Poset => (P, f) -> (
-    keptIndices := select(toList(0..#P.GroundSet-1), i-> not f(P.GroundSet#i));
-    newGroundSet := apply(keptIndices, i-> P.GroundSet#i);
+    keptIndices := select(toList(0 ..< #P.GroundSet), i-> not f(P.GroundSet#i));
+    newGroundSet := P.GroundSet_keptIndices;
     newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
     newRelations := select(allRelations(P, true), r -> not f(first r) and not f(last r));
     poset(newGroundSet, newRelations, newRelationMatrix)
@@ -726,9 +726,9 @@ partitionRefinementPairs List := List => L-> (
     MM := apply(m, i-> (symbol M)_i);
     NN := apply(m, i-> (symbol N)_i);
     for i in m do (
-        subS := subsets toList(0..i-1);
+        subS := subsets toList(0 ..< i);
         M_i = take(subS,{1,#subS-2});
-        N_i = unique apply(M_i, r-> sort {r, select(toList(0..i-1), k-> not member(k,r))});
+        N_i = unique apply(M_i, r-> sort {r, select(toList(0 ..< i), k-> not member(k,r))});
         );
     dropPart := apply(#L, i-> drop(L,{i,i}));
     coverSet := flatten for i from 0 to #L-1 list(
@@ -884,7 +884,7 @@ compare(Poset, Thing, Thing) := Boolean => (P, a, b) -> (
 connectedComponents = method()
 connectedComponents Poset := List => P -> (
     if not P.cache.?connectedComponents then (
-        C := new MutableList from apply(toList(0..#P.GroundSet-1), i -> {i});
+        C := new MutableList from apply(toList(0 ..< #P.GroundSet), i -> {i});
         Q := new MutableList from toList(#P.GroundSet:1);
         idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
         cr := apply(coveringRelations P, c -> {idx#(c_0), idx#(c_1)});
@@ -1022,7 +1022,7 @@ rankPoset = method()
 rankPoset Poset := List => P -> (
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
-    rks := partition(i -> rk_i, 0..#rk-1);
+    rks := partition(i -> rk_i, 0 ..< #rk);
     apply(max rk + 1, r -> P.GroundSet_(toList (rks#r)))
     )
 
@@ -1266,7 +1266,7 @@ isLattice Poset := Boolean => P -> isLowerSemilattice P and isUpperSemilattice P
 
 isLowerSemilattice = method()
 isLowerSemilattice Poset := Boolean => P -> if P.cache.?isLowerSemilattice then P.cache.isLowerSemilattice else
-    P.cache.isLowerSemilattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j)))
+    P.cache.isLowerSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package
 isLowerSemimodular = method()
@@ -1293,7 +1293,7 @@ isSperner Poset := Boolean => P -> (
     if P.cache.?isSperner then return P.cache.isSperner;
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
-    maxrk := max apply(values partition(i -> rk_i, 0..#rk-1), r -> #r);
+    maxrk := max apply(values partition(i -> rk_i, 0 ..< #rk), r -> #r);
     P.cache.isSperner = maxrk == dilworthNumber P
     )
 
@@ -1308,7 +1308,7 @@ isStrictSperner Poset := Boolean => P -> (
 
 isUpperSemilattice = method()
 isUpperSemilattice Poset := Boolean => P -> if P.cache.?isUpperSemilattice then P.cache.isLowerSemilattice else
-    P.cache.isUpperSemilattice = all(0..#P.GroundSet-1, i -> all(i+1..#P.GroundSet-1, j -> meetExists(P, P.GroundSet#i, P.GroundSet#j)))
+    P.cache.isUpperSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> meetExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package
 isUpperSemimodular = method()

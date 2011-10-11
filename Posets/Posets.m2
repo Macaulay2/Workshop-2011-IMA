@@ -1,7 +1,13 @@
 ------------------------------------------
 -- Current work:
 ------------------------------------------
--- David: I'm working on the documentation.
+-- David: 1) Adding documentation nodes of extended examples.
+--        2) For indexLabeling and naturalLabeling, copy (and appropriately modify) cached data.
+--        3) Start working on tests.
+--        4) Identify comparability graphs (or should this be in Graphs/GraphsPlus?)
+--        5) Decide if any other methods should precompute data  
+--           E.g., a) Chains are ranked easily, so provide it
+--                 b) The dual of a ranked poset has an easy to derive ranking.
 -- Gwyn:  Guess it's time to write some tests.
 
 ------------------------------------------
@@ -9,8 +15,7 @@
 ------------------------------------------
 -- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
 -- isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular,
--- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner
--- isAtomic
+-- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner, isAtomic
 
 -- Everything above the line below should be removed before the package is submitted.
 ------------------------------------------
@@ -33,8 +38,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0.3.2", 
-        Date => "24. August 2011",
+        Version => "1.0.4", 
+        Date => "11. October 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},

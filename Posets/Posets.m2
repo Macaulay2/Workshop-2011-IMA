@@ -8,7 +8,7 @@
 -- Currently caching:
 ------------------------------------------
 -- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
--- isAtomic, isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular,
+-- isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular,
 -- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner
 
 -- Everything above the line below should be removed before the package is submitted.
@@ -168,7 +168,6 @@ export {
     -- Properties
     "dilworthNumber",
   --"height", -- exported by Core
-    "isAtomic",
     "isBounded",
     "isConnected",
     "isDistributive",
@@ -1223,13 +1222,6 @@ dilworthNumber Poset := ZZ => P -> max apply(maximalAntichains P, a -> #a)
 -- The method height is given in the Core.
 height Poset := ZZ => P -> -1 + max apply(maximalChains P, c -> #c)
 
-isAtomic = method()
-isAtomic Poset := Boolean => P -> (
-    if P.cache.?isAtomic then return P.cache.isAtomic;
-    atm := atoms P;
-    P.cache.isAtomic = all(toList(set P.GroundSet - set minimalElements P - set atm), v -> any(atm, a -> compare(P, a, v)))
-    )
-
 isBounded = method()
 isBounded Poset := Boolean => P -> #minimalElements P == 1 and #maximalElements P == 1
 
@@ -1240,7 +1232,13 @@ isDistributive = method()
 isDistributive Poset := Boolean => P -> (
     if P.cache.?isDistributive then return P.cache.isDistributive;
     if not isLattice P then error "The poset must be a lattice.";
-    P.cache.isDistributive = all(subsets(P.GroundSet, 3), G -> posetMeet(P, G_0, first posetJoin(P, G_1, G_2)) == posetJoin(P, first posetMeet(P, G_0, G_1), first posetMeet(P, G_0, G_2)))
+    P.cache.isDistributive = all(P.GroundSet, x -> 
+        all(P.GroundSet, y -> 
+            all(P.GroundSet, z -> 
+                posetMeet(P, x, first posetJoin(P, y, z)) === posetJoin(P, first posetMeet(P, x, y), first posetMeet(P, x, z))
+                )
+            )
+        )
     )
 
 isEulerian = method()
@@ -1266,7 +1264,7 @@ isLattice Poset := Boolean => P -> isLowerSemilattice P and isUpperSemilattice P
 
 isLowerSemilattice = method()
 isLowerSemilattice Poset := Boolean => P -> if P.cache.?isLowerSemilattice then P.cache.isLowerSemilattice else
-    P.cache.isLowerSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j)))
+    P.cache.isLowerSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> meetExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package
 isLowerSemimodular = method()
@@ -1308,7 +1306,7 @@ isStrictSperner Poset := Boolean => P -> (
 
 isUpperSemilattice = method()
 isUpperSemilattice Poset := Boolean => P -> if P.cache.?isUpperSemilattice then P.cache.isLowerSemilattice else
-    P.cache.isUpperSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> meetExists(P, P.GroundSet#i, P.GroundSet#j)))
+    P.cache.isUpperSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package
 isUpperSemimodular = method()
@@ -4315,11 +4313,24 @@ doc ///
         P:Poset
     Outputs
         d:ZZ
+            the maximal length of an antichain
     Description
         Text
             The Dilworth number of a poset is the maximal length of an antichain.
+
+            The Dilworth number of a @TO "chain"@ is always 1.
+        Example
+            n = 5;
+            dilworthNumber chain n
+        Text
+            The Dilworth number of the $n$ @TO "booleanLattice"@ is $n*(n-1)/2$.
+        Example
+            dilworthNumber booleanLattice n
+            n*(n-1)//2
     SeeAlso
-        Posets
+        antichains
+        dilworthLattice
+        maximalAntichains
 ///
 
 -- height
@@ -4334,31 +4345,18 @@ doc ///
         P:Poset
     Outputs
         h:ZZ
+            the height of $P$
     Description
         Text
-            TODO
-    SeeAlso
-        Posets
-///
+            The height of a poset is one less than the length of the longest chain.
 
--- isAtomic
-doc ///
-    Key
-        isAtomic
-        (isAtomic,Poset)
-    Headline
-        determines if a poset is atomic
-    Usage
-        i = isAtomic P
-    Inputs
-        P:Poset
-    Outputs
-        i:Boolean
-    Description
-        Text
-            TODO
+            The $n$ @TO "chain"@ has height $n-1$.
+        Example
+            n = 5;
+            height chain n
     SeeAlso
-        Posets
+        chains
+        maximalChains
 ///
 
 -- isBounded
@@ -4374,11 +4372,25 @@ doc ///
         P:Poset
     Outputs
         i:Boolean
+            whether $P$ is bounded
     Description
         Text
-            TODO
+            The poset $P$ is bounded if it has a unique minimal 
+            element and a unique maximal element.
+        
+            The $n$ @TO "chain"@ and $n$ @TO "booleanLattice"@ are bounded.
+        Example
+            n = 5;
+            isBounded chain n
+            B = booleanLattice n;
+            isBounded B
+        Text
+            The middle ranks of an $n$ boolean lattice are not bounded.
+        Example
+            isBounded flagPoset(B, {1,2,3,4})
     SeeAlso
-        Posets
+        maximalElements
+        minimalElements
 ///
 
 -- isConnected
@@ -4394,11 +4406,25 @@ doc ///
         P:Poset
     Outputs
         i:Boolean
+            whether $P$ is connected
     Description
         Text
-            TODO
+            The poset $P$ is connected if the number of @TO "connectedComponents"@
+            is $1$.  Equivalently, the poset $P$ is connected if between every pair
+            of vertices in $P$ there exists a chain of relations going from one
+            to the other.
+
+            The @TO "divisorPoset"@ of $n$ is always connected.
+        Example
+            isConnected divisorPoset 18
+        Text
+            The disjoint union of any two posets on disjoint vertex sets is disconnected.
+        Example
+            C = chain 3;
+            P = sum(5, i -> naturalLabeling(C, 10*i));
+            isConnected P
     SeeAlso
-        Posets
+        connectedComponents
 ///
 
 -- isDistributive
@@ -4412,13 +4438,32 @@ doc ///
         i = isDistributive P 
     Inputs
         P:Poset
+            a lattice
     Outputs
         i:Boolean
+            whether $P$ is distributive
     Description
         Text
-            TODO
+            The lattice $P$ is distributive if the meet operation distributes
+            over the join operation.  Equivalently, $P$ is distributive if the
+            join operation distributes over the meet operation.
+
+            The $n$ @TO "booleanLattice"@ is distributive.
+        Example
+            isDistributive booleanLattice 3
+        Text
+            The pentagon lattice and diamond lattice are prototypical non-distributive lattices.
+        Example
+            P = poset {{1,2}, {1,3}, {3,4}, {2,5}, {4, 5}};
+            isLattice P
+            isDistributive P
+            D = poset {{1,2}, {1,3}, {1,4}, {2,5}, {3,5}, {4,5}};
+            isLattice D
+            isDistributive D
     SeeAlso
-        Posets
+        posetJoin
+        posetMeet
+        isLattice
 ///
 
 -- isEulerian
@@ -4432,13 +4477,30 @@ doc ///
         i = isEulerian P
     Inputs
         P:Poset
+            a ranked poset
     Outputs
         i:Boolean
+            whether $P$ is Eulerian
     Description
         Text
-            TODO
+            The poset $P$ is Eulerian if every non-trivial @TO "closedInterval"@
+            of $P$ has an equal number of vertices of even and odd rank.
+
+            The $n$ @TO "chain"@ is non-Eulerian for $n \geq 3$.
+        Example
+            isEulerian chain 10
+        Text
+            The @TO "facePoset"@ of the @TO "simplicialComplex"@ of an $n$ cycle
+            is Eulerian.
+        Example
+            n = 10;
+            R = QQ[x_0..x_(n-1)];
+            F = facePoset simplicialComplex apply(n, i -> x_i * x_((i+1)%n));
+            isEulerian F
     SeeAlso
-        Posets
+        closedInterval
+        isRanked
+        moebiusFunction
 ///
 
 -- isGraded
@@ -4454,11 +4516,26 @@ doc ///
         P:Poset
     Outputs
         i:Boolean
+            whether the maximal chains of $P$ are the same length
     Description
         Text
-            TODO
+            The poset $P$ is graded if all of its @TO "maximalChains"@ are the
+            same length.
+
+            Clearly, the $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are
+            graded.
+        Example
+            n = 5;
+            isGraded chain n
+            isGraded booleanLattice n
+        Text
+            However, the pentagon lattice is not graded.
+        Example
+            P = poset {{1,2}, {1,3}, {3,4}, {2,5}, {4, 5}};
+            isGraded P
     SeeAlso
-        Posets
+        chains
+        maximalChains
 ///
 
 -- isLattice
@@ -4474,11 +4551,32 @@ doc ///
         P:Poset
     Outputs
         i:Boolean
+            whether $P$ is a lattice
     Description
         Text
-            TODO
+            The poset $P$ is a lattice if every pair of vertices has a unique
+            least upper bound and a unique greatest lower bound, i.e., every
+            pair of vertices has a unique meet and a unique join.  Equivalently,
+            the poset $P$ is a lattice if it is both a lower semilattice and 
+            an upper semilattice.
+
+            Clearly, the $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are
+            lattices.
+        Example
+            n = 4;
+            isLattice chain n
+            B = booleanLattice n
+            isLattice B
+        Text
+            The middle ranks of the $n$ @TO "booleanLattice"@ are not lattices.
+        Example
+            isLattice flagPoset(B, {1,2,3})
     SeeAlso
-        Posets
+        isBounded
+        isLowerSemilattice
+        isUpperSemilattice
+        joinExists
+        meetExists
 ///
 
 -- isLowerSemilattice
@@ -4494,11 +4592,34 @@ doc ///
         P:Poset
     Outputs
         i:Boolean
+            whether $P$ is a lower semilattice
     Description
         Text
-            TODO
+            The poset $P$ is a lower semilattice if every pair of vertices
+            has a unique greatest lower bound (meet).
+
+            Clearly, the $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are
+            lower semilattices.
+        Example
+            n = 4;
+            isLowerSemilattice chain n
+            B = booleanLattice n
+            isLowerSemilattice B
+        Text
+            The middle ranks of the $n$ @TO "booleanLattice"@ are not lower semilattices.
+        Example
+            isLowerSemilattice flagPoset(B, {1,2,3})
+        Text
+            However, the lower ranks of the $n$ @TO "booleanLattice"@ are non-lattice
+            lower semilattices.
+        Example
+            B' = flagPoset(B, {0,1,2,3});
+            isLattice B'
+            isLowerSemilattice B'
     SeeAlso
-        Posets
+        isLattice
+        isUpperSemilattice
+        meetExists
 ///
 
 -- isLowerSemimodular
@@ -4619,18 +4740,41 @@ doc ///
         isUpperSemilattice
         (isUpperSemilattice,Poset)
     Headline
-        determines if a poset is a upper (or join) semilattice
+        determines if a poset is an upper (or join) semilattice
     Usage
         i = isUpperSemilattice P
     Inputs
         P:Poset
     Outputs
         i:Boolean
+            whether $P$ is an upper semilattice
     Description
         Text
-            TODO
+            The poset $P$ is an upper semilattice if every pair of vertices
+            has a unique least upper bound (join).
+
+            Clearly, the $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are
+            upper semilattices.
+        Example
+            n = 4;
+            isUpperSemilattice chain n
+            B = booleanLattice n
+            isUpperSemilattice B
+        Text
+            The middle ranks of the $n$ @TO "booleanLattice"@ are not upper semilattices.
+        Example
+            isUpperSemilattice flagPoset(B, {1,2,3})
+        Text
+            However, the upper ranks of the $n$ @TO "booleanLattice"@ are non-lattice
+            upper semilattices.
+        Example
+            B' = flagPoset(B, {1,2,3,4});
+            isLattice B'
+            isUpperSemilattice B'
     SeeAlso
-        Posets
+        isLattice
+        isLowerSemilattice
+        joinExists
 ///
 
 -- isUpperSemimodular

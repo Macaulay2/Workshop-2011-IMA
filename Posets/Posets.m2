@@ -10,6 +10,7 @@
 -- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
 -- isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular,
 -- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner
+-- isAtomic
 
 -- Everything above the line below should be removed before the package is submitted.
 ------------------------------------------
@@ -168,10 +169,12 @@ export {
     -- Properties
     "dilworthNumber",
   --"height", -- exported by Core
+    "isAtomic",
     "isBounded",
     "isConnected",
     "isDistributive",
     "isEulerian",
+    "isGeometric",
     "isGraded",
     "isLattice",
     "isLowerSemilattice",
@@ -1222,6 +1225,16 @@ dilworthNumber Poset := ZZ => P -> max apply(maximalAntichains P, a -> #a)
 -- The method height is given in the Core.
 height Poset := ZZ => P -> -1 + max apply(maximalChains P, c -> #c)
 
+isAtomic = method()
+isAtomic Poset := Boolean => P -> (
+    if P.cache.?isAtomic then return P.cache.isAtomic;
+    if not isLattice P then error "The poset must be a lattice.";
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    cp := partition(last, coveringRelations P);
+    cvrs := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(first q)) else {});
+    P.cache.isAtomic = all(cvrs, cvr -> #cvr != 1 or cvrs#(first cvr) == {})
+    )
+
 isBounded = method()
 isBounded Poset := Boolean => P -> #minimalElements P == 1 and #maximalElements P == 1
 
@@ -1254,6 +1267,12 @@ isEulerian Poset := Boolean => P -> (
             all(gtp, q -> mu#(q, p) == (-1)^(rk#(idx#q) - rk#(idx#p)))
             )
         )
+    )
+
+isGeometric = method()
+isGeometric Poset := Boolean => P -> (
+    if not isLattice P then error "The poset must be a lattice.";
+    isAtomic P and isUpperSemimodular P
     )
 
 isGraded = method()
@@ -4362,6 +4381,46 @@ doc ///
         maximalChains
 ///
 
+-- isAtomic
+doc ///
+    Key 
+        isAtomic
+        (isAtomic,Poset)
+    Headline
+        determines if a lattice is atomic
+    Usage
+        i = isAtomic P
+    Inputs
+        P:Poset
+            a lattice
+    Outputs
+        i:Boolean
+            whether $P$ is atomic
+    Description
+        Text
+            The lattice $P$ is atomic if every non-minimal vertex of $P$ is
+            the join of atoms of $P$.  Equivalently, $P$ is atomic if every
+            non-minimal, non-atom vertex of $P$ covers at least two vertices.
+
+            The diamond poset is atomic.  Also $n$ @TO "booleanLattice"@s are atomic.
+        Example
+            P = poset {{1, 2}, {1, 3}, {1, 4}, {2, 5}, {3, 5}, {4, 5}};
+            isLattice P
+            isAtomic P
+            isAtomic booleanLattice 4
+        Text
+            The following lattice is non-atomic.  Also, $n$ @TO "chain"@s are 
+            non-atomic, for $n \geq 3$.
+        Example
+            Q = poset {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 4}, {4, 6}, {5, 6}};
+            isLattice Q
+            isAtomic Q
+            isAtomic chain 5
+    SeeAlso
+        atoms
+        isLattice
+///
+
 -- isBounded
 doc ///
     Key
@@ -4504,6 +4563,43 @@ doc ///
         closedInterval
         isRanked
         moebiusFunction
+///
+
+-- isGeometric
+doc ///
+    Key
+        isGeometric
+        (isGeometric,Poset)
+    Headline
+        determines if a lattice is geometric
+    Usage
+        i = isGeometric P
+    Inputs
+        P:Poset
+            a lattice
+    Outputs
+        i:Boolean
+            whether $P$ is geometric
+    Description
+        Text
+            The lattice $P$ is geometric if it @TO "isAtomic"@ and @TO "isUpperSemimodular"@.
+
+            The diamond poset is geometric.  Also $n$ @TO "booleanLattice"@s are geometric.
+        Example
+            P = poset {{1, 2}, {1, 3}, {1, 4}, {2, 5}, {3, 5}, {4, 5}};
+            isLattice P
+            isGeometric P
+            isGeometric booleanLattice 4
+        Text
+            The following lattice is non-geometric.
+        Example
+            Q = poset {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 4}, {4, 6}, {5, 6}};
+            isLattice Q
+            isGeometric
+    SeeAlso
+        isAtomic
+        isLattice
+        isUpperSemimodular
 ///
 
 -- isGraded

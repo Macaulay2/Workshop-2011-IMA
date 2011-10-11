@@ -120,8 +120,9 @@ export {
     "standardMonomialPoset",
     "youngSubposet",
     --
-    -- TeX
+    -- TeX & GAP
     "displayPoset",
+    "gapPosetConversion",
     "outputTexPoset",
     "texPoset",
         "Jitter",
@@ -458,6 +459,30 @@ Poset - List := dropElements
 -- Ported from Stembridge's Maple Package
 isomorphism = method()
 isomorphism (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
+    -- Needed for later + quick bail out.
+    crP := coveringRelations P;
+    crQ := coveringRelations Q;
+    if #crP != #crQ or #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
+    -- This relabels P & Q (and the covering relations, mu, and nu)
+    -- so that the labels are guaranteed to be sensible.
+    idxP := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    P' := poset(apply(P.GroundSet, p -> idxP#p), apply(P.Relations, r -> {idxP#(first r), idxP#(last r)}), P.RelationMatrix);
+    P'.cache.coveringRelations = apply(crP, r -> {idxP#(first r), idxP#(last r)});
+    mu' := (S -> apply(S, p -> idxP#p)) \ mu;
+    idxQ := hashTable apply(#Q.GroundSet, i -> Q.GroundSet_i => i);
+    Q' := poset(apply(Q.GroundSet, q -> idxQ#q), apply(Q.Relations, r -> {idxQ#(first r), idxQ#(last r)}), Q.RelationMatrix);
+    Q'.cache.coveringRelations = apply(crQ, r -> {idxQ#(first r), idxQ#(last r)});
+    nu' := (S -> apply(S, q -> idxQ#q)) \ nu;
+    isom := isomorphism'(P', mu', Q', nu');
+    -- This converts the isomorphism (if extant) back to P & Q relevancy.
+    if isom === null then null else applyValues(applyKeys(isom, k -> P_k), v -> Q_v)
+    )
+isomorphism (Poset, Poset) := HashTable => (P, Q) -> isomorphism(P, {P.GroundSet}, Q, {Q.GroundSet})
+
+-- Actual workhorse: Separated from base method.
+-- Assumes P & Q are labeled sensibly (with integers).
+isomorphism' = method()
+isomorphism' (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
     -- 0. Check for non-partitions.
     mu' := flatten mu; 
     if #mu' != #P.GroundSet and isSubset(mu', P.GroundSet) then error "The list mu is not a partition of the ground set of P.";
@@ -487,7 +512,7 @@ isomorphism (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
     if kP =!= sort keys sepQ or any(keys sepP, k -> #sepP#k != #sepQ#k) then return null;
     mu' = apply(kP, k -> last \ sepP#k);
     nu' = apply(kP, k -> last \ sepQ#k);
-    if #mu' > #mu then return isomorphism(P, mu', Q, nu');
+    if #mu' > #mu then return isomorphism'(P, mu', Q, nu');
     -- 4a. Restrict P and Q to non-singleton sets.
     pp := partition(a -> #a == 1, mu');
     sisom := hashTable if pp#?true then (
@@ -505,13 +530,11 @@ isomorphism (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
     pick := (i, j, mu) -> join(take(mu, j), {{mu_j_i}, drop(mu_j, {i,i})}, take(mu, j+1-#mu));
     mu' = pick(0, j, mu');
     for i from 0 to m-1 do (
-        isom' = isomorphism(P, mu', Q, pick(i, j, nu'));
+        isom' = isomorphism'(P, mu', Q, pick(i, j, nu'));
         if isom' =!= null then return merge(sisom, isom', (a,b) -> error "Something broke!");
         );
     null
     )
-isomorphism (Poset, Poset) := HashTable => (P, Q) -> isomorphism(P, {P.GroundSet}, Q, {Q.GroundSet})
-
 -- The product method is defined in the Core.
 product (Poset, Poset) := Poset => (P, Q) -> 
     poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
@@ -810,7 +833,7 @@ youngSubposet ZZ := Poset => n -> (
     )
 
 ------------------------------------------
--- TeX
+-- TeX & GAP
 ------------------------------------------
 
 displayPoset = method(Options => { symbol SuppressLabels => posets'SuppressLabels, symbol PDFViewer => posets'PDFViewer, symbol Jitter => false })
@@ -823,6 +846,24 @@ displayPoset (Poset) := opts -> (P) -> (
     run concatenate("pdflatex -output-directory /tmp ", name, " 1>/dev/null");
     run concatenate(opts.PDFViewer, " ", name,".pdf &");
     )
+
+gapPosetConversion = method()
+gapPosetConversion Poset := String => P -> (
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i+2);
+    cp := partition(first, coveringRelations P);
+    -- Note: Maximal elements are covered by a new element, m, in GAP (Simplicial Homology)
+    m := #P.GroundSet + 2;
+    cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {m});
+    -- Note: Minimal elements cover a new element in GAP (Simplicial Homology)
+    minel := apply(minimalElements P, p -> idx#p);
+    toArray := L -> new Array from L;
+    toString toArray (toArray \ join({minel}, cvrby, {{}}))
+    )
+gapPosetConversion Array := Poset => A -> (
+    A = toList \ (toList A);
+    poset flatten apply(#A, p -> apply(A_p, q -> {p + 1, q}))
+    )
+gapPosetConversion String := Poset => S -> gapPosetConversion value S
 
 outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, symbol Jitter => false});
 outputTexPoset (Poset,String) := String => opts -> (P,name) -> (
@@ -3138,7 +3179,7 @@ doc ///
 ///
 
 ------------------------------------------
--- TeX
+-- TeX & GAP
 ------------------------------------------
 
 -- displayPoset
@@ -3181,6 +3222,56 @@ doc ///
         texPoset
         Jitter
         SuppressLabels
+///
+
+-- gapPosetConversion
+doc ///
+    Key 
+        gapPosetConversion
+        (gapPosetConversion,Array)
+        (gapPosetConversion,Poset)
+        (gapPosetConversion,String)
+    Headline
+        converts between Macaulay2's Posets and GAP's Posets
+    Usage
+        P = gapPosetConversion A
+        P = gapPosetConversion S
+        S = gapPosetConversion P
+    Inputs
+        A:Array
+            representing a poset in GAP-format
+        S:String
+            representing a poste in GAP-format
+        P:Poset
+    Outputs
+        S:String
+            representing a poste in GAP-format
+        P:Poset
+    Description
+        Text
+            The GAP package @TT "Simplicial Homology"@, available at 
+            @HREF "http://www.eecis.udel.edu/~dumas/Homology/"@, provides methods for 
+            using posets within GAP.  According to the documentation, posets are
+            stored in GAP in the following manor:  The ground set is the set of integers
+            $1..n+1$ and the relations are stored in a list of length $n$, where the $i$th
+            entry is the set of vertices which cover $i$ in the poset.  In particular, $1$
+            should be the unique minimal element and $n+1$ should be the unique maximal
+            element. 
+
+            When converting from GAP format, the conversion is direct using the above convention.
+            In this example, @TT "S"@ is generated with the GAP command 
+            @TT "OrderRelationToPoset(Subsets([1,2,3]), IsSubset);"@.
+        Example
+            S = "[ [ 3 ], [ 10 ], [ 4, 7, 9 ], [ 5, 6 ], [ 2 ], [ 2 ], [ 5, 8 ], [ 2 ], [ 6, 8 ], [  ] ]";
+            P = gapPosetConversion S
+            P == augmentPoset booleanLattice 3
+        Text
+            When convering to GAP format, the method automatically augments the poset.  In this example,
+            the $3$ chain becomes a $5$ chain in GAP format.
+        Example
+            gapPosetConversion chain 3
+   SeeAlso
+        poset
 ///
 
 -- outputTexPoset

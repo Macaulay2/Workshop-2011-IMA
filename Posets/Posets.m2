@@ -1271,6 +1271,7 @@ isLowerSemimodular = method()
 isLowerSemimodular Poset := Boolean => P -> (
     if P.cache.?isLowerSemimodular then return P.cache.isLowerSemimodular;
     if not isLattice P then error "The poset must be a lattice.";
+    if not isRanked P then error "The poset must be ranked.";
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     cp := partition(last, coveringRelations P);
     cvrs := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(first q)) else {});
@@ -1280,6 +1281,7 @@ isLowerSemimodular Poset := Boolean => P -> (
 isModular = method()
 isModular Poset := Boolean => P -> (
     if not isLattice P then error "The poset must be a lattice.";
+    if not isRanked P then error "The poset must be ranked.";
     isLowerSemimodular P and isUpperSemimodular P
     )
 
@@ -1291,7 +1293,7 @@ isSperner Poset := Boolean => P -> (
     if P.cache.?isSperner then return P.cache.isSperner;
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
-    maxrk := max apply(values partition(i -> rk_i, 0 ..< #rk), r -> #r);
+    maxrk := max values tally rk;
     P.cache.isSperner = maxrk == dilworthNumber P
     )
 
@@ -1313,6 +1315,7 @@ isUpperSemimodular = method()
 isUpperSemimodular Poset := Boolean => P -> (
     if P.cache.?isUpperSemimodular then return P.cache.isUpperSemimodular;
     if not isLattice P then error "The poset must be a lattice.";
+    if not isRanked P then error "The poset must be ranked.";
     idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     cp := partition(first, coveringRelations P);
     cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {});
@@ -4565,7 +4568,7 @@ doc ///
         Example
             n = 4;
             isLattice chain n
-            B = booleanLattice n
+            B = booleanLattice n;
             isLattice B
         Text
             The middle ranks of the $n$ @TO "booleanLattice"@ are not lattices.
@@ -4603,7 +4606,7 @@ doc ///
         Example
             n = 4;
             isLowerSemilattice chain n
-            B = booleanLattice n
+            B = booleanLattice n;
             isLowerSemilattice B
         Text
             The middle ranks of the $n$ @TO "booleanLattice"@ are not lower semilattices.
@@ -4628,21 +4631,42 @@ doc ///
         isLowerSemimodular
         (isLowerSemimodular,Poset)
     Headline
-        determines if a lattice is lower (or meet) semimodular
+        determines if a ranked lattice is lower semimodular
     Usage
         i = isLowerSemimodular P 
     Inputs
         P:Poset
+            a ranked lattice
     Outputs
         i:Boolean
+            whether $P$ is lower semimodular
     Description
         Text
-            TODO
+            Let $r$ be the ranking of $P$.  Then $P$ is lower semimodular if for
+            every pair of vertices $a$ and $b$, $r(a) + r(b) \leq r(join(a,b)) + r(meet(a,b,))$.
+
+            The $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are
+            lower semimodular.
+        Example
+            n = 4;
+            isLowerSemimodular chain n
+            isLowerSemimodular booleanLattice n
+        Text
+            The following lattice is not lower semimodular.
+        Example
+            P = poset {{1, 2}, {1, 5}, {2, 3}, {2, 4}, {3, 7}, {4, 7}, {5, 4}, {5, 6}, {6, 7}};
+            isLattice P
+            isLowerSemimodular P
         Text
             This method was ported from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        isLattice
+        isModular
+        isRanked
+        posetJoin
+        posetMeet
+        rankFunction
 ///
 
 -- isModular
@@ -4656,18 +4680,40 @@ doc ///
         i = isModular P
     Inputs
         P:Poset
+            a ranked lattice
     Outputs
         i:Boolean
+            whether $P$ is modular
     Description
         Text
-            TODO
+            Let $r$ be the ranking of $P$.  Then $P$ is modular if for
+            every pair of vertices $a$ and $b$, $r(a) + r(b) = r(join(a,b)) + r(meet(a,b,))$.
+            That is, $P$ is modular if it @TO "isLowerSemimodular"@ and @TO "isUpperSemimodular"@.
+
+            The $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are modular.
+        Example
+            n = 4;
+            isModular chain n
+            isModular booleanLattice n
+        Text
+            The following lattice is not modular.
+        Example
+            P = poset {{1, 2}, {1, 5}, {2, 3}, {2, 4}, {3, 7}, {4, 7}, {5, 4}, {5, 6}, {6, 7}};
+            isLattice P
+            isModular P
         Text
             This method uses the methods @TO "isLowerSemimodular"@ and
             @TO "isUpperSemimodular"@, which were ported
             from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        isLattice
+        isLowerSemimodular
+        isRanked
+        isUpperSemimodular
+        posetJoin
+        posetMeet
+        rankFunction
 ///
 
 -- isRanked
@@ -4683,15 +4729,35 @@ doc ///
         P:Poset
     Outputs
         i:Boolean
+            whether $P$ is ranked
     Description
         Text
-            TODO
+            The poset $P$ is ranked if there exists an integer function $r$ on
+            the vertex set of $P$ such that for each $a$ and $b$ in the poset
+            if $b$ covers $a$ then $r(b) - r(a) = 1$.
+
+            The $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are ranked.
+        Example
+            n = 5;
+            C = chain n;
+            isRanked C
+            rankFunction C
+            B = booleanLattice n;
+            isRanked B
+            rankGeneratingFunction C
+        Text
+            However, the pentagon lattice is not ranked.
+        Example
+            P = poset {{1,2}, {1,3}, {3,4}, {2,5}, {4,5}};
+            isRanked P
         Text
             This method uses the method @TO "rankPoset"@, which was ported
             from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        rankFunction
+        rankGeneratingFunction
+        rankPoset
 ///
 
 -- isSperner
@@ -4700,18 +4766,40 @@ doc ///
         isSperner
         (isSperner,Poset)
     Headline
-        determines if a poset has the Sperner property
+        determines if a ranked poset has the Sperner property
     Usage
         i = isSperner P
     Inputs
         P:Poset
+            a ranked poset
     Outputs
         i:Boolean
+            whether $P$ is Sperner
     Description
         Text
-            TODO
+            The ranked poset $P$ is Sperner if the maximal size of a rank
+            is the @TO "dilworthNumber"@ of $P$.  That is, $P$ is Sperner
+            if the maximal size of a rank is the maximal size of an antichain.
+
+            The $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are Sperner.
+        Example
+            n = 5;
+            isSperner chain n
+            isSperner booleanLattice n
+        Text
+            However, the following poset is non-Sperner as it has an antichain
+            of size $4$ but both ranks are of size $3$.
+        Example
+            P = poset {{1,4}, {1,5}, {1,6}, {2,6}, {3,6}};
+            isSperner P
+            isAntichain(P, {2,3,4,5})
+            rankGeneratingFunction P
     SeeAlso
-        Posets
+        dilworthNumber
+        isRanked
+        isStrictSperner
+        maximalAntichains
+        rankFunction
 ///
 
 -- isStrictSperner
@@ -4720,18 +4808,38 @@ doc ///
         isStrictSperner
         (isStrictSperner,Poset)
     Headline
-        determines if a poset has the strict Sperner property
+        determines if a ranked poset has the strict Sperner property
     Usage
         i = isStrictSperner P
     Inputs
         P:Poset
+            a ranked poset
     Outputs
         i:Boolean
+            whether $P$ is strict Sperner
     Description
         Text
-            TODO
+            The ranked poset $P$ is strict Sperner if the @TO "maximalAntichains"@
+            are the ranks of the poset.
+
+            The $n$ @TO "chain"@ is strict Sperner as the maximal antichains and the
+            ranks are singletons.
+        Example
+            isStrictSperner chain 5
+        Text
+            The $n$ @TO "booleanLattice"@, for $n \geq 3$, is not strict Sperner as
+            it has maximal antichains which are not ranks.
+        Example
+            B = booleanLattice 3;
+            isStrictSperner B
+            rankPoset B
+            maximalAntichains B
     SeeAlso
-        Posets
+        dilworthNumber
+        isRanked
+        isSperner
+        maximalAntichains
+        rankFunction
 ///
 
 -- isUpperSemilattice
@@ -4758,7 +4866,7 @@ doc ///
         Example
             n = 4;
             isUpperSemilattice chain n
-            B = booleanLattice n
+            B = booleanLattice n;
             isUpperSemilattice B
         Text
             The middle ranks of the $n$ @TO "booleanLattice"@ are not upper semilattices.
@@ -4783,21 +4891,42 @@ doc ///
         isUpperSemimodular
         (isUpperSemimodular,Poset)
     Headline
-        determines if a lattice is upper (or join) semimoudlar
+        determines if a lattice is upper semimoudlar
     Usage
         i = isUpperSemimodular P
     Inputs
         P:Poset
+            a ranked lattice
     Outputs
         i:Boolean
+            whether $P$ is upper semimodular
     Description
         Text
-            TODO
+            Let $r$ be the ranking of $P$.  Then $P$ is upper semimodular if for
+            every pair of vertices $a$ and $b$, $r(a) + r(b) \geq r(join(a,b)) + r(meet(a,b,))$.
+
+            The $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are
+            upper semimodular.
+        Example
+            n = 4;
+            isUpperSemimodular chain n
+            isUpperSemimodular booleanLattice n
+        Text
+            The following lattice is not upper semimodular.
+        Example
+            P = poset {{1, 2}, {1, 3}, {1, 4}, {2, 5}, {2, 6}, {3, 5}, {4, 6}, {5, 7}, {6, 7}};
+            isLattice P
+            isUpperSemimodular P
         Text
             This method was ported from John Stembridge's Maple package available at
             @HREF "http://www.math.lsa.umich.edu/~jrs/maple.html#posets"@.  
     SeeAlso
-        Posets
+        isLattice
+        isModular
+        isRanked
+        posetJoin
+        posetMeet
+        rankFunction
 ///
 
 undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };

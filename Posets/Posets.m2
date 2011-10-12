@@ -5162,6 +5162,50 @@ undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };
 --  * Each test would generate one or more posets and then run most if not all methods on the given poset(s).
 --  * Each test only tests one method but on a variety of posets. 
 
+TEST /// ---- basic Poset constructor, toExternalString, hasseDiagram
+P = poset({{a,b},{b,c},{a,d},{d,c}})
+Q = toExternalString P
+assert(P === value Q)
+assert(P === poset({a,b,c,d}, {{a,b},{b,c},{a,d},{d,c}}, matrix {{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 1,1}}))
+assert(P.GroundSet == {a, b, c, d})
+assert(P.Relations == {{a, b}, {b, c}, {a, d}, {d, c}})
+assert(P.RelationMatrix == map(ZZ^4,ZZ^4,{{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 1}}))
+assert(hasseDiagram P === digraph{{0,1},{0,3},{1,2},{3,2}})
+assert((sort coveringRelations P) == (sort P.Relations))
+///
+
+TEST /// ---- basic Poset constructor, easy isomorphism, lcmLattice
+R = QQ[x,y]
+P = lcmLattice(ideal(x,y))
+Q = poset({{a,b},{b,c},{a,d},{d,c}})
+S = toExternalString P
+assert(P == Q)
+assert(P == value S)
+assert(P.GroundSet == {1, y, x, x*y})
+assert(P.Relations == {{1, y}, {1, x}, {1, x*y}, {y, x*y}, {x, x*y}})
+///
+
+TEST /// ---- basic Poset constructor, easy isomorphism, booleanLattice
+P = booleanLattice 2
+S = toExternalString P
+Q = poset({{a,b},{b,c},{a,d},{d,c}})
+assert(P == Q)
+assert(P == value S)
+--This test already highlighted a problem, as neither of these works,
+--as they each compare a string to an integer (in this case):
+--assert(P.GroundSet == {00, 01, 10, 11})
+--assert(P.GroundSet === {00, 01, 10, 11})
+--assert(P.Relations == {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
+--assert(P.Relations === {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
+///
+
+TEST /// ---- basic Poset constructor, easy isomorphism
+Q = poset({{a,b},{b,c},{a,d},{d,c}})
+S = toExternalString P
+assert(P == Q)
+assert(P == value S)
+///
+
 end;
 
 ------------------------------------------

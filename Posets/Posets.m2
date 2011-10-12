@@ -5242,11 +5242,15 @@ assert(P == Q)
 assert(P == value S)
 --This test already highlighted a problem, as neither of these works,
 --as they each compare a string to an integer (in this case):
+assert(P.GroundSet == {"00", "01", "10", "11"})
+assert(P.Relations == {{"00", "01"}, {"10", "11"}, {"00", "10"}, {"01", "11"}})
 --assert(P.GroundSet == {00, 01, 10, 11})
 --assert(P.GroundSet === {00, 01, 10, 11})
 --assert(P.Relations == {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
 --assert(P.Relations === {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
+
 ///
+
 
 --Posets constructed by booleanLattice and lcmLattice
 -- booleanLattice/lcmLattice easy tests, poset isomorphism
@@ -5289,6 +5293,7 @@ assert(closedInterval(B, "001","111") == booleanLattice 2)
 assert(openInterval(B, "001","111") == poset({a,b},{}))
 assert(dilworthLattice B == poset({{a,b}}))
 ///
+
 --isLattice test
 TEST ///
 A = booleanLattice 2

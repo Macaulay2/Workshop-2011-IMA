@@ -10,15 +10,20 @@
 -- New Methods:
     -- Identify comparability graphs
     -- Poset of a resolution
+
 -- Documentation:
     -- Add a few extended examples
     -- Grammar/spelling check extant nodes
+
 -- Tests
     -- Everything!
+
 -- A few methods should copy and appropriately adjust cached data
-    -- e.g., indexLabeling, naturalLabeling
+    -- indexLabeling, naturalLabeling
+
 -- Several enumerator methods could be made more efficient (avoid "subsets"):
     -- intersectionLattice, hibiIdeal, hibiRing, pPartitionRing 
+
 -- Decisions:
     -- 1. Adjust the way Posets store data.  Currently most methods are forced to
        -- relabel the entire poset (and any needed data, e.g., coveringRelations) 

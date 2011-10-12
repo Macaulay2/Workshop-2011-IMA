@@ -5162,7 +5162,32 @@ undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };
 --  * Each test would generate one or more posets and then run most if not all methods on the given poset(s).
 --  * Each test only tests one method but on a variety of posets. 
 
-TEST /// ---- basic Poset constructor, toExternalString, hasseDiagram
+------------------------------------------
+------------------------------------------
+-- Basic Poset Constructions:
+------------------------------------------
+------------------------------------------
+
+-- Poset defined by ground set and relations
+-- basic Poset constructor, toExternalString, hasseDiagram, isLattice, comparabilityGraph
+TEST ///
+P = poset({a,b,c,d},{{a,b},{b,c},{a,d},{d,c}})
+Q = toExternalString P
+assert(P === value Q)
+assert(P === poset({a,b,c,d}, {{a,b},{b,c},{a,d},{d,c}}, matrix {{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 1,1}}))
+assert(P.GroundSet == {a, b, c, d})
+assert(P.Relations == {{a, b}, {b, c}, {a, d}, {d, c}})
+assert(P.RelationMatrix == map(ZZ^4,ZZ^4,{{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 1}}))
+assert(hasseDiagram P === digraph{{0,1},{0,3},{1,2},{3,2}})
+assert((sort coveringRelations P) == (sort P.Relations))
+assert(isLattice P)
+assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {2, 3}})
+assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
+///
+
+-- Poset defined by only relations
+-- basic Poset constructor, toExternalString, hasseDiagram, isLattice, comparabilityGraph
+TEST ///
 P = poset({{a,b},{b,c},{a,d},{d,c}})
 Q = toExternalString P
 assert(P === value Q)
@@ -5172,9 +5197,31 @@ assert(P.Relations == {{a, b}, {b, c}, {a, d}, {d, c}})
 assert(P.RelationMatrix == map(ZZ^4,ZZ^4,{{1, 1, 1, 1}, {0, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 1}}))
 assert(hasseDiagram P === digraph{{0,1},{0,3},{1,2},{3,2}})
 assert((sort coveringRelations P) == (sort P.Relations))
+assert(isLattice P)
+assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {2, 3}})
+assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
 ///
 
-TEST /// ---- basic Poset constructor, easy isomorphism, lcmLattice
+--Poset defined by only relations, not a lattice.
+-- basic Poset constructor, toExternalString, hasseDiagram, isLattice, comparabilityGraph
+TEST /// 
+P = poset({{a,b},{b,c},{a,d},{d,c},{d,e}})
+Q = toExternalString P
+assert(P === value Q)
+assert(P === poset({a,b,c,d,e}, {{a,b},{b,c},{a,d},{d,c},{d,e}}, matrix {{1, 1, 1, 1, 1}, {0, 1, 1, 0, 0}, {0, 0, 1, 0, 0}, {0, 0, 1, 1, 1}, {0, 0, 0, 0, 1}}))
+assert(P.GroundSet == {a, b, c, d, e})
+assert(P.Relations == {{a, b}, {b, c}, {a, d}, {d, c}, {d, e}})
+assert(P.RelationMatrix == map(ZZ^5,ZZ^5,{{1, 1, 1, 1, 1}, {0, 1, 1, 0, 0}, {0, 0, 1, 0, 0}, {0, 0, 1, 1, 1}, {0, 0, 0, 0, 1}})))
+assert(hasseDiagram P === digraph{{0,1},{0,3},{1,2},{3,2},{3,4}})
+assert((sort coveringRelations P) == (sort P.Relations))
+assert(not isLattice P)
+assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {4, 0}, {1, 2}, {2, 3}, {4, 3}})
+assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
+///
+
+--Poset constructed by lcmLattice compared to one from relations via isomorphism
+-- basic Poset constructor, easy isomorphism, lcmLattice
+TEST /// 
 R = QQ[x,y]
 P = lcmLattice(ideal(x,y))
 Q = poset({{a,b},{b,c},{a,d},{d,c}})
@@ -5185,7 +5232,9 @@ assert(P.GroundSet == {1, y, x, x*y})
 assert(P.Relations == {{1, y}, {1, x}, {1, x*y}, {y, x*y}, {x, x*y}})
 ///
 
-TEST /// ---- basic Poset constructor, easy isomorphism, booleanLattice
+--Poset constructed by booleanLattice compared to one from relations via isomorphism
+-- basic Poset constructor, easy isomorphism, booleanLattice
+TEST /// 
 P = booleanLattice 2
 S = toExternalString P
 Q = poset({{a,b},{b,c},{a,d},{d,c}})
@@ -5199,12 +5248,57 @@ assert(P == value S)
 --assert(P.Relations === {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
 ///
 
-TEST /// ---- basic Poset constructor, easy isomorphism
-Q = poset({{a,b},{b,c},{a,d},{d,c}})
-S = toExternalString P
-assert(P == Q)
-assert(P == value S)
+--Posets constructed by booleanLattice and lcmLattice
+-- booleanLattice/lcmLattice easy tests, poset isomorphism
+TEST ///
+R = QQ[x,y,z,w]
+A = booleanLattice 3
+B = booleanLattice 4
+AA = lcmLattice ideal(x,y,z)
+BB = lcmLattice ideal(x,y,z,w)
+assert(A == AA)
+assert(B == BB)
+assert(A =!= B)
+assert(AA =!= BB)
 ///
+
+--Posets constructed via booleanLattice:
+
+--Lower/Upper SemiLattice
+
+TEST ///
+A = booleanLattice 2
+assert(A == poset(subsets 2, isSubset))
+assert(isLowerSemilattice A)
+assert(isUpperSemilattice A)
+assert(isDistributive A)
+///
+
+TEST ///
+B = booleanLattice 3
+assert(B == poset(subsets 3, isSubset))
+assert(isLowerSemilattice B)
+assert(isUpperSemilattice B)
+assert(isDistributive B)
+assert(hasseDiagram B === digraph{{0, 4}, {0, 1}, {0, 2}, {1, 5}, {1, 3}, {2, 6}, {2, 3}, {3, 7}, {4, 5}, {4, 6}, {5, 7}, {6, 7}})
+assert(incomparabilityGraph B === graph({{4, 1}, {1, 2}, {1, 6}, {4, 2}, {5, 2}, {4, 3}, {5, 3}, {6, 3}, {5, 6}}, Singletons=> {0,7}))
+R=ring orderComplex B
+assert(sub(ideal(flatten entries facets orderComplex B),R) == sub(ideal(v_0*v_4*v_6*v_7,v_0*v_2*v_6*v_7,v_0*v_4*v_5*v_7,v_0*v_1*v_5*v_7,v_0*v_2*v_3*v_7,v_0*v_1*v_3*v_7),R))
+assert(sub(ideal(orderComplex B),R) == sub(ideal(v_1*v_2, v_1*v_4, v_2*v_4, v_3*v_4, v_2*v_5, v_3*v_5, v_1*v_6, v_3*v_6, v_5*v_6),R))
+assert(closedInterval(B, "001","111") == booleanLattice 2)
+assert(openInterval(B, "001","111") == poset({a,b},{}))
+assert(dilworthLattice B == poset({{a,b}}))
+///
+--isLattice test
+TEST ///
+A = booleanLattice 2
+B = booleanLattice 3
+assert(isLattice A)
+assert(isLattice B)
+///
+
+
+
 
 end;
 

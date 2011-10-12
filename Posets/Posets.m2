@@ -1,14 +1,37 @@
 ------------------------------------------
--- Current work:
+-- Currently working on:
 ------------------------------------------
--- David: 1) Adding documentation nodes of extended examples.
---        2) For indexLabeling and naturalLabeling, copy (and appropriately modify) cached data.
---        3) Start working on tests.
---        4) Identify comparability graphs (or should this be in Graphs/GraphsPlus?)
---        5) Decide if any other methods should precompute data  
---           E.g., a) Chains are ranked easily, so provide it
---                 b) The dual of a ranked poset has an easy to derive ranking.
--- Gwyn:  Guess it's time to write some tests.
+-- David: Patience.
+-- Gwyn:  Tests
+
+------------------------------------------
+-- To do list:
+------------------------------------------
+-- New Methods:
+    -- Identify comparability graphs
+    -- Poset of a resolution
+-- Documentation:
+    -- Add a few extended examples
+    -- Grammar/spelling check extant nodes
+-- Tests
+    -- Everything!
+-- A few methods should copy and appropriately adjust cached data
+    -- e.g., indexLabeling, naturalLabeling
+-- Several enumerator methods could be made more efficient (avoid "subsets"):
+    -- intersectionLattice, hibiIdeal, hibiRing, pPartitionRing 
+-- Decisions:
+    -- 1. Adjust the way Posets store data.  Currently most methods are forced to
+       -- relabel the entire poset (and any needed data, e.g., coveringRelations) 
+       -- to have an "index labeling" (see isomorphism for a nasty example) because
+       -- the code cannot be guaranteed to get sensible labels.  Perhaps all data
+       -- should be stored as indexes into a label list, rather than as the labels
+       -- themselves.  
+    -- 2. Precompute data where fast.  Certain methods, such as dual and chain, can
+       -- precompute some data for the resultant poset very quickly.  Should the
+       -- methods presume to take a bit of extra time early to precompute data, so
+       -- that later time can be saved if that data is needed?
+       -- E.g., the ranking of the dual of a ranked poset is very easy to compute
+       -- given the ranking of the original poset:   m = max rk; (i -> m - i) \ rk
 
 ------------------------------------------
 -- Currently caching:

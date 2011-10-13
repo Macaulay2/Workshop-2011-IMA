@@ -18,9 +18,6 @@
 -- Tests
     -- Everything!
 
--- A few methods should copy and appropriately adjust cached data
-    -- indexLabeling, naturalLabeling
-
 -- Several enumerator methods could be made more efficient (avoid "subsets"):
     -- intersectionLattice, hibiIdeal, hibiRing, pPartitionRing 
 
@@ -231,6 +228,30 @@ export {
 -- Non-exported, strongly prevalent functions
 ------------------------------------------
 
+-- Copies the cache of P to Q, assuming P and Q are isomorphic.
+-- idx is an isomorphism from P.GroundSet to Q.GroundSet
+copyCache := (P, Q, idx) -> (
+    if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
+    if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
+    if P.cache.?rankFunction then Q.cache.rankFunction = P.cache.rankFunction;
+    if P.cache.?isDistributive then Q.cache.isDistributive = P.cache.isDistributive;
+    if P.cache.?isEulerian then Q.cache.isEulerian = P.cache.isEulerian;
+    if P.cache.?isLowerSemilattice then Q.cache.isLowerSemilattice = P.cache.isLowerSemilattice;
+    if P.cache.?isLowerSemimodular then Q.cache.isLowerSemimodular = P.cache.isLowerSemimodular;
+    if P.cache.?isUpperSemilattice then Q.cache.isUpperSemilattice = P.cache.isUpperSemilattice;
+    if P.cache.?isUpperSemimodular then Q.cache.isUpperSemimodular = P.cache.isUpperSemimodular;
+    if P.cache.?greeneKleitmanPartition then Q.cache.greeneKleitmanPartition = P.cache.greeneKleitmanPartition;
+    if P.cache.?isSperner then Q.cache.isSperner = P.cache.isSperner;
+    if P.cache.?isStrictSperner then Q.cache.isStrictSperner = P.cache.isStrictSperner;
+    if P.cache.?isAtomic then Q.cache.isAtomic = P.cache.isAtomic;
+    toIdx := q -> idx#q;
+    if P.cache.?coveringRelations then Q.cache.coveringRelations = apply(P.cache.coveringRelations, r -> toIdx \ r);
+    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = apply(P.cache.maximalAntichains, a -> toIdx \ a);
+    if P.cache.?maximalChains then Q.cache.maximalChains = apply(P.cache.maximalChains, c -> toIdx \ c);
+    if P.cache.?maximalElements then Q.cache.maximalElements = toIdx \ P.cache.maximalElements;
+    if P.cache.?minimalElements then Q.cache.minimalElements = toIdx \ P.cache.minimalElements;
+    )
+
 indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
 
 ------------------------------------------
@@ -408,15 +429,19 @@ flagPoset (Poset, List) := Poset => (P, L)-> (
 
 indexLabeling = method()
 indexLabeling Poset := Poset => P -> (
-    idx:= hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    poset(apply(P.GroundSet, p -> idx#p), apply(P.Relations, r -> {idx#(first r), idx#(last r)}), P.RelationMatrix)
+    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
+    Q := poset(apply(P.GroundSet, p -> idx#p), apply(P.Relations, r -> {idx#(first r), idx#(last r)}), P.RelationMatrix);
+    copyCache(P, Q, idx);
+    Q
     )
 
 naturalLabeling = method()
 naturalLabeling (Poset, ZZ) := Poset => (P, startIndex) -> (
     F := flatten filtration P;
     renameMap := hashTable for i to #F - 1 list F_i => startIndex + i;
-    poset(apply(P.GroundSet, p -> renameMap#p), apply(P.Relations, r -> {renameMap#(first r), renameMap#(last r)}), P.RelationMatrix)
+    Q := poset(apply(P.GroundSet, p -> renameMap#p), apply(P.Relations, r -> {renameMap#(first r), renameMap#(last r)}), P.RelationMatrix);
+    copyCache(P, Q, renameMap);
+    Q
     )
 naturalLabeling Poset := Poset => P -> naturalLabeling(P, 0)
 
@@ -2131,7 +2156,13 @@ doc ///
             P.GroundSet
             Q.GroundSet
         Text
+            Clearly, $P$ and $Q$ @TO "areIsomorphic"@.
+        Example
+            P == Q
+        Text
             This can be useful for posets whose vertices have unruly names.
+            Note the cache of $P$ is copied to the cache of $Q$ with the
+            appropriate adjustments being made.
     SeeAlso
         (symbol _, Poset, ZZ)
         (symbol _, Poset, List)
@@ -2173,6 +2204,9 @@ doc ///
             C = chain 3;
             Q' = sum(3, i -> naturalLabeling(C, 3*i))
             all(allRelations Q', r -> r_0 <= r_1)
+        Text
+            Note the cache of $P$ is copied to the cache of $Q$ with the
+            appropriate adjustments being made.
     SeeAlso
         filtration
         indexLabeling

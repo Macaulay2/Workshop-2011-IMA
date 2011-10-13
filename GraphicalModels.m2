@@ -622,6 +622,7 @@ gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
         if R.?graph then (
 	   g := R.graph;
            vv := sort vertices g;
+	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
            SM := covarianceMatrix(R);
            apply(Stmts, s -> 
 	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
@@ -630,49 +631,27 @@ gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
         else if R.?digraph then (
 	   g= R.digraph;
            vv = sort vertices g;
+	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
            SM = covarianceMatrix(R);
            apply(Stmts, s ->  
 	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ) 
           )
         else (
-         vv = toList (1..R#gaussianRing);
-	 SM = covarianceMatrix(R);
-         apply(Stmts, s->  
+           vv = toList (1..R#gaussianRing);
+	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
+	   SM = covarianceMatrix(R);
+           apply(Stmts, s->  
 	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )
 	  )
      
      )
 
-gaussianMatrices(Ring,List,List) := List =>  (R,VarNames,Stmts) -> (
-     --input ring and statmetens and variable names
-     --output list of mtces whose minors give the CI ideal.
-     
-     )
 
 
 
------------ THE FOLLOWING IS CRAP: (TO BE DELETED)
-----------------------
---- gaussianMatrix ---
-----------------------
---in case user just wants to see the matrix instead of the minors.
--- this function is not exported, it is called from gaussianMatrices
-gaussianMatrix = method()
-gaussianMatrix(Ring,Digraph,List) := List =>  (R,G,s) -> (
-     -- the list s is a statement of the form {A,B,C}.
-     M := covarianceMatrix R;
-     rows := join(getPositionOfVertices(G,s#0), getPositionOfVertices(G,s#2));  
-     cols := join(getPositionOfVertices(G,s#1), getPositionOfVertices(G,s#2));  
-     submatrix(M,rows,cols)
-     )
--- gaussianMatrices = method()
-gaussianMatrices(Ring,Digraph,List) := List =>  (R,G,S) -> (
-     apply(S, s -> gaussianMatrix(R,G,s))
-     )
-gaussianMatrices(Ring,Digraph) := List =>  (R,G) -> gaussianMatrices(R,G,globalMarkov G)
------------ END OF CRAP. TO BE DELETED.
+
 
 -----------------
 --- trekIdeal ---

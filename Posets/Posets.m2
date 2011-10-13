@@ -1,7 +1,7 @@
 ------------------------------------------
 -- Currently working on:
 ------------------------------------------
--- David: Fix connectedComponents
+-- David: Precomputation
 -- Gwyn:  Tests
 
 ------------------------------------------
@@ -938,17 +938,17 @@ connectedComponents = method()
 connectedComponents Poset := List => P -> (
     if not P.cache.?connectedComponents then (
         C := new MutableList from apply(toList(0 ..< #P.GroundSet), i -> {i});
-        Q := new MutableList from toList(#P.GroundSet:1);
+        Q := toList(0 ..< #P.GroundSet);
         if not P.cache.?coveringRelations then coveringRelations P;
         cr := P.cache.coveringRelations;
         while (#cr > 0 and sum toList Q > 1) do (
             i := first first cr;
-            j := last first cr;
-            C#j = join(C#i, C#j);
+            j := last first cr; 
+            C#j = unique join(C#i, C#j);
             cr = apply(drop(cr, 1), c -> { if c_0 == i then j else c_0, if c_1 == i then j else c_1 });
-            Q#i = 0;
+            Q = unique replace(position(Q, k -> k == i), j, Q);
             );
-        P.cache.connectedComponents = (toList C)_(positions(toList Q, i -> i == 1));
+        P.cache.connectedComponents = (toList C)_Q;
         );
     apply(P.cache.connectedComponents, r -> P.GroundSet_r)
     )

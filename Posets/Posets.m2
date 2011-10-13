@@ -11,6 +11,13 @@
     -- Identify comparability graphs
     -- Poset of a resolution
 
+-- Precomputation:
+    -- Some methods can have precomputed data as it's easy to do.
+    -- Example: "C = chain n" could store "C.cache.rankFunction = toList(0..<n)"
+    -- without doing any computation.
+    -- Example: "Q = dual P" could store "Q.cache.rankFunction = (m = max rk; (i -> m - i) \ rk)"
+    -- where "rk = P.cache.rankFunction" (if it exists).
+
 -- Documentation:
     -- Add a few extended examples
     -- Grammar/spelling check extant nodes
@@ -20,27 +27,6 @@
 
 -- Several enumerator methods could be made more efficient (avoid "subsets"):
     -- intersectionLattice, hibiIdeal, hibiRing, pPartitionRing 
-
--- Decisions:
-    -- 1. Adjust the way Posets store data.  Currently most methods are forced to
-       -- relabel the entire poset (and any needed data, e.g., coveringRelations) 
-       -- to have an "index labeling" (see isomorphism for a nasty example) because
-       -- the code cannot be guaranteed to get sensible labels.  Perhaps all data
-       -- should be stored as indexes into a label list, rather than as the labels
-       -- themselves.  
-    -- 2. Precompute data where fast.  Certain methods, such as dual and chain, can
-       -- precompute some data for the resultant poset very quickly.  Should the
-       -- methods presume to take a bit of extra time early to precompute data, so
-       -- that later time can be saved if that data is needed?
-       -- E.g., the ranking of the dual of a ranked poset is very easy to compute
-       -- given the ranking of the original poset:   m = max rk; (i -> m - i) \ rk
-
-------------------------------------------
--- Currently caching:
-------------------------------------------
--- connectedComponents, coveringRelations, maximalChains, maximalElements, minimalElements, rankFunction,
--- isDistributive, isEulerian, isLowerSemilattice, isLowerSemimodular, isUpperSemilattice, isUpperSemimodular,
--- greeneKleitmanPartition, maximalAntichains, isSperner, isStrictSperner, isAtomic
 
 -- Everything above the line below should be removed before the package is submitted.
 ------------------------------------------
@@ -115,6 +101,7 @@ export {
     "filter",
     "flagPoset",
     "indexLabeling",
+    "labelPoset",
     "naturalLabeling",
     "openInterval",
     "orderIdeal",
@@ -227,30 +214,6 @@ export {
 ------------------------------------------
 -- Non-exported, strongly prevalent functions
 ------------------------------------------
-
--- Copies the cache of P to Q, assuming P and Q are isomorphic.
--- idx is an isomorphism from P.GroundSet to Q.GroundSet
-copyCache := (P, Q, idx) -> (
-    if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
-    if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
-    if P.cache.?rankFunction then Q.cache.rankFunction = P.cache.rankFunction;
-    if P.cache.?isDistributive then Q.cache.isDistributive = P.cache.isDistributive;
-    if P.cache.?isEulerian then Q.cache.isEulerian = P.cache.isEulerian;
-    if P.cache.?isLowerSemilattice then Q.cache.isLowerSemilattice = P.cache.isLowerSemilattice;
-    if P.cache.?isLowerSemimodular then Q.cache.isLowerSemimodular = P.cache.isLowerSemimodular;
-    if P.cache.?isUpperSemilattice then Q.cache.isUpperSemilattice = P.cache.isUpperSemilattice;
-    if P.cache.?isUpperSemimodular then Q.cache.isUpperSemimodular = P.cache.isUpperSemimodular;
-    if P.cache.?greeneKleitmanPartition then Q.cache.greeneKleitmanPartition = P.cache.greeneKleitmanPartition;
-    if P.cache.?isSperner then Q.cache.isSperner = P.cache.isSperner;
-    if P.cache.?isStrictSperner then Q.cache.isStrictSperner = P.cache.isStrictSperner;
-    if P.cache.?isAtomic then Q.cache.isAtomic = P.cache.isAtomic;
-    toIdx := q -> idx#q;
-    if P.cache.?coveringRelations then Q.cache.coveringRelations = apply(P.cache.coveringRelations, r -> toIdx \ r);
-    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = apply(P.cache.maximalAntichains, a -> toIdx \ a);
-    if P.cache.?maximalChains then Q.cache.maximalChains = apply(P.cache.maximalChains, c -> toIdx \ c);
-    if P.cache.?maximalElements then Q.cache.maximalElements = toIdx \ P.cache.maximalElements;
-    if P.cache.?minimalElements then Q.cache.minimalElements = toIdx \ P.cache.minimalElements;
-    )
 
 indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
 
@@ -428,20 +391,20 @@ flagPoset (Poset, List) := Poset => (P, L)-> (
     )
 
 indexLabeling = method()
-indexLabeling Poset := Poset => P -> (
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    Q := poset(apply(P.GroundSet, p -> idx#p), apply(P.Relations, r -> {idx#(first r), idx#(last r)}), P.RelationMatrix);
-    copyCache(P, Q, idx);
-    Q
-    )
+indexLabeling Poset := Poset => P -> labelPoset(P, hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i))
+
+labelPoset = method()
+labelPoset (Poset, HashTable) := Poset => (P, l) -> new Poset from {
+    symbol GroundSet => (q -> l#q) \ P.GroundSet,
+    symbol Relations => apply(P.Relations, r -> (q -> l#q) \ r),
+    symbol RelationMatrix => P.RelationMatrix,
+    symbol cache => new CacheTable from P.cache
+    }
 
 naturalLabeling = method()
 naturalLabeling (Poset, ZZ) := Poset => (P, startIndex) -> (
     F := flatten filtration P;
-    renameMap := hashTable for i to #F - 1 list F_i => startIndex + i;
-    Q := poset(apply(P.GroundSet, p -> renameMap#p), apply(P.Relations, r -> {renameMap#(first r), renameMap#(last r)}), P.RelationMatrix);
-    copyCache(P, Q, renameMap);
-    Q
+    labelPoset(P, hashTable for i to #F - 1 list F_i => startIndex + i)
     )
 naturalLabeling Poset := Poset => P -> naturalLabeling(P, 0)
 
@@ -517,19 +480,14 @@ Poset - List := dropElements
 -- Ported from Stembridge's Maple Package
 isomorphism = method()
 isomorphism (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
-    -- Needed for later + quick bail out.
-    crP := coveringRelations P;
-    crQ := coveringRelations Q;
-    if #crP != #crQ or #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
-    -- This relabels P & Q (and the covering relations, mu, and nu)
-    -- so that the labels are guaranteed to be sensible.
+    -- Test for quick bail-out.
+    if #(coveringRelations P) != #(coveringRelations Q) or #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
+    -- This relabels P, Q, mu, and nu so that the labels are guaranteed to be sensible.
     idxP := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    P' := poset(apply(P.GroundSet, p -> idxP#p), apply(P.Relations, r -> {idxP#(first r), idxP#(last r)}), P.RelationMatrix);
-    P'.cache.coveringRelations = apply(crP, r -> {idxP#(first r), idxP#(last r)});
+    P' := indexLabeling P;
     mu' := (S -> apply(S, p -> idxP#p)) \ mu;
     idxQ := hashTable apply(#Q.GroundSet, i -> Q.GroundSet_i => i);
-    Q' := poset(apply(Q.GroundSet, q -> idxQ#q), apply(Q.Relations, r -> {idxQ#(first r), idxQ#(last r)}), Q.RelationMatrix);
-    Q'.cache.coveringRelations = apply(crQ, r -> {idxQ#(first r), idxQ#(last r)});
+    Q' := indexLabeling Q;
     nu' := (S -> apply(S, q -> idxQ#q)) \ nu;
     isom := isomorphism'(P', mu', Q', nu');
     -- This converts the isomorphism (if extant) back to P & Q relevancy.
@@ -1038,9 +996,8 @@ joinIrreducibles Poset := List => P -> (
 
 maximalElements = method()
 maximalElements Poset := List => P -> (
-    if P.cache.?maximalElements then return P.cache.maximalElements;
-    L := select(#P.GroundSet, i -> all(#P.GroundSet, j -> P.RelationMatrix_(i,j) == 0 or i == j));
-    P.cache.maximalElements = P.GroundSet_L
+    if not P.cache.?maximalElements then P.cache.maximalElements = select(#P.GroundSet, i -> all(#P.GroundSet, j -> P.RelationMatrix_(i,j) == 0 or i == j));
+    P.GroundSet_(P.cache.maximalElements)
     )
 
 meetExists = method()
@@ -1066,9 +1023,8 @@ meetIrreducibles Poset := List => P -> (
 
 minimalElements = method()
 minimalElements Poset := List => P -> (
-    if P.cache.?minimalElements then return P.cache.minimalElements;
-    L := select(#P.GroundSet, i -> all(#P.GroundSet, j -> P.RelationMatrix_(j,i) == 0 or i == j));
-    P.cache.minimalElements = P.GroundSet_L
+    if not P.cache.?minimalElements then P.cache.minimalElements = select(#P.GroundSet, i -> all(#P.GroundSet, j -> P.RelationMatrix_(j,i) == 0 or i == j));
+    P.GroundSet_(P.cache.minimalElements)
     )
 
 posetJoin = method()     
@@ -1152,12 +1108,14 @@ chains (Poset, ZZ) := (P, k) -> sort unique flatten apply(maximalChains P, c -> 
 
 coveringRelations = method()
 coveringRelations Poset := List => P -> (
-    if P.cache.?coveringRelations then return P.cache.coveringRelations;
-    gtp := for i to #P.GroundSet - 1 list for j to #P.GroundSet - 1 list if i != j and P.RelationMatrix_j_i != 0 then j else continue;
-    P.cache.coveringRelations = flatten for i to #P.GroundSet - 1 list (
-        gtgtp := unique flatten gtp_(gtp_i);
-        apply(toList(set gtp_i - set gtgtp), j -> {P.GroundSet_i, P.GroundSet_j})
-        )
+    if not P.cache.?coveringRelations then (
+        gtp := for i to #P.GroundSet - 1 list for j to #P.GroundSet - 1 list if i != j and P.RelationMatrix_j_i != 0 then j else continue;
+        P.cache.coveringRelations = flatten for i to #P.GroundSet - 1 list (
+            gtgtp := unique flatten gtp_(gtp_i);
+            apply(toList(set gtp_i - set gtgtp), j -> {i, j})
+            );
+        );
+    apply(P.cache.coveringRelations, r -> P.GroundSet_r)
     )
 
 flagChains = method()
@@ -1187,32 +1145,38 @@ linearExtensions Poset := List => P -> (
 
 maximalAntichains = method()
 maximalAntichains Poset := List => P -> (
-    if P.cache.?maximalAntichains then return P.cache.maximalAntichains;
-    nonrelations := flatten for i from 0 to #P.GroundSet - 1 list for j from 0 to #P.GroundSet - 1 list
-        if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
-    cp := partition(first, nonrelations);
-    cp = new HashTable from apply(#P.GroundSet, i -> i => if cp#?i then set(last \ cp#i) else set{});
-    maxAntichains := apply(select(#P.GroundSet, i -> #cp#i == 0), i -> {i});
-    nonMaxAntichains := apply(select(#P.GroundSet, i -> #cp#i != 0), i -> {i});
-    while #nonMaxAntichains != 0 do
-        nonMaxAntichains = unique flatten for a in nonMaxAntichains list (
-            nonrelated := toList fold((i,j) -> i*j, apply(a, p -> cp#p));
-            if #nonrelated == 0 then (maxAntichains = append(maxAntichains, a); continue)
-            else apply(nonrelated, p -> sort append(a, p)));
-    P.cache.maximalAntichains = apply(maxAntichains, a -> P.GroundSet_a)
+    if not P.cache.?maximalAntichains then (
+        nonrelations := flatten for i from 0 to #P.GroundSet - 1 list for j from 0 to #P.GroundSet - 1 list
+            if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
+        cp := partition(first, nonrelations);
+        cp = new HashTable from apply(#P.GroundSet, i -> i => if cp#?i then set(last \ cp#i) else set{});
+        maxAntichains := apply(select(#P.GroundSet, i -> #cp#i == 0), i -> {i});
+        nonMaxAntichains := apply(select(#P.GroundSet, i -> #cp#i != 0), i -> {i});
+        while #nonMaxAntichains != 0 do
+            nonMaxAntichains = unique flatten for a in nonMaxAntichains list (
+                nonrelated := toList fold((i,j) -> i*j, apply(a, p -> cp#p));
+                if #nonrelated == 0 then (maxAntichains = append(maxAntichains, a); continue)
+                else apply(nonrelated, p -> sort append(a, p)));
+        P.cache.maximalAntichains = maxAntichains;
+        );
+    apply(P.cache.maximalAntichains, a -> P.GroundSet_a)
     )
 
 maximalChains = method()
 maximalChains Poset := List => P -> (
-    if P.cache.?maximalChains then return P.cache.maximalChains;
-    nonMaximalChains := apply(minimalElements P, x -> {x});
-    cp := partition(first, coveringRelations P);
-    cvrby := hashTable apply(P.GroundSet, p -> p => if cp#?p then last \ cp#p else {});
-    maxChains := {};
-    while #nonMaximalChains != 0 do 
-        nonMaximalChains = flatten for c in nonMaximalChains list 
-            if #cvrby#(last c) == 0 then (maxChains = append(maxChains, c); continue) else apply(cvrby#(last c), v -> append(c, v));
-    P.cache.maximalChains = maxChains
+    if not P.cache.?maximalChains then (
+        if not P.cache.?minimalElements then minimalElements P;
+        nonMaximalChains := apply(P.cache.minimalElements, i -> {i});
+        if not P.cache.?coveringRelations then coveringRelations P;
+        cp := partition(first, P.cache.coveringRelations);
+        cvrby := hashTable apply(#P.GroundSet, i -> i => if cp#?i then last \ cp#i else {});
+        maxChains := {};
+        while #nonMaximalChains != 0 do 
+            nonMaximalChains = flatten for c in nonMaximalChains list 
+                if #cvrby#(last c) == 0 then (maxChains = append(maxChains, c); continue) else apply(cvrby#(last c), v -> append(c, v));
+        P.cache.maximalChains = maxChains;
+        );
+    apply(P.cache.maximalChains, c -> P.GroundSet_c)
     )
 
 ------------------------------------------
@@ -2166,6 +2130,45 @@ doc ///
     SeeAlso
         (symbol _, Poset, ZZ)
         (symbol _, Poset, List)
+        labelPoset
+        naturalLabeling
+///
+
+-- labelPoset
+doc ///
+    Key
+        labelPoset
+        (labelPoset,Poset,HashTable)
+    Headline
+        relabels a poset with the specified labeling
+    Usage
+        Q = labelPoset(P, l)
+    Inputs
+        P:Poset
+        l:HashTable
+            with $P.GroundSet$ as the keys and the new labels as the values
+    Outputs
+        Q:Poset
+            a poset isomorphic to $P$
+    Description
+        Text
+            This method simply relabels the ground set of the poset
+            based on givne labeling.
+        Example
+            P = chain 5;
+            l = hashTable { 1 => a, 2 => b, 3 => c, 4 => d, 5 => e};
+            Q = labelPoset(P, l);
+            P.GroundSet
+            Q.GroundSet
+        Text
+            Clearly, $P$ and $Q$ @TO "areIsomorphic"@.
+        Example
+            P == Q
+    SeeAlso
+        (symbol _, Poset, ZZ)
+        (symbol _, Poset, List)
+        indexLabeling
+        isomorphism
         naturalLabeling
 ///
 
@@ -2210,6 +2213,7 @@ doc ///
     SeeAlso
         filtration
         indexLabeling
+        labelPoset
 ///
 
 -- openInterval

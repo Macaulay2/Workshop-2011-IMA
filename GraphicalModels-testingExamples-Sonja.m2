@@ -145,6 +145,7 @@ S = gaussianRing 4
 S#gaussianRing
 if (not R.?markov) then error "expected a ring created with markovRing"
 
+
 R = gaussianRing G
 R = gaussianRing 4
 Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}

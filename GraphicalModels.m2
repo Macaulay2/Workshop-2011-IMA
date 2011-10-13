@@ -1616,34 +1616,41 @@ doc ///
 doc///
    Key
      gaussianMatrices
-     (gaussianMatrices,Ring,Digraph,List)
-     (gaussianMatrices,Ring,Digraph)
+     (gaussianMatrices,Ring,List)
    Headline
-     Matrices whose minors form the ideal corresponding to a conditional independence statements.
+     Matrices whose minors form the ideal corresponding to the conditional independence ideal
    Usage
-     gaussianMatrices(R,G,S)
-     gaussianMatrices(R,G)
+     gaussianMatrices(R,S)
    Inputs
      R:Ring
        must be a gaussianRing
      G:Digraph
        a directed acyclic graph
      S:List
-       a conditional independence statement that holds for the graph G
+       of conditional independence statements
    Outputs
      :Matrix
-       whose minors belong to the ideal corresponding to a conditional independence statements.
+       whose minors  form the ideal corresponding to the conditional independence ideal
    Description 
      Text
-       This method displays a list of matrices whose minors generate the ideal of conditional independence
-       statements. Its main purpose is to visualize these polynomials in a simpler way before they are expanded 
-       as sums of monomials. 
+       This method displays a list of matrices whose minors generate the conditional independence ideal.  
+       Some people might find this useful.
      Example
-       G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
-       S = localMarkov G;
-       R = gaussianRing G; 
-       gaussianMatrices(R,G,S)
-       gaussianMatrices(R,G)
+       R = gaussianRing 4;
+       Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
+       gaussianMatrices(R,Stmts)
+     Text
+       If the gaussianRing is created with a graph G, then random variable names are obtained from the vertex labels of G:
+     Example
+       G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
+       R = gaussianRing G
+       gaussianMatrices (R,globalMarkov G)
+     Text
+       If the gaussianRing is created with a digraph G, then random variable names are obtained from the vertex labels of G:
+     Example
+       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+       R = gaussianRing G
+       gaussianMatrices (R,globalMarkov G)
    SeeAlso
      gaussianRing
      conditionalIndependenceIdeal
@@ -2560,6 +2567,13 @@ installPackage("GraphicalModels",UserMode=>true,DebuggingMode => true)
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=GraphicalModels pre-install"
 -- End:
+
+
+
+
+
+
+
 
 
 

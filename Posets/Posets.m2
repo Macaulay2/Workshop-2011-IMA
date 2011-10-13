@@ -1,7 +1,7 @@
 ------------------------------------------
 -- Currently working on:
 ------------------------------------------
--- David: Patience.
+-- David: Fix connectedComponents
 -- Gwyn:  Tests
 
 ------------------------------------------
@@ -217,6 +217,10 @@ export {
 
 indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
 
+principalOrderIdeal' := (P, i) -> positions(flatten entries(P.RelationMatrix_i), j -> j != 0)
+
+principalFilter' := (P, i) -> positions(first entries(P.RelationMatrix^{i}), j -> j != 0)
+
 ------------------------------------------
 -- Data type & constructor
 ------------------------------------------
@@ -274,17 +278,15 @@ comparabilityGraph Poset := Graph => P -> (
 -- NB: Renames vertices, otherwise it produces the wrong graph in some cases.
 hasseDiagram = method()
 hasseDiagram Poset := Digraph => P -> (
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    cr := apply(coveringRelations P, c -> {idx#(first c), idx#(last c)});
-    digraph hashTable apply(#P.GroundSet, i -> i => set apply(select(cr, c -> c_0 == i), c -> c_1))
+    if not P.cache.?coveringRelations then coveringRelations P;
+    digraph merge(applyValues(partition(first, P.cache.coveringRelations), v -> last \ v), hashTable apply(#P.GroundSet, i -> i => {}), join)
     )
 
 -- NB: Renames vertices, otherwise it produces the wrong ideal in some cases.
 hibiIdeal = method(Options => { symbol CoefficientRing => QQ })
 hibiIdeal (Poset) := MonomialIdeal => opts -> (P) -> (
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     G := set toList(0 ..< #P.GroundSet);
-    O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
+    O := unique apply(#P.GroundSet, i -> principalOrderIdeal'(P, i));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
     x := local x;
     y := local y;
@@ -298,8 +300,7 @@ hibiRing (Poset) := QuotientRing => opts -> (P) -> (
     if opts.Strategy =!= "kernel" and opts.Strategy =!= "4ti2" then error "The option Strategy must either be 'kernel' or '4ti2'.";
     t := local t; x := local x; y := local y;
     R := (opts.CoefficientRing)(monoid [x_0..x_(#P.GroundSet-1),y_0..y_(#P.GroundSet-1)]);
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
+    O := unique apply(#P.GroundSet, i -> principalOrderIdeal'(P, i));
     J := unique apply(subsets(#O), s -> sort unique flatten O_s);
     S := (opts.CoefficientRing)(monoid[apply(J, I -> t_I)]);
     G := set toList(0 ..< #P.GroundSet);
@@ -327,15 +328,13 @@ orderComplex (Poset) := SimplicialComplex => opts -> (P) -> (
         if P.RelationMatrix_i_j == 0 and P.RelationMatrix_j_i == 0 then {i, j} else continue;
     s := opts.VariableName;
     R := (opts.CoefficientRing)(monoid [s_0..s_(#P.GroundSet - 1)]);
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet#i => R_i);
     simplicialComplex if #E > 0 then monomialIdeal apply(E, e -> R_(e_0) * R_(e_1)) else {product gens R}
     )
 
 pPartitionRing = method(Options => { symbol CoefficientRing => QQ, symbol Strategy => "kernel" })
 pPartitionRing (Poset) := QuotientRing => opts -> (P) -> (
     if opts.Strategy =!= "kernel" and opts.Strategy =!= "4ti2" then error "The option Strategy must either be 'kernel' or '4ti2'.";
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    O := unique apply(P.GroundSet, p -> apply(principalOrderIdeal(P, p), q -> idx#q));
+    O := unique apply(#P.GroundSet, i -> principalOrderIdeal'(P, i));
     J := select(unique apply(subsets(#O), s -> sort unique flatten O_s), I -> isConnected subposet(P, P.GroundSet_I));
     t := local t;
     S := (opts.CoefficientRing)(monoid [apply(J, I -> t_I)]);
@@ -414,11 +413,11 @@ openInterval (Poset, Thing, Thing) := Poset => (P, p, q) -> dropElements(closedI
 orderIdeal = method()
 orderIdeal (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> principalOrderIdeal(P, l))
 
-principalOrderIdeal = method()
-principalOrderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(flatten entries(P.RelationMatrix_{indexElement(P, a)}), i -> i != 0))
-
 principalFilter = method()
-principalFilter (Poset, Thing) := List => (P, a) -> P.GroundSet_(positions(first entries(P.RelationMatrix^{indexElement(P, a)}), i -> i != 0))
+principalFilter (Poset, Thing) := List => (P, a) -> P.GroundSet_(principalFilter'(P, indexElement(P, a)))
+
+principalOrderIdeal = method()
+principalOrderIdeal (Poset, Thing) := List => (P, a) -> P.GroundSet_(principalOrderIdeal'(P, indexElement(P, a)))
 
 subposet = method()
 subposet (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.GroundSet - set L))
@@ -481,7 +480,7 @@ Poset - List := dropElements
 isomorphism = method()
 isomorphism (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
     -- Test for quick bail-out.
-    if #(coveringRelations P) != #(coveringRelations Q) or #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
+    if #coveringRelations P != #coveringRelations Q or #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
     -- This relabels P, Q, mu, and nu so that the labels are guaranteed to be sensible.
     idxP := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     P' := indexLabeling P;
@@ -505,8 +504,7 @@ isomorphism' (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
     nu' := flatten nu;
     if #nu' != #Q.GroundSet and isSubset(nu', Q.GroundSet) then error "The list nu is not a partition of the ground set of Q.";
     -- 1. Do the graphs have incompatible vertex partitions or number of coveringRelations?
-    if #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
-    if #coveringRelations P != #coveringRelations Q then return null;
+    if #coveringRelations P != #coveringRelations Q or #mu != #nu or any(#mu, i -> #mu#i != #nu#i) then return null;
     -- 2. Is there a lucky isomorphism?
     isom' := hashTable apply(mu', nu', (i, j) -> i => j);
     if isSubset(apply(coveringRelations P, r -> {isom'#(first r), isom'#(last r)}), coveringRelations Q) then return isom';
@@ -563,14 +561,14 @@ removeIsomorphicPosets List := List => L -> (
     if any(L, p -> not instance(p, Poset)) then error "The list must contain only Posets.";
     while #L > 0 list (
         p := first L;
-        pp := partition(q -> areIsomorphic(p, q), drop(L, 1));
+        pp := partition(q -> p == q, drop(L, 1));
         L = if pp#?false then pp#false else {};
         p
         )
     )
 
 union = method()
-union (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet,Q.GroundSet), unique join(P.Relations,Q.Relations))
+union (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet, Q.GroundSet), unique join(P.Relations, Q.Relations))
 Poset + Poset := union
 
 ------------------------------------------
@@ -865,15 +863,15 @@ displayPoset (Poset) := opts -> (P) -> (
 
 gapPosetConversion = method()
 gapPosetConversion Poset := String => P -> (
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i+2);
-    cp := partition(first, coveringRelations P);
+    if not P.cache.?coveringRelations then coveringRelations P;
+    cp := applyValues(partition(first, P.cache.coveringRelations), v -> (i -> 2 + last i) \ v);
     -- Note: Maximal elements are covered by a new element, m, in GAP (Simplicial Homology)
     m := #P.GroundSet + 2;
-    cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {m});
+    cvrby := apply(#P.GroundSet, i -> if cp#?i then cp#i else {m});
     -- Note: Minimal elements cover a new element in GAP (Simplicial Homology)
-    minel := apply(minimalElements P, p -> idx#p);
+    if not P.cache.?minimalElements then minimalElements P;
     toArray := L -> new Array from L;
-    toString toArray (toArray \ join({minel}, cvrby, {{}}))
+    toString toArray (toArray \ join({apply(P.cache.minimalElements, i -> 2 + i)}, cvrby, {{}}))
     )
 gapPosetConversion Array := Poset => A -> (
     A = toList \ (toList A);
@@ -901,12 +899,12 @@ texPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, sy
 texPoset (Poset) := String => opts -> (P) -> (
     if not instance(opts.SuppressLabels, Boolean) then error "The option SuppressLabels must be a Boolean.";
     if not instance(opts.Jitter, Boolean) then error "The option Jitter must be a Boolean.";
-    -- hash table of variable labels
-    idx:= hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
     -- edge list to be read into TikZ
-    edgelist:= apply(coveringRelations P, r -> concatenate(toString idx#(first r),"/",toString idx#(last r)));
+    if not P.cache.?coveringRelations then coveringRelations P;
+    edgelist := apply(P.cache.coveringRelations, r -> concatenate(toString first r, "/", toString last r));
     -- Find each level of P and set up the positioning of the vertices.
-    F := filtration P;
+    if not P.cache.?filtration then filtration P;
+    F := P.cache.filtration;
     levelsets := apply(F, v -> #v-1);
     scalew := min{1.5, 15 / (1 + max levelsets)};
     scaleh := min{2 / scalew, 15 / #levelsets};
@@ -916,8 +914,8 @@ texPoset (Poset) := String => opts -> (P) -> (
     "\\begin{tikzpicture}[scale=1, vertices/.style={draw, fill=black, circle, inner sep=0pt}]\n" |
     concatenate(
         for i from 0 to #levelsets - 1 list for j from 0 to levelsets_i list
-            {"\t\\node [vertices", if opts.SuppressLabels then "]" else (", label=right:{" | tex F_i_j | "}]"),
-             " (",toString idx#(F_i_j),") at (-",toString halflevelsets_i,"+",
+            {"\t\\node [vertices", if opts.SuppressLabels then "]" else (", label=right:{" | tex P.GroundSet_(F_i_j) | "}]"),
+             " (",toString F_i_j,") at (-",toString halflevelsets_i,"+",
              toString ((if opts.Jitter then random(scalew*0.2) else 0) + spacings_i_j),",",toString (scaleh*i),"){};\n"}
         ) |
     concatenate("\\foreach \\to/\\from in ", toString edgelist, "\n\\draw [-] (\\to)--(\\from);\n\\end{tikzpicture}\n")
@@ -933,11 +931,7 @@ atoms = method()
 atoms Poset := List => P -> unique apply(select(coveringRelations P, R -> any(minimalElements P, elt -> (elt === R#0))), rels -> rels_1)
 
 compare = method()
-compare(Poset, Thing, Thing) := Boolean => (P, a, b) -> (
-    aindex := indexElement(P, a);
-    bindex := indexElement(P, b);
-    P.RelationMatrix_bindex_aindex != 0
-    )
+compare(Poset, Thing, Thing) := Boolean => (P, a, b) -> P.RelationMatrix_(indexElement(P, b))_(indexElement(P, a)) != 0
 
 -- Ported from Stembridge's Maple Package
 connectedComponents = method()
@@ -945,8 +939,8 @@ connectedComponents Poset := List => P -> (
     if not P.cache.?connectedComponents then (
         C := new MutableList from apply(toList(0 ..< #P.GroundSet), i -> {i});
         Q := new MutableList from toList(#P.GroundSet:1);
-        idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-        cr := apply(coveringRelations P, c -> {idx#(c_0), idx#(c_1)});
+        if not P.cache.?coveringRelations then coveringRelations P;
+        cr := P.cache.coveringRelations;
         while (#cr > 0 and sum toList Q > 1) do (
             i := first first cr;
             j := last first cr;
@@ -964,24 +958,27 @@ connectedComponents Poset := List => P -> (
 -- Notice that flatten filtration P is a linear extension of P.
 filtration = method()
 filtration Poset := List => P -> (
-    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
-    cp := partition(last, coveringRelations P);
-    cnt := new MutableList from for p in P.GroundSet list if cp#?p then #cp#p else 0;
-    cp = partition(first, coveringRelations P);
-    cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {});
-    neu := positions(cnt, c -> c == 0);
-    ret := {neu} | while #neu != 0 list neu = for i in flatten cvrby_neu list if cnt#i == 1 then i else ( cnt#i = cnt#i - 1; continue );
-    apply(drop(ret, -1), lvl -> P.GroundSet_lvl)
+    if not P.cache.?filtration then (
+        if not P.cache.?coveringRelations then coveringRelations P;
+        cp := partition(last, P.cache.coveringRelations);
+        cnt := new MutableList from apply(#P.GroundSet, i -> if cp#?i then #cp#i else 0);
+        cp = partition(first, P.cache.coveringRelations);
+        cvrby := apply(#P.GroundSet, i -> if cp#?i then last \ cp#i else {});
+        neu := positions(cnt, c -> c == 0);
+        ret := {neu} | while #neu != 0 list neu = for i in flatten cvrby_neu list if cnt#i == 1 then i else ( cnt#i = cnt#i - 1; continue );
+        P.cache.filtration = drop(ret, -1);
+        );
+    apply(P.cache.filtration, lvl -> P.GroundSet_lvl)
     )
 
 joinExists = method()
 joinExists (Poset,Thing,Thing) := Boolean => (P, a, b) -> (
-    OIa := principalFilter(P, a);     
-    OIb := principalFilter(P, b);
+    OIa := principalFilter'(P, indexElement(P, a));
+    OIb := principalFilter'(P, indexElement(P, b));
     upperBounds := toList (set(OIa)*set(OIb));
     if upperBounds == {} then false else (
         M := P.RelationMatrix;
-        heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
+        heightUpperBounds := flatten apply(upperBounds, i -> sum entries M_{i});
         #(select(heightUpperBounds, i-> i == min heightUpperBounds)) <= 1
         )
     )
@@ -1002,13 +999,13 @@ maximalElements Poset := List => P -> (
 
 meetExists = method()
 meetExists (Poset, Thing, Thing) := Boolean => (P,a,b) -> (
-    Fa := principalOrderIdeal(P, a);
-    Fb := principalOrderIdeal(P, b);
+    Fa := principalOrderIdeal'(P, indexElement(P, a));
+    Fb := principalOrderIdeal'(P, indexElement(P, b));
     lowerBounds:= toList (set(Fa)*set(Fb));
     if lowerBounds == {} then false else (
         M := P.RelationMatrix;
-        heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-        #(select(heightLowerBounds, i-> i == max heightLowerBounds)) <= 1
+        heightLowerBounds := flatten apply(lowerBounds, i -> sum entries M_{i});
+        #(select(heightLowerBounds, i -> i == max heightLowerBounds)) <= 1
         )
     )
 
@@ -1029,29 +1026,29 @@ minimalElements Poset := List => P -> (
 
 posetJoin = method()     
 posetJoin (Poset,Thing,Thing) := List => (P,a,b)  -> (
-    OIa := principalFilter(P, a);     
-    OIb := principalFilter(P, b);
+    OIa := principalFilter'(P, indexElement(P, a));     
+    OIb := principalFilter'(P, indexElement(P, b));
     upperBounds := toList (set(OIa)*set(OIb));
     if upperBounds == {} then error "The elements do not share any upper bounds."
     else (
         M := P.RelationMatrix;
-        heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-        if #(select(heightUpperBounds, i-> i == min heightUpperBounds)) > 1 then error "The join does not exist; the least upper bound not unique." 
-        else(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
+        heightUpperBounds := flatten apply(upperBounds, i -> sum entries M_{i});
+        if #(select(heightUpperBounds, i -> i == min heightUpperBounds)) > 1 then error "The join does not exist; the least upper bound not unique." 
+        else P.GroundSet_(upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
         )
     )
 
 posetMeet = method()
 posetMeet (Poset,Thing,Thing) := List => (P,a,b) ->(
-    Fa := principalOrderIdeal(P,a);
-    Fb := principalOrderIdeal(P,b);
+    Fa := principalOrderIdeal'(P, indexElement(P, a));
+    Fb := principalOrderIdeal'(P, indexElement(P, b));
     lowerBounds:= toList (set(Fa)*set(Fb));
     if lowerBounds == {} then error "The elements do not share any lower bounds."
     else (
         M := P.RelationMatrix;
-        heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-        if #(select(heightLowerBounds, i-> i == max heightLowerBounds)) > 1 then error "The meet does not exist; the greatest lower bound not unique." 
-        else lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)}
+        heightLowerBounds := flatten apply(lowerBounds, i -> sum entries M_{i});
+        if #(select(heightLowerBounds, i -> i == max heightLowerBounds)) > 1 then error "The meet does not exist; the greatest lower bound not unique." 
+        else P.GroundSet_(lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)})
         )
     )
 
@@ -1059,9 +1056,9 @@ posetMeet (Poset,Thing,Thing) := List => (P,a,b) ->(
 rankFunction = method()
 rankFunction Poset := List => P -> (
     if P.cache.?rankFunction then return P.cache.rankFunction;
-    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
     rk := apply(#P.GroundSet, i -> {i, 0});
-    for r in apply(coveringRelations P, r -> {idx#(r#0), idx#(r#1)}) do (
+    if not P.cache.?coveringRelations then coveringRelations P;
+    for r in P.cache.coveringRelations do (
         tmp := last rk#(r#1) - last rk#(r#0) - 1;
         if tmp == 0 then continue;
         u := first rk#(r#0);
@@ -1122,9 +1119,12 @@ flagChains = method()
 flagChains (Poset,List) := List => (P, L) -> (
     if not isRanked P then error "The poset must be ranked.";
     rkP := rankPoset P;
-    if #L == 0 then {} else 
-    if #L == 1 then apply(rkP_(first L), p -> {p}) else 
-    flatten for c in flagChains(P, drop(L, 1)) list for p in rkP_(first L) list if compare(P, p, first c) then prepend(p, c) else continue
+    if #L == 0 then {} else if #L == 1 then apply(rkP_(first L), p -> {p}) else (
+        L = sort L;
+        flatten for c in flagChains(P, drop(L, 1)) list (
+            for p in rkP_(first L) list if compare(P, p, first c) then prepend(p, c) else continue
+            )
+        )
     )
 
 isAntichain = method()
@@ -1140,7 +1140,9 @@ linearExtensions Poset := List => P -> (
         if #cr == 0 then permutations toList G else 
         flatten apply(toList (G - apply(cr, last)), m -> apply(linExtRec(G - {m}, select(cr, c -> first c =!= m)), e -> prepend(m, e)))
         );
-    linExtRec(set P.GroundSet, coveringRelations P)
+    if not P.cache.?coveringRelations then coveringRelations P;
+    le := linExtRec(set toList(0 ..< #P.GroundSet), P.cache.coveringRelations);
+    apply(le, l -> P.GroundSet_l)
     )
 
 maximalAntichains = method()
@@ -1210,7 +1212,8 @@ flaghPolynomial Poset := RingElement => opts -> P -> (
     if not isRanked P then error "The poset must be ranked.";
     ff := flagfPolynomial(P, opts);
     R := ring ff;
-    lift(product(gens R, r -> 1 - r) * sub(ff, apply(gens R, r -> r => r/(1 - r))), R)
+    fhp := product(gens R, r -> 1 - r) * sub(ff, apply(gens R, r -> r => r/(1 - r)));
+    if denominator fhp == -1_R then -numerator fhp else numerator fhp
     )
 
 -- f_i*q^i: f_i is the number of chains of i vertices in P
@@ -1250,13 +1253,12 @@ hPolynomial Poset := RingElement => opts -> P -> (
 
 moebiusFunction = method()
 moebiusFunction Poset := HashTable => P -> (
-    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
     mu := new MutableHashTable;
-    for p in P.GroundSet do (
-        gtp := P.GroundSet_(positions(flatten entries (P.RelationMatrix_(idx#p)), i -> i != 0));
-        for q in P.GroundSet do mu#(q, p) = if p === q then 1 else if not member(q, gtp) then 0 else -sum(gtp, z -> if mu#?(q, z) then mu#(q, z) else 0);
+    for i to #P.GroundSet-1 do (
+        gtp := principalOrderIdeal'(P, i);
+        for j to #P.GroundSet-1 do mu#(j, i) = if i === j then 1 else if not member(j, gtp) then 0 else -sum(gtp, z -> if mu#?(j, z) then mu#(j, z) else 0);
         );
-    new HashTable from mu
+    applyKeys(new HashTable from mu, (i, j) -> (P.GroundSet_i, P.GroundSet_j))
     )
 
 -- r_i*x^i: r_i is the number of rank i vertices in P
@@ -1283,18 +1285,24 @@ zetaPolynomial Poset := RingElement => opts -> P -> (
 ------------------------------------------
 
 dilworthNumber = method()
-dilworthNumber Poset := ZZ => P -> max apply(maximalAntichains P, a -> #a)
+dilworthNumber Poset := ZZ => P -> (
+    if not P.cache.?maximalAntichains then maximalAntichains P;
+    max apply(P.cache.maximalAntichains, a -> #a)
+    )
 
 -- The method height is given in the Core.
-height Poset := ZZ => P -> -1 + max apply(maximalChains P, c -> #c)
+height Poset := ZZ => P -> (
+    if not P.cache.?maximalChains then maximalChains P;
+    -1 + max apply(P.cache.maximalChains, c -> #c)
+    )
 
 isAtomic = method()
 isAtomic Poset := Boolean => P -> (
     if P.cache.?isAtomic then return P.cache.isAtomic;
     if not isLattice P then error "The poset must be a lattice.";
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    cp := partition(last, coveringRelations P);
-    cvrs := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(first q)) else {});
+    if not P.cache.?coveringRelations then coveringRelations P;
+    cp := partition(last, P.cache.coveringRelations);
+    cvrs := apply(#P.GroundSet, i -> if cp#?i then first \ cp#i else {});
     P.cache.isAtomic = all(cvrs, cvr -> #cvr != 1 or cvrs#(first cvr) == {})
     )
 
@@ -1322,14 +1330,8 @@ isEulerian Poset := Boolean => P -> (
     if P.cache.?isEulerian then return P.cache.isEulerian;
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
-    idx := hashTable apply(#P.GroundSet, i-> P.GroundSet_i => i);
     mu := moebiusFunction P;
-    P.cache.isEulerian = all(P.GroundSet, 
-        p -> (
-            gtp := P.GroundSet_(positions(flatten entries (P.RelationMatrix_(idx#p)), i -> i != 0));
-            all(gtp, q -> mu#(q, p) == (-1)^(rk#(idx#q) - rk#(idx#p)))
-            )
-        )
+    P.cache.isEulerian = all(#P.GroundSet, i -> all(principalOrderIdeal'(P, i), j -> mu#(P.GroundSet_j, P.GroundSet_i) == (-1)^(rk#j - rk#i)))
     )
 
 isGeometric = method()
@@ -1339,7 +1341,10 @@ isGeometric Poset := Boolean => P -> (
     )
 
 isGraded = method()
-isGraded Poset := Boolean => P -> #unique apply(maximalChains P, c -> #c) == 1
+isGraded Poset := Boolean => P -> (
+    if not P.cache.?maximalChains then maximalChains P;
+    #unique apply(P.cache.maximalChains, c -> #c) == 1
+    )
 
 isLattice = method()
 isLattice Poset := Boolean => P -> isLowerSemilattice P and isUpperSemilattice P 
@@ -1354,9 +1359,9 @@ isLowerSemimodular Poset := Boolean => P -> (
     if P.cache.?isLowerSemimodular then return P.cache.isLowerSemimodular;
     if not isLattice P then error "The poset must be a lattice.";
     if not isRanked P then error "The poset must be ranked.";
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    cp := partition(last, coveringRelations P);
-    cvrs := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(first q)) else {});
+    if not P.cache.?coveringRelations then coveringRelations P;
+    cp := partition(last, P.cache.coveringRelations);
+    cvrs := apply(#P.GroundSet, i -> if cp#?i then first \ cp#i else {});
     P.cache.isLowerSemimodular = all(#P.GroundSet, i -> all(#cvrs#i, j -> all(j, k -> #(set cvrs#(cvrs#i#j) * set cvrs#(cvrs#i#k)) === 1)))
     )
 
@@ -1383,9 +1388,12 @@ isStrictSperner = method()
 isStrictSperner Poset := Boolean => P -> (
     if P.cache.?isStrictSperner then return P.cache.isStrictSperner;
     if not isRanked P then error "The poset must be ranked.";
-    rk := sort \ rankPoset P;
-    ac := sort \ maximalAntichains P;
-    P.cache.isStrictSperner = (#rk == #ac and isSubset(rk, ac))
+    rk := rankFunction P;
+    rks := partition(i -> rk_i, 0 ..< #rk);
+    ranks := sort \ apply(max rk + 1, r -> toList (rks#r));
+    if not P.cache.?maximalAntichains then maximalAntichains P;
+    ac := sort \ P.cache.maximalAntichains;
+    P.cache.isStrictSperner = (#ranks == #ac and isSubset(ranks, ac))
     )
 
 isUpperSemilattice = method()
@@ -1398,9 +1406,9 @@ isUpperSemimodular Poset := Boolean => P -> (
     if P.cache.?isUpperSemimodular then return P.cache.isUpperSemimodular;
     if not isLattice P then error "The poset must be a lattice.";
     if not isRanked P then error "The poset must be ranked.";
-    idx := hashTable apply(#P.GroundSet, i -> P.GroundSet_i => i);
-    cp := partition(first, coveringRelations P);
-    cvrby := apply(P.GroundSet, p -> if cp#?p then apply(cp#p, q -> idx#(last q)) else {});
+    if not P.cache.?coveringRelations then coveringRelations P;
+    cp := partition(first, P.cache.coveringRelations);
+    cvrby := apply(#P.GroundSet, i -> if cp#?i then last \ cp#i else {});
     P.cache.isUpperSemimodular = all(#P.GroundSet, i -> all(#cvrby#i, j -> all(j, k -> #(set cvrby#(cvrby#i#j) * set cvrby#(cvrby#i#k)) === 1)))
     )
 

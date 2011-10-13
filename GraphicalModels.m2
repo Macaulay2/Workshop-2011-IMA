@@ -618,10 +618,33 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
 
 gaussianMatrices = method()
 gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
-     --input ring and statmetens
-     --output list of mtces whose minors give the CI ideal.
+        if not (R#?gaussianRing) then error "expected a ring created with gaussianRing";
+        if R.?graph then (
+	   g := R.graph;
+           vv := sort vertices g;
+           SM := covarianceMatrix(R);
+           apply(Stmts, s -> 
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ) 
+          )
+        else if R.?digraph then (
+	   g= R.digraph;
+           vv = sort vertices g;
+           SM = covarianceMatrix(R);
+           apply(Stmts, s ->  
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ) 
+          )
+        else (
+         vv = toList (1..R#gaussianRing);
+	 SM = covarianceMatrix(R);
+         apply(Stmts, s->  
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )
+	  )
      
      )
+
 gaussianMatrices(Ring,List,List) := List =>  (R,VarNames,Stmts) -> (
      --input ring and statmetens and variable names
      --output list of mtces whose minors give the CI ideal.
@@ -644,7 +667,7 @@ gaussianMatrix(Ring,Digraph,List) := List =>  (R,G,s) -> (
      cols := join(getPositionOfVertices(G,s#1), getPositionOfVertices(G,s#2));  
      submatrix(M,rows,cols)
      )
-gaussianMatrices = method()
+-- gaussianMatrices = method()
 gaussianMatrices(Ring,Digraph,List) := List =>  (R,G,S) -> (
      apply(S, s -> gaussianMatrix(R,G,s))
      )

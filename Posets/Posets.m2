@@ -5215,7 +5215,11 @@ undocumented { "VariableName", (toExternalString,Poset), (toString,Poset) };
 ------------------------------------------
 
 -- Poset defined by ground set and relations
--- basic Poset constructor, toExternalString, hasseDiagram, isLattice, comparabilityGraph
+-- basic Poset constructor
+--toExternalString
+--hasseDiagram
+--isLattice
+--comparabilityGraph
 TEST ///
 P = poset({a,b,c,d},{{a,b},{b,c},{a,d},{d,c}})
 Q = toExternalString P
@@ -5231,8 +5235,13 @@ assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {2, 3}})
 assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
 ///
 
--- Poset defined by only relations
--- basic Poset constructor, toExternalString, hasseDiagram, isLattice, comparabilityGraph
+-- Poset defined by only relations, lattice
+-- basic Poset constructor
+--toExternalString
+--hasseDiagram
+--isLattice
+--comparabilityGraph
+--rankFunction
 TEST ///
 P = poset({{a,b},{b,c},{a,d},{d,c}})
 Q = toExternalString P
@@ -5246,10 +5255,17 @@ assert((sort coveringRelations P) == (sort P.Relations))
 assert(isLattice P)
 assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {1, 2}, {2, 3}})
 assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
+assert(sort rankFunction P == {0, 1, 1, 2})
 ///
 
 --Poset defined by only relations, not a lattice.
--- basic Poset constructor, toExternalString, hasseDiagram, isLattice, comparabilityGraph
+-- basic Poset constructor
+--toExternalString
+--hasseDiagram
+--isLattice
+--comparabilityGraph
+--rankFunction
+--flagPoset
 TEST /// 
 P = poset({{a,b},{b,c},{a,d},{d,c},{d,e}})
 Q = toExternalString P
@@ -5263,10 +5279,14 @@ assert((sort coveringRelations P) == (sort P.Relations))
 assert(not isLattice P)
 assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {4, 0}, {1, 2}, {2, 3}, {4, 3}})
 assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
+assert(sort rankFunction P == {0, 1, 1, 2, 2})
+assert(flagPoset(P,{1,2})== poset {{b, c}, {d, c}, {d, e}})
 ///
 
---Poset constructed by lcmLattice compared to one from relations via isomorphism
--- basic Poset constructor, easy isomorphism, lcmLattice
+--Poset constructed by lcmLattice vs one from relations
+--poset isomorphism
+--basic Poset constructor
+--lcmLattice
 TEST /// 
 R = QQ[x,y]
 P = lcmLattice(ideal(x,y))
@@ -5278,28 +5298,25 @@ assert(P.GroundSet == {1, y, x, x*y})
 assert(P.Relations == {{1, y}, {1, x}, {1, x*y}, {y, x*y}, {x, x*y}})
 ///
 
---Poset constructed by booleanLattice compared to one from relations via isomorphism
--- basic Poset constructor, easy isomorphism, booleanLattice
+--Poset constructed by booleanLattice vs one from relations
+-- basic Poset constructor
+--easy isomorphism
+--booleanLattice
 TEST /// 
 P = booleanLattice 2
 S = toExternalString P
 Q = poset({{a,b},{b,c},{a,d},{d,c}})
 assert(P == Q)
 assert(P == value S)
---This test already highlighted a problem, as neither of these works,
---as they each compare a string to an integer (in this case):
 assert(P.GroundSet == {"00", "01", "10", "11"})
 assert(P.Relations == {{"00", "01"}, {"10", "11"}, {"00", "10"}, {"01", "11"}})
---assert(P.GroundSet == {00, 01, 10, 11})
---assert(P.GroundSet === {00, 01, 10, 11})
---assert(P.Relations == {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
---assert(P.Relations === {{00, 01}, {10, 11}, {00, 10}, {01, 11}})
-
 ///
 
 
 --Posets constructed by booleanLattice and lcmLattice
--- booleanLattice/lcmLattice easy tests, poset isomorphism
+-- booleanLattice/lcmLattice easy tests
+--poset isomorphism
+--removeIsomorphicPosets
 TEST ///
 R = QQ[x,y,z,w]
 A = booleanLattice 3
@@ -5310,10 +5327,11 @@ assert(A == AA)
 assert(B == BB)
 assert(A =!= B)
 assert(AA =!= BB)
+assert(# removeIsomorphicPosets({A, adjoinMin(flagPoset(A,{1,2,3})),adjoinMax(flagPoset(A,{0,1,2})),augmentPoset(flagPoset(A,{1,2})),lcmLattice(ideal{x,y,z})}) == 1)
+assert(# removeIsomorphicPosets({A, B, adjoinMin(flagPoset(A,{1,2,3})),adjoinMax(flagPoset(A,{0,1,2})),augmentPoset(flagPoset(A,{1,2})),lcmLattice(ideal{x,y,z})}) == 2)
 ///
 
 --Posets constructed via booleanLattice:
-
 --Lower/Upper SemiLattice
 
 TEST ///
@@ -5324,6 +5342,25 @@ assert(isUpperSemilattice A)
 assert(isDistributive A)
 ///
 
+--Boolean Lattice tests of:
+--isLower/UpperSemilattice
+--isDistributive
+--hasseDiagram
+--incomparabilityGraph
+--orderComplex
+--closedInterval
+--openInterval
+--dilworthLattice
+--distributiveLattice [cache,chains,hasseDiagram]
+--filter & orderIdeal
+--principalFilter & principalOrderIdeal
+--subposet
+--rankFunction
+--flagPoset
+--indexLabeling
+--naturalLabeling
+--adjoinMin & adjoinMax & augmentPoset
+--removeIsomorphicPosets
 TEST ///
 B = booleanLattice 3
 assert(B == poset(subsets 3, isSubset))
@@ -5338,6 +5375,29 @@ assert(sub(ideal(orderComplex B),R) == sub(ideal(v_1*v_2, v_1*v_4, v_2*v_4, v_3*
 assert(closedInterval(B, "001","111") == booleanLattice 2)
 assert(openInterval(B, "001","111") == poset({a,b},{}))
 assert(dilworthLattice B == poset({{a,b}}))
+D=distributiveLattice B
+assert(D.cache#OriginalPoset == B)
+assert(# chains(D,9) == 48)
+assert(hasseDiagram D === digraph new HashTable from {0 => set {1}, 1 => set {2, 3, 6}, 2 => set {4, 7}, 3 => set {4, 8}, 4 => set {5, 9}, 5 => set {10}, 6 => set {7, 8}, 7 => set {9, 11}, 8 => set {9, 14}, 9 => set{10, 12, 15}, 10 => set {13, 16}, 11 => set {12}, 12 => set {13, 17}, 13 => set {18}, 14 => set {15}, 15 => set {16, 17},16 => set {18}, 17 => set {18}, 18 => set {19}, 19 => set {}})
+assert(filter(B, {"001", "110"}) == {"001", "011", "101", "111", "110"})
+assert(orderIdeal(B, {"001", "110"}) == {"000", "001", "010", "100", "110"})
+assert(principalFilter(B,"001") == {"001", "011", "101", "111"})
+assert(principalOrderIdeal(B,"001") == {"000", "001"})
+assert(subposet(B, filter(B,{"001","110"})) == poset {{001, 011}, {001, 101}, {001, 111}, {011, 111}, {101, 111}, {110, 111}})
+assert(subposet(B, orderIdeal(B, {"001", "110"})) == poset {{000, 001}, {000, 010}, {000, 100}, {000, 110}, {010, 110}, {100,110}})
+assert(subposet(B,principalFilter(B,"001")) == poset {{001, 011}, {001, 101}, {001, 111}, {011, 111}, {101, 111}})
+assert(subposet(B,principalOrderIdeal(B,"001")) == poset {{a,b}})
+assert(sort rankFunction B == {0, 1, 1, 1, 2, 2, 2, 3})
+assert(flagPoset(B,{1,3}) == poset {{a,d},{b,d},{c,d}})
+assert(flagPoset(B,{1,2,3}) == subposet(B,drop(B.GroundSet,1)))
+assert(B == indexLabeling B)
+assert(B == naturalLabeling B)
+r = flatten apply(rankPoset naturalLabeling B, sort)
+assert(r == toList(0..#r-1))
+assert(adjoinMin(flagPoset(B,{1,2,3})) == B)
+assert(adjoinMax(flagPoset(B,{0,1,2})) == B)
+assert(augmentPoset(flagPoset(B,{1,2})) == B)
+
 ///
 
 --isLattice test
@@ -5347,8 +5407,6 @@ B = booleanLattice 3
 assert(isLattice A)
 assert(isLattice B)
 ///
-
-
 
 
 end;

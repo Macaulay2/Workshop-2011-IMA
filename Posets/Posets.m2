@@ -5266,6 +5266,7 @@ assert(sort rankFunction P == {0, 1, 1, 2})
 --comparabilityGraph
 --rankFunction
 --flagPoset
+--joinExists & meetExists
 TEST /// 
 P = poset({{a,b},{b,c},{a,d},{d,c},{d,e}})
 Q = toExternalString P
@@ -5281,6 +5282,10 @@ assert(comparabilityGraph P === graph {{0, 1}, {0, 2}, {0, 3}, {4, 0}, {1, 2}, {
 assert(comparabilityGraph P === graph apply(edges comparabilityGraph P, toList))
 assert(sort rankFunction P == {0, 1, 1, 2, 2})
 assert(flagPoset(P,{1,2})== poset {{b, c}, {d, c}, {d, e}})
+assert(joinExists(P,b,d)== true)
+assert(joinExists(P,c,e)==false)
+assert(meetExists(P,b,d)==true)
+assert(meetExists(P,e,b)==true)
 ///
 
 --Poset constructed by lcmLattice vs one from relations
@@ -5360,6 +5365,21 @@ assert(isDistributive A)
 --indexLabeling
 --naturalLabeling
 --adjoinMin & adjoinMax & augmentPoset
+--dropElements
+--diamondProduct
+--connectedComponents
+--union
+--meetExists & joinExists
+--meetIrreducibles & joinIrreducibles
+--posetMeet & posetJoin
+--rankPoset
+--allRelations & coveringRelations
+--antichains & chains
+--maximalAntichains & maximalChains
+--flagChains
+--isAntichain
+--linearExtensions
+
 TEST ///
 B = booleanLattice 3
 assert(B == poset(subsets 3, isSubset))
@@ -5389,6 +5409,8 @@ assert(subposet(B,principalOrderIdeal(B,"001")) == poset {{a,b}})
 assert(sort rankFunction B == {0, 1, 1, 1, 2, 2, 2, 3})
 assert(flagPoset(B,{1,3}) == poset {{a,d},{b,d},{c,d}})
 assert(flagPoset(B,{1,2,3}) == subposet(B,drop(B.GroundSet,1)))
+assert(flagPoset(B,{1,3}) == dropElements(B,{"000", "011", "101", "110"}))
+assert(flagPoset(B,{1,2,3}) == dropElements(B,{"000"}))
 assert(B == indexLabeling B)
 assert(B == naturalLabeling B)
 r = flatten apply(rankPoset naturalLabeling B, sort)
@@ -5396,6 +5418,42 @@ assert(r == toList(0..#r-1))
 assert(adjoinMin(flagPoset(B,{1,2,3})) == B)
 assert(adjoinMax(flagPoset(B,{0,1,2})) == B)
 assert(augmentPoset(flagPoset(B,{1,2})) == B)
+assert(hasseDiagram(diamondProduct(B,B))===digraph new HashTable from {0 => set {1, 2, 4, 8, 9, 11, 22, 23, 25}, 1 => set {3, 5, 15, 29}, 2 => set {3, 6, 16, 30}, 3 => set {7, 17, 31}, 4 => set {5, 6, 18, 32}, 5 => set {7, 19, 33}, 6 => set {7, 20, 34}, 7 => set{21, 35}, 8 => set {10, 12, 15, 36}, 9 => set {10, 13, 16, 37}, 10 => set {14, 17, 38}, 11 => set {12, 13,18, 39}, 12 => set {14, 19, 40}, 13 => set {14, 20, 41}, 14 => set {21, 42}, 15 => set {17, 19, 43}, 16 =>set {17, 20, 44}, 17 => set {21, 45}, 18 => set {19, 20, 46}, 19 => set {21, 47}, 20 => set {21, 48}, 21 => set {49}, 22 => set {24, 26, 29, 36}, 23 => set {24, 27, 30, 37}, 24 => set {28, 31, 38}, 25 => set {26,27, 32, 39}, 26 => set {28, 33, 40}, 27 => set {28, 34, 41}, 28 => set {35, 42}, 29 => set {31, 33, 43}, 30=> set {31, 34, 44}, 31 => set {35, 45}, 32 => set {33, 34, 46}, 33 => set {35, 47}, 34 => set {35, 48}, 35 => set {49}, 36 => set {38, 40, 43}, 37 => set {38, 41, 44}, 38 => set {42, 45}, 39 => set {40, 41, 46}, 40 => set {42, 47}, 41 => set {42, 48}, 42 => set {49}, 43 => set {45, 47}, 44 => set {45, 48}, 45 => set {49}, 46 => set {47, 48}, 47 => set {49}, 48 => set {49}, 49 => set {}})
+assert(union(B,B)==B)
+C=union(B,naturalLabeling B)
+L=connectedComponents C
+assert(subposet(C,first L) == subposet(C, last L))
+assert(atoms B == {"100", "001", "010"})
+assert(compare(B,"100","001") == false)
+assert(compare(B,"100","101") == true)
+assert(compare(B,"000","111") == true)
+assert((sort \ (filtration B)) == (sort \ (rankPoset B)))
+assert(joinExists(B,"100","001") == true)
+assert(joinExists(B,"100","101") == true)
+assert(joinExists(B,"000","111") == true)
+assert(joinIrreducibles B == {"000", "001", "100", "010"})
+assert(meetExists(B,"100","001") == true)
+assert(meetExists(B,"100","101") == true)
+assert(meetExists(B,"000","111") == true)
+assert(meetIrreducibles B == {"110", "011", "111", "101"})
+assert(maximalElements B == {"111"})
+assert(minimalElements B == {"000"})
+assert(posetJoin(B,"100","001")== {"101"})
+assert(posetJoin(B,"110","001")== {"111"})
+assert(posetMeet(B,"100","001")== {"000"})
+assert(posetMeet(B,"110","011")== {"010"})
+assert(rankPoset B == {{"000"}, {"001", "010", "100"}, {"011", "101", "110"}, {"111"}})
+assert(allRelations B == {{"000", "000"}, {"000", "001"}, {"000", "010"}, {"000", "011"}, {"000", "100"}, {"000", "101"}, {"000", "110"}, {"000", "111"}, {"001", "001"}, {"001", "011"}, {"001", "101"}, {"001", "111"}, {"010", "010"}, {"010", "011"}, {"010", "110"}, {"010", "111"}, {"011", "011"}, {"011", "111"}, {"100", "100"}, {"100","101"}, {"100", "110"}, {"100", "111"}, {"101", "101"}, {"101", "111"}, {"110", "110"}, {"110", "111"},{"111", "111"}})
+assert(coveringRelations B == {{"000", "100"}, {"000", "001"}, {"000", "010"}, {"001", "101"}, {"001", "011"}, {"010", "110"}, {"010", "011"}, {"011", "111"}, {"100", "101"}, {"100", "110"}, {"101", "111"}, {"110", "111"}})
+assert(antichains B == {{}, {"000"}, {"001"}, {"001", "010"}, {"001", "010", "100"}, {"001", "100"}, {"001", "110"}, {"010"}, {"010", "100"}, {"010", "101"}, {"011"}, {"011", "100"}, {"011", "101"}, {"011", "101", "110"}, {"011","110"}, {"100"}, {"101"}, {"101", "110"}, {"110"}, {"111"}})
+assert(maximalAntichains B == {{"000"}, {"111"}, {"001", "110"}, {"010", "101"}, {"011", "100"}, {"001", "010", "100"}, {"011", "101", "110"}})
+assert(maximalChains B == {{"000", "100", "101", "111"}, {"000", "100", "110", "111"}, {"000", "001", "101", "111"}, {"000", "001", "011", "111"}, {"000", "010", "110", "111"}, {"000", "010", "011", "111"}})
+assert(chains B == {{}, {"000"}, {"000", "001"}, {"000", "001", "011"}, {"000", "001", "011", "111"}, {"000", "001", "101"}, {"000", "001", "101", "111"}, {"000", "001", "111"}, {"000", "010"}, {"000", "010", "011"}, {"000", "010", "011", "111"}, {"000", "010", "110"}, {"000", "010", "110", "111"}, {"000", "010", "111"}, {"000", "011"}, {"000", "011", "111"}, {"000", "100"}, {"000", "100", "101"}, {"000", "100", "101", "111"}, {"000", "100", "110"}, {"000", "100", "110", "111"}, {"000", "100", "111"}, {"000", "101"}, {"000", "101", "111"}, {"000", "110"}, {"000", "110", "111"}, {"000", "111"}, {"001"}, {"001", "011"}, {"001", "011", "111"}, {"001", "101"}, {"001", "101", "111"}, {"001", "111"}, {"010"}, {"010", "011"}, {"010", "011", "111"}, {"010", "110"}, {"010", "110", "111"}, {"010", "111"}, {"011"}, {"011", "111"}, {"100"}, {"100", "101"}, {"100", "101", "111"}, {"100", "110"}, {"100", "110", "111"}, {"100", "111"}, {"101"}, {"101", "111"}, {"110"}, {"110", "111"}, {"111"}})
+assert(flagChains(B,{1,2,3}) == {{"001", "011", "111"}, {"010", "011", "111"}, {"001", "101", "111"}, {"100", "101", "111"}, {"010", "110", "111"}, {"100", "110", "111"}})
+assert(chains B == sort join({{}},flatten apply(subsets({0,1,2,3}), s-> flagChains(B,s))))
+assert(isAntichain(B,{"001","100"})==true)
+assert(isAntichain(B,{"111","100"})==false)
+assert(# linearExtensions B == 48)
 
 ///
 

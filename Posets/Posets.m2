@@ -5360,7 +5360,6 @@ assert(isDistributive A)
 --indexLabeling
 --naturalLabeling
 --adjoinMin & adjoinMax & augmentPoset
---removeIsomorphicPosets
 TEST ///
 B = booleanLattice 3
 assert(B == poset(subsets 3, isSubset))

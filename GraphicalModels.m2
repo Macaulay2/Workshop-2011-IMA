@@ -2368,11 +2368,18 @@ assert(0 == cov - matrix correctOutput )
 TEST ///
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R=gaussianRing G 
-I = gaussianVanishingIdeal (R,G)
+I = gaussianVanishingIdeal R
 correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,d)+s_(a,b)*s_(b,d)*s_(c,d)+s_(a,c)*s_(b,b)*s_(d,d)-s_(a,b)*s_(b,c)*s_(d,d),s_(a,c)*s_(a,d)*s_(b,c)-s_(a,c)^2*s_(b,d)-s_(a,b)*s_(a,d)*s_(c,c)+s_(a,a)*s_(b,d)*s_(c,c)+s_(a,b)*s_(a,c)*s_(c,d)-s_(a,a)*s_(b,c)*s_(c,d), s_(a,b)*s_(a,d)*s_(b,d)*s_(c,c)-s_(a,a)*s_(b,d)^2*s_(c,c)-s_(a,c)*s_(a,d)*s_(b,b)*s_(c,d)+s_(a,a)*s_(b,c)*s_(b,d)*s_(c,d)+s_(a,c)^2*s_(b,b)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)*s_(d,d), s_(a,b)*s_(a,c)*s_(b,d)^2*s_(c,c)-s_(a,a)*s_(b,c)*s_(b,d)^2*s_(c,c)-s_(a,c)^2*s_(b,b)*s_(b,d)*s_(c,d)+s_(a,a)*s_(b,c)^2*s_(b,d)*s_(c,d)-s_(a,b)^2*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,a)*s_(b,b)*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,b)*s_(a,c)*s_(b,b)*s_(c,d)^2-s_(a,a)*s_(b,b)*s_(b,c)*s_(c,d)^2+s_(a,c)^2*s_(b,b)*s_(b,c)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)^2*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,b)*s_(c,c)*s_(d,d)+s_(a,b)^2*s_(b,c)*s_(c,c)*s_(d,d)}
 assert( I == ideal correctOutput)
 ///
-
+TEST ///
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = gaussianRing G
+I = gaussianVanishingIdeal(R) 
+correctOutput = {
+-s_(a,d)*s_(b,b)+s_(a,b)*s_(b,d), s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d), s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d) }
+assert( I == ideal correctOutput)
+///
 --------------------------
 ---- TEST pairMarkov  ----
 --------------------------

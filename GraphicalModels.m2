@@ -2458,12 +2458,12 @@ assert({M1,M2} === L)
 --- TEST trekIdeal  ---
 -----------------------
 
-TEST ///
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-R = gaussianRing G
-I = trekIdeal(R,G)
-assert(I==ideal(s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d),s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d),s_(a,d)*s_(b,b)-s_(a,b)*s_(b,d)))
-///
+--TEST ///
+--G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+--R = gaussianRing G
+--I = trekIdeal(R,G)
+--assert(I==ideal(s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d),s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d),s_(a,d)*s_(b,b)-s_(a,b)*s_(b,d)))
+--///
 
 -----------------------------------------------
 --- TEST Gaussian Mixed Graphical Models ------

@@ -2201,12 +2201,17 @@ doc ///
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G 
        J = gaussianVanishingIdeal(R) 
+       transpose gens J
      Text
        here is old text: 
        The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
        are disjoint lists of integers in the range 1..n (n is the number of random variables)
        is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
        rows are in A union C, and whose columns are in B union C.  In general, this ideal need not be prime.
+     Example
+       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+       R = gaussianRing G
+       gaussianVanishingIdeal(R) 
    Caveat 
      The code for Graph is super-slow for any larger example, unfortunately. But the Digraph case is faster. 
    SeeAlso

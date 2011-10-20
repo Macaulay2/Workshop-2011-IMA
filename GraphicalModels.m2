@@ -732,13 +732,40 @@ undirectedEdgesMatrix Ring := Matrix =>  R -> (
 
 gaussianVanishingIdeal=method()
 gaussianVanishingIdeal Ring := Ideal => R -> (
-    if not (R.?graph or R#?gaussianRing) then error "expected a ring created with gaussianRing graph";
-    --currently works on really small examples! future work to make faster...    
-    K:= undirectedEdgesMatrix R;
-    adjK := sub(det(K)*inverse(sub(K,frac R)), R);
-    Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
-    ideal selectInSubring(1, gens gb Itemp)
-     )
+    if not (R#?gaussianRing) then error "expected a ring created with gaussianRing";
+    if R.?graph then ( 
+       --currently works on really small examples! future work to make faster...    
+       K:= undirectedEdgesMatrix R;
+       adjK := sub(det(K)*inverse(sub(K,frac R)), R);
+       Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
+       ideal selectInSubring(1, gens gb Itemp))
+    else if R.?digraph then (
+	 G := R.digraph;
+	 vv := sort vertices G;
+         n := #vv;
+         v := (topSort G)#map;
+         v = hashTable apply(keys v, i->v#i=>i);
+         v = apply(n,i->v#(i+1));
+
+         P := toList apply(v, i -> toList parents(G,i));
+         nx := # gens R;
+         ny := max(P/(p->#p));
+         x := local x;
+         y := local y;
+         S := (coefficientRing R)[x_0 .. x_(nx-1),y_0 .. y_(ny-1)];
+         newvars := apply(ny, i -> y_i);
+         L := keys R.gaussianVariables;
+         s := hashTable apply(nx,i->L#i=>x_i);
+         sp := (i,j) -> if pos(vv,i) > pos(vv,j) then s#(j,i) else s#(i,j);
+     
+         I := trim ideal(0_S);
+         for i from 1 to n-1 do (
+     	   J := ideal apply(i, j -> sp(v#j,v#i) - sum apply(#P#i, k ->y_k * sp(v#j,P#i#k)));
+     	   I = eliminate(newvars, I + J););
+        F := map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0));
+     F(I))
+)
+     
 
 
 pairMarkov Graph := List => (G) -> (
@@ -845,6 +872,8 @@ conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      	  conditionalIndependenceIdeal (R,Stmts))  -- Need to make a pass to the version that goes (R,List,List)
      )
 
+
+---  Function below broken if R defined by undirected graph and digraph entered.
 
 conditionalIndependenceIdeal (Ring,Digraph) := Ideal => (R,G) ->(
      if not  (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";

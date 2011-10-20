@@ -653,36 +653,7 @@ gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
 
 
 
------------------
---- trekIdeal ---
------------------
 
---for a Digraph, the method is faster--so we just need to overload it for a DAG. 
-trekIdeal = method()
-trekIdeal(Ring, Digraph) := Ideal => (R,G) -> (
-     vv := sort vertices G;
-     n := #vv;
-     v := (topSort G)#map;
-     v = hashTable apply(keys v, i->v#i=>i);
-     v = apply(n,i->v#(i+1));
-
-     P := toList apply(v, i -> toList parents(G,i));
-     nx := # gens R;
-     ny := max(P/(p->#p));
-     x := local x;
-     y := local y;
-     S := (coefficientRing R)[x_0 .. x_(nx-1),y_0 .. y_(ny-1)];
-     newvars := apply(ny, i -> y_i);
-     L := keys R.gaussianVariables;
-     s := hashTable apply(nx,i->L#i=>x_i);
-     sp := (i,j) -> if pos(vv,i) > pos(vv,j) then s#(j,i) else s#(i,j);
-     
-     I := trim ideal(0_S);
-     for i from 1 to n-1 do (
-     	  J := ideal apply(i, j -> sp(v#j,v#i) - sum apply(#P#i, k ->y_k * sp(v#j,P#i#k)));
-     	  I = eliminate(newvars, I + J););
-     F := map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0));
-     F(I))
 
 
 
@@ -1095,6 +1066,8 @@ trekSeparation MixedGraph := List => (g) -> (
 -----------------
 --  trekIdeal  --
 -----------------
+
+trekIdeal = method()
 
 trekIdeal (Ring,MixedGraph,List) := Ideal => (R,g,Stmts) -> (
      vv := sort vertices g;

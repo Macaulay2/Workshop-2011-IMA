@@ -1076,6 +1076,7 @@ trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
      SM := covarianceMatrix(R,g);	
      sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x)))))
      )
+--- TO DO: make trekIdeal take Graph and Digraph, inject into MixedGraph and run. 
 
 
 

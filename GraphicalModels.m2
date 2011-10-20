@@ -1930,7 +1930,7 @@ doc///
      (trekIdeal,Ring,MixedGraph)
      (trekIdeal,Ring,MixedGraph,List)
    Headline
-     the edge elimination ideal of a directed graph, or the trek separation ideal of a mixed graph
+     the edge elimination ideal of a directed graph, or the trek separation ideal of a mixed graph ---IN PROCESS OF CHANGING THIS
    Usage
      I = trekIdeal(R,G) or I = trekIdeal(R,G,S)
    Inputs
@@ -1948,8 +1948,10 @@ doc///
        
    Description 
      Text
+       THE METHOD FOR trekIdeal(Ring, Digraph) has migrated to gaussianVanishingIdeal. THE FOLLOWING IS OLD TEXT: 
        For directed acyclic graphs, the covariance $s_{(i,j)}$ can be expressed as the sum of all monomials
-       corresponding to treks between vertices i and j. See @TO gaussianParametrization@ for more information on treks. The trek
+       corresponding to treks between vertices i and j. See @TO gaussianParametrization@ for more information on treks. 
+       The trek
        ideal for a directed acyclic graph consists of polynomial relations between the covariances after 
        eliminating parameters corresponding to the directed edges.
      Example
@@ -2184,28 +2186,29 @@ doc ///
      gaussianVanishingIdeal(R)
    Inputs
      R:Ring
-       created with @TO gaussianRing@ and using a Graph
+       created with @TO gaussianRing@ and using a Graph or a Digraph
    Outputs
      :Ideal
         in R, of polynomial relations on the covariance matrices of a graphical model for G
    Description
      Text
-       FIX ME!!!
-       --input: graph G and a polynomial ring R created by gaussianRing (!)
-       --output: the vanishing ideal of hte parametrization
-       --currently works on really small examples! future work to make faster...
+       input: a polynomial ring R created by gaussianRing (!)
+       output: the vanishing ideal of hte parametrization
 
-       The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
-       are disjoint lists of integers in the range 1..n (n is the number of random variables)
-       is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
-       rows are in A union C, and whose columns are in B union C.  In general, this ideal need not be prime.
-       
        These ideals were first written down by Seth Sullivant, in "Algebraic geometry of Gaussian Bayesian networks". 
        The routines in this package involving Gaussian variables are all based on that paper.
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
-       R=gaussianRing G 
-       J = gaussianVanishingIdeal(R) --the code is not smart and it is super-slow for any larger example, unfortunately.
+       R = gaussianRing G 
+       J = gaussianVanishingIdeal(R) 
+     Text
+       here is old text: 
+       The ideal corresponding to a conditional independence statement {A,B,C} (where A,B,C,
+       are disjoint lists of integers in the range 1..n (n is the number of random variables)
+       is the #C+1 x #C+1 minors of the submatrix of the generic symmetric matrix M = (s_{(i,j)}), whose
+       rows are in A union C, and whose columns are in B union C.  In general, this ideal need not be prime.
+   Caveat 
+     The code for Graph is super-slow for any larger example, unfortunately. But the Digraph case is faster. 
    SeeAlso
      globalMarkov
      localMarkov

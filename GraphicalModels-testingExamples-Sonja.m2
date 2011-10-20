@@ -42,7 +42,7 @@ t*det(M)-1
      
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R=gaussianRing G 
-I=gaussianVanishingIdeal (R,G)   -- works now, may take a while for larger G.
+I=gaussianVanishingIdeal R   -- works now, may take a while for larger G.
 numgens I
 
 --by the way:

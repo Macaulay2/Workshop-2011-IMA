@@ -132,6 +132,7 @@ markov = local markov ----WHY IS IT A GOOD IDEA TO KEEP THESE LOCAL? WHY NOT LET
      	       	    	 --- Sonja&Seth 29july2011.  (we did not keep gaussian stuff like this local.)
 markovVariables = local markovVariables
 gaussianVariables = local gaussianVariables
+mixedgraph = local mixedgraph
 
 --------------------------
 --   Markov relations   --
@@ -910,6 +911,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      m := #lL+#pL;
      R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
      R#gaussianRing = {#vv,s,l,p};
+     R.mixedgraph = g;
      R)
 
 ------------------------
@@ -1068,13 +1070,12 @@ trekSeparation MixedGraph := List => (g) -> (
 -----------------
 
 trekIdeal = method()
-
-trekIdeal (Ring,MixedGraph,List) := Ideal => (R,g,Stmts) -> (
+trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
+     Stmts:= trekSeparation g;
      vv := sort vertices g;
      SM := covarianceMatrix(R,g);	
-     sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x))))))
-
-trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> trekIdeal(R,g,trekSeparation g)
+     sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x)))))
+     )
 
 
 
@@ -1900,7 +1901,6 @@ doc///
    Key
      trekIdeal
      (trekIdeal,Ring,MixedGraph)
-     (trekIdeal,Ring,MixedGraph,List)
    Headline
      FIX ME: the edge elimination ideal of a directed graph, or the trek separation ideal of a mixed graph ---IN PROCESS OF CHANGING THIS
    Usage
@@ -1979,7 +1979,6 @@ doc///
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
        S = trekSeparation G
-       trekIdeal(R,G,S)
    SeeAlso
      trekIdeal
 ///

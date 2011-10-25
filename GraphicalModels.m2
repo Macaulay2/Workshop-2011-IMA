@@ -604,6 +604,15 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
      	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
      	    matrix SM	    
 	    ) 
+       else if R.?mixedgraph then (  
+     	    g = R.mixedgraph;
+	    vv = sort vertices g;
+     	    n = R#gaussianRing#0;
+     	    s = value R#gaussianRing#1;
+     	    SM = mutableMatrix(R,n,n);
+     	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
+     	    matrix SM	    
+	    ) 
        else (
 	    n =R#gaussianRing; 
 	    genericSymmetricMatrix(R,n)
@@ -1070,12 +1079,31 @@ trekSeparation MixedGraph := List => (g) -> (
 -----------------
 
 trekIdeal = method()
+--currently trekSeparation only works with directed and bidirected edges, which affects this function
 trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
+      if not R#?gaussianRing  then error "expected a ring created with gaussianRing";
+     if R.?mixedgraph then (
+         if not sort (vertices (R.mixedgraph))  === sort (vertices (g)) then 
+	     error "vertex labels of graph do not match labels in ring");
+     if R.?graph then (
+         if not sort (vertices (R.graph))  === sort (vertices (g)) then 
+	     error "vertex labels of graph do not match labels in ring");
+     if R.?digraph then (
+         if not sort (vertices (R.digraph))  === sort (vertices (g)) then 
+	     error "vertex labels of graph do not match labels in ring");
      Stmts:= trekSeparation g;
      vv := sort vertices g;
-     SM := covarianceMatrix(R,g);	
+     SM := covarianceMatrix R ;	
      sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x)))))
      )
+
+trekIdeal (Ring,Graph) := Ideal => (R,g) -> (
+     conditionalIndependenceIdeal(R,g) -- equivalent to trek ideal for undirected graphs
+          )
+
+trekIdeal (Ring,Digraph) := Ideal => (R,g) ->(
+      trekIdeal (R, mixedGraph(g))
+      )          
 --- TO DO: make trekIdeal take Graph and Digraph, inject into MixedGraph and run. 
 
 

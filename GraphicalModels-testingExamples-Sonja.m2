@@ -1,8 +1,9 @@
 restart
+uninstallPackage "GraphicalModels"
 installPackage "Graphs"
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 
-uninstallPackage "GraphicalModels"
+
 
 
 viewHelp "GraphicalModels"
@@ -17,7 +18,15 @@ covarianceMatrix S
 --peek gaussianRingList
 
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
-gaussianRing G --passing a graph gives the variable names l's and p's
+R = gaussianRing G --passing a graph gives the variable names l's and p's
+covarianceMatrix R
+R#gaussianRing
+R = gaussianRing 4
+
+H = digraph {{b,{c,d}},{c,{d}}}
+
+trekIdeal(R,G)
+trekIdeal(S,G)
 
 --gaussianRing does not take undirected graphs as input. It should:
 G = graph({{a,b},{d,a},{b,c},{c,d}}) 
@@ -133,7 +142,7 @@ restart
 uninstallPackage "GraphicalModels"
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+H = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 R = markovRing (2,2,2,2)
 R.markovRing
 R.markov
@@ -150,3 +159,11 @@ R = gaussianRing G
 R = gaussianRing 4
 Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
 gaussianMatrices (R,globalMarkov G)
+
+R = QQ[x,y,z]
+I = ideal(0_R) + 0
+M = matrix{{x,y,z}}
+J = minors(2,M)
+I == J
+R#gaussianRing
+trekIdeal(R,H)

@@ -791,45 +791,50 @@ globalMarkov Graph := List => (G) ->(
 conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
-     if R#?gaussianRing then (
-        if R.?graph then (
-	   g := R.graph;
-           vv := sort vertices g;
-           SM := covarianceMatrix(R);
-           sum apply(Stmts, s -> minors(#s#2+1, 
-	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
-		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
-          )
-        else if R.?digraph then (
-	   g= R.digraph;
-           vv = sort vertices g;
-           SM = covarianceMatrix(R);
-           sum apply(Stmts, s -> minors(#s#2+1, 
-	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
-		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
-          )
-        else (
-	   vv = toList (1..R#gaussianRing);
-	   SM = covarianceMatrix(R);
-           sum apply(Stmts, s -> minors(#s#2+1, 
-	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
-		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ))
-	  )
-        )
-     else (
-	 M := markovMatrices(R,Stmts);
-	 sum apply(M, m -> minors(2,m)) 
-	     )
-     )
-
+     if #Stmts === 0 then (ideal(0_R))
+     else ( 
+     	  if R#?gaussianRing then (      
+               if R.?graph then (
+	   	    g := R.graph;
+           	    vv := sort vertices g;
+           	    SM := covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          	    )
+               else if R.?digraph then (
+	   	    g= R.digraph;
+           	    vv = sort vertices g;
+           	    SM = covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          	    )
+               else (
+	   	    vv = toList (1..R#gaussianRing);
+	   	    SM = covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ))
+	  	    )
+               )
+     	  else (
+	       M := markovMatrices(R,Stmts);
+	       sum apply(M, m -> minors(2,m)) 
+	       )
+     	  )	   
+)     
 
 
 conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
      if not R.?markov then error "expected a ring created with gaussianRing or markovRing";
      if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
-     M := markovMatrices(R,VarNames,Stmts);
-     sum apply(M, m -> minors(2,m)) 
-     )
+     if #Stmts === 0 then ideal(0_R)
+     else (	  	
+     	  M := markovMatrices(R,VarNames,Stmts);
+     	  sum apply(M, m -> minors(2,m)) 
+     	  )
+     )	   
 
 
 conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(

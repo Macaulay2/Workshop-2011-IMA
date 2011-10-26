@@ -27,6 +27,17 @@
 
 -- Several enumerator methods could be made more efficient (avoid "subsets"):
     -- intersectionLattice, hibiIdeal, hibiRing, pPartitionRing 
+    
+--Found the following slight problems so far during test writing:
+--B=chain 5
+--adjoinMax(flagPoset(B,{0,1,2,3})) == B
+--This adjoins an element of the same name as one already in our chain, which makes this statement false.
+
+--C=union(B,naturalLabeling B)
+
+--This has the same "problem", so that if our poset elements are already {0,1,...,n} or {1,2,..,n}, doesn't
+--produce the correct result, per se.  Should we have it scan the ground set of the poset, then adjoin the
+--smallest unused integer?  Should we fix this, or just provide a note about it?
 
 -- Everything above the line below should be removed before the package is submitted.
 ------------------------------------------
@@ -5347,39 +5358,6 @@ assert(isUpperSemilattice A)
 assert(isDistributive A)
 ///
 
---Boolean Lattice tests of:
---isLower/UpperSemilattice
---isDistributive
---hasseDiagram
---incomparabilityGraph
---orderComplex
---closedInterval
---openInterval
---dilworthLattice
---distributiveLattice [cache,chains,hasseDiagram]
---filter & orderIdeal
---principalFilter & principalOrderIdeal
---subposet
---rankFunction
---flagPoset
---indexLabeling
---naturalLabeling
---adjoinMin & adjoinMax & augmentPoset
---dropElements
---diamondProduct
---connectedComponents
---union
---meetExists & joinExists
---meetIrreducibles & joinIrreducibles
---posetMeet & posetJoin
---rankPoset
---allRelations & coveringRelations
---antichains & chains
---maximalAntichains & maximalChains
---flagChains
---isAntichain
---linearExtensions
-
 TEST ///
 B = booleanLattice 3
 assert(B == poset(subsets 3, isSubset))
@@ -5454,8 +5432,153 @@ assert(chains B == sort join({{}},flatten apply(subsets({0,1,2,3}), s-> flagChai
 assert(isAntichain(B,{"001","100"})==true)
 assert(isAntichain(B,{"111","100"})==false)
 assert(# linearExtensions B == 48)
+assert(toString characteristicPolynomial B === "q^3-3*q^2+3*q-1")
+assert(toString flagfPolynomial B === "6*q_0*q_1*q_2*q_3+6*q_0*q_1*q_2+3*q_0*q_1*q_3+3*q_0*q_2*q_3+6*q_1*q_2*q_3+3*q_0*q_1+3*q_0*q_2+6*q_1*q_2+q_0*q_3+3*q_1*q_3+3*q_2*q_3+q_0+3*q_1+3*q_2+q_3+1")
+assert(toString flaghPolynomial B === "q_1*q_2+2*q_1+2*q_2+1")
+assert(toString fPolynomial B === "6*q^4+18*q^3+19*q^2+8*q+1")
+assert(toString hPolynomial B === "q^2+4*q+1")
+assert(greeneKleitmanPartition B === new Partition from {4,2,2})
+assert(moebiusFunction B === new HashTable from {("010","010") => 1, ("010","011") => -1, ("110","010") => 0, ("000","000") => 1,
+      ("011","110") => 0, ("110","011") => 0, ("000","001") => -1, ("111","110") => 0, ("011","111") => -1,
+      ("100","000") => 0, ("001","100") => 0, ("111","111") => 1, ("100","001") => 0, ("001","101") => -1,
+      ("101","100") => 0, ("101","101") => 1, ("000","010") => -1, ("011","000") => 0, ("000","011") => 1,
+      ("100","010") => 0, ("010","100") => 0, ("011","001") => 0, ("111","000") => 0, ("001","110") => 0,
+      ("010","101") => 0, ("100","011") => 0, ("110","100") => 0, ("110","101") => 0, ("101","110") => 0,
+      ("111","001") => 0, ("001","111") => 1, ("101","111") => -1, ("011","010") => 0, ("010","110") => -1,
+      ("011","011") => 1, ("110","110") => 1, ("111","010") => 0, ("010","111") => 1, ("001","000") => 0,
+      ("110","111") => -1, ("111","011") => 0, ("000","100") => -1, ("101","000") => 0, ("001","001") => 1,
+      ("000","101") => 1, ("100","100") => 1, ("101","001") => 0, ("100","101") => -1, ("010","000") => 0,
+      ("001","010") => 0, ("010","001") => 0, ("000","110") => 1, ("110","000") => 0, ("001","011") => -1,
+      ("101","010") => 0, ("011","100") => 0, ("000","111") => -1, ("110","001") => 0, ("100","110") => -1,
+      ("100","111") => 1, ("111","100") => 0, ("011","101") => 0, ("101","011") => 0, ("111","101") => 0})
+assert(toString rankGeneratingFunction B === "q^3+3*q^2+3*q+1")
+assert(toString zetaPolynomial B == "q^3")
+assert(dilworthNumber B === 3)
+assert(dilworthNumber B === 3)
+assert(isAtomic B == true)
+assert(isBounded B == true)
+assert(isConnected B == true)
+assert(isDistributive B == true)
+assert(isEulerian B == true)
+assert(isGeometric B == true)
+assert(isGraded B == true)
+assert(isLattice B == true)
+assert(isLowerSemilattice B == true)
+assert(isLowerSemimodular B == true)
+assert(isModular B == true)
+assert(isRanked B == true)
+assert(isSperner B == true)
+assert(isStrictSperner B == false)
+assert(isUpperSemilattice B == true)
+assert(isUpperSemimodular B == true)
 
 ///
+
+--Tests for chains
+TEST ///
+B = chain 5
+assert(isLowerSemilattice B)
+assert(isUpperSemilattice B)
+assert(isDistributive B)
+assert(hasseDiagram B === digraph{{0, 1}, {1, 2}, {2, 3}, {3, 4}})
+assert(incomparabilityGraph B === graph({}, Singletons=> {0,1,2,3,4}))
+R=ring orderComplex B
+assert(sub(ideal(flatten entries facets orderComplex B),R) == sub(ideal(v_0*v_1*v_2*v_3*v_4),R))
+assert(sub(ideal(orderComplex B),R) == sub(ideal(),R))
+assert(closedInterval(B,1,4) == chain 4)
+assert(openInterval(B,1,4) == chain 2)
+assert(dilworthLattice B == poset({{{1}, {2}}, {{1}, {3}}, {{1}, {4}}, {{1}, {5}}, {{2}, {3}}, {{2}, {4}}, {{2}, {5}}, {{3}, {4}}, {{3},{5}}, {{4}, {5}}}))
+D=distributiveLattice B
+assert(D.cache#OriginalPoset == B)
+assert(# chains(D,3) == 20)
+assert(# chains(D,6) == 1)
+assert(hasseDiagram D === digraph new HashTable from {0 => set {1}, 1 => set {2}, 2 => set {3}, 3 => set {4}, 4 => set {5}, 5 => set {}})
+assert(filter(B,{3}) == {3,4,5})
+assert(filter(B,{1}) == B.GroundSet)
+assert(orderIdeal(B,{3}) == {1,2,3})
+assert(orderIdeal(B,{5}) == B.GroundSet)
+assert(principalFilter(B,3) == {3,4,5})
+assert(principalOrderIdeal(B,3) == {1,2,3})
+assert(subposet(B, filter(B,{3})) == poset {{3, 4}, {3, 5}, {4, 5}})
+assert(subposet(B, orderIdeal(B,{3})) == poset {{1,2},{2,3},{1,3}})
+assert(subposet(B, filter(B,{3})) == chain 3)
+assert(subposet(B, orderIdeal(B,{3})) == chain 3)
+assert(subposet(B,principalFilter(B,3)) == poset {{3, 4}, {3, 5}, {4, 5}})
+assert(subposet(B,principalOrderIdeal(B,3)) == poset {{1,2},{2,3},{1,3}})
+assert(sort rankFunction B == {0,1,2,3,4})
+assert(flagPoset(B,{1,3}) == poset {{2,4}})
+assert(flagPoset(B,{1,2,3}) == chain 3)
+assert(flagPoset(B,{1,3}) == dropElements(B,{1,3,5}))
+assert(flagPoset(B,{1,2,3}) == dropElements(B,{1,5}))
+assert(B == indexLabeling B)
+assert(B == naturalLabeling B)
+r = flatten apply(rankPoset naturalLabeling B, sort)
+assert(r == toList(0..#r-1))
+assert(adjoinMin(flagPoset(B,{1,2,3,4})) == B)
+assert(adjoinMax(flagPoset(B,{1,2,3,4})) == B)
+assert(augmentPoset(flagPoset(B,{1,2,3})) == B)
+assert(hasseDiagram(diamondProduct(B,B))===digraph new HashTable from {0 => set {1}, 1 => set {2, 5}, 2 => set {3, 6}, 3 => set {4, 7}, 4 => set {8}, 5 => set {6, 9}, 6 => set {7, 10}, 7 => set {8, 11}, 8 => set {12}, 9 => set {10, 13}, 10 => set {11, 14}, 11 => set {12, 15}, 12 => set {16}, 13 => set {14}, 14 => set {15}, 15 => set {16}, 16 => set {}})
+assert(union(B,B)==B)
+assert(atoms B == {2})
+assert(compare(B,1,2) == true)
+assert(compare(B,1,5) == true)
+assert((sort \ (filtration B)) == (sort \ (rankPoset B)))
+assert(joinExists(B,1,2) == true)
+assert(joinIrreducibles B == {1,2,3,4,5})
+assert(meetExists(B,1,5) == true)
+assert(meetExists(B,1,2) == true)
+assert(meetIrreducibles B == {1,2,3,4,5})
+assert(maximalElements B == {5})
+assert(minimalElements B == {1})
+assert(posetJoin(B,1,2)== {2})
+assert(posetJoin(B,1,5)== {5})
+assert(posetMeet(B,1,2)== {1})
+assert(posetMeet(B,1,5)== {1})
+assert(rankPoset B == {{1}, {2}, {3}, {4}, {5}})
+assert(allRelations B == {{1,1},{1,2},{1,3},{1,4},{1,5},{2,2},{2,3},{2,4},{2,5},{3,3},{3,4},{3,5},{4,4},{4,5},{5,5}})
+assert(coveringRelations B == {{1,2},{2,3},{3,4},{4,5}})
+assert(antichains B == {{}, {1}, {2}, {3}, {4}, {5}})
+assert(maximalAntichains B == {{1}, {2}, {3}, {4}, {5}})
+maximalChains B
+assert(maximalChains B == {{1, 2, 3, 4, 5}})
+assert(chains B == {{}, {1}, {1, 2}, {1, 2, 3}, {1, 2, 3, 4}, {1, 2, 3, 4, 5}, {1, 2, 3, 5}, {1, 2, 4}, {1, 2, 4, 5}, {1, 2, 5}, {1, 3}, {1, 3, 4}, {1, 3, 4, 5}, {1, 3, 5}, {1, 4}, {1, 4, 5}, {1, 5}, {2}, {2, 3}, {2, 3, 4}, {2, 3, 4, 5}, {2, 3, 5}, {2, 4}, {2, 4, 5}, {2, 5}, {3}, {3, 4}, {3, 4, 5}, {3, 5}, {4}, {4, 5}, {5}})
+assert(flagChains(B,{1,2,3}) == {{2, 3, 4}})
+assert(chains B == sort join({{}},flatten apply(subsets({0,1,2,3,4}), s-> flagChains(B,s))))
+assert(isAntichain(B,{1})==true)
+assert(isAntichain(B,{1,2})==false)
+assert(# linearExtensions B == 1)
+assert(toString characteristicPolynomial B === "q^4-q^3")
+assert(toString flagfPolynomial B === "q_0*q_1*q_2*q_3*q_4+q_0*q_1*q_2*q_3+q_0*q_1*q_2*q_4+q_0*q_1*q_3*q_4+q_0*q_2*q_3*q_4+q_1*q_2*q_3*q_4+q_0*q_1*q_2+q_0*q_1*q_3+q_0*q_2*q_3+q_1*q_2*q_3+q_0*q_1*q_4+q_0*q_2*q_4+q_1*q_2*q_4+q_0*q_3*q_4+q_1*q_3*q_4+q_2*q_3*q_4+q_0*q_1+q_0*q_2+q_1*q_2+q_0*q_3+q_1*q_3+q_2*q_3+q_0*q_4+q_1*q_4+q_2*q_4+q_3*q_4+q_0+q_1+q_2+q_3+q_4+1")
+assert(toString flaghPolynomial B === "1")
+assert(toString fPolynomial B === "q^5+5*q^4+10*q^3+10*q^2+5*q+1")
+assert(toString hPolynomial B === "1")
+assert(greeneKleitmanPartition B === new Partition from {5})
+assert(moebiusFunction B === new HashTable from {(5,2) => 0, (4,3) => 0, (2,5) => 0, (3,4) => -1, (3,5) => 0, (5,3) => 0, (4,4) => 1,
+       (4,5) => -1, (5,4) => 0, (5,5) => 1, (1,1) => 1, (2,1) => 0, (1,2) => -1, (3,1) => 0, (2,2) => 1, (1,3)
+       => 0, (1,4) => 0, (3,2) => 0, (2,3) => -1, (4,1) => 0, (4,2) => 0, (5,1) => 0, (1,5) => 0, (2,4) => 0,
+       (3,3) => 1})
+assert(toString rankGeneratingFunction B === "q^4+q^3+q^2+q+1")
+assert(toString zetaPolynomial B == "(1/24)*q^4+(1/4)*q^3+(11/24)*q^2+(1/4)*q")
+assert(dilworthNumber B === 1)
+assert(isAtomic B == false)
+assert(isBounded B == true)
+assert(isConnected B == true)
+assert(isDistributive B == true)
+assert(isEulerian B == false)
+assert(isGeometric B == false)
+assert(isGraded B == true)
+assert(isLattice B == true)
+assert(isLowerSemilattice B == true)
+assert(isLowerSemimodular B == true)
+assert(isModular B == true)
+assert(isRanked B == true)
+assert(isSperner B == true)
+assert(isStrictSperner B == true)
+assert(isUpperSemilattice B == true)
+assert(isUpperSemimodular B == true)
+
+///
+
 
 --isLattice test
 TEST ///

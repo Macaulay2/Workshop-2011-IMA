@@ -28,16 +28,15 @@
 -- Several enumerator methods could be made more efficient (avoid "subsets"):
     -- intersectionLattice, hibiIdeal, hibiRing, pPartitionRing 
     
---Found the following slight problems so far during test writing:
+--[Gwyn]  Found the following slight problems so far during test writing:
 --B=chain 5
 --adjoinMax(flagPoset(B,{0,1,2,3})) == B
---This adjoins an element of the same name as one already in our chain, which makes this statement false.
-
---C=union(B,naturalLabeling B)
+--Before the change, this adjoined a second 1, which broke the poset isomorphism checker.  I think we
+--should update the adjoinMin/Max to adjoin an element one above or below the current max/min.
 
 --This has the same "problem", so that if our poset elements are already {0,1,...,n} or {1,2,..,n}, doesn't
---produce the correct result, per se.  Should we have it scan the ground set of the poset, then adjoin the
---smallest unused integer?  Should we fix this, or just provide a note about it?
+--produce the correct result, per se.  I've changed the code in a way that I think would be convenient.
+--If you don't like it, let me know. [Notes from Gwyn.]
 
 -- Everything above the line below should be removed before the package is submitted.
 ------------------------------------------
@@ -442,7 +441,11 @@ adjoinMax (Poset,Thing) := Poset => (P, a) ->
           P.Relations | apply(P.GroundSet, g-> {g,a}),
           matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:1)}},{matrix {toList((#P.GroundSet):0)},1}}
           )
-adjoinMax Poset := Poset => P -> adjoinMax(P, 1)
+
+--adjoinMax Poset := Poset => P -> adjoinMax(P, 1)
+--Temporarily, I'm changing it to this, as I think it's a better solution:
+adjoinMax Poset := Poset => P -> if any(P.GroundSet, x-> class x === ZZ) then adjoinMax(P, 1 + max select(P.GroundSet, x-> class x === ZZ)) else adjoinMax(P,1)
+
 
 adjoinMin = method()
 adjoinMin (Poset,Thing) := Poset => (P, a) -> 
@@ -450,7 +453,9 @@ adjoinMin (Poset,Thing) := Poset => (P, a) ->
           apply(P.GroundSet, g -> {a,g}) | P.Relations,
           matrix{{1, matrix{toList (#P.GroundSet:1)}}, {transpose matrix {toList (#P.GroundSet:0)}, P.RelationMatrix}}
           )
-adjoinMin Poset := Poset => P -> adjoinMin(P, 0)
+
+--adjoinMin Poset := Poset => P -> adjoinMin(P,0)
+adjoinMin Poset := Poset => P -> if any(P.GroundSet, x-> class x === ZZ) then adjoinMin(P, min select(P.GroundSet, x-> class x === ZZ)-1) else adjoinMin(P,0)
 
 areIsomorphic = method()
 areIsomorphic (Poset, List, Poset, List) := Boolean => (P, mu, Q, nu) -> isomorphism(P, mu, Q, nu) =!= null

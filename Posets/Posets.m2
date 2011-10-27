@@ -630,13 +630,7 @@ booleanLattice ZZ := Poset => n -> (
     P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
     idx := hashTable apply(#P.GroundSet, i -> P_i => i);
     P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
-    P.cache.isAtomic = true;
-    P.cache.isDistributive = true;
-    P.cache.isEulerian = true;
-    P.cache.isLowerSemilattice = true;
-    P.cache.isLowerSemimodular = true;
-    P.cache.isUpperSemilattice = true;
-    P.cache.isUpperSemimodular = true;
+    P.cache.isAtomic = P.cache.isDistributive = P.cache.isEulerian = P.cache.isLowerSemilattice = P.cache.isLowerSemimodular = P.cache.isUpperSemilattice = P.cache.isUpperSemimodular = true;
     P.cache.maximalElements = {#P.GroundSet - 1};
     P.cache.minimalElements = {0};
     P
@@ -671,30 +665,54 @@ chain = method()
 chain ZZ := Poset => n -> (
     if n == 0 then error "The integer n must be non-zero.";
     if n < 0 then n = -n;
-    -- The matrix is known, so give it.
-    poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1)))
+    P := poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1))); 
+    P.cache.connectedComponents = P.cache.maximalChains = {P.cache.rankFunction = toList(0 ..< n)};
+    P.cache.coveringRelations = apply(n-1, i -> {i, i+1});
+    P.cache.filtration = P.cache.maximalAntichains = apply(n, i -> {i});
+    P.cache.greeneKleitmanPartition = new Partition from {n};
+    P.cache.isDistributive = P.cache.isLowerSemilattice = P.cache.isLowerSemimodular = P.cache.isUpperSemilattice = P.cache.isUpperSemimodular = true;
+    P.cache.isAtomic = P.cache.isEulerian = (n <= 2);
+    P.cache.maximalElements = {n-1};
+    P.cache.minimalElements = {0};
+    P
     )
 
 divisorPoset = method()
 divisorPoset RingElement := Poset => m -> (
     if m == 0 then error "The RingElement m must be non-zero.";
-    if #support m == 0 then return poset({m}, {}); -- Non-zero constants are special
-    M := toList \ toList factor m;
-    F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
+    if #support m == 0 then return poset({m}, {}); -- Units are special.
+    F := apply(toList \ toList factor m, m -> set apply(last m + 1, i -> (first m)^i));
     -- D is the set of all (positive) divisors of m
     D := sort if #F == 1 then toList first F else product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F);
-    poset(D, (a,b) -> b % a == 0)
+    R := flatten for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 and isPrime(D_j//D_i) then {D_i, D_j} else continue;
+    M := matrix for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 then 1 else 0;
+    P := poset(D, R, M);
+    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+    P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
+    P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
+    P.cache.maximalElements = {#P.GroundSet - 1};
+    P.cache.minimalElements = {0};
+    P
     )
 
 divisorPoset ZZ := Poset => m -> (
     if m == 0 then error "The integer m must be non-zero.";
     if m < 0 then m = -m;
     if m == 1 then return poset({1}, {}); -- 1 is special
-    M := toList \ toList factor m;
-    F := apply(M, m -> set apply(last m + 1, i -> (first m)^i));
+    F := apply(toList \ toList factor m, m -> set apply(last m + 1, i -> (first m)^i));
     -- D is the set of all (positive) divisors of m
     D := sort if #F == 1 then toList first F else product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F);
-    poset(D, (a,b) -> b % a == 0)
+    R := flatten for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 and isPrime(D_j//D_i) then {D_i, D_j} else continue;
+    M := matrix for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 then 1 else 0;
+    P := poset(D, R, M);
+    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+    P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
+    P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
+    P.cache.maximalElements = {#P.GroundSet - 1};
+    P.cache.minimalElements = {0};
+    P
     )
 
 divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
@@ -726,11 +744,26 @@ dominanceLattice ZZ := Poset => n -> (
             );
         true
         );
-    poset(G, cmp)
+    P := poset(G, cmp);
+    P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
+    P.cache.maximalElements = {0};
+    P.cache.minimalElements = {#P.GroundSet - 1};
+    P
     )
 
 facePoset = method()
-facePoset SimplicialComplex := Poset => D -> poset(support \ flatten apply(toList(0..dim D), i -> toList flatten entries faces(i, D)), isSubset)
+facePoset SimplicialComplex := Poset => D -> (
+    faceList := apply(toList(-1..dim D), i -> support \ toList flatten entries faces(i, D));
+    P := poset(flatten faceList, isSubset);
+    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+    P.cache.filtration = apply(faceList, L -> apply(L, l -> idx#l));
+    P.cache.isLowerSemilattice = true;
+    P.cache.maximalElements = last P.cache.filtration;
+    P.cache.minimalElements = first P.cache.filtration;
+    P.cache.rankFunction = apply(P.GroundSet, f -> #f);
+    P
+    )
 
 -- Hyperplane Arrangement Lattice: 
 -- As written, this would most likely work for any type of arrangement lattice.
@@ -832,7 +865,7 @@ partitionLattice ZZ := Poset => n -> (
      L := toList (1..n);
      G := setPartition L;
      R := flatten apply(G, i-> partitionRefinementPairs i);
-     poset(G,R)
+     poset(G, R)
      )
 
 partitionRefinementPairs = method()
@@ -1318,7 +1351,7 @@ greeneKleitmanPartition Poset := Partition => opts -> P -> (
         lk := max apply(subsets(C, k = k + 1), c -> #unique flatten c);
         lambda = append(lambda, lk - sum lambda);
         );
-    f new Partition from lambda
+    P.cache.greeneKleitmanPartition = f new Partition from lambda
     )
 
 hPolynomial = method(Options => {symbol VariableName => getSymbol "q"})

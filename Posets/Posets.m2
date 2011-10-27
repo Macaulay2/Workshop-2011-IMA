@@ -12,9 +12,14 @@
     -- Poset of a resolution
 
 -- Precomputation:
-    -- Continue linearly through the file at adjoinMax (line 450) which
-    -- has some precomputation finished, but needs more.
+    -- adjoin{Max,Min}: Can I say anything about isAtomic, isDistributive, isEulerian, is{Lower,Upper}Semi{lattice,modular}?
+    -- booleanLattice: Can I *easily* build maximal{Antichains,Chains}, even if recursively?
     -- **Please double check that I'm not doing anything wonky!**
+
+-- Update:
+    -- Isomorphism no longer needs to relabel the posets as everything accessed
+    -- is stored in a sensible manour.  However, the partitions mu and nu will
+    -- need to be relabeled.
 
 -- Documentation:
     -- Add a few extended examples
@@ -366,7 +371,7 @@ dilworthLattice Poset := Poset => P -> (
     Q := poset(G, cmp);
     Q.cache.isLowerSemilattice = true;
     Q.cache.isUpperSemimodular = true;
-    Q.cache.connectedComponents = toList(0 ..< #Q.GroundSet);
+    Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
     Q
     )
 
@@ -377,7 +382,7 @@ distributiveLattice Poset := Poset => P -> (
     POI.cache.OriginalPoset = P;
     POI.cache.isLowerSemilattice = true;
     POI.cache.isUpperSemimodular = true;
-    POI.cache.connectedComponents = toList(0 ..< #P.GroundSet);
+    POI.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
     POI
     )
 
@@ -450,22 +455,36 @@ subposet (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.Ground
 ------------------------------------------
 adjoinMax = method()
 adjoinMax (Poset,Thing) := Poset => (P, a) -> (
+    if member(a, P.GroundSet) then error "The new maximal element a must not be a vertex in P.";
     Q := poset(P.GroundSet | {a}, 
           P.Relations | apply(P.GroundSet, g-> {g,a}),
           matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:1)}},{matrix {toList((#P.GroundSet):0)},1}});
-    Q.cache.maximalElements = {#P.GroundSet - 1};
+    Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
+    if P.cache.?coveringRelations and P.cache.?maximalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.maximalElements, i -> {i, #P.GroundSet}));
+    if P.cache.?filtration then Q.cache.filtration = append(P.cache.filtration, {#P.GroundSet});
+    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = append(P.cache.maximalAntichains, {#P.GroundSet});
+    if P.cache.?maximalChains then Q.cache.maximalChains = (c -> append(c, #P.GroundSet)) \ P.cache.maximalChains;
+    Q.cache.maximalElements = {#P.GroundSet};
     if P.cache.?minimalElements then Q.cache.minimalElements = P.cache.minimalElements;
+    if P.cache.?rankFunction then Q.cache.rankFunction = append(P.cache.rankFunction, 1 + max P.cache.rankFunction);
     Q
     )
 adjoinMax Poset := Poset => P -> adjoinMax(P, 1 + max prepend(0, select(P.GroundSet, x-> class x === ZZ)))
 
 adjoinMin = method()
 adjoinMin (Poset,Thing) := Poset => (P, a) -> (
-    Q := poset({a} | P.GroundSet, 
+    if member(a, P.GroundSet) then error "The new minimal element a must not be a vertex in P.";
+    Q := poset(P.GroundSet | {a}, 
           apply(P.GroundSet, g -> {a,g}) | P.Relations,
-          matrix{{1, matrix{toList (#P.GroundSet:1)}}, {transpose matrix {toList (#P.GroundSet:0)}, P.RelationMatrix}});
-    Q.cache.minimalElements = {0};
+          matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:0)}}, {matrix{toList (#P.GroundSet:1)},1}});
+    Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
+    if P.cache.?coveringRelations and P.cache.?minimalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.minimalElements, i -> {#P.GroundSet, i}));
+    if P.cache.?filtration then Q.cache.filtration = prepend({#P.GroundSet}, P.cache.filtration);
+    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = append(P.cache.maximalAntichains, {#P.GroundSet});
+    if P.cache.?maximalChains then Q.cache.maximalChains = (c -> prepend(#P.GroundSet, c)) \ P.cache.maximalChains;
     if P.cache.?maximalElements then Q.cache.maximalElements = P.cache.maximalElements;
+    Q.cache.minimalElements = {#P.GroundSet};
+    if P.cache.?rankFunction then Q.cache.rankFunction = append((i -> i + 1) \ P.cache.rankFunction, 0);
     Q
     )
 adjoinMin Poset := Poset => P -> adjoinMin(P, -1 + min prepend(1, select(P.GroundSet, x -> class x === ZZ)))
@@ -606,15 +625,45 @@ Poset + Poset := union
 
 booleanLattice = method()
 booleanLattice ZZ := Poset => n -> (
-    if n < 0 then n = -n; 
-    if n == 0 then poset({""}, {}, matrix{{1}}) else (
-        Bn1 := booleanLattice(n-1);
+    if n < 0 then n = -n;
+    P := booleanLattice' n;
+    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+    P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
+    P.cache.isAtomic = true;
+    P.cache.isDistributive = true;
+    P.cache.isEulerian = true;
+    P.cache.isLowerSemilattice = true;
+    P.cache.isLowerSemimodular = true;
+    P.cache.isUpperSemilattice = true;
+    P.cache.isUpperSemimodular = true;
+    P.cache.maximalElements = {#P.GroundSet - 1};
+    P.cache.minimalElements = {0};
+    P
+    )
+
+-- Recursive booleanLattice creation method.  Builds filtration and rankFunction recursively.  
+booleanLattice' = method()
+booleanLattice' ZZ := Poset => n -> (
+    if n == 0 then (
+        Q := poset({""}, {}, matrix{{1}});
+        Q.cache.filtration = {{0}};
+        Q.cache.rankFunction = {0};
+        Q
+        ) 
+    else (
+        Bn1 := booleanLattice'(n-1);
         G := apply(Bn1.GroundSet, p -> "0" | p) | apply(Bn1.GroundSet, p -> "1" | p);
         R := apply(Bn1.Relations, r -> {"0" | first r, "0" | last r}) | 
              apply(Bn1.Relations, r -> {"1" | first r, "1" | last r}) |
              apply(Bn1.GroundSet, p -> {"0" | p, "1" | p});
         M := matrix {{Bn1.RelationMatrix, Bn1.RelationMatrix}, {0, Bn1.RelationMatrix}};
-        poset(G, R, M)
+        P := poset(G, R, M);
+        f := Bn1.cache.filtration; f' := apply(f, l -> apply(l, l -> l + #Bn1.GroundSet));
+        f = append(f, {}); f' = prepend({}, f');
+        P.cache.filtration = apply(#f, i -> f_i | f'_i);
+        P.cache.rankFunction = join(Bn1.cache.rankFunction, apply(Bn1.cache.rankFunction, r -> r + 1));
+        P
         )
     )
 

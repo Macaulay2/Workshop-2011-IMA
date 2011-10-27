@@ -12,11 +12,9 @@
     -- Poset of a resolution
 
 -- Precomputation:
-    -- Some methods can have precomputed data as it's easy to do.
-    -- Example: "C = chain n" could store "C.cache.rankFunction = toList(0..<n)"
-    -- without doing any computation.
-    -- Example: "Q = dual P" could store "Q.cache.rankFunction = (m = max rk; (i -> m - i) \ rk)"
-    -- where "rk = P.cache.rankFunction" (if it exists).
+    -- Continue linearly through the file at adjoinMax (line 450) which
+    -- has some precomputation finished, but needs more.
+    -- **Please double check that I'm not doing anything wonky!**
 
 -- Documentation:
     -- Add a few extended examples
@@ -365,7 +363,11 @@ dilworthLattice Poset := Poset => P -> (
     d := dilworthNumber P;
     G := select(maximalAntichains P, a -> #a == d);
     cmp := (A, B) -> all(A, a -> any(B, b -> compare(P, a, b)));
-    poset(G, cmp)
+    Q := poset(G, cmp);
+    Q.cache.isLowerSemilattice = true;
+    Q.cache.isUpperSemimodular = true;
+    Q.cache.connectedComponents = toList(0 ..< #Q.GroundSet);
+    Q
     )
 
 distributiveLattice = method()
@@ -373,12 +375,33 @@ distributiveLattice Poset := Poset => P -> (
     O := unique apply(P.GroundSet, p -> principalOrderIdeal(P, p));
     POI := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset);
     POI.cache.OriginalPoset = P;
+    POI.cache.isLowerSemilattice = true;
+    POI.cache.isUpperSemimodular = true;
+    POI.cache.connectedComponents = toList(0 ..< #P.GroundSet);
     POI
     )
 
 -- The method dual is given in the Core and has options.
 -- As we don't need the options, we discard them.
-dual Poset := Poset => {} >> opts -> P -> poset(P.GroundSet, P.Relations/reverse, transpose P.RelationMatrix)
+dual Poset := Poset => {} >> opts -> P -> (
+    Q := poset(P.GroundSet, reverse \ P.Relations, transpose P.RelationMatrix);
+    if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
+    if P.cache.?coveringRelations then Q.cache.coveringRelations = reverse \ P.cache.coveringRelations;
+    if P.cache.?filtration then Q.cache.filtration = reverse P.cache.filtration;
+    if P.cache.?greeneKleitmanPartition then Q.cache.greeneKleitmanPartition = P.cache.greeneKleitmanPartition;
+    if P.cache.?isDistributive then Q.cache.isDistributive = P.cache.isDistributive;
+    if P.cache.?isEulerian then Q.cache.isEulerian = P.cache.isEulerian;
+    if P.cache.?isLowerSemilattice then Q.cache.isUpperSemilattice = P.cache.isLowerSemilattice;
+    if P.cache.?isLowerSemimodular then Q.cache.isUpperSemimodular = P.cache.isLowerSemimodular;
+    if P.cache.?isUpperSemilattice then Q.cache.isLowerSemilattice = P.cache.isUpperSemilattice;
+    if P.cache.?isUpperSemimodular then Q.cache.isLowerSemimodular = P.cache.isUpperSemimodular;
+    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = P.cache.maximalAntichains;
+    if P.cache.?maximalChains then Q.cache.maximalChains = reverse \ P.cache.maximalChains;
+    if P.cache.?maximalElements then Q.cache.minimalElements = P.cache.maximalElements;
+    if P.cache.?minimalElements then Q.cache.maximalElements = P.cache.minimalElements;
+    if P.cache.?rankFunction then Q.cache.rankFunction = if (rk := P.cache.rankFunction) === null then null else (m := max rk; (i -> m - i) \ rk);
+    Q
+    )
 
 filter = method()
 filter (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> principalFilter(P, l)) 
@@ -386,7 +409,7 @@ filter (Poset, List) := List => (P, L) -> unique flatten apply(L, l -> principal
 flagPoset = method()
 flagPoset (Poset, List) := Poset => (P, L)-> (
     if not isRanked P then error "The poset must be ranked.";
-    subposet(P, flatten ((rankPoset P)_L))
+    subposet(P, flatten (rankPoset P)_(sort unique L))
     )
 
 indexLabeling = method()
@@ -426,19 +449,25 @@ subposet (Poset, List) := Poset => (P, L) -> dropElements(P, toList(set P.Ground
 -- Operations
 ------------------------------------------
 adjoinMax = method()
-adjoinMax (Poset,Thing) := Poset => (P, a) -> 
-    poset(P.GroundSet | {a}, 
+adjoinMax (Poset,Thing) := Poset => (P, a) -> (
+    Q := poset(P.GroundSet | {a}, 
           P.Relations | apply(P.GroundSet, g-> {g,a}),
-          matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:1)}},{matrix {toList((#P.GroundSet):0)},1}}
-          )
+          matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:1)}},{matrix {toList((#P.GroundSet):0)},1}});
+    Q.cache.maximalElements = {#P.GroundSet - 1};
+    if P.cache.?minimalElements then Q.cache.minimalElements = P.cache.minimalElements;
+    Q
+    )
 adjoinMax Poset := Poset => P -> adjoinMax(P, 1 + max prepend(0, select(P.GroundSet, x-> class x === ZZ)))
 
 adjoinMin = method()
-adjoinMin (Poset,Thing) := Poset => (P, a) -> 
-    poset({a} | P.GroundSet, 
+adjoinMin (Poset,Thing) := Poset => (P, a) -> (
+    Q := poset({a} | P.GroundSet, 
           apply(P.GroundSet, g -> {a,g}) | P.Relations,
-          matrix{{1, matrix{toList (#P.GroundSet:1)}}, {transpose matrix {toList (#P.GroundSet:0)}, P.RelationMatrix}}
-          )
+          matrix{{1, matrix{toList (#P.GroundSet:1)}}, {transpose matrix {toList (#P.GroundSet:0)}, P.RelationMatrix}});
+    Q.cache.minimalElements = {0};
+    if P.cache.?maximalElements then Q.cache.maximalElements = P.cache.maximalElements;
+    Q
+    )
 adjoinMin Poset := Poset => P -> adjoinMin(P, -1 + min prepend(1, select(P.GroundSet, x -> class x === ZZ)))
 
 areIsomorphic = method()
@@ -1377,23 +1406,21 @@ isRanked Poset := Boolean => P -> rankFunction P =!= null
 
 isSperner = method()
 isSperner Poset := Boolean => P -> (
-    if P.cache.?isSperner then return P.cache.isSperner;
     rk := rankFunction P;
     if rk === null then error "The poset must be ranked.";
     maxrk := max values tally rk;
-    P.cache.isSperner = maxrk == dilworthNumber P
+    maxrk == dilworthNumber P
     )
 
 isStrictSperner = method()
 isStrictSperner Poset := Boolean => P -> (
-    if P.cache.?isStrictSperner then return P.cache.isStrictSperner;
     if not isRanked P then error "The poset must be ranked.";
     rk := rankFunction P;
     rks := partition(i -> rk_i, 0 ..< #rk);
     ranks := sort \ apply(max rk + 1, r -> toList (rks#r));
     if not P.cache.?maximalAntichains then maximalAntichains P;
     ac := sort \ P.cache.maximalAntichains;
-    P.cache.isStrictSperner = (#ranks == #ac and isSubset(ranks, ac))
+    #ranks == #ac and isSubset(ranks, ac)
     )
 
 isUpperSemilattice = method()

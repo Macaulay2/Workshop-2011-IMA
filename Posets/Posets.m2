@@ -15,6 +15,7 @@
     -- adjoin{Max,Min}: Can I say anything about isAtomic, isDistributive, isEulerian, is{Lower,Upper}Semi{lattice,modular}?
     -- booleanLattice: Can I *easily* build maximal{Antichains,Chains}, even if recursively?
     -- **Please double check that I'm not doing anything wonky!**
+    -- Stopped after facePoset
 
 -- Update:
     -- Isomorphism no longer needs to relabel the posets as everything accessed
@@ -60,7 +61,7 @@ newPackage select((
             {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://www.hood.edu/Academics/Departments/Mathematics/Faculty/Gwyneth-Whieldon.html"}
         },
         Headline => "Package for processing posets and order complexes",
-        Configuration => {"DefaultPDFViewer" => "open", "DefaultSuppressLabels" => true},
+        Configuration => {"DefaultPDFViewer" => "open", "DefaultPrecompute" => true, "DefaultSuppressLabels" => true},
         DebuggingMode => true,
         if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes", "Graphs", "FourTiTwo"}
         ), x -> x =!= null)
@@ -73,6 +74,7 @@ if version#"VERSION" <= "1.4" then (
 
 -- Load configurations
 posets'PDFViewer = if instance((options Posets).Configuration#"DefaultPDFViewer", String) then (options Posets).Configuration#"DefaultPDFViewer" else "open";
+posets'Precompute = if instance((options Posets).Configuration#"DefaultPrecompute", Boolean) then (options Posets).Configuration#"DefaultPrecompute" else true;
 posets'SuppressLabels = if instance((options Posets).Configuration#"DefaultSuppressLabels", Boolean) then (options Posets).Configuration#"DefaultSuppressLabels" else true;
 
 export {
@@ -84,6 +86,12 @@ export {
         "Relations",
     "poset",
     "transitiveClosure",
+    -- 
+    -- Set default configurations
+    "setPDFViewer",
+    "setPrecompute",
+        "Precompute",
+    "setSuppressLabels",
     --
     -- Derivative non-poset structures
     "comparabilityGraph",
@@ -266,6 +274,31 @@ transitiveClosure (List, List) := Matrix => (G, R) -> (
     )
 
 ------------------------------------------
+-- Set default configurations
+------------------------------------------
+
+setPDFViewer = method()
+setPDFViewer String := String => viewer -> (
+    alt := posets'PDFViewer;
+    posets'PDFViewer = viewer;
+    alt
+    )
+
+setPrecompute = method()
+setPrecompute Boolean := Boolean => pc -> (
+    alt := posets'Precompute;
+    posets'Precompute = pc;
+    alt
+    )
+
+setSuppressLabels = method()
+setSuppressLabels Boolean := Boolean => sl -> (
+    alt := posets'SuppressLabels;
+    posets'SuppressLabels = sl;
+    alt
+    )
+
+------------------------------------------
 -- Derivative non-poset structures
 ------------------------------------------
 
@@ -369,9 +402,11 @@ dilworthLattice Poset := Poset => P -> (
     G := select(maximalAntichains P, a -> #a == d);
     cmp := (A, B) -> all(A, a -> any(B, b -> compare(P, a, b)));
     Q := poset(G, cmp);
-    Q.cache.isLowerSemilattice = true;
-    Q.cache.isUpperSemimodular = true;
-    Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
+    if posets'Precompute then (
+        Q.cache.isLowerSemilattice = true;
+        Q.cache.isUpperSemimodular = true;
+        Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
+        );
     Q
     )
 
@@ -380,9 +415,11 @@ distributiveLattice Poset := Poset => P -> (
     O := unique apply(P.GroundSet, p -> principalOrderIdeal(P, p));
     POI := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset);
     POI.cache.OriginalPoset = P;
-    POI.cache.isLowerSemilattice = true;
-    POI.cache.isUpperSemimodular = true;
-    POI.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+    if posets'Precompute then (
+        POI.cache.isLowerSemilattice = true;
+        POI.cache.isUpperSemimodular = true;
+        POI.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+        );
     POI
     )
 
@@ -390,21 +427,23 @@ distributiveLattice Poset := Poset => P -> (
 -- As we don't need the options, we discard them.
 dual Poset := Poset => {} >> opts -> P -> (
     Q := poset(P.GroundSet, reverse \ P.Relations, transpose P.RelationMatrix);
-    if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
-    if P.cache.?coveringRelations then Q.cache.coveringRelations = reverse \ P.cache.coveringRelations;
-    if P.cache.?filtration then Q.cache.filtration = reverse P.cache.filtration;
-    if P.cache.?greeneKleitmanPartition then Q.cache.greeneKleitmanPartition = P.cache.greeneKleitmanPartition;
-    if P.cache.?isDistributive then Q.cache.isDistributive = P.cache.isDistributive;
-    if P.cache.?isEulerian then Q.cache.isEulerian = P.cache.isEulerian;
-    if P.cache.?isLowerSemilattice then Q.cache.isUpperSemilattice = P.cache.isLowerSemilattice;
-    if P.cache.?isLowerSemimodular then Q.cache.isUpperSemimodular = P.cache.isLowerSemimodular;
-    if P.cache.?isUpperSemilattice then Q.cache.isLowerSemilattice = P.cache.isUpperSemilattice;
-    if P.cache.?isUpperSemimodular then Q.cache.isLowerSemimodular = P.cache.isUpperSemimodular;
-    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = P.cache.maximalAntichains;
-    if P.cache.?maximalChains then Q.cache.maximalChains = reverse \ P.cache.maximalChains;
-    if P.cache.?maximalElements then Q.cache.minimalElements = P.cache.maximalElements;
-    if P.cache.?minimalElements then Q.cache.maximalElements = P.cache.minimalElements;
-    if P.cache.?rankFunction then Q.cache.rankFunction = if (rk := P.cache.rankFunction) === null then null else (m := max rk; (i -> m - i) \ rk);
+    if posets'Precompute then (
+        if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
+        if P.cache.?coveringRelations then Q.cache.coveringRelations = reverse \ P.cache.coveringRelations;
+        if P.cache.?filtration then Q.cache.filtration = reverse P.cache.filtration;
+        if P.cache.?greeneKleitmanPartition then Q.cache.greeneKleitmanPartition = P.cache.greeneKleitmanPartition;
+        if P.cache.?isDistributive then Q.cache.isDistributive = P.cache.isDistributive;
+        if P.cache.?isEulerian then Q.cache.isEulerian = P.cache.isEulerian;
+        if P.cache.?isLowerSemilattice then Q.cache.isUpperSemilattice = P.cache.isLowerSemilattice;
+        if P.cache.?isLowerSemimodular then Q.cache.isUpperSemimodular = P.cache.isLowerSemimodular;
+        if P.cache.?isUpperSemilattice then Q.cache.isLowerSemilattice = P.cache.isUpperSemilattice;
+        if P.cache.?isUpperSemimodular then Q.cache.isLowerSemimodular = P.cache.isUpperSemimodular;
+        if P.cache.?maximalAntichains then Q.cache.maximalAntichains = P.cache.maximalAntichains;
+        if P.cache.?maximalChains then Q.cache.maximalChains = reverse \ P.cache.maximalChains;
+        if P.cache.?maximalElements then Q.cache.minimalElements = P.cache.maximalElements;
+        if P.cache.?minimalElements then Q.cache.maximalElements = P.cache.minimalElements;
+        if P.cache.?rankFunction then Q.cache.rankFunction = if (rk := P.cache.rankFunction) === null then null else (m := max rk; (i -> m - i) \ rk);
+        );
     Q
     )
 
@@ -459,14 +498,16 @@ adjoinMax (Poset,Thing) := Poset => (P, a) -> (
     Q := poset(P.GroundSet | {a}, 
           P.Relations | apply(P.GroundSet, g-> {g,a}),
           matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:1)}},{matrix {toList((#P.GroundSet):0)},1}});
-    Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
-    if P.cache.?coveringRelations and P.cache.?maximalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.maximalElements, i -> {i, #P.GroundSet}));
-    if P.cache.?filtration then Q.cache.filtration = append(P.cache.filtration, {#P.GroundSet});
-    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = append(P.cache.maximalAntichains, {#P.GroundSet});
-    if P.cache.?maximalChains then Q.cache.maximalChains = (c -> append(c, #P.GroundSet)) \ P.cache.maximalChains;
-    Q.cache.maximalElements = {#P.GroundSet};
-    if P.cache.?minimalElements then Q.cache.minimalElements = P.cache.minimalElements;
-    if P.cache.?rankFunction then Q.cache.rankFunction = append(P.cache.rankFunction, 1 + max P.cache.rankFunction);
+    if posets'Precompute then (
+        Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
+        if P.cache.?coveringRelations and P.cache.?maximalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.maximalElements, i -> {i, #P.GroundSet}));
+        if P.cache.?filtration then Q.cache.filtration = append(P.cache.filtration, {#P.GroundSet});
+        if P.cache.?maximalAntichains then Q.cache.maximalAntichains = append(P.cache.maximalAntichains, {#P.GroundSet});
+        if P.cache.?maximalChains then Q.cache.maximalChains = (c -> append(c, #P.GroundSet)) \ P.cache.maximalChains;
+        Q.cache.maximalElements = {#P.GroundSet};
+        if P.cache.?minimalElements then Q.cache.minimalElements = P.cache.minimalElements;
+        if P.cache.?rankFunction then Q.cache.rankFunction = append(P.cache.rankFunction, 1 + max P.cache.rankFunction);
+        );
     Q
     )
 adjoinMax Poset := Poset => P -> adjoinMax(P, 1 + max prepend(0, select(P.GroundSet, x-> class x === ZZ)))
@@ -477,14 +518,16 @@ adjoinMin (Poset,Thing) := Poset => (P, a) -> (
     Q := poset(P.GroundSet | {a}, 
           apply(P.GroundSet, g -> {a,g}) | P.Relations,
           matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:0)}}, {matrix{toList (#P.GroundSet:1)},1}});
-    Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
-    if P.cache.?coveringRelations and P.cache.?minimalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.minimalElements, i -> {#P.GroundSet, i}));
-    if P.cache.?filtration then Q.cache.filtration = prepend({#P.GroundSet}, P.cache.filtration);
-    if P.cache.?maximalAntichains then Q.cache.maximalAntichains = append(P.cache.maximalAntichains, {#P.GroundSet});
-    if P.cache.?maximalChains then Q.cache.maximalChains = (c -> prepend(#P.GroundSet, c)) \ P.cache.maximalChains;
-    if P.cache.?maximalElements then Q.cache.maximalElements = P.cache.maximalElements;
-    Q.cache.minimalElements = {#P.GroundSet};
-    if P.cache.?rankFunction then Q.cache.rankFunction = append((i -> i + 1) \ P.cache.rankFunction, 0);
+    if posets'Precompute then (
+        Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
+        if P.cache.?coveringRelations and P.cache.?minimalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.minimalElements, i -> {#P.GroundSet, i}));
+        if P.cache.?filtration then Q.cache.filtration = prepend({#P.GroundSet}, P.cache.filtration);
+        if P.cache.?maximalAntichains then Q.cache.maximalAntichains = append(P.cache.maximalAntichains, {#P.GroundSet});
+        if P.cache.?maximalChains then Q.cache.maximalChains = (c -> prepend(#P.GroundSet, c)) \ P.cache.maximalChains;
+        if P.cache.?maximalElements then Q.cache.maximalElements = P.cache.maximalElements;
+        Q.cache.minimalElements = {#P.GroundSet};
+        if P.cache.?rankFunction then Q.cache.rankFunction = append((i -> i + 1) \ P.cache.rankFunction, 0);
+        );
     Q
     )
 adjoinMin Poset := Poset => P -> adjoinMin(P, -1 + min prepend(1, select(P.GroundSet, x -> class x === ZZ)))
@@ -627,12 +670,14 @@ booleanLattice = method()
 booleanLattice ZZ := Poset => n -> (
     if n < 0 then n = -n;
     P := booleanLattice' n;
-    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
-    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
-    P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
-    P.cache.isAtomic = P.cache.isDistributive = P.cache.isEulerian = P.cache.isLowerSemilattice = P.cache.isLowerSemimodular = P.cache.isUpperSemilattice = P.cache.isUpperSemimodular = true;
-    P.cache.maximalElements = {#P.GroundSet - 1};
-    P.cache.minimalElements = {0};
+    if posets'Precompute then (
+        P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+        idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+        P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
+        P.cache.isAtomic = P.cache.isDistributive = P.cache.isEulerian = P.cache.isLowerSemilattice = P.cache.isLowerSemimodular = P.cache.isUpperSemilattice = P.cache.isUpperSemimodular = true;
+        P.cache.maximalElements = {#P.GroundSet - 1};
+        P.cache.minimalElements = {0};
+        );
     P
     )
 
@@ -641,8 +686,10 @@ booleanLattice' = method()
 booleanLattice' ZZ := Poset => n -> (
     if n == 0 then (
         Q := poset({""}, {}, matrix{{1}});
-        Q.cache.filtration = {{0}};
-        Q.cache.rankFunction = {0};
+        if posets'Precompute then (
+            Q.cache.filtration = {{0}};
+            Q.cache.rankFunction = {0};
+            );
         Q
         ) 
     else (
@@ -653,10 +700,12 @@ booleanLattice' ZZ := Poset => n -> (
              apply(Bn1.GroundSet, p -> {"0" | p, "1" | p});
         M := matrix {{Bn1.RelationMatrix, Bn1.RelationMatrix}, {0, Bn1.RelationMatrix}};
         P := poset(G, R, M);
-        f := Bn1.cache.filtration; f' := apply(f, l -> apply(l, l -> l + #Bn1.GroundSet));
-        f = append(f, {}); f' = prepend({}, f');
-        P.cache.filtration = apply(#f, i -> f_i | f'_i);
-        P.cache.rankFunction = join(Bn1.cache.rankFunction, apply(Bn1.cache.rankFunction, r -> r + 1));
+        if posets'Precompute then (
+            f := Bn1.cache.filtration; f' := apply(f, l -> apply(l, l -> l + #Bn1.GroundSet));
+            f = append(f, {}); f' = prepend({}, f');
+            P.cache.filtration = apply(#f, i -> f_i | f'_i);
+            P.cache.rankFunction = join(Bn1.cache.rankFunction, apply(Bn1.cache.rankFunction, r -> r + 1));
+            );
         P
         )
     )
@@ -666,14 +715,16 @@ chain ZZ := Poset => n -> (
     if n == 0 then error "The integer n must be non-zero.";
     if n < 0 then n = -n;
     P := poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1))); 
-    P.cache.connectedComponents = P.cache.maximalChains = {P.cache.rankFunction = toList(0 ..< n)};
-    P.cache.coveringRelations = apply(n-1, i -> {i, i+1});
-    P.cache.filtration = P.cache.maximalAntichains = apply(n, i -> {i});
-    P.cache.greeneKleitmanPartition = new Partition from {n};
-    P.cache.isDistributive = P.cache.isLowerSemilattice = P.cache.isLowerSemimodular = P.cache.isUpperSemilattice = P.cache.isUpperSemimodular = true;
-    P.cache.isAtomic = P.cache.isEulerian = (n <= 2);
-    P.cache.maximalElements = {n-1};
-    P.cache.minimalElements = {0};
+    if posets'Precompute then (
+        P.cache.connectedComponents = P.cache.maximalChains = {P.cache.rankFunction = toList(0 ..< n)};
+        P.cache.coveringRelations = apply(n-1, i -> {i, i+1});
+        P.cache.filtration = P.cache.maximalAntichains = apply(n, i -> {i});
+        P.cache.greeneKleitmanPartition = new Partition from {n};
+        P.cache.isDistributive = P.cache.isLowerSemilattice = P.cache.isLowerSemimodular = P.cache.isUpperSemilattice = P.cache.isUpperSemimodular = true;
+        P.cache.isAtomic = P.cache.isEulerian = (n <= 2);
+        P.cache.maximalElements = {n-1};
+        P.cache.minimalElements = {0};
+        );
     P
     )
 
@@ -687,12 +738,14 @@ divisorPoset RingElement := Poset => m -> (
     R := flatten for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 and isPrime(D_j//D_i) then {D_i, D_j} else continue;
     M := matrix for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 then 1 else 0;
     P := poset(D, R, M);
-    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
-    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
-    P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
-    P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
-    P.cache.maximalElements = {#P.GroundSet - 1};
-    P.cache.minimalElements = {0};
+    if posets'Precompute then (
+        P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+        idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+        P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
+        P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
+        P.cache.maximalElements = {#P.GroundSet - 1};
+        P.cache.minimalElements = {0};
+        );
     P
     )
 
@@ -706,12 +759,14 @@ divisorPoset ZZ := Poset => m -> (
     R := flatten for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 and isPrime(D_j//D_i) then {D_i, D_j} else continue;
     M := matrix for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 then 1 else 0;
     P := poset(D, R, M);
-    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
-    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
-    P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
-    P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
-    P.cache.maximalElements = {#P.GroundSet - 1};
-    P.cache.minimalElements = {0};
+    if posets'Precompute then (
+        P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+        idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+        P.cache.coveringRelations = apply(P.Relations, r -> {idx#(first r), idx#(last r)});
+        P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
+        P.cache.maximalElements = {#P.GroundSet - 1};
+        P.cache.minimalElements = {0};
+        );
     P
     )
 
@@ -745,9 +800,11 @@ dominanceLattice ZZ := Poset => n -> (
         true
         );
     P := poset(G, cmp);
-    P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
-    P.cache.maximalElements = {0};
-    P.cache.minimalElements = {#P.GroundSet - 1};
+    if posets'Precompute then (
+        P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
+        P.cache.maximalElements = {0};
+        P.cache.minimalElements = {#P.GroundSet - 1};
+        );
     P
     )
 
@@ -755,13 +812,15 @@ facePoset = method()
 facePoset SimplicialComplex := Poset => D -> (
     faceList := apply(toList(-1..dim D), i -> support \ toList flatten entries faces(i, D));
     P := poset(flatten faceList, isSubset);
-    idx := hashTable apply(#P.GroundSet, i -> P_i => i);
-    P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
-    P.cache.filtration = apply(faceList, L -> apply(L, l -> idx#l));
-    P.cache.isLowerSemilattice = true;
-    P.cache.maximalElements = last P.cache.filtration;
-    P.cache.minimalElements = first P.cache.filtration;
-    P.cache.rankFunction = apply(P.GroundSet, f -> #f);
+    if posets'Precompute then (
+        idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+        P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+        P.cache.filtration = apply(faceList, L -> apply(L, l -> idx#l));
+        P.cache.isLowerSemilattice = true;
+        P.cache.maximalElements = last P.cache.filtration;
+        P.cache.minimalElements = first P.cache.filtration;
+        P.cache.rankFunction = apply(P.GroundSet, f -> #f);
+        );
     P
     )
 
@@ -1759,6 +1818,117 @@ doc ///
             transitiveClosure(G, R)
     SeeAlso
         poset
+///
+
+------------------------------------------
+-- Set default options
+------------------------------------------
+
+-- setPDFViewer
+doc ///
+    Key
+        (setPDFViewer,String)
+    Headline
+        sets the default PDFViewer option
+    Usage
+        alt = setPDFViewer viewer
+    Inputs
+        viewer:String
+            the new setting
+    Outputs
+        alt:String
+            the old setting
+    Description
+        Text
+            This method sets the default PDFViewer option.
+        Example
+            setPDFViewer "evince"
+    SeeAlso
+        PDFViewer
+///
+
+-- setPrecompute
+doc ///
+    Key
+        (setPrecompute,Boolean)
+    Headline
+        sets the Precompute configuration
+    Usage
+        alt = setPrecompute pc
+    Inputs
+        pc:Boolean
+            the new setting
+    Outputs
+        alt:Boolean
+            the old setting
+    Description
+        Text
+            This method sets the default Precompute option.
+        Example
+            setPrecompute false
+    SeeAlso
+        Precompute
+///
+
+-- Precompute
+doc ///
+    Key
+        Precompute
+    Headline
+        a package-wide configuration that toggles precomputation
+    Description
+        Text
+            Many routines in this package are written to take advantage
+            of known structure on some posets to quickyl precompute some
+            of the cached data.  However, this may not always be desirable,
+            and so this flag toggles whether precomputation occurs.  It
+            can be set with the @TO "setPrecompute"@ method.
+
+            As an example, @TO "chain"@ posets are known to be distributive
+            lattices.  If the precomputation flag is set, then the method
+            fills this in automatically.
+        Example
+            setPrecompute true;
+            C = chain 10;
+            peek C.cache
+            P = poset apply(9, i -> {i+1, i+2});
+            peek P.cache
+            C == P
+            time isDistributive C
+            time isDistributive P
+        Text
+            We also know that the dual of a distributive lattice is
+            again a distributive lattice.  Other information is copied
+            when possible.
+        Example
+            C' = dual C;
+            time isDistributive C'
+            peek C'.cache
+    SeeAlso
+        setPrecompute
+///
+
+-- setSuppressLabels
+doc ///
+    Key
+        (setSuppressLabels,Boolean)
+    Headline
+        sets the SuppressLabels configuration
+    Usage
+        alt = setSuppressLabels sl
+    Inputs
+        sl:Boolean
+            the new setting
+    Outputs
+        alt:Boolean
+            the old setting
+    Description
+        Text
+            This method sets the default SuppressLabels option.
+        Example
+            setSuppressLabels false
+    SeeAlso
+        SuppressLabels
 ///
 
 ------------------------------------------

@@ -1827,6 +1827,7 @@ doc ///
 -- setPDFViewer
 doc ///
     Key
+        setPDFViewer
         (setPDFViewer,String)
     Headline
         sets the default PDFViewer option
@@ -1850,6 +1851,7 @@ doc ///
 -- setPrecompute
 doc ///
     Key
+        setPrecompute
         (setPrecompute,Boolean)
     Headline
         sets the Precompute configuration
@@ -1911,6 +1913,7 @@ doc ///
 -- setSuppressLabels
 doc ///
     Key
+        setSuppressLabels
         (setSuppressLabels,Boolean)
     Headline
         sets the SuppressLabels configuration

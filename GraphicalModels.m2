@@ -810,6 +810,14 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           	    )
+	          else if R.?mixedgraph then (
+	   	    g= R.mixedgraph;
+           	    vv = sort vertices g;
+           	    SM = covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          	    )
                else (
 	   	    vv = toList (1..R#gaussianRing);
 	   	    SM = covarianceMatrix(R);

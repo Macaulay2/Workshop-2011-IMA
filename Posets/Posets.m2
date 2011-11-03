@@ -1,7 +1,7 @@
 ------------------------------------------
 -- Currently working on:
 ------------------------------------------
--- David: Precomputation
+-- David: Yes
 -- Gwyn:  Tests (tests not running right now, will be fixed tomorrow)
 
 ------------------------------------------
@@ -10,12 +10,6 @@
 -- New Methods:
     -- Identify comparability graphs
     -- Poset of a resolution
-
--- Precomputation:
-    -- adjoin{Max,Min}: Can I say anything about isAtomic, isDistributive, isEulerian, is{Lower,Upper}Semi{lattice,modular}?
-    -- booleanLattice: Can I *easily* build maximal{Antichains,Chains}, even if recursively?
-    -- **Please double check that I'm not doing anything wonky!**
-    -- Stopped after facePoset
 
 -- Update:
     -- Isomorphism no longer needs to relabel the posets as everything accessed
@@ -921,11 +915,25 @@ lcmLatticeProduceGroundSet = G -> (
 
 partitionLattice = method()
 partitionLattice ZZ := Poset => n -> (
-     L := toList (1..n);
-     G := setPartition L;
-     R := flatten apply(G, i-> partitionRefinementPairs i);
-     poset(G, R)
-     )
+    L := toList (1..n);
+    G := setPartition L;
+    R := flatten apply(G, i-> partitionRefinementPairs i);
+    M := matrix for w in G list for v in G list if all(v, v' -> any(w, w' -> isSubset(v', w'))) then 1 else 0;
+    P := poset(G, R, M);
+    if posets'Precompute then (
+        P.cache.connectedComponents = {toList(0 ..< #G)};
+        idx := hashTable apply(#G, i -> P_i => i);
+        P.cache.coveringRelations = apply(R, r -> {idx#(first r), idx#(last r)});
+        pp := partition(v -> #v, G);
+        P.cache.filtration = apply(sort keys pp, k -> apply(pp#k, v -> idx#v));
+        P.cache.isLowerSemilattice = true;
+        P.cache.isUpperSemilattice = true;
+        P.cache.maximalElements = last P.cache.filtration;
+        P.cache.minimalElements = first P.cache.filtration;
+        P.cache.rankFunction = apply(G, f -> #f - 1);
+        );
+    P
+    )
 
 partitionRefinementPairs = method()
 partitionRefinementPairs List := List => L-> (
@@ -1013,7 +1021,23 @@ youngSubposet (List, List) := Poset => (lo, hi) -> (
 youngSubposet List := Poset => hi -> youngSubposet({0}, hi)
 youngSubposet ZZ := Poset => n -> (
     if n < 0 then n = -n;
-    poset(toList \ flatten apply(n+1, i -> partitions i), (a,b) -> #a <= #b and all(#a, i -> a_i <= b_i))
+    G := flatten apply(n+1, i -> toList \ partitions i);
+    M := matrix for a in G list for b in G list if #a <= #b and all(#a, i -> a_i <= b_i) then 1 else 0;
+    R := flatten for i to #G-1 list for j to #G-1 list if M_j_i == 1 and sum G_j == sum G_i + 1 then {G_i, G_j} else continue;
+    P := poset(G, R, M);
+    if posets'Precompute then (
+        P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
+        idx := hashTable apply(#P.GroundSet, i -> P_i => i);
+        P.cache.coveringRelations = apply(R, r -> {idx#(first r), idx#(last r)});
+        pp := partition(sum, G);
+        P.cache.filtration = apply(sort keys pp, k -> apply(pp#k, v -> idx#v));
+        P.cache.isLowerSemilattice = true;
+        P.cache.isUpperSemilattice = false;
+        P.cache.maximalElements = last P.cache.filtration;
+        P.cache.minimalElements = first P.cache.filtration;
+        P.cache.rankFunction = apply(P.GroundSet, p -> sum p);
+        );
+    P
     )
 
 ------------------------------------------
@@ -1565,7 +1589,7 @@ isStrictSperner Poset := Boolean => P -> (
     )
 
 isUpperSemilattice = method()
-isUpperSemilattice Poset := Boolean => P -> if P.cache.?isUpperSemilattice then P.cache.isLowerSemilattice else
+isUpperSemilattice Poset := Boolean => P -> if P.cache.?isUpperSemilattice then P.cache.isUpperSemilattice else
     P.cache.isUpperSemilattice = all(0 ..< #P.GroundSet, i -> all(i+1 ..< #P.GroundSet, j -> joinExists(P, P.GroundSet#i, P.GroundSet#j)))
 
 -- Ported from Stembridge's Maple Package

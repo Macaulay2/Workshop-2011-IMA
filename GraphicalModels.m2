@@ -4,8 +4,8 @@ needsPackage "Graphs"
 
 newPackage(
      "GraphicalModels",
-     Version => "0.3",
-     Date => "July 29, 2011",
+     Version => "0.4",
+     Date => "November 2011",
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
@@ -18,7 +18,7 @@ newPackage(
 	   HomePage=>""},
           {Name=> "Sonja Petrovic", 
 	   Email=> "",
-	   HomePage=>""},
+	   HomePage=>"http://www.personal.psu.edu/sxp61"},
           {Name=> "Contributing authors and collaborators: Alexander Diaz, Shaowei Lin, David Murrugarra", 
 	   Email=> "",
 	   HomePage=>""}      
@@ -793,6 +793,13 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if #Stmts === 0 then (ideal(0_R))
      else ( 
+	  --there should be an error check re: label names and labels in ring! ---	  
+	  --     if R.?mixedgraph then (
+	  --         if not sort (vertices (R.mixedgraph))  === sort (vertices (g)) then 	     error "vertex labels of graph do not match labels in ring");
+	  --     if R.?graph then ( 
+	  --        if not sort (vertices (R.graph))  === sort (vertices (g)) then 	     error "vertex labels of graph do not match labels in ring");
+	  --     if R.?digraph then (
+	  --         if not sort (vertices (R.digraph))  === sort (vertices (g)) then 	     error "vertex labels of graph do not match labels in ring");
      	  if R#?gaussianRing then (      
                if R.?graph then (
 	   	    g := R.graph;
@@ -844,7 +851,7 @@ conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
      	  )
      )	   
 
-
+---- should be able to delete the following method overload:
 conditionalIndependenceIdeal (Ring,Graph) := Ideal => (R,G) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      g := G;
@@ -926,7 +933,9 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      s := opts.sVariableName;
      l := opts.lVariableName;
      p := opts.pVariableName;
-     kk := opts.Coefficients;
+     kk := opts.Coefficients;          
+     if (not gaussianRingList#?(kk,s,l,p,vv)) then ( 
+	  --(kk,s,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
      sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
      lL := delete(null, flatten apply(vv, x-> apply(toList dd#x, y->l_(x,y))));	 
      pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
@@ -934,7 +943,9 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
      R#gaussianRing = {#vv,s,l,p};
      R.mixedgraph = g;
-     R)
+     gaussianRingList#((kk,s,l,p,vv)) = R;); 
+     gaussianRingList#((kk,s,l,p,vv))
+     )
 
 ------------------------
 --- covarianceMatrix ---

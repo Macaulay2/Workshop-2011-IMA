@@ -167,3 +167,7 @@ J = minors(2,M)
 I == J
 R#gaussianRing
 trekIdeal(R,H)
+
+
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R = gaussianRing G

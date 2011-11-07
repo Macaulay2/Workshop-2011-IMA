@@ -134,6 +134,8 @@ export {
     "facePoset",
     "intersectionLattice",
     "lcmLattice",
+    "ncpLattice",
+    "ncPartitions",
     "partitionLattice",
         "setPartition",
     "projectivizeArrangement",
@@ -912,6 +914,56 @@ lcmLatticeProduceGroundSet = G -> (
     for i from 0 to n-1 do lcmDegrees = determineLCMsForVariable(lcmDegrees, i);
     sort apply(lcmDegrees, D -> D.degree)
     )
+
+--Given a noncrossing partition P and the ith part of the partition,
+--produces the noncrossing partitions covered by P.
+
+ncpCovers = method()
+ncpCovers(List,ZZ):=(P,i)->(
+     A:=P_i;
+     if #P_i > 1 then (
+     	  l:=toList(1..floor((#A)/2));
+     	  indexSet=flatten apply(l, i-> apply(toList(0..(#A-i)), j-> toList(j..(j+i-1))));
+     	  gamma:=unique apply(indexSet, L-> sort join(toList apply(i, j-> P_j),{A_L},{select(A, i-> not member(i,A_L))},toList apply((i+1)..#P-1,j->P_j)));
+     	  relSet:=apply(gamma, g->{P,g});
+     	  {gamma, relSet}
+	  )
+     )
+
+--Generates all noncrossing partitions and the noncrossing partition lattice.
+
+ncpGenerator=method()
+ncpGenerator(ZZ):=(n)->(
+     gamma:={{toList(1..n)}};
+     levelgamma:={{toList(1..n)}};
+     relSet:={};
+     levelrelset:={};
+     A:={};
+     B:={};
+     for k from 0 to n-1 do (
+	  A={};
+	  B={};
+	  for P in levelgamma do (
+	       N:=select(apply(toList(0..k), j->ncpCovers(P,j)), J->J=!=null);
+	       A=join(A,unique flatten apply(N, n-> first n));
+	       B=join(B,unique flatten apply(N, n-> last n));
+	       );
+	  levelgamma=unique A;
+	  levelrelset=unique B;
+	  gamma=unique join(gamma,levelgamma);
+	  relSet=unique join(relSet,levelrelset);
+     	  );
+     {gamma,relSet}
+     )
+
+--Uses ncpGenerator above to produce all noncrossing partitions:
+ncPartitions = method()
+ncPartitions(ZZ):= List => n -> first ncpGenerator(n)
+
+--Uses ncpGenerator above to produce noncrossing pairing lattice:
+ncpLattice=method()
+ncpLattice(ZZ):=Poset => n -> poset(last ncpGenerator(n))
+
 
 partitionLattice = method()
 partitionLattice ZZ := Poset => n -> (

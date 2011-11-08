@@ -96,6 +96,8 @@ export {
     "orderComplex",
         "VariableName",
     "pPartitionRing",
+    "NCPartition",
+    "NCPart",
     --
     -- Derivative posets
     "closedInterval",
@@ -915,46 +917,55 @@ lcmLatticeProduceGroundSet = G -> (
     sort apply(lcmDegrees, D -> D.degree)
     )
 
+
+--New Types for Noncrossing Partitions to Improve diplay of results:
+NCPartition = new Type of List
+NCPart = new Type of List
+
+ncPartition = L -> new NCPartition from (L/ncPart)
+ncPart = L -> new NCPart from L
+net NCPartition := L -> (
+	if #L === 0 then net "empty" else 
+	(net L#0) | horizontalJoin apply(#L-1, i-> "/" | net L#(i+1))
+)
+net NCPart := L -> horizontalJoin(L / net)
+
 --Given a noncrossing partition P and the ith part of the partition,
 --produces the noncrossing partitions covered by P.
 
 ncpCovers = method()
-ncpCovers(List,ZZ):=(P,i)->(
-     A:=P_i;
-     if #P_i > 1 then (
-     	  l:=toList(1..floor((#A)/2));
-     	  indexSet=flatten apply(l, i-> apply(toList(0..(#A-i)), j-> toList(j..(j+i-1))));
-     	  gamma:=unique apply(indexSet, L-> sort join(toList apply(i, j-> P_j),{A_L},{select(A, i-> not member(i,A_L))},toList apply((i+1)..#P-1,j->P_j)));
-     	  relSet:=apply(gamma, g->{P,g});
-     	  {gamma, relSet}
-	  )
-     )
+ncpCovers(NCPartition,ZZ):=(P,i)->(
+	A:=P_i;
+	if #A <= 1 then return {{},{}};
+	l:=toList(1..(#A-1));
+	indexSet := flatten apply(l, i-> apply(#A-i + 1, j-> toList(j..(j+i-1))));
+	gamma := unique apply(indexSet, L-> 
+		sort flatten apply(#P, j -> 
+			if i == j then 
+				{ncPart A_L, select(A, i-> not member(i,ncPart A_L))}
+			else
+				{P#j}
+		)
+	);
+	relSet:=apply(gamma, g->{P,g});
+--	{gamma, relSet}
+	{gamma/ ncPartition, relSet/ (x -> x/ncPartition)}
+)
+
+ncpCovers NCPartition := P -> (transpose apply(#P, i -> ncpCovers(P, i))) / flatten /unique
 
 --Generates all noncrossing partitions and the noncrossing partition lattice.
 
 ncpGenerator=method()
 ncpGenerator(ZZ):=(n)->(
-     gamma:={{toList(1..n)}};
-     levelgamma:={{toList(1..n)}};
-     relSet:={};
-     levelrelset:={};
-     A:={};
-     B:={};
-     for k from 0 to n-1 do (
-	  A={};
-	  B={};
-	  for P in levelgamma do (
-	       N:=select(apply(toList(0..k), j->ncpCovers(P,j)), J->J=!=null);
-	       A=join(A,unique flatten apply(N, n-> first n));
-	       B=join(B,unique flatten apply(N, n-> last n));
-	       );
-	  levelgamma=unique A;
-	  levelrelset=unique B;
-	  gamma=unique join(gamma,levelgamma);
-	  relSet=unique join(relSet,levelrelset);
-     	  );
-     {gamma,relSet}
-     )
+	startingPartition := ncPartition {apply(n, i-> i)} ;
+	levels := {{{startingPartition}, {}}};
+	for k from 0 to n-1 do (
+		aboveEachGamma := (first last levels)/ncpCovers;
+		levels = append(levels, (transpose aboveEachGamma)/flatten/unique);
+	);
+	(transpose levels)/flatten
+)
 
 --Uses ncpGenerator above to produce all noncrossing partitions:
 ncPartitions = method()

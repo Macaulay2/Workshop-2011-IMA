@@ -173,12 +173,12 @@ chernPolyOfVariety(ProjectiveVariety):=(P)->(
     
 
 --input the ideal of a projective variety and get chern poly of tangent sheaf
-chernPolynomialOfVariety(Ideal):=(I)->(
-     var := Proj(ring I /I);
-     tanSheaf := tangentSheaf var;
-     polyOfVar := chernPolynomial tanSheaf;
-     polyOfVar
-     )
+--chernPolynomialOfVariety(Ideal):=(I)->(
+--     var := Proj(ring I /I);
+--     tanSheaf := tangentSheaf var;
+--     polyOfVar := chernPolynomial tanSheaf;
+--     polyOfVar
+--     )
 
 -- now taking the output of hilbertSeries to a Chern polynomial
 

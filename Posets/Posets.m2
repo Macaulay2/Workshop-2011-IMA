@@ -917,7 +917,7 @@ lcmLatticeProduceGroundSet = G -> (
     sort apply(lcmDegrees, D -> D.degree)
     )
 
-
+--Portions of code for generating NCPartitions contributed by Andrew Hoefel:
 --New Types for Noncrossing Partitions to Improve diplay of results:
 NCPartition = new Type of List
 NCPart = new Type of List

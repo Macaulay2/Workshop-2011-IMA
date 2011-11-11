@@ -47,8 +47,8 @@ if version#"VERSION" <= "1.4" then (
 
 newPackage select((
     "Posets",
-        Version => "1.0.4", 
-        Date => "13. October 2011",
+        Version => "1.0.5", 
+        Date => "11. November 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -137,8 +137,8 @@ export {
     "lcmLattice",
     "ncpLattice",
     "ncPartitions",
-        "NCPartition",
         "NCPart",
+        "NCPartition",
     "partitionLattice",
         "setPartition",
     "projectivizeArrangement",
@@ -917,18 +917,18 @@ lcmLatticeProduceGroundSet = G -> (
 
 -- Portions of code for generating NCPartitions contributed by Andrew Hoefel.
 -- New Types for Noncrossing Partitions to improve diplay of results.
-NCPartition = new Type of List
 NCPart = new Type of List
+NCPartition = new Type of List
 
-ncPartition = L -> new NCPartition from (L/ncPart)
 ncPart = L -> new NCPart from L
-net NCPartition := L -> if #L === 0 then net "empty" else (net L#0) | horizontalJoin apply(#L - 1, i -> "/" | net L#(i + 1))
+ncPartition = L -> new NCPartition from ncPart \ L
 net NCPart := L -> horizontalJoin(net \ L)
+net NCPartition := L -> if #L === 0 then net "empty" else (net L#0) | horizontalJoin apply(#L - 1, i -> "/" | net L#(i + 1))
 
 -- Given a noncrossing partition P and the ith part of the partition,
 -- produces the noncrossing partitions covered by P.
 ncpCovers = method()
-ncpCovers (NCPartition, ZZ) := List => (P,i) -> (
+ncpCovers (NCPartition, ZZ) := List => (P, i) -> (
     if #(A := P_i) <= 1 then return {{},{}};
     indexSet := flatten apply(toList(1 ..< #A), i -> apply(#A - i + 1, j -> toList(j..j + i - 1)));
     gamma := ncPartition \ apply(indexSet, L -> sort flatten apply(#P, j -> if i == j then {ncPart A_L, select(A, i -> not member(i, ncPart A_L))} else {P#j}));
@@ -1871,6 +1871,10 @@ doc ///
             the Posets package does not require the vertices to be of any particular type.  However,
             this also means when the package makes calls to external methods, it sometimes must
             relabel the vertices (usually to the index of the vertex in $G$).
+    Caveat
+        Care should be taken when using the SkipRankCheck option.  If the provided matrix is 
+        non-maximal rank, or the provided relations are cyclic, then the returned Poset will
+        not actually be a Poset.  In this case, the behavior of the package is unknown.
     SeeAlso
         Poset
 ///

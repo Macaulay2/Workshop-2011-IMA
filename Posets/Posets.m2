@@ -277,8 +277,12 @@ transitiveClosure (List, List) := Matrix => (G, R) -> (
     idx := hashTable apply(#G, i -> G_i => i);
     R = apply(R, r -> {idx#(first r), idx#(last r)});
     D := digraph merge(applyValues(partition(first, R), v -> last \ v), hashTable apply(#G, i -> i => {}), join);
-    -- This currently checks cyclicity first, but should stop doing so later.
-    if isCyclic D then matrix {{0}} else matrix apply(vertices D, v -> ( Dv := descendents(D, v); apply(vertices D, u -> if u === v or member(u, Dv) then 1 else 0)))
+    -- Once descendents no longer breaks for cyclic graphs, the next four lines can be removed.
+    if isCyclic D then (
+        H := floydWarshall D;
+        matrix apply(#G, i -> apply(#G, j -> if H#(i, j) < 1/0. then 1 else 0))
+        )
+    else matrix apply(vertices D, v -> ( Dv := descendents(D, v); apply(vertices D, u -> if u === v or member(u, Dv) then 1 else 0)))
     )
 
 ------------------------------------------

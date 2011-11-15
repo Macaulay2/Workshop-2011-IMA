@@ -275,7 +275,7 @@ toExternalString Poset := String => P -> "poset(" | toExternalString P.GroundSet
 transitiveClosure = method()
 transitiveClosure (List, List) := Matrix => (G, R) -> (
     idx := hashTable apply(#G, i -> G_i => i);
-    R = apply(R, r -> {idx#(first r), idx#(last r)});
+    R = for r in R list if first r === last r then continue else {idx#(first r), idx#(last r)};
     D := digraph merge(applyValues(partition(first, R), v -> last \ v), hashTable apply(#G, i -> i => {}), join);
     -- Once descendents no longer breaks for cyclic graphs, the next four lines can be removed.
     if isCyclic D then (
@@ -3387,7 +3387,8 @@ doc ///
             lattice of intersections in the arrangement partially ordered
             by containment.
         Example
-            print "TODO";
+            R = QQ[x,y,z];
+            intersectionLattice({x+y, x+z, y+z}, R) 
     SeeAlso
         projectivizeArrangement 
 ///
@@ -3572,7 +3573,8 @@ doc ///
             This method returns the @TO "intersectionLattice"@ of the projectivization
             of the specified hyperplane arrangement.
         Example
-            print "TODO";
+            R = QQ[x,y,z];
+            projectivizeArrangement({x^2-y, y^2-z}, R)
     Caveat
         The variable used for homogenization is $Z$, and so the ring $R$ should not already have this
         variable in use.

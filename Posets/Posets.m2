@@ -78,7 +78,7 @@ export {
         "GroundSet",
         "RelationMatrix",
         "Relations",
-        "SkipRankCheck",
+        "AntisymmetryStrategy",
     "poset",
     "transitiveClosure",
     -- 
@@ -149,7 +149,7 @@ export {
     --
     -- TeX & GAP
     "displayPoset",
-    "gapPosetConversion",
+    "gapConvertPoset",
     "outputTexPoset",
     "texPoset",
         "Jitter",
@@ -236,11 +236,18 @@ principalFilter' := (P, i) -> positions(first entries(P.RelationMatrix^{i}), j -
 ------------------------------------------
 
 Poset = new Type of HashTable
-
-poset = method(Options => {symbol SkipRankCheck => false})
+poset = method(Options => {symbol AntisymmetryStrategy => "rank"})
 poset (List, List, Matrix) := Poset => opts -> (G, R, M) -> (
-    if not instance(opts.SkipRankCheck, Boolean) then error "The option SkipRankCheck must be a Boolean.";
-    if not opts.SkipRankCheck then if rank M =!= #G then error "The relations failed anti-symmetry.";
+    if not instance(opts.AntisymmetryStrategy, String) then error "The option AntisymmetryStrategy must be a Boolean.";
+    a := if opts.AntisymmetryStrategy === "rank" then rank M === #G
+    else if opts.AntisymmetryStrategy === "none" then true
+    else if opts.AntisymmetryStrategy === "digraph" then (
+        idx := hashTable apply(#G, i -> G_i => i);
+        R = apply(R, r -> {idx#(first r), idx#(last r)});
+        not isCyclic digraph merge(applyValues(partition(first, R), v -> last \ v), hashTable apply(#G, i -> i => {}), join)
+        )
+    else error "The option AntisymmetryStrategy must be 'digraph', 'none', or 'rank'.";
+    if not a then error "The relations are not anti-symmetric.";
     new Poset from {
         symbol GroundSet => G,
         symbol Relations => toList \ R,
@@ -269,8 +276,9 @@ transitiveClosure = method()
 transitiveClosure (List, List) := Matrix => (G, R) -> (
     idx := hashTable apply(#G, i -> G_i => i);
     R = apply(R, r -> {idx#(first r), idx#(last r)});
-    H := floydWarshall digraph hashTable apply(#G, i -> i => set apply(select(R, r -> first r == i), r -> last r));
-    matrix apply(#G, i -> apply(#G, j -> if H#(i, j) < 1/0. then 1 else 0))
+    D := digraph merge(applyValues(partition(first, R), v -> last \ v), hashTable apply(#G, i -> i => {}), join);
+    -- This currently checks cyclicity first, but should stop doing so later.
+    if isCyclic D then matrix {{0}} else matrix apply(vertices D, v -> ( Dv := descendents(D, v); apply(vertices D, u -> if u === v or member(u, Dv) then 1 else 0)))
     )
 
 ------------------------------------------
@@ -401,7 +409,7 @@ dilworthLattice Poset := Poset => P -> (
     d := dilworthNumber P;
     G := select(maximalAntichains P, a -> #a == d);
     cmp := (A, B) -> all(A, a -> any(B, b -> compare(P, a, b)));
-    Q := poset(G, cmp, SkipRankCheck => true);
+    Q := poset(G, cmp, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         Q.cache.isLowerSemilattice = true;
         Q.cache.isUpperSemimodular = true;
@@ -413,7 +421,7 @@ dilworthLattice Poset := Poset => P -> (
 distributiveLattice = method()
 distributiveLattice Poset := Poset => P -> (
     O := unique apply(P.GroundSet, p -> principalOrderIdeal(P, p));
-    POI := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset, SkipRankCheck => true);
+    POI := poset(unique apply(subsets(#O), s -> sort unique flatten O_s), isSubset, AntisymmetryStrategy => "none");
     POI.cache.OriginalPoset = P;
     if posets'Precompute then (
         POI.cache.isLowerSemilattice = true;
@@ -426,7 +434,7 @@ distributiveLattice Poset := Poset => P -> (
 -- The method dual is given in the Core and has options.
 -- As we don't need the options, we discard them.
 dual Poset := Poset => {} >> opts -> P -> (
-    Q := poset(P.GroundSet, reverse \ P.Relations, transpose P.RelationMatrix, SkipRankCheck => true);
+    Q := poset(P.GroundSet, reverse \ P.Relations, transpose P.RelationMatrix, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         if P.cache.?connectedComponents then Q.cache.connectedComponents = P.cache.connectedComponents;
         if P.cache.?coveringRelations then Q.cache.coveringRelations = reverse \ P.cache.coveringRelations;
@@ -498,7 +506,7 @@ adjoinMax (Poset,Thing) := Poset => (P, a) -> (
     Q := poset(P.GroundSet | {a}, 
           P.Relations | apply(P.GroundSet, g-> {g,a}),
           matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:1)}},{matrix {toList((#P.GroundSet):0)},1}},
-          SkipRankCheck => true);
+          AntisymmetryStrategy => "none");
     if posets'Precompute then (
         Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
         if P.cache.?coveringRelations and P.cache.?maximalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.maximalElements, i -> {i, #P.GroundSet}));
@@ -519,7 +527,7 @@ adjoinMin (Poset,Thing) := Poset => (P, a) -> (
     Q := poset(P.GroundSet | {a}, 
           apply(P.GroundSet, g -> {a,g}) | P.Relations,
           matrix{{P.RelationMatrix, transpose matrix {toList (#P.GroundSet:0)}}, {matrix{toList (#P.GroundSet:1)},1}},
-          SkipRankCheck => true);
+          AntisymmetryStrategy => "none");
     if posets'Precompute then (
         Q.cache.connectedComponents = {toList(0 ..< #Q.GroundSet)};
         if P.cache.?coveringRelations and P.cache.?minimalElements then Q.cache.coveringRelations = join(P.cache.coveringRelations, apply(P.cache.minimalElements, i -> {#P.GroundSet, i}));
@@ -548,7 +556,7 @@ diamondProduct (Poset, Poset) := Poset => (P, Q)->(
     if isRanked P and isRanked Q then (
         P':=product(dropElements(P, minimalElements P),dropElements(Q, minimalElements Q));
         poset(prepend({first minimalElements P, first minimalElements Q}, P'.GroundSet), 
-              join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations), SkipRankCheck => true)
+              join(apply(minimalElements P', p -> ({first minimalElements P, first minimalElements Q}, p)), P'.Relations), AntisymmetryStrategy => "none")
     ) else error "The posets must be ranked."
     )
 
@@ -558,7 +566,7 @@ dropElements (Poset, List) := Poset => (P, L) -> (
     newGroundSet := P.GroundSet_keptIndices;
     newRelationMatrix := P.RelationMatrix_keptIndices^keptIndices;
     newRelations := select(allRelations(P, true), r -> not member(first r, L) and not member(last r, L));
-    poset(newGroundSet, newRelations, newRelationMatrix, SkipRankCheck => true)
+    poset(newGroundSet, newRelations, newRelationMatrix, AntisymmetryStrategy => "none")
     )
 dropElements (Poset, Function) := Poset => (P, f) -> dropElements(P, select(P.GroundSet, p -> f p))
 Poset - List := dropElements
@@ -640,7 +648,7 @@ isomorphism' (Poset, List, Poset, List) := HashTable => (P, mu, Q, nu) -> (
 product (Poset, Poset) := Poset => (P, Q) -> 
     poset(flatten for p in P.GroundSet list for q in Q.GroundSet list {p, q},
           join(flatten for c in P.Relations list for q in Q.GroundSet list ({c_0, q}, {c_1, q}),
-           flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})), SkipRankCheck => true)
+           flatten for c in Q.Relations list for p in P.GroundSet list ({p, c_0}, {p, c_1})), AntisymmetryStrategy => "none")
 Poset * Poset := product
 
 removeIsomorphicPosets = method()
@@ -655,7 +663,7 @@ removeIsomorphicPosets List := List => L -> (
     )
 
 union = method()
-union (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet, Q.GroundSet), unique join(P.Relations, Q.Relations), SkipRankCheck => true)
+union (Poset, Poset) := Poset => (P, Q) -> poset(unique join(P.GroundSet, Q.GroundSet), unique join(P.Relations, Q.Relations), AntisymmetryStrategy => "none")
 Poset + Poset := union
 
 ------------------------------------------
@@ -681,7 +689,7 @@ booleanLattice ZZ := Poset => n -> (
 booleanLattice' = method()
 booleanLattice' ZZ := Poset => n -> (
     if n == 0 then (
-        Q := poset({""}, {}, matrix{{1}}, SkipRankCheck => true);
+        Q := poset({""}, {}, matrix{{1}}, AntisymmetryStrategy => "none");
         if posets'Precompute then (
             Q.cache.filtration = {{0}};
             Q.cache.rankFunction = {0};
@@ -695,7 +703,7 @@ booleanLattice' ZZ := Poset => n -> (
              apply(Bn1.Relations, r -> {"1" | first r, "1" | last r}) |
              apply(Bn1.GroundSet, p -> {"0" | p, "1" | p});
         M := matrix {{Bn1.RelationMatrix, Bn1.RelationMatrix}, {0, Bn1.RelationMatrix}};
-        P := poset(G, R, M, SkipRankCheck => true);
+        P := poset(G, R, M, AntisymmetryStrategy => "none");
         if posets'Precompute then (
             f := Bn1.cache.filtration; f' := apply(f, l -> apply(l, l -> l + #Bn1.GroundSet));
             f = append(f, {}); f' = prepend({}, f');
@@ -710,7 +718,7 @@ chain = method()
 chain ZZ := Poset => n -> (
     if n == 0 then error "The integer n must be non-zero.";
     if n < 0 then n = -n;
-    P := poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1)), SkipRankCheck => true); 
+    P := poset(toList(1..n), apply(n-1, i -> {i+1, i+2}), matrix toList apply(1..n, i -> toList join((i-1):0, (n-i+1):1)), AntisymmetryStrategy => "none"); 
     if posets'Precompute then (
         P.cache.connectedComponents = P.cache.maximalChains = {P.cache.rankFunction = toList(0 ..< n)};
         P.cache.coveringRelations = apply(n-1, i -> {i, i+1});
@@ -727,13 +735,13 @@ chain ZZ := Poset => n -> (
 divisorPoset = method()
 divisorPoset RingElement := Poset => m -> (
     if m == 0 then error "The RingElement m must be non-zero.";
-    if #support m == 0 then return poset({m}, {}, SkipRankCheck => true); -- Units are special.
+    if #support m == 0 then return poset({m}, {}, AntisymmetryStrategy => "none"); -- Units are special.
     F := apply(toList \ toList factor m, m -> set apply(last m + 1, i -> (first m)^i));
     -- D is the set of all (positive) divisors of m
     D := sort if #F == 1 then toList first F else product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F);
     R := flatten for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 and isPrime(D_j//D_i) then {D_i, D_j} else continue;
     M := matrix for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 then 1 else 0;
-    P := poset(D, R, M, SkipRankCheck => true);
+    P := poset(D, R, M, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
         idx := hashTable apply(#P.GroundSet, i -> P_i => i);
@@ -748,13 +756,13 @@ divisorPoset RingElement := Poset => m -> (
 divisorPoset ZZ := Poset => m -> (
     if m == 0 then error "The integer m must be non-zero.";
     if m < 0 then m = -m;
-    if m == 1 then return poset({1}, {}, SkipRankCheck => true); -- 1 is special
+    if m == 1 then return poset({1}, {}, AntisymmetryStrategy => "none"); -- 1 is special
     F := apply(toList \ toList factor m, m -> set apply(last m + 1, i -> (first m)^i));
     -- D is the set of all (positive) divisors of m
     D := sort if #F == 1 then toList first F else product \ toList@@deepSplice \ toList fold((a,b) -> a ** b, F);
     R := flatten for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 and isPrime(D_j//D_i) then {D_i, D_j} else continue;
     M := matrix for i to #D-1 list for j to #D-1 list if D_j % D_i == 0 then 1 else 0;
-    P := poset(D, R, M, SkipRankCheck => true);
+    P := poset(D, R, M, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
         idx := hashTable apply(#P.GroundSet, i -> P_i => i);
@@ -770,7 +778,7 @@ divisorPoset (RingElement, RingElement):= Poset =>(m, n) -> (
     if ring m === ring n then (
         if n % m === sub(0, ring m) then (
             P := divisorPoset (n//m);
-            poset(apply(P.GroundSet, v -> v * m), apply(P.Relations, r -> {m * first r, m * last r}), P.RelationMatrix, SkipRankCheck => true)
+            poset(apply(P.GroundSet, v -> v * m), apply(P.Relations, r -> {m * first r, m * last r}), P.RelationMatrix, AntisymmetryStrategy => "none")
             ) else error "The first monomial does not divide the second."
         ) else error "The monomials must be in same ring."
     )
@@ -795,7 +803,7 @@ dominanceLattice ZZ := Poset => n -> (
             );
         true
         );
-    P := poset(G, cmp, SkipRankCheck => true);
+    P := poset(G, cmp, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         P.cache.isLowerSemilattice = P.cache.isUpperSemilattice = true;
         P.cache.maximalElements = {0};
@@ -807,7 +815,7 @@ dominanceLattice ZZ := Poset => n -> (
 facePoset = method()
 facePoset SimplicialComplex := Poset => D -> (
     faceList := apply(toList(-1..dim D), i -> support \ toList flatten entries faces(i, D));
-    P := poset(flatten faceList, isSubset, SkipRankCheck => true);
+    P := poset(flatten faceList, isSubset, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         idx := hashTable apply(#P.GroundSet, i -> P_i => i);
         P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
@@ -858,7 +866,7 @@ intersectionLattice = method()
 intersectionLattice (List, Ring) := Poset => (L, R)-> (
     G := hyperplaneEquivalence(L, R);
     rel := hyperplaneInclusions(G, R);
-    poset(G, rel, SkipRankCheck => true)
+    poset(G, rel)
     )
 
 lcmLattice = method( Options => { Strategy => 1 })
@@ -869,7 +877,7 @@ lcmLattice(MonomialIdeal) := Poset => opts -> (M) -> (
     Rels := flatten for i to #Ground-1 list for j from i+1 to #Ground-1 list 
         if Ground_i % Ground_j == 0 then {Ground_j, Ground_i} else if Ground_j % Ground_i == 0 then {Ground_i, Ground_j} else continue;
     RelsMatrix := matrix apply(Ground, r -> apply(Ground, s -> if s % r == 0 then 1 else 0));
-    poset (Ground, Rels, RelsMatrix, SkipRankCheck => true)
+    poset (Ground, Rels, RelsMatrix, AntisymmetryStrategy => "none")
     )
 lcmLattice (Ideal) := Poset => opts -> (I) -> lcmLattice(monomialIdeal I, opts)
 
@@ -953,7 +961,7 @@ ncpLattice = method()
 ncpLattice ZZ := Poset => n -> (
     GR := ncpGenerator n;
     M := matrix for w in first GR list for v in first GR list if all(v, v' -> any(w, w' -> isSubset(v', w'))) then 1 else 0;
-    P := poset(first GR, last GR, M, SkipRankCheck => true);
+    P := poset(first GR, last GR, M, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
         idx := hashTable apply(#P.GroundSet, i -> P_i => i);
@@ -975,7 +983,7 @@ partitionLattice ZZ := Poset => n -> (
     G := setPartition L;
     R := flatten apply(G, i-> partitionRefinementPairs i);
     M := matrix for w in G list for v in G list if all(v, v' -> any(w, w' -> isSubset(v', w'))) then 1 else 0;
-    P := poset(G, R, M, SkipRankCheck => true);
+    P := poset(G, R, M, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         P.cache.connectedComponents = {toList(0 ..< #G)};
         idx := hashTable apply(#G, i -> P_i => i);
@@ -1046,7 +1054,7 @@ projectivizeArrangement (List, Ring) := Poset => (L, R) -> (
     newL := apply(L, h->homogenize(sub(h,S), Z));
     G := hyperplaneEquivalence(newL,S);
     rel := hyperplaneInclusions(G,S);
-    poset(G, rel, SkipRankCheck => true)
+    poset(G, rel)
     )
 
 randomPoset = method(Options => {symbol Bias => 0.5})
@@ -1056,13 +1064,13 @@ randomPoset (List) := Poset => opts -> (G) -> (
         if opts.Bias > 0 then 1.0/opts.Bias else error "The option Bias (as a ZZ) must be at least 1."
         ) else opts.Bias;
     if b < 0 or b > 1 then error "The option Bias must be at least 0 and at most 1.";
-    poset(G, flatten for i from 0 to #G-1 list for j from i+1 to #G-1 list if random 1.0 < opts.Bias then {G_i, G_j} else continue, SkipRankCheck => true)
+    poset(G, flatten for i from 0 to #G-1 list for j from i+1 to #G-1 list if random 1.0 < opts.Bias then {G_i, G_j} else continue, AntisymmetryStrategy => "none")
     )
 randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
 
 standardMonomialPoset = method()
-standardMonomialPoset (MonomialIdeal, ZZ, ZZ) := Poset => (I, minDeg, maxDeg) -> poset(first entries basis(minDeg, maxDeg, quotient I), (m, n) -> n % m == 0, SkipRankCheck => true)
-standardMonomialPoset MonomialIdeal := Poset => I -> poset(first entries basis quotient I, (m, n) -> n % m == 0, SkipRankCheck => true)
+standardMonomialPoset (MonomialIdeal, ZZ, ZZ) := Poset => (I, minDeg, maxDeg) -> poset(first entries basis(minDeg, maxDeg, quotient I), (m, n) -> n % m == 0, AntisymmetryStrategy => "none")
+standardMonomialPoset MonomialIdeal := Poset => I -> poset(first entries basis quotient I, (m, n) -> n % m == 0, AntisymmetryStrategy => "none")
 
 youngSubposet = method()
 youngSubposet (List, List) := Poset => (lo, hi) -> (
@@ -1072,7 +1080,7 @@ youngSubposet (List, List) := Poset => (lo, hi) -> (
         allIncreases(hi, flatten if i == 0 then apply(L, d -> apply(toList(d_0..hi_0), j -> replace(0, j, d))) else
             apply(L, d -> apply(toList(d_i..min(hi_i, d_(i-1))), j -> replace(i, j, d))), i+1);
     G := apply(allIncreases(hi, {join(lo, toList((#hi-#lo):0))}, 0), d -> d_(positions(d, i -> i != 0)));
-    poset(G, (a,b) -> #a <= #b and all(#a, i -> a_i <= b_i), SkipRankCheck => true)
+    poset(G, (a,b) -> #a <= #b and all(#a, i -> a_i <= b_i), AntisymmetryStrategy => "none")
     )
 youngSubposet List := Poset => hi -> youngSubposet({0}, hi)
 youngSubposet ZZ := Poset => n -> (
@@ -1080,7 +1088,7 @@ youngSubposet ZZ := Poset => n -> (
     G := flatten apply(n+1, i -> toList \ partitions i);
     M := matrix for a in G list for b in G list if #a <= #b and all(#a, i -> a_i <= b_i) then 1 else 0;
     R := flatten for i to #G-1 list for j to #G-1 list if M_j_i == 1 and sum G_j == sum G_i + 1 then {G_i, G_j} else continue;
-    P := poset(G, R, M, SkipRankCheck => true);
+    P := poset(G, R, M, AntisymmetryStrategy => "none");
     if posets'Precompute then (
         P.cache.connectedComponents = {toList(0 ..< #P.GroundSet)};
         idx := hashTable apply(#P.GroundSet, i -> P_i => i);
@@ -1111,8 +1119,8 @@ displayPoset (Poset) := opts -> (P) -> (
     run concatenate(opts.PDFViewer, " ", name,".pdf &");
     )
 
-gapPosetConversion = method()
-gapPosetConversion Poset := String => P -> (
+gapConvertPoset = method()
+gapConvertPoset Poset := String => P -> (
     if not P.cache.?coveringRelations then coveringRelations P;
     cp := applyValues(partition(first, P.cache.coveringRelations), v -> (i -> 2 + last i) \ v);
     -- Note: Maximal elements are covered by a new element, m, in GAP (Simplicial Homology)
@@ -1123,11 +1131,11 @@ gapPosetConversion Poset := String => P -> (
     toArray := L -> new Array from L;
     toString toArray (toArray \ join({apply(P.cache.minimalElements, i -> 2 + i)}, cvrby, {{}}))
     )
-gapPosetConversion Array := Poset => A -> (
+gapConvertPoset Array := Poset => A -> (
     A = toList \ (toList A);
     poset flatten apply(#A, p -> apply(A_p, q -> {p + 1, q}))
     )
-gapPosetConversion String := Poset => S -> gapPosetConversion value S
+gapConvertPoset String := Poset => S -> gapConvertPoset value S
 
 outputTexPoset = method(Options => {symbol SuppressLabels => posets'SuppressLabels, symbol Jitter => false});
 outputTexPoset (Poset,String) := String => opts -> (P,name) -> (
@@ -1810,8 +1818,8 @@ doc ///
         (poset,List,Function)
         (poset,List,List)
         (poset,List,List,Matrix)
-        [poset,SkipRankCheck]
-        SkipRankCheck
+        [poset,AntisymmetryStrategy]
+        AntisymmetryStrategy
     Headline
         creates a new Poset object
     Usage
@@ -1828,8 +1836,8 @@ doc ///
             with entries $(i,j)$ equal to 1 if $G_j \leq G_i$ and 0 otherwise
         cmp:Function
             a binary function such that $cmp(G_i, G_j)$ is true if and only if $G_i \leq G_j$ in the partial order
-        SkipRankCheck=>Boolean
-            whether $M$ should be verified to be maximal rank
+        AntisymmetryStrategy=>String
+            either "digraph", "none", or "rank"
     Outputs
         P:Poset
     Description
@@ -1871,10 +1879,16 @@ doc ///
             the Posets package does not require the vertices to be of any particular type.  However,
             this also means when the package makes calls to external methods, it sometimes must
             relabel the vertices (usually to the index of the vertex in $G$).
+
+            The option AntisymmetryStrategy determines how the method checks the input relations
+            for antisymmetry (a necessary condition for a poset).  The default, "rank", checks that the
+            RelationMatrix has maximal rank.  The choice "digraph" uses the @TO "isCyclic"@ method on
+            the @TO "Digraph"@ of the given relations.  Last, the choice "none" skips the check all
+            together.
     Caveat
-        Care should be taken when using the SkipRankCheck option.  If the provided matrix is 
-        non-maximal rank, or the provided relations are cyclic, then the returned Poset will
-        not actually be a Poset.  In this case, the behavior of the package is unknown.
+        Care should be taken when using the AntisymmetryStrategy option.  If "none" is specified but
+        the relations are cyclic, then the returned Poset will not actually be a Poset.  In this case,
+        the behavior of the package is unknown.
     SeeAlso
         Poset
 ///
@@ -1898,7 +1912,7 @@ doc ///
             with entries $(i,j)$ equal to 1 if $G_j \leq G_i$ and 0 otherwise
     Description
         Text
-            This method uses the @TO "floydWarshall"@ method from the @TO "Graphs"@ package
+            This method uses the @TO "descendents"@ method from the @TO "Graphs"@ package
             to compute the @TO "RelationMatrix"@ from the relations $R$.
         Example
             G = {1,2,3,4,5};
@@ -3369,8 +3383,7 @@ doc ///
             lattice of intersections in the arrangement partially ordered
             by containment.
         Example
-            R = QQ[x,y,z];
-            intersectionLattice({x+y, x+z, y+z}, R)
+            print "TODO";
     SeeAlso
         projectivizeArrangement 
 ///
@@ -3555,8 +3568,7 @@ doc ///
             This method returns the @TO "intersectionLattice"@ of the projectivization
             of the specified hyperplane arrangement.
         Example
-            R = QQ[x,y,z];
-            projectivizeArrangement({x^2-y, y^2-z}, R)
+            print "TODO";
     Caveat
         The variable used for homogenization is $Z$, and so the ring $R$ should not already have this
         variable in use.
@@ -3733,19 +3745,19 @@ doc ///
         SuppressLabels
 ///
 
--- gapPosetConversion
+-- gapConvertPoset
 doc ///
     Key 
-        gapPosetConversion
-        (gapPosetConversion,Array)
-        (gapPosetConversion,Poset)
-        (gapPosetConversion,String)
+        gapConvertPoset
+        (gapConvertPoset,Array)
+        (gapConvertPoset,Poset)
+        (gapConvertPoset,String)
     Headline
         converts between Macaulay2's Posets and GAP's Posets
     Usage
-        P = gapPosetConversion A
-        P = gapPosetConversion S
-        S = gapPosetConversion P
+        P = gapConvertPoset A
+        P = gapConvertPoset S
+        S = gapConvertPoset P
     Inputs
         A:Array
             representing a poset in GAP-format
@@ -3772,13 +3784,13 @@ doc ///
             @TT "OrderRelationToPoset(Subsets([1,2,3]), IsSubset);"@.
         Example
             S = "[ [ 3 ], [ 10 ], [ 4, 7, 9 ], [ 5, 6 ], [ 2 ], [ 2 ], [ 5, 8 ], [ 2 ], [ 6, 8 ], [  ] ]";
-            P = gapPosetConversion S
+            P = gapConvertPoset S
             P == augmentPoset booleanLattice 3
         Text
             When convering to GAP format, the method automatically augments the poset.  In this example,
             the $3$ chain becomes a $5$ chain in GAP format.
         Example
-            gapPosetConversion chain 3
+            gapConvertPoset chain 3
    SeeAlso
         poset
 ///

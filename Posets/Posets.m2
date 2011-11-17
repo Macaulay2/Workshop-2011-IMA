@@ -1611,7 +1611,10 @@ isBounded Poset := Boolean => P -> #minimalElements P == 1 and #maximalElements 
 
 -- See the code of transitiveOrientation for a note on the implemented algorithm.
 isComparabilityGraph = method()
-isComparabilityGraph Graph := Boolean => G -> try ( transitiveOrientation G; true ) else false
+isComparabilityGraph Graph := Boolean => G -> (
+    if #edges G > recursionLimit then print "The recursionLimit is small relative to the number of edges of G.  This method may return a false-negative.\nSet the recursionLimit higher to avoid this problem.";
+    try ( transitiveOrientation G; true ) else false
+    )
 
 isConnected = method()
 isConnected Poset := Boolean => P -> #connectedComponents P == 1
@@ -3748,6 +3751,9 @@ doc ///
             The method implemented is Algorithm 5.3 (pages 129-130) from
             Martin Charles Golumbic, "Algorithmic graph theory and perfect graphs."  Second edition.
             Annals of Discrete Mathematics, 57.  Elsevier Science B.V., Amsterdam, 2004. xxvi+314pp.
+    Caveat
+        This method is recursive.  If the number of edges of $G$ is large relative to the
+        @TO "recursionLimit"@, then the method will throw an error.
     SeeAlso
         comparabilityGraph
         isComparabilityGraph
@@ -5194,6 +5200,10 @@ doc ///
             This method calls @TO "transitiveOrientation"@ and checks that an
             error is not thrown.  See the documentation for that method for
             a note on the implemented algorithm.
+    Caveat
+        The method @TO "transitiveOrientation"@ is recursive.  If the number of 
+        edges of $G$ is large relative to the @TO "recursionLimit"@, then 
+        a false negative may occur.  
     SeeAlso
         comparabilityGraph
         transitiveOrientation

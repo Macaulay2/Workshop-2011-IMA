@@ -8,7 +8,6 @@
 -- To do list:
 ------------------------------------------
 -- New Methods:
-    -- Identify comparability graphs
     -- Poset of a resolution
 
 -- Update:
@@ -145,6 +144,8 @@ export {
     "randomPoset",
         "Bias",
     "standardMonomialPoset",
+    "transitiveOrientation",
+        "Random",
     "youngSubposet",
     --
     -- TeX & GAP
@@ -199,6 +200,7 @@ export {
   --"height", -- exported by Core
     "isAtomic",
     "isBounded",
+    "isComparabilityGraph",
     "isConnected",
     "isDistributive",
     "isEulerian",
@@ -1076,6 +1078,42 @@ standardMonomialPoset = method()
 standardMonomialPoset (MonomialIdeal, ZZ, ZZ) := Poset => (I, minDeg, maxDeg) -> poset(first entries basis(minDeg, maxDeg, quotient I), (m, n) -> n % m == 0, AntisymmetryStrategy => "none")
 standardMonomialPoset MonomialIdeal := Poset => I -> poset(first entries basis quotient I, (m, n) -> n % m == 0, AntisymmetryStrategy => "none")
 
+-- This method is an implementation of Algorithm 5.3 (page 129 and 130) from:
+-- Martin Charles Golumbic, "Algorithmic graph theory and perfect graphs."  Second edition.
+-- Annals of Discrete Mathematics, 57.  Elsevier Science B.V., Amsterdam, 2004. xxvi+314pp.
+transitiveOrientation = method(Options => {symbol Random => false})
+transitiveOrientation Graph := Poset => opts -> G -> (
+    if not instance(opts.Random, Boolean) then error "The option Random must be a Boolean.";
+    explore := (G, orientation, i, j) -> (
+        k := orientation#{i,j};
+        for m in toList G#graph#i do if not member(m, G#graph#j) or abs orientation#{j, m} < k then 
+            if orientation#{i,m} === 0 then (
+                orientation#{i,m} = k;
+                orientation#{m,i} = -k;
+                explore(G, orientation, i, m);
+                )
+            else if orientation#{i,m} === -k then error "The graph does not have a transitive orientation.";
+        for m in toList G#graph#j do if not member(m, G#graph#i) or abs orientation#{i, m} < k then 
+            if orientation#{m,j} === 0 then (
+                orientation#{m,j} = k;
+                orientation#{j,m} = -k;
+                explore(G, orientation, m, j);
+                )
+            else if orientation#{m,j} === -k then error "The graph does not have a transitive orientation.";
+        );
+    E := edges simpleGraph G;
+    E = (if opts.Random then random else identity) join(E, reverse \ E);
+    orientation := new MutableHashTable from apply(E, e -> e => 0);
+    k := 0;
+    for e in E do if orientation#e === 0 then (
+        k = k + 1;
+        orientation#e = k;
+        orientation#(reverse e) = -k;
+        explore(G, orientation, first e, last e);
+        );
+    poset select(E, e -> orientation#e > 0)
+    )
+
 youngSubposet = method()
 youngSubposet (List, List) := Poset => (lo, hi) -> (
     if min (drop(lo, -1) - drop(lo, 1)) < 0 or min (drop(hi, -1) - drop(hi, 1)) < 0 then error "The bounds must be weakly decreasing.";
@@ -1570,6 +1608,10 @@ isAtomic Poset := Boolean => P -> (
 
 isBounded = method()
 isBounded Poset := Boolean => P -> #minimalElements P == 1 and #maximalElements P == 1
+
+-- See the code of transitiveOrientation for a note on the implemented algorithm.
+isComparabilityGraph = method()
+isComparabilityGraph Graph := Boolean => G -> try ( transitiveOrientation G; true ) else false
 
 isConnected = method()
 isConnected Poset := Boolean => P -> #connectedComponents P == 1
@@ -2071,6 +2113,8 @@ doc ///
     SeeAlso
         compare
         incomparabilityGraph
+        isComparabilityGraph
+        transitiveOrientation
 ///
 
 -- hasseDiagram
@@ -3662,6 +3706,53 @@ doc ///
         monomialIdeal
 ///
 
+-- transitiveOrientation
+doc ///
+    Key
+        transitiveOrientation
+        (transitiveOrientation,Graph)
+        [transitiveOrientation,Random]
+    Headline
+        generates a poset whose comparability graph is the given graph
+    Usage
+        P = transitiveOrientation G
+    Inputs
+        G:Graph
+        Random=>Boolean
+            whether to randomise the edges first
+    Outputs
+        P:Poset
+            such that @TO "comparabilityGraph"@ $P$ is isomorphic to $G$
+    Description
+        Text
+            A transitive orientation of a graph $G$ is an orientation on
+            the edges of $G$ such that if $a < b$ and $b < c$, then $a < c$.
+            Not all graphs have transitive orientations, but those that do
+            are @TO "comparabilityGraph"@s of posets.
+        Example
+            G = graph {{1,2}, {2,3}, {3,4}, {1,4}};
+            transitiveOrientation G
+        Text
+            A transitive orientation of a graph $G$ need not be unique.
+            To see other random orientations, set the option Random
+            to true.
+        Example
+            setRandomSeed 0;
+            G = graph {{1,2},{2,3},{3,4},{1,3},{1,3}};
+            removeIsomorphicPosets apply(4, i -> transitiveOrientation(G, Random => true))
+        Text
+            If the give graph is not a comparability graph, e.g. an odd
+            cycle of length at least $5$, then the method returns
+            an error.
+
+            The method implemented is Algorithm 5.3 (pages 129-130) from
+            Martin Charles Golumbic, "Algorithmic graph theory and perfect graphs."  Second edition.
+            Annals of Discrete Mathematics, 57.  Elsevier Science B.V., Amsterdam, 2004. xxvi+314pp.
+    SeeAlso
+        comparabilityGraph
+        isComparabilityGraph
+///
+
 -- youngSubposet
 doc ///
     Key
@@ -5073,6 +5164,41 @@ doc ///
         minimalElements
 ///
 
+-- isComparabilityGraph
+doc ///
+    Key
+        isComparabilityGraph
+        (isComparabilityGraph,Graph)
+    Headline
+        determines if a graph is the comparability graph of a poset
+    Usage
+        i = isComparabilityGraph G
+    Inputs
+        G:Graph
+    Outputs
+        i:Boolean
+            whether $G$ is a comparability graph of a poset
+    Description
+        Text
+            A @TO "Graph"@ $G$ is a @TO "comparabilityGraph"@ of a poset
+            if it is has a @TO "transitiveOrientation"@.
+        Example
+            G = comparabilityGraph booleanLattice 5;
+            isComparabilityGraph G
+        Text
+            However, a non-triangular odd cycle is never a comparability graph.
+        Example
+            G = graph {{1,2}, {2,3}, {3,4}, {4,5}, {1,5}};
+            isComparabilityGraph G
+        Text
+            This method calls @TO "transitiveOrientation"@ and checks that an
+            error is not thrown.  See the documentation for that method for
+            a note on the implemented algorithm.
+    SeeAlso
+        comparabilityGraph
+        transitiveOrientation
+///
+
 -- isConnected
 doc ///
     Key
@@ -5643,7 +5769,7 @@ doc ///
         rankFunction
 ///
 
-undocumented { "VariableName", (toExternalString,Poset), (toString,Poset), (net,NCPart), (net,NCPartition) };
+undocumented { "VariableName", (toExternalString,Poset), (toString,Poset), (net,NCPart), (net,NCPartition), "Random" };
 
 ------------------------------------------
 ------------------------------------------

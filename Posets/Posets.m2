@@ -7,14 +7,6 @@
 ------------------------------------------
 -- To do list:
 ------------------------------------------
--- New Methods:
-    -- Poset of a resolution
-
--- Update:
-    -- Isomorphism no longer needs to relabel the posets as everything accessed
-    -- is stored in a sensible manour.  However, the partitions mu and nu will
-    -- need to be relabeled.
-
 -- Documentation:
     -- Add a few extended examples
     -- Grammar/spelling check extant nodes
@@ -47,7 +39,7 @@ if version#"VERSION" <= "1.4" then (
 newPackage select((
     "Posets",
         Version => "1.0.5", 
-        Date => "11. November 2011",
+        Date => "18. November 2011",
         Authors => {
             {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"},
             {Name => "Sonja Mapes", Email => "smapes@math.duke.edu", HomePage => "http://www.math.duke.edu/~smapes/"},
@@ -143,6 +135,7 @@ export {
     "projectivizeArrangement",
     "randomPoset",
         "Bias",
+    "resolutionPoset",
     "standardMonomialPoset",
     "transitiveOrientation",
         "Random",
@@ -227,7 +220,7 @@ export {
 -- Non-exported, strongly prevalent functions
 ------------------------------------------
 
-indexElement := (P,A) -> position(P.GroundSet, i -> i === A);
+indexElement := (P,A) -> position(P.GroundSet, i -> i === A)
 
 principalOrderIdeal' := (P, i) -> positions(flatten entries(P.RelationMatrix_i), j -> j != 0)
 
@@ -1073,6 +1066,18 @@ randomPoset (List) := Poset => opts -> (G) -> (
     poset(G, flatten for i from 0 to #G-1 list for j from i+1 to #G-1 list if random 1.0 < opts.Bias then {G_i, G_j} else continue, AntisymmetryStrategy => "none")
     )
 randomPoset (ZZ) := Poset => opts -> n -> randomPoset(toList(1..n), opts)
+
+resolutionPoset = method()
+resolutionPoset ChainComplex := Poset => C -> 
+    poset flatten flatten apply(sort unique (first \ keys betti C), d -> for r to numrows C.dd_d - 1 list for c to numcols C.dd_d - 1 list if C.dd_d_(r,c) != 0 then {{d-1,r}, {d,c}} else continue)
+resolutionPoset MonomialIdeal := Poset => I -> (
+    P := resolutionPoset res I;
+    cvrs := applyValues(partition(last, coveringRelations P), v -> last \ first \ v);
+    lbl := {{{0,0} => {0,0}}, apply(#I_*, i -> {1,i} => I_i)};
+    for r in drop(rankPoset P, 2) do lbl = append(lbl, for v in r list v => lcm (last \ (last lbl)_(cvrs#v)));
+    labelPoset(P, hashTable apply(flatten lbl, l -> first l => append(first l, last l)))
+    )
+resolutionPoset Ideal := Poset => I -> resolutionPoset monomialIdeal I
 
 standardMonomialPoset = method()
 standardMonomialPoset (MonomialIdeal, ZZ, ZZ) := Poset => (I, minDeg, maxDeg) -> poset(first entries basis(minDeg, maxDeg, quotient I), (m, n) -> n % m == 0, AntisymmetryStrategy => "none")
@@ -3668,6 +3673,42 @@ doc ///
             randomPoset(10, Bias => 0.9)
     SeeAlso
         random
+///
+
+-- resolutionPoset
+doc ///
+    Key 
+        resolutionPoset
+        (resolutionPoset,ChainComplex)
+        (resolutionPoset,Ideal)
+        (resolutionPoset,MonomialIdeal)
+    Headline
+        generates a poset from a resolution
+    Usage
+        P = resolutionPoset C
+        P = resolutionPoset I
+    Inputs
+        C:ChainComplex
+        I:MonomialIdeal
+        I:Ideal
+    Outputs
+        P:Poset
+    Description
+        Text
+            Given a resolution $C$, a poset can be defined by
+            the non-zero entries of the matrices of each
+            component of the resolution.
+        Example
+            R = QQ[x,y,z];
+            C = res ideal(x,y,z)
+            resolutionPoset C
+        Text
+            Moreover, the resolution-poset of a @TO "MonomialIdeal"@
+            can be labeled as the @TO "lcm"@ of the generators involved
+            at each level.  As the lcm needn't be unique at each step,
+            we simply append it to the base labeling, as above.
+        Example
+            resolutionPoset monomialIdeal(x,y,z)
 ///
 
 -- standardMonomialPoset

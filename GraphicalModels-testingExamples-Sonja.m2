@@ -133,6 +133,8 @@ genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k va
 -------------------------------------------------
 
 R = markovRing (2,2,2,2)
+--R.markov
+--#R.markov
 VarNames = {c,d,e,f}
 Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
 conditionalIndependenceIdeal(R,VarNames,Stmts)
@@ -174,3 +176,6 @@ G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
 
 conditionalIndependenceIdeal (R,Stmts)
+
+--- running tests:
+check "GraphicalModels"

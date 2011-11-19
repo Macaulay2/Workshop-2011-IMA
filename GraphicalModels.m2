@@ -2268,7 +2268,7 @@ TEST ///
 G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
 S = localMarkov G
 R = markovRing (2,2,2,2)
-L = markovMatrices (R,G,S) 
+L = markovMatrices (R,S) 
 M = L#1
 m = matrix {{p_(2,1,1,1)+p_(2,1,1,2), p_(2,1,2,1)+p_(2,1,2,2)},{p_(2,2,1,1)+p_(2,2,1,2), p_(2,2,2,1)+p_(2,2,2,2)}} 
 assert(M === m)
@@ -2438,8 +2438,8 @@ assert({M1,M2} === L)
 TEST ///
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
-assert(toString gaussianRing G === "QQ[l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p_(c,c), p_(d,d), p_(a,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)]")
-///
+assert(flatten entries vars R ==={l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p_(c,c), p_(d,d), p_(a,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)})
+///  --- THIS TEST SOMETIMES FAILS BUT I HAVE NO IDEA WHY, WHEN RUN BY HAND IT ALWAYS RETURNS TRUE!! HELP!!
 
 -----------------------------
 --- TEST covarianceMatrix ---

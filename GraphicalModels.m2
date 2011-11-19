@@ -831,6 +831,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	  	    )
                )
      	  else (
+               if not isSubset ( set unique flatten flatten Stmts,  set toList (1..#R.markov))  then error "variables names in statements do not match variable names in the markov ring.";
 	       M := markovMatrices(R,Stmts);
 	       sum apply(M, m -> minors(2,m)) 
 	       )

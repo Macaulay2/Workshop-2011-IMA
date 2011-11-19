@@ -1078,7 +1078,7 @@ trekIdeal (Ring,Graph) := Ideal => (R,g) -> (
 trekIdeal (Ring,Digraph) := Ideal => (R,g) ->(
       trekIdeal (R, mixedGraph(g))
       )          
---- TO DO: make trekIdeal take Graph and Digraph, inject into MixedGraph and run. 
+
 
 
 

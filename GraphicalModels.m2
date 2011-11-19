@@ -812,7 +812,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           	    )
-	          else if R.?mixedgraph then (
+	       else if R.?mixedgraph then (
      		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.mixedgraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    g= R.mixedgraph;
            	    vv = sort vertices g;
@@ -823,6 +823,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
           	    )
                else (
 	   	    vv = toList (1..R#gaussianRing);
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    SM = covarianceMatrix(R);
            	    sum apply(Stmts, s -> minors(#s#2+1, 
 	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
@@ -1055,14 +1056,15 @@ trekSeparation MixedGraph := List => (g) -> (
 trekIdeal = method()
 --currently trekSeparation only works with directed and bidirected edges, which affects this function
 trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
-      if not R#?gaussianRing  then error "expected a ring created with gaussianRing";
+     if not R#?gaussianRing  then error "expected a ring created with gaussianRing";
+     if not ( 1..R#gaussianRing === sort vertices(g))  then error "variables names in mixedGraph do not match variable names in the Gaussian ring";
      if R.?mixedgraph then (
          if not sort (vertices (R.mixedgraph))  === sort (vertices (g)) then 
-	     error "vertex labels of graph do not match labels in ring");
-     if R.?graph then (
+	     error "vertex labels of graph do not match labels in ring")
+     else if R.?graph then (
          if not sort (vertices (R.graph))  === sort (vertices (g)) then 
-	     error "vertex labels of graph do not match labels in ring");
-     if R.?digraph then (
+	     error "vertex labels of graph do not match labels in ring")
+     else if R.?digraph then (
          if not sort (vertices (R.digraph))  === sort (vertices (g)) then 
 	     error "vertex labels of graph do not match labels in ring");
      Stmts:= trekSeparation g;

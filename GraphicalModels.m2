@@ -1122,7 +1122,7 @@ trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
      )
 
 trekIdeal (Ring,Graph) := Ideal => (R,g) -> (
-     conditionalIndependenceIdeal(R,g) -- equivalent to trek ideal for undirected graphs
+     conditionalIndependenceIdeal(R,globalMarkov(g)) -- equivalent to trek ideal for undirected graphs
           )
 
 trekIdeal (Ring,Digraph) := Ideal => (R,g) ->(
@@ -2095,21 +2095,16 @@ doc ///
 doc///
   Key
     conditionalIndependenceIdeal
-    (conditionalIndependenceIdeal, Ring, Graph)
-    (conditionalIndependenceIdeal, Ring, Digraph)
     (conditionalIndependenceIdeal, Ring, List)
     (conditionalIndependenceIdeal, Ring, List, List)
   Headline
-    the ideal of CI relations for a given graph or a given list of CI statements
+    the ideal of CI relations for a given list of CI statements
   Usage
-    conditionalIndependenceIdeal(R,G)
     conditionalIndependenceIdeal(R,Stmts)
     conditionalIndependenceIdeal(R,VarNames,Stmts)
   Inputs
     R:Ring
       which must be a gaussianRing or a markovRing (error will be returned otherwise)
-    G:
-      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@
     Stmts:List
       of conditional independence statements
     VarNames:List
@@ -2121,19 +2116,7 @@ doc///
       of CI relations
   Description
     Text
-      If a Graph is passed to the method, it calculates the CI ideal based on global markov statements.
-    Example
-      G = graph({{a,b},{b,c},{c,d},{d,a}})
-      R=gaussianRing G
-      I=conditionalIndependenceIdeal (R,G)
-    Text
-      If a Digraph is passed to the method, it calculates the CI ideal based on global markov statements.
-    Example
-      G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-      R = gaussianRing G
-      conditionalIndependenceIdeal(R,G)
-    Text
-      We can also compute the CI ideal of a set of statements:
+      conditionalIndependenceIdeal computes the CI ideal of a set of statements:
     Example
       G = graph({{a,b},{b,c},{c,d},{d,a}})
       R=gaussianRing G
@@ -2143,7 +2126,7 @@ doc///
       If the gaussianRing was created without a graph, this still works:
     Example
       R=gaussianRing 5
-      S={{{1},{2},{3,4}}}
+      S={{{1},{2},{3,4}}, {{2,3},{1},{5}}}
       I=conditionalIndependenceIdeal (R,S)
     Text
       However, the set of labels on the graph nodes should match those used in the statements:
@@ -2157,6 +2140,12 @@ doc///
       VarNames = {c,d,e,f}
       Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
       conditionalIndependenceIdeal(R,VarNames,Stmts)
+    Text
+     If you want the CI ideal with statements associated to a graph, use the following commands
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,a}})
+      R=gaussianRing G
+      I=conditionalIndependenceIdeal (R,globalMarkov(G))
 
   SeeAlso
 ///

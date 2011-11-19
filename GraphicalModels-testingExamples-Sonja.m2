@@ -19,14 +19,11 @@ covarianceMatrix S
 
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G --passing a graph gives the variable names l's and p's
-
 covarianceMatrix R
 R#gaussianRing
 R = gaussianRing 4
 
-H = digraph {{a,{}},{b,{c,d}},{c,{d}}}
-
-conditionalIndependenceIdeal(R,H)
+H = digraph {{b,{c,d}},{c,{d}}}
 
 trekIdeal(R,G)
 trekIdeal(S,G)
@@ -136,7 +133,6 @@ genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k va
 -------------------------------------------------
 
 R = markovRing (2,2,2,2)
-
 VarNames = {c,d,e,f}
 Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
 conditionalIndependenceIdeal(R,VarNames,Stmts)
@@ -160,6 +156,7 @@ if (not R.?markov) then error "expected a ring created with markovRing"
 
 
 R = gaussianRing G
+describe R
 R = gaussianRing 4
 Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
 gaussianMatrices (R,globalMarkov G)
@@ -172,6 +169,8 @@ I == J
 R#gaussianRing
 trekIdeal(R,H)
 
-R = markovRing (1,1,1,1)
-conditionalIndependenceIdeal(R,H)
 
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R = gaussianRing G
+
+conditionalIndependenceIdeal (R,Stmts)

@@ -793,15 +793,9 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      if not (R#?gaussianRing or R.?markov) then error "expected a ring created with gaussianRing or markovRing";
      if #Stmts === 0 then (ideal(0_R))
      else ( 
-	  --there should be an error check re: label names and labels in ring! ---	  
-	  --     if R.?mixedgraph then (
-	  --         if not sort (vertices (R.mixedgraph))  === sort (vertices (g)) then 	     error "vertex labels of graph do not match labels in ring");
-	  --     if R.?graph then ( 
-	  --        if not sort (vertices (R.graph))  === sort (vertices (g)) then 	     error "vertex labels of graph do not match labels in ring");
-	  --     if R.?digraph then (
-	  --         if not sort (vertices (R.digraph))  === sort (vertices (g)) then 	     error "vertex labels of graph do not match labels in ring");
      	  if R#?gaussianRing then (      
                if R.?graph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.graph))  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    g := R.graph;
            	    vv := sort vertices g;
            	    SM := covarianceMatrix(R);
@@ -810,6 +804,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           	    )
                else if R.?digraph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.digraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    g= R.digraph;
            	    vv = sort vertices g;
            	    SM = covarianceMatrix(R);
@@ -818,6 +813,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           	    )
 	          else if R.?mixedgraph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.mixedgraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    g= R.mixedgraph;
            	    vv = sort vertices g;
            	    SM = covarianceMatrix(R);

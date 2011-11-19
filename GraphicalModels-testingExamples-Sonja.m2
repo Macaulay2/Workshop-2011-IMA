@@ -179,3 +179,4 @@ conditionalIndependenceIdeal (R,Stmts)
 
 --- running tests:
 check "GraphicalModels"
+

@@ -2294,7 +2294,9 @@ G = graph({{a,b},{b,c},{c,d},{a,d}})
 R = gaussianRing G
 correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,b), k_(a,d),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}
 assert(0 == vars R - matrix correctOutput )
-///
+/// --this test fails b/c of ordering too;
+ --here is the output:    
+ -- | 0 0 0 0 k_(a,d)-k_(a,b) -k_(a,d)+k_(a,b) 0 0 0 0 0 0 0 0 0 0 0 0 |
 
 -----------------------------------------------
 --- TEST undirectedEdgesMatrix-----------------
@@ -2347,7 +2349,7 @@ G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 S = pairMarkov G
 L = {{{a}, {d}, {e, b, c}}, {{c}, {e}, {d, a, b}}, {{b}, {d}, {e,a, c}}, {{b}, {e}, {d, a, c}}, {{a}, {c}, {d, e, b}}}
 assert(S === L)
-///
+/// --this test fails when shit inside statements is out of order !!! 
 
 --------------------------
 ---- TEST localMarkov  ---
@@ -2358,7 +2360,7 @@ G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 S = localMarkov G
 L = {{{a}, {c, d}, {e, b}}, {{a, b}, {d}, {e, c}}, {{a, e}, {c},{d, b}}, {{b, c}, {e}, {d, a}}, {{b}, {d, e}, {a, c}}}
 assert(S === L)
-///
+/// --this test fails when shit inside statements is out of order !!! 
 
 ----------------------------------------------------------------------------------------------
 
@@ -2400,7 +2402,7 @@ TEST ///
 G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
 R = gaussianRing G
 S = localMarkov G
-L = gaussianMatrices(R,G,S)
+L = gaussianMatrices(R,S)
 M1 = matrix {{s_(1,4), s_(1,3)}, {s_(2,4), s_(2,3)}, {s_(3,4), s_(3,3)}}
 M2 = matrix {{s_(1,5), s_(1,4), s_(1,3)},{s_(2,5), s_(2,4), s_(2,3)},{s_(4,5), s_(4,4), s_(3,4)}, {s_(3,5), s_(3,4), s_(3,3)}}
 M3 = matrix {{s_(1,3), s_(1,2)},{s_(2,3), s_(2,2)}}
@@ -2410,10 +2412,9 @@ assert({M1,M2,M3} === L)
 TEST ///
 G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
 R = gaussianRing G
-L = gaussianMatrices(R,G)
-M1 = matrix{{s_(1,4), s_(1,5), s_(1,3)},{s_(2,4), s_(2,5), s_(2,3)},{s_(3,4), s_(3,5), s_(3,3)}}
-M2 = matrix{{s_(1,3), s_(1,4), s_(1,5), s_(1,2)},{s_(2,3), s_(2,4), s_(2,5), s_(2,2)}}
-assert({M1,M2} === L)
+L = gaussianMatrices(R,{{{1},{3},{4,2,5}}})
+M = matrix{{s_(1,3), s_(1,4), s_(1,2), s_(1,5)},{s_(3,4), s_(4,4), s_(2,4), s_(4,5)},{ s_(2,3), s_(2,4) ,s_(2,2), s_(2,5)}, { s_(3,5), s_(4,5), s_(2,5) ,s_(5,5) }}
+assert({M} === L)
 ///
 
 -----------------------

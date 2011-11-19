@@ -838,7 +838,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 
 
 conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
-     if not R.?markov then error "expected a ring created with gaussianRing or markovRing";
+     if not R.?markov then error "expected a ring created with markovRing";
      if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
      if #Stmts === 0 then ideal(0_R)
      else (	  	

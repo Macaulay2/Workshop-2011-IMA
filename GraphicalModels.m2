@@ -1592,7 +1592,7 @@ doc ///
       R#gaussianRing
       R.graph  
       covarianceMatrix R
-      undirectedEdgesMatrix(R)
+      undirectedEdgesMatrix R
     Text
       For directed graphs......
     Example
@@ -1607,9 +1607,9 @@ doc ///
       G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
       R = gaussianRing G
       gens R
-      covarianceMatrix(R,G)
-      directedEdgesMatrix(R,G)
-      bidirectedEdgesMatrix(R,G)
+      covarianceMatrix R
+      directedEdgesMatrix R
+      bidirectedEdgesMatrix R
 
   SeeAlso
     conditionalIndependenceIdeal
@@ -1676,17 +1676,13 @@ doc///
    Key
      covarianceMatrix
      (covarianceMatrix,Ring)
-     (covarianceMatrix,Ring,MixedGraph)
    Headline
      the covariance matrix of a gaussian graphical model
    Usage
      covarianceMatrix R
-     covarianceMatrix(R,G)
    Inputs
      R:Ring
        which should be a gaussianRing
-     G:MixedGraph
-       an option we might delete!!!!!!!!!!!!!!!
    Outputs
      :Matrix
        the $n \times{} n$ covariance matrix of symbols where n is the number of vertices in $G$
@@ -1708,7 +1704,7 @@ doc///
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       S = covarianceMatrix(R,G)
+       S = covarianceMatrix R
    SeeAlso
      gaussianRing
      gaussianParametrization
@@ -1723,16 +1719,14 @@ doc///
 doc/// 
    Key
      bidirectedEdgesMatrix
-     (bidirectedEdgesMatrix,Ring,MixedGraph)
+     (bidirectedEdgesMatrix,Ring)
    Headline
      the matrix corresponding to the bidirected edges of a mixed graph
    Usage
-     W = bidirectedEdgesMatrix(R,G)
+     W = bidirectedEdgesMatrix R
    Inputs
      R:Ring
        which should be a gaussianRing
-     G:MixedGraph
-       mixed graph with directed and bidirected edges
    Outputs
      S:Matrix
        the n x n symmetric matrix of symbols where we have $w_{(i,i)}$ for each vertex i, 
@@ -1743,7 +1737,7 @@ doc///
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       S = bidirectedEdgesMatrix(R,G)
+       S = bidirectedEdgesMatrix R
    SeeAlso
      gaussianRing
      gaussianParametrization
@@ -1758,16 +1752,14 @@ doc///
 doc/// 
    Key
      directedEdgesMatrix
-     (directedEdgesMatrix,Ring,MixedGraph)
+     (directedEdgesMatrix,Ring)
    Headline
      the matrix corresponding to the directed edges of a mixed graph
    Usage
-     L = directedEdgesMatrix(R,G)
+     L = directedEdgesMatrix R
    Inputs
      R:Ring
        which should be a gaussianRing
-     G:MixedGraph
-       mixed graph with directed and bidirected edges
    Outputs
      L:Matrix
        the n x n matrix of symbols where we have $l_{(i,j)}$ if there is a directed edge i-->j, and 0 otherwise.
@@ -1777,7 +1769,7 @@ doc///
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       S = directedEdgesMatrix(R,G)
+       S = directedEdgesMatrix R
    SeeAlso
      gaussianRing
      gaussianParametrization

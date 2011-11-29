@@ -899,19 +899,6 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      gaussianRingList#((kk,s,l,p,vv))
      )
 
-------------------------
---- covarianceMatrix ---
-------------------------
-
-covarianceMatrix Ring := Matrix => R -> (
-     g := R.mixedgraph;
-     vv := sort vertices g;
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
-     n := R#gaussianRing#0;
-     s := value R#gaussianRing#1;
-     SM := mutableMatrix(R,n,n);
-     scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
-     matrix SM) 
 
 ---------------------------
 --- directedEdgesMatrix ---
@@ -919,11 +906,11 @@ covarianceMatrix Ring := Matrix => R -> (
 
 directedEdgesMatrix = method()
 directedEdgesMatrix Ring := Matrix => R -> (
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
      g := R.mixedgraph;
      G := graph collateVertices g;
      dd := graph G#Digraph;
      vv := sort vertices g;
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
      n := R#gaussianRing#0;
      l := value R#gaussianRing#2;
      LM := mutableMatrix(R,n,n);
@@ -936,11 +923,11 @@ directedEdgesMatrix Ring := Matrix => R -> (
 
 bidirectedEdgesMatrix = method()
 bidirectedEdgesMatrix Ring := Matrix => R -> (
+     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      g := R.mixedgraph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
      vv := sort vertices g;
-     if not R#?gaussianRing then error "expected a ring created with gaussianRing";
      n := R#gaussianRing#0;
      p := value R#gaussianRing#3;
      PM := mutableMatrix(R,n,n);
@@ -1815,9 +1802,9 @@ doc///
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       S = covarianceMatrix(R,G)
-       L = directedEdgesMatrix(R,G)
-       W = bidirectedEdgesMatrix(R,G)       
+       S = covarianceMatrix(R)
+       L = directedEdgesMatrix(R)
+       W = bidirectedEdgesMatrix(R)       
        M = gaussianParametrization(R,G)
        J = delete(0_R, flatten entries (L|W))
        eliminate(J, ideal(S-M))

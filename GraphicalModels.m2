@@ -1238,7 +1238,7 @@ doc ///
     G:
       @ofClass {Graph,Digraph}@ 
   Outputs
-    L:List
+    :List
       whose entries are triples {A,B,C} representing local Markov  conditional independence statements of the form
       ''A is independent of B given C'' that hold for G.
   Description
@@ -1281,14 +1281,16 @@ doc ///
   Key
     globalMarkov
     (globalMarkov,Digraph)
+    (globalMarkov,Graph)
   Headline
     Global Markov statements for a directed graph.
   Usage
     globalMarkov G
   Inputs
-    G:Digraph 
+    G:
+      @ofClass {Graph,Digraph}@     
   Outputs
-    L:List
+    :List
       whose entries are triples {A,B,C} representing global Markov  conditional independence statements of the form
       ''A is independent of B given C'' that hold for G.
   Description
@@ -1536,10 +1538,13 @@ doc ///
     gaussianRing
     (gaussianRing,ZZ)
     (gaussianRing, Graph)
-    (gaussianRing,Digraph)
-    (gaussianRing,MixedGraph)
+    (gaussianRing, Digraph)
+    (gaussianRing, MixedGraph)
     [gaussianRing, Coefficients]
-    [gaussianRing, sVariableName,lVariableName,pVariableName,kVariableName]
+    [gaussianRing, sVariableName]
+    [gaussianRing, lVariableName]
+    [gaussianRing, pVariableName]
+    [gaussianRing, kVariableName]
   Headline
     ring of gaussian correlations on n random variables
   Usage

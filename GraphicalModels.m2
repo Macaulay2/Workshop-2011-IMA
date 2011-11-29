@@ -903,7 +903,8 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
 --- covarianceMatrix ---
 ------------------------
 
-covarianceMatrix (Ring,MixedGraph) := (R,g) -> (
+covarianceMatrix Ring := Matrix => R -> (
+     g := R.mixedgraph;
      vv := sort vertices g;
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
      n := R#gaussianRing#0;
@@ -917,7 +918,8 @@ covarianceMatrix (Ring,MixedGraph) := (R,g) -> (
 ---------------------------
 
 directedEdgesMatrix = method()
-directedEdgesMatrix (Ring,MixedGraph) := Matrix =>  (R,g) -> (
+directedEdgesMatrix Ring := Matrix => R -> (
+     g := R.mixedgraph;
      G := graph collateVertices g;
      dd := graph G#Digraph;
      vv := sort vertices g;
@@ -933,7 +935,8 @@ directedEdgesMatrix (Ring,MixedGraph) := Matrix =>  (R,g) -> (
 -----------------------------
 
 bidirectedEdgesMatrix = method()
-bidirectedEdgesMatrix (Ring,MixedGraph) := Matrix =>  (R,g) -> (
+bidirectedEdgesMatrix Ring := Matrix => R -> (
+     g := R.mixedgraph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
      vv := sort vertices g;
@@ -952,9 +955,9 @@ bidirectedEdgesMatrix (Ring,MixedGraph) := Matrix =>  (R,g) -> (
 gaussianParametrization = method(Options=>{SimpleTreks=>false})
 gaussianParametrization (Ring,MixedGraph) := Matrix => opts -> (R,g) -> (
      if not R#?gaussianRing then error "expected a ring created with gaussianRing";     
-     S := covarianceMatrix(R,g);    
-     W := bidirectedEdgesMatrix(R,g);     
-     L := directedEdgesMatrix(R,g);
+     S := covarianceMatrix R;    
+     W := bidirectedEdgesMatrix R;     
+     L := directedEdgesMatrix R;
      Li := inverse(1-matrix(L));
      M := transpose(Li)*matrix(W)*Li;
      if opts.SimpleTreks then (
@@ -976,7 +979,7 @@ gaussianParametrization (Ring,MixedGraph) := Matrix => opts -> (R,g) -> (
 
 identifyParameters = method()
 identifyParameters (Ring,MixedGraph) := HashTable => (R,g) -> (
-     J := ideal unique flatten entries (covarianceMatrix(R,g)-gaussianParametrization(R,g));
+     J := ideal unique flatten entries (covarianceMatrix(R)-gaussianParametrization(R,g));
      G := graph g;
      m := #edges(G#Digraph)+#edges(G#Bigraph)+#vertices(g);
      plvars := toList apply(0..m-1,i->(flatten entries vars R)#i);
@@ -2449,7 +2452,7 @@ assert(flatten entries vars R ==={l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p
 TEST ///
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
-S = covarianceMatrix(R,G)
+S = covarianceMatrix R
 assert(0 == S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)}, {s_(a,d), s_(b,d), s_(c,d), s_(d,d)}})
 ///
 
@@ -2460,7 +2463,7 @@ assert(0 == S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s
 TEST ///
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
-L = directedEdgesMatrix(R,G)
+L = directedEdgesMatrix R
 assert(0 == L-matrix {{0, 0, 0, 0}, {0, 0, l_(b,c), l_(b,d)}, {0, 0, 0, l_(c,d)}, {0, 0, 0, 0}})
 ///
 
@@ -2471,7 +2474,7 @@ assert(0 == L-matrix {{0, 0, 0, 0}, {0, 0, l_(b,c), l_(b,d)}, {0, 0, 0, l_(c,d)}
 TEST ///
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
-W = bidirectedEdgesMatrix(R,G)
+W = bidirectedEdgesMatrix R
 assert(0 == W-matrix {{p_(a,a), 0, 0, p_(a,d)}, {0, p_(b,b), 0, 0}, {0, 0, p_(c,c), 0}, {p_(a,d), 0, 0, p_(d,d)}})
 ///
 

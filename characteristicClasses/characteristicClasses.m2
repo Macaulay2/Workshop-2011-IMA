@@ -8,12 +8,12 @@
 newPackage(
 	"characteristicClasses",
     	Version => "0.1", 
-    	Date => "July 25, 2011",
+    	Date => "January 9, 2012",
     	Authors => {{Name => "Christine Jost", 
 		  Email => "jost at math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
     	Headline => "Degrees of Chern and Segre classes",
-    	DebuggingMode => true
+    	-- DebuggingMode => true
     	)
 
 
@@ -153,7 +153,7 @@ internalSegre = I -> (
      
      -- take care of the special cases I = (0) and I = (1)
      if I == ideal(0_R) then (
-	  segreList := for i from 0 to dimension list if i==0 then 1 else 0;
+	  segreList := {};
 	  return (segreList,ambientDim);
 	  );
      if I == ideal(1_R) then (
@@ -220,7 +220,7 @@ internalChern = I -> (
 
      -- take care of the special cases I = (0) and I = (1) 
      if I == ideal(0_R) then (
-	  chernList := apply(0..dimension, i-> binomial(dimension, i));
+	  chernList := apply(0..dimension, i-> binomial(dimension+1, i));
 	  return (chernList,ambientDim);
 	  );
      if I == ideal(1_R) then (
@@ -228,7 +228,7 @@ internalChern = I -> (
 	  return (chernList,ambientDim);
 	  ); 
 
-     (segreList,ambientDim) := internalSegre(I); 
+     (segreList,ambientDimDummy) := internalSegre(I); 
      chernList = for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p );
      return  (chernList, ambientDim)
         
@@ -331,17 +331,18 @@ doc ///
 	    a projective variety X
      Outputs
      	  :RingElement
-	   the pushforward of the total Segre class of the scheme X to the Chow ring ZZ[H]^(H^{k+1}) of projective space P^k.
+	   the pushforward of the total Segre class of the scheme X to the Chow ring ZZ[H]/(H^{k+1}) of projective space P^k.
      Description
      	  Text
 	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Segre class of X in P^k to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Segre classes s_0(X,P^k),...,s_n(X,P^k) as coefficients.
 	  Example
 	       R = QQ[x,y,z]
-	       segreClass ideal (x*z - y^2)	  
+	       segreClass ideal(x*y)
+	       segreClass ideal(x^2*y,x*y^2)	  
 	  Text
-	       So the degrees of the Segre classes of the plane curve C = {x*z-y^2 = 0} are deg s_0(C,P^2) = 2 and deg s_1(X,P^2) = -4. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
+     	       We consider two singular curves in P^2, C_1 defined by \{xy=0\}  and C_2 defined by \{x^2y=xy^2=0\}. The degrees of their Segre classes are s_0(C_1,P^2) = 2, s_1(C_1,P^2)=-4, and s_0(C_2,P^2)=2, s_1(C_2,P^2)=-3. Observe that the two curves have the same underlying space but a different scheme structure, which is detected by the Segre classes. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
 	  Example
-	       segreClass( ideal( x*z - y^2), symbol t )  
+	       segreClass( ideal(x*y), symbol t )  
 ///
      
 doc ///
@@ -363,17 +364,19 @@ doc ///
 	    a projective variety X
      Outputs
      	  :RingElement
-	   the pushforward of the total Chern class of the scheme X to the Chow ring ZZ[H]^(H^{k+1}) of projective space P^k.
+	   the pushforward of the total Chern class of the scheme X to the Chow ring ZZ[H]/(H^{k+1}) of projective space P^k.
      Description
      	  Text
 	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Chern class of X to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Chern classes c_0(T_X),...,c_n(T_X) as coefficients.
 	  Example
-	       R = QQ[x,y,z]
-	       chernClass ideal (x*z - y^2)	  
+	       R = QQ[x,y,z,w]
+	       A = matrix{{x,y,z},{y,z,w}}
+	       chernClass minors(2,A)  	  
 	  Text
-	       So the degrees of the Chern classes of the plane curve C = {x*z-y^2 = 0} are deg s_0(C,P^2) = 2 and deg s_1(X,P^2) = 2. This agrees with the theoretical results stating that deg s_0(C,P^2) is the degree and deg s_1(C,P^2) the Euler characteristic 2-2g of C. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
+	       The 2x2-minors of the matrix A form the ideal of the twisted cubic. It is well-known that its degree is 3 and its genus is 0. The calculations confirm that deg c_1 = 2-2g = 2 and deg  c_0 = 3. 
+	       It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
 	  Example
-	       chernClass( ideal( x*z - y^2), symbol t ) 
+	       chernClass( minors(2,A), symbol t ) 
 ///
 
 doc ///
@@ -450,4 +453,4 @@ TEST ///
 -------------------------------------------------------
 -- References
 ------------------------------------------------------
--- [1] A method to compute Segre classes (David Eklund, Christine Jost, Chris Peterson)
+-- [1] A method to compute Segre classes (David Eklund, Christine Jost, Chris Peterson), 2011, available at arXiv:1109.5895v1 [math.AG]

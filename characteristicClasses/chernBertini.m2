@@ -131,7 +131,7 @@ internalSegre = I -> (
      segreList= {};
     
      -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
-     f := for i from 1 to ambientDim list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );    
+     f := for i from 1 to (ambientDim+1) list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );    
      
      --- Compute the degree of the residual of Z in the intersection of d hypersurfaces, where d = codimension of Z, ... , dimension of the ambient space.
      degR = residualDegs(f, gensI, ambientDim, dimension, Strategy => Bertini);  
@@ -141,8 +141,7 @@ internalSegre = I -> (
 	  
      	  -- Using the degree of the residual, compute the degree of the pth Segre class, where p = d - codimension of Z.
 	  p := d - (ambientDim - dimension);
-	  degSegreClass := maxDeg^d - degR_(d - aCompute the degree of the residual of Z in the intersection of d hypersurfaces, where d = comdimension of Z, ..., dimension of the ambient space. Store in the list degR.
-     degR = residualDegs(f, gensI, ambientDim, dimension, Strategy => opts.Strategy);mbientDim + dimension) - sum( 0..(p-1), i -> binomial(d,p-i)*maxDeg^(p-i)*segreList_i );
+	  degSegreClass := maxDeg^d - degR_(d - ambientDim + dimension) - sum( 0..(p-1), i -> binomial(d,p-i)*maxDeg^(p-i)*segreList_i );
 	  
 	  segreList = append(segreList, degSegreClass);
 	    
@@ -151,6 +150,9 @@ internalSegre = I -> (
      return (segreList, ambientDim);
 
      )
+
+
+
 
 
 -- The function internalChern calls internalSegre to compute the Segre classes of the given subscheme of P^k. From these it computes the
@@ -216,8 +218,16 @@ residualDegs = {Strategy => Symbolic} >> opts -> (f, gensI, ambientDim, dimensio
 	  
 	  run "cd /tmp; bertini /tmp/input_segre;",;
 	  
-	  degR = (lines(get "/tmp/output"));
+	  degR = apply(drop(drop(lines(get "/tmp/regenSummary"),1 + ambientDim-dimension),-1), myString->value((separate(" ", myString))_5));
 	  
+	  
+	  myHelpVariable = dimension + 1 - #degR; 	 
+	  
+	  if (myHelpVariable > 0) then for i from 1 to myHelpVariable do (degR = degR | {0}); 
+	  print degR;
+	   
+	  
+	  	  	  
 	  );
      
      return degR;

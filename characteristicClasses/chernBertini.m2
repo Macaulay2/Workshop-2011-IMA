@@ -1,3 +1,9 @@
+
+
+
+
+
+
 segreClass = method(TypicalValue => RingElement);
 segreClass (Ideal, Symbol) := (I,hyperplaneClass) -> (
      (segreList, ambientDim) := internalSegreClassList I;

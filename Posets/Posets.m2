@@ -132,6 +132,7 @@ export {
         "NCPartition",
     "partitionLattice",
         "setPartition",
+    "plueckerPoset",
     "projectivizeArrangement",
     "randomPoset",
         "Bias",
@@ -1039,6 +1040,21 @@ setPartition List := List => S -> (
             );
         );
     apply(L,sort)
+    )
+
+plueckerPoset = method()
+plueckerPoset ZZ := Poset => n -> (
+    P := poset(subsets n, (S,T) -> #S >= #T and all(#T, i -> S_i <= T_i), AntisymmetryStrategy => "none");
+    if posets'Precompute then (
+        P.cache.connectedComponents = {toList(0 ..< 2^n)};
+        P.cache.isLowerSemilattice = true;
+        P.cache.isLowerSemimodular = true;
+        P.cache.isUpperSemilattice = true;
+        P.cache.isUpperSemimodular = true;
+        P.cache.maximalElements = {0};
+        P.cache.minimalElements = {2^n-1};
+        );
+    P
     )
 
 -- Inputs:
@@ -3604,6 +3620,35 @@ doc ///
         partitionLattice
 ///
 
+-- plueckerPoset
+doc ///
+    Key
+        plueckerPoset
+        (plueckerPoset,ZZ)
+    Headline
+        computes a poset associated to the Pluecker relations
+    Usage
+        P = plueckerPoset n
+    Inputs
+        n:ZZ
+            the size of the set to partition
+    Outputs
+        P:Poset
+    Description
+        Text
+            The ideal of Pluecker relations has a quadratic Groebner
+            basis.  Under a suitable term order, the incomparable pairs
+            of the poset $P$ generate the initial ideal of the ideal of
+            Pluecker relations.
+
+            Given two subsets $S$ and $T$ of ${0,\ldots,n-1}$, we partially
+            order $S \leq T$ if $\#S \geq \#T$ and $S_i \leq T_i$ for all 
+            $i$ from $1$ to $\#T$.
+        Example
+            P = plueckerPoset 4;
+            coveringRelations P
+///
+
 -- projectivizeArrangement
 doc ///
     Key
@@ -4912,7 +4957,7 @@ doc ///
     Description
         Text
             The Greene-Kleitman partition $l$ of $P$ is the partition
-            such that the sum of the first $k$ parts of $l$ is the maximal
+            such that the sum of the first $k$ parts of $l$ is the maximum
             number of elements in a union of $k$ @TO "chains"@ in $P$.
         Example
             P = poset {{1,2},{2,3},{3,4},{2,5},{6,3}};
@@ -5091,10 +5136,10 @@ doc ///
         P:Poset
     Outputs
         d:ZZ
-            the maximal length of an antichain
+            the maximum length of an antichain
     Description
         Text
-            The Dilworth number of a poset is the maximal length of an antichain.
+            The Dilworth number of a poset is the maximum length of an antichain.
 
             The Dilworth number of a @TO "chain"@ is always 1.
         Example
@@ -5668,9 +5713,9 @@ doc ///
             whether $P$ is Sperner
     Description
         Text
-            The ranked poset $P$ is Sperner if the maximal size of a rank
+            The ranked poset $P$ is Sperner if the maximum size of a rank
             is the @TO "dilworthNumber"@ of $P$.  That is, $P$ is Sperner
-            if the maximal size of a rank is the maximal size of an antichain.
+            if the maximum size of a rank is the maximum size of an antichain.
 
             The $n$ @TO "chain"@ and the $n$ @TO "booleanLattice"@ are Sperner.
         Example

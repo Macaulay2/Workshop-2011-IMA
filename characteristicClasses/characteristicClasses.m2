@@ -8,7 +8,7 @@
 newPackage(
 	"characteristicClasses",
 	Version => "0.1", 
-    	Date => "January 9, 2012",
+    	Date => "February 6, 2012",
     	Authors => {{Name => "Christine Jost", 
 		  Email => "jost at math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
@@ -19,29 +19,18 @@ newPackage(
 	      }
     	)
 
----------------------------------------------------------------
--- Global variables
----------------------------------------------------------------
-
-
-Symbolic = "Symbolic";
-Bertini = "Bertini";
 
 
 ---------------------------------------------------------------
--- Configuration
+-- Configuration of the Bertini path
 ---------------------------------------------------------------
 
 -- Check the ~/.Macaulay2/init-characteristicClasses.m2 file for the absolute path.
--- If it's not there, then use the M2-Programs directory.
+-- If it's not there, then use the root path.
 bertini'path = (options characteristicClasses).Configuration#"path";
---if bertini'path == "" then bertini'path = prefixDirectory | currentLayout#"programs";
---if bertini'path == "" then bertini'path = /;
+if bertini'path == "" then bertini'path = rootPath | "/";
 
-
-
-if instance(bertini'path, String) then bertini'path = {bertini'path}
-if not instance(bertini'path,List) then error "expected configuration option bertini'path to be a list of strings or a string"
+if not instance(bertini'path,String) then error "Expected configuration option bertini'path to be a string."
 
 
 
@@ -58,7 +47,10 @@ if not instance(bertini'path,List) then error "expected configuration option ber
 --                 of the total Chern class to the Chow ring of the ambient space
 -- chernlassList:  does the same as chernClass, but returns a list with coefficients instead of a 
 --                 polynomial
-export {segreClass, chernClass, segreClassList, chernClassList}
+-- All functions have the option ResidualStrategy, which can be "Symbolic" or "Bertini". 
+-- The strategy "Symbolic" uses Gröbner basis computations, the strategy "Bertini" uses numeric 
+-- computations carried out by Bertini [2].  
+export {segreClass, chernClass, segreClassList, chernClassList, ResidualStrategy}
 
 
 
@@ -69,32 +61,32 @@ export {segreClass, chernClass, segreClassList, chernClassList}
 -- The user can choose to give the input as a homogeneous ideal in a polynomial ring or as a projective
 -- variety. Furthermore, the user can give the symbol used for the Chow ring ZZ[H]/H^(k+1) as an 
 -- optional input. The default symbol is H for hyperplane class.
-segreClass = method(TypicalValue => RingElement, Options => true);
-segreClass (Ideal, Symbol) := {Strategy => Symbolic} >> opts -> (I,hyperplaneClass) -> (
-     (segreList, ambientDim) := internalSegreClassList(I, Strategy => opts.Strategy);
+segreClass = method(TypicalValue => RingElement, Options => {ResidualStrategy => "Symbolic"});
+segreClass (Ideal, Symbol) :=  opts -> (I,hyperplaneClass) -> (
+     (segreList, ambientDim) := internalSegreClassList(I, ResidualStrategy => opts.ResidualStrategy);
      return output (segreList, ambientDim, hyperplaneClass)
      )
-segreClass Ideal := {Strategy => Symbolic} >> opts ->  I -> (     
+segreClass Ideal := opts ->  I -> (     
      H := symbol H;
-     return segreClass (I, H, Strategy => opts.Strategy)
+     return segreClass (I, H, ResidualStrategy => opts.ResidualStrategy)
      )
-segreClass (ProjectiveVariety,Symbol) := {Strategy => Symbolic} >> opts ->  (projectiveVar,hyperplaneClass) -> (
+segreClass (ProjectiveVariety,Symbol) :=  opts ->  (projectiveVar,hyperplaneClass) -> (
      I := projectiveVar.ring.ideal;
-     return segreClass(I, hyperplaneClass, Strategy => opts.Strategy)
+     return segreClass(I, hyperplaneClass, ResidualStrategy => opts.ResidualStrategy)
      )
-segreClass  ProjectiveVariety := {Strategy => Symbolic} >> opts -> projectiveVar -> (
+segreClass  ProjectiveVariety := opts -> projectiveVar -> (
      I := projectiveVar.ring.ideal;
-     return segreClass(I, Strategy => opts.Strategy)
+     return segreClass(I, ResidualStrategy => opts.ResidualStrategy)
      )
 
-segreClassList = method(TypicalValue => List,  Options => true);
-segreClassList  Ideal := {Strategy => Symbolic} >> opts ->I -> (
-     (segreList, ambientDim) := internalSegreClassList(I, Strategy => opts.Strategy);
+segreClassList = method(TypicalValue => List,  Options => {ResidualStrategy => "Symbolic"});
+segreClassList  Ideal :=  opts ->I -> (
+     (segreList, ambientDim) := internalSegreClassList(I, ResidualStrategy => opts.ResidualStrategy);
      return segreList
      )
-segreClassList ProjectiveVariety := {Strategy => Symbolic} >> opts -> projectiveVar -> (
+segreClassList ProjectiveVariety := opts -> projectiveVar -> (
      I := projectiveVar.ring.ideal;
-     return segreClassList(I, Strategy => opts.Strategy)
+     return segreClassList(I, ResidualStrategy => opts.ResidualStrategy)
      )
 
 -- Analogously to the computation of the Segre classes, the computation of the Chern classes is done by 
@@ -104,33 +96,33 @@ segreClassList ProjectiveVariety := {Strategy => Symbolic} >> opts -> projective
 -- The user can choose to give the input as a homogeneous ideal in a polynomial ring or as a projective
 -- variety. Furthermore, the user can give the symbol used for the Chow ring ZZ[H]/H^(k+1) as an 
 -- optional input. The default symbol is H for hyperplane class.
-chernClass = method(TypicalValue => RingElement,  Options => true );
-chernClass (Ideal, Symbol) := {Strategy => Symbolic} >> opts -> (I,hyperplaneClass) -> (
-     (chernList, ambientDim) := internalChernClassList(I, Strategy => opts.Strategy);
+chernClass = method(TypicalValue => RingElement,  Options => {ResidualStrategy=>"Symbolic"} );
+chernClass (Ideal, Symbol) := opts -> (I,hyperplaneClass) -> (
+     (chernList, ambientDim) := internalChernClassList(I, ResidualStrategy => opts.ResidualStrategy);
      return output (chernList, ambientDim, hyperplaneClass)
      )
-chernClass Ideal := {Strategy => Symbolic} >> opts ->  I -> (  
+chernClass Ideal :=  opts ->  I -> (  
      H := symbol H;   
-     return chernClass (I, H, Strategy => opts.Strategy)
+     return chernClass (I, H, ResidualStrategy => opts.ResidualStrategy)
      )
-chernClass (ProjectiveVariety,Symbol) := {Strategy => Symbolic} >> opts -> (projectiveVar, hyperplaneClass) -> (
+chernClass (ProjectiveVariety,Symbol) :=  opts-> (projectiveVar, hyperplaneClass) -> (
      I := projectiveVar.ring.ideal;
-     return chernClass(I, hyperplaneClass, Strategy => opts.Strategy)
+     return chernClass(I, hyperplaneClass, ResidualStrategy => opts.ResidualStrategy)
      )
-chernClass ProjectiveVariety := {Strategy => Symbolic} >> opts -> projectiveVar -> (
+chernClass ProjectiveVariety := opts -> projectiveVar -> (
      I := projectiveVar.ring.ideal;
-     return chernClass(I, Strategy => opts.Strategy)
+     return chernClass(I, ResidualStrategy => opts.ResidualStrategy)
      )
 
  
-chernClassList = method(TypicalValue => List,  Options => true);
-chernClassList Ideal := {Strategy => Symbolic} >> opts ->  I -> (
-     (chernList, ambientDim) := internalChernClassList(I, Strategy => opts.Strategy);
+chernClassList = method(TypicalValue => List,  Options => {ResidualStrategy=>"Symbolic"});
+chernClassList Ideal :=  opts ->  I -> (
+     (chernList, ambientDim) := internalChernClassList(I, ResidualStrategy => opts.ResidualStrategy);
      return chernList
      )
-chernClassList  ProjectiveVariety := {Strategy => Symbolic} >> opts -> projectiveVar -> (
+chernClassList  ProjectiveVariety := opts -> projectiveVar -> (
      I := projectiveVar.ring.ideal;
-     return chernClassList(I, Strategy => opts.Strategy)
+     return chernClassList(I, ResidualStrategy => opts.ResidualStrategy)
      )
 
 
@@ -144,32 +136,34 @@ chernClassList  ProjectiveVariety := {Strategy => Symbolic} >> opts -> projectiv
 
 -- The functions internalSegreClassList and internalChernClassList call other internal functions 
 -- which do the actual work. 
-internalSegreClassList = {Strategy => Symbolic} >> opts -> I -> (
+internalSegreClassList = {ResidualStrategy => "Symbolic"} >> opts -> I -> (
      -- check that the input is a homogeneous ideal in a polynomial ring over a field
      checkUserInput I;
      -- trim the ideal and make it an ideal over a ring only used internally
      localI := prepare I;
      -- compute the Segre classes
-     return internalSegre(localI, Strategy => opts.Strategy);
+     return internalSegre(localI, ResidualStrategy => opts.ResidualStrategy);
      )
-internalChernClassList = {Strategy => Symbolic} >> opts -> I -> (
+internalChernClassList = {ResidualStrategy => "Symbolic"} >> opts -> I -> (
      -- check that the input is a homogeneous ideal in a polynomial ring over a field
      checkUserInput I;
      -- trim the ideal and make it an ideal over a ring only used internally
      localI := prepare I;
      -- compute the Chern classes
-     return internalChern(localI, Strategy => opts.Strategy);
+     return internalChern(localI, ResidualStrategy => opts.ResidualStrategy);
      )
 
--- The function internalSegre is the main function in this package which does the actual computation of the 
--- Segre classes. It uses the algorithm described in [1].
+-- The function internalSegre is one of the two main function in this package which do the actual 
+-- computation of the Segre classes. It uses the algorithm described in [1].
+-- Computing the degrees of the residuals as defined in [1] is the heart of the algorithm. This
+-- is done by the subroutine residualDegs.
 -- Notation: This algorithm computes the degrees of the Segre classes s_0(Z,P^k), ..., s_n(Z,P^k) of an
 -- n-dimensional closed subscheme Z of P^k. The subscheme Z is given by a homogeneous ideal I in the 
 -- polynomial ring R.
 -- Input:  I, a homogeneous ideal in a polynomial ring over a field
 -- Output: segreList, a list containing the degrees of the Segre classes of Proj(R/I) = Z
 --         ambientDim, the dimension k of the ambient space Proj(R)=P^k 
-internalSegre = {Strategy => Symbolic} >> opts -> I -> (
+internalSegre = {ResidualStrategy => "Symbolic"} >> opts -> I -> (
     
      -- Obtain:
      -- the ring R 
@@ -204,10 +198,11 @@ internalSegre = {Strategy => Symbolic} >> opts -> I -> (
      -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
      f := for i from 1 to ambientDim list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
      
-     --- Compute the degree of the residual of Z in the intersection of d hypersurfaces, where d = codimension of Z, ... , dimension of the ambient space.
-     degR := residualDegs(f, gensI, ambientDim, dimension, minDegGen, Strategy => opts.Strategy);  
+     -- Compute the degree of the residual of Z in the intersection of d hypersurfaces, where d = codimension of Z, ... , dimension of the ambient space.
+     -- Depends on the strategy (symbolic/Bertini).
+     degR := residualDegs(f, ambientDim, dimension, minDegGen, ResidualStrategy => opts.ResidualStrategy);  
      
-     -- The for loop computes the degrees of the Segre classes of Z
+     -- The for loop computes the degrees of the Segre classes of Z using the degrees of the residuals
      for d from (ambientDim - dimension) to ambientDim do (
 	  
      	  -- Using the degree of the residual, compute the degree of the pth Segre class, where p = d - codimension of Z.
@@ -222,12 +217,18 @@ internalSegre = {Strategy => Symbolic} >> opts -> I -> (
      
      )
 
-residualDegs = {Strategy => Symbolic} >> opts -> (f, gensI, ambientDim, dimension,minDegGen) -> (
+
+-- The function residualDegs is the other one of the two main function in this package which do the actual 
+-- computation of the Segre classes. It computes the degrees of the residuals as defined in [1].
+-- The option Strategy determines which method is used to compute the degrees of the residuals.
+-- "Symbolic" uses Gröbner bases to compute the saturation of ideals.
+-- "Bertini" uses the regenerative cascade as developed in [3] and implemented in Bertini [2].
+residualDegs = {ResidualStrategy => "Symbolic"} >> opts -> (f, ambientDim, dimension,minDegGen) -> (
      
-     R := ring first gensI;	  
+     R := ring first f;	  
      degR :={};
      
-     if (opts.Strategy == Symbolic) then (
+     if (opts.ResidualStrategy == "Symbolic") then (
 	  
   	  for d from (ambientDim - dimension) to ambientDim do (
 	       -- Obtain the ideal J of the intersection of d hypersurfaces containing Z, where d = comdimension of Z, ..., dimension of the ambient space.
@@ -242,13 +243,18 @@ residualDegs = {Strategy => Symbolic} >> opts -> (f, gensI, ambientDim, dimensio
 	       ) 
 	  );
      
-     if (opts.Strategy == Bertini) then (
+     if (opts.ResidualStrategy == "Bertini") then (
 	  
+	  -- write Bertini input file
+	  
+	  -- configuration 
 	  outConfig := "CONFIG \n" | "OUTPUTLEVEL: 0; \n" | "TRACKTYPE: 1; \n" | "USEREGENERATION: 1; \n" | "MAXNORM: 1e8; \n" | "SECURITYMAXNORM: 1e8; \n" |"; \n" |"END; \n \n";
 	  outVarGroup := "hom_variable_group ";
+	  -- variables
 	  variables := flatten entries vars R;
 	  for i from 0 to (length(variables)-2) do outVarGroup = outVarGroup | toString(variables_i) | ", ";
 	  outVarGroup = outVarGroup | toString(last variables) | "; \n";
+	  -- functions
 	  outFunctionDecl := "function "; 
 	  for i from 0 to (length(f)-2) do outFunctionDecl = outFunctionDecl | "f" | toString(i) | ", ";
 	  outFunctionDecl = outFunctionDecl | "f" | toString(length(f)-1) | "; \n \n";
@@ -259,23 +265,26 @@ residualDegs = {Strategy => Symbolic} >> opts -> (f, gensI, ambientDim, dimensio
      	  
 	  out := outConfig | outInput;
 	  
+	  -- create input file, write it
 	  filename := getFilename();
 	  
           g := openOut(filename);
 	  g << out;
 	  close g;
 	  
-	  execstr := "cd /tmp ;" | first(bertini'path) | "bertini " | filename;
+	  -- run Bertini
+	  execstr := "cd /tmp ;" | bertini'path | "bertini " | filename;
 	  ret := run(execstr);
 	  if ret =!= 0 then  error("Error occured while executing external program Bertini.");
 	  
+	  -- Read output file "regenSummary". Remove the first two lines and the last one. 
+	  -- Furthermore remove the lines corresponding to codimensions less than the codimension of the variety,
+	  -- these are not relevant. The degrees of the residuals are then the numbers in the 5th column.
 	  degR = apply(drop(drop(lines(get "/tmp/regenSummary"),1 + ambientDim-dimension),-1), myString->value((separate(" ", myString))_5));
 	  
-	  
+	  -- If the residuals are empty, we have to add zeros manually.
 	  numberOfMissingLines := dimension + 1 - #degR; 	 
-	  
 	  if (numberOfMissingLines > 0) then for i from 1 to numberOfMissingLines do (degR = degR | {0}); 
-	  -- print degR;
 	    	  	  
 	 );
      
@@ -295,7 +304,7 @@ getFilename = () -> (
 -- Input:  I, a homogeneous ideal in a polynomial ring over a field
 -- Output: chernList, a list containing the degrees of the Chern classes of Proj(R/I)
 --         ambientDim, the dimension k of the ambient space Proj(R)=P^k 
-internalChern = {Strategy => Symbolic} >> opts -> I -> (
+internalChern = {ResidualStrategy => "Symbolic"} >> opts -> I -> (
      
      -- Obtain:
      -- the ring R
@@ -315,7 +324,7 @@ internalChern = {Strategy => Symbolic} >> opts -> I -> (
 	  return (chernList,ambientDim);
 	  ); 
 
-     (segreList,ambientDimDummy) := internalSegre(I, Strategy => opts.Strategy); 
+     (segreList,ambientDimDummy) := internalSegre(I, ResidualStrategy => opts.ResidualStrategy); 
      chernList = for i from 0 to dimension list sum( 0..i, p -> binomial( ambientDim + 1, i-p )*segreList_p );
      return  (chernList, ambientDim)
         
@@ -395,13 +404,19 @@ doc ///
 	       The functions in this package can have two different kinds of output. The functions chernClass and segreClass give back the pushforward of the total Chern class to the Chow ring of P^k, whereas chernClassList and segreClassList give a list of the degrees of the Chern or Segre classes, respectively. The scheme X can be given as either a homogeneous ideal in a polynomial ring over a field, or as projective variety.
 	       
 	       This implementation uses the algorithm given in the  articles "Chern Numbers of Smooth Varieties via Homotopy Continuation and Intersection Theory" (Sandra Di Rocco, David Eklund, Chris Peterson, Andrew J. Sommese) and "A method to compute Segre classes" (David Eklund, Christine Jost, Chris Peterson).
-	       
-      
+	       The main step in the algorithm is the computation of the residuals. This can be done symbolically, using
+	       Gröbner bases, and numerically, using the regenerative cascade implemented in Bertini. The regenerative
+	       cascade is described in "Regenerative cascade homotopies for solving polynomial systems" by 
+	       Jonathan Hauenstein, Andrew Sommese, and Charles Wampler. Bertini is developed
+	       by Dan Bates, Jonathan Hauenstein, Andrew Sommese, and Charles Wampler.     
 ///
+
+
 
 doc ///
      Key
      	  segreClass
+	  [segreClass, ResidualStrategy]
 	  (segreClass,Ideal)
 	  (segreClass, ProjectiveVariety)
 	  (segreClass, Ideal, Symbol)
@@ -416,6 +431,8 @@ doc ///
 	    a homogeneous ideal in a polynomial ring over a field, defining a closed subscheme X of P^k
 	  P:ProjectiveVariety
 	    a projective variety X
+	  ResidualStrategy => "Symbolic"
+	    the strategy to compute the degrees of the residuals
      Outputs
      	  :RingElement
 	   the pushforward of the total Segre class of the scheme X to the Chow ring ZZ[H]/(H^{k+1}) of projective space P^k.
@@ -429,12 +446,17 @@ doc ///
 	  Text
      	       We consider two singular curves in P^2, C_1 defined by \{xy=0\}  and C_2 defined by \{x^2y=xy^2=0\}. The degrees of their Segre classes are s_0(C_1,P^2) = 2, s_1(C_1,P^2)=-4, and s_0(C_2,P^2)=2, s_1(C_2,P^2)=-3. Observe that the two curves have the same underlying space but a different scheme structure, which is detected by the Segre classes. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
 	  Example
-	       segreClass( ideal(x*y), symbol t )  
+	       segreClass( ideal(x*y), symbol t )
+	  Text
+	       All the examples were done using symbolic computations with Gr\"obner bases. Changing the
+	       option @TO ResidualStrategy@ to "Bertini" will do the main computations numerically, provided
+	       Bertini is  @TO2 {"configuring Bertini", "installed and configured"}@.
 ///
      
 doc ///
      Key
      	  chernClass
+	  [chernClass, ResidualStrategy]
 	  (chernClass,Ideal)
 	  (chernClass, ProjectiveVariety)
 	  (chernClass, Ideal, Symbol)
@@ -449,6 +471,8 @@ doc ///
 	    a homogeneous ideal in a polynomial ring over a field, defining a projective scheme X
 	  P:ProjectiveVariety
 	    a projective variety X
+	  ResidualStrategy => "Symbolic"
+	    the strategy to compute the degrees of the residuals
      Outputs
      	  :RingElement
 	   the pushforward of the total Chern class of the scheme X to the Chow ring ZZ[H]/(H^{k+1}) of projective space P^k.
@@ -464,11 +488,16 @@ doc ///
 	       It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
 	  Example
 	       chernClass( minors(2,A), symbol t ) 
+	  Text
+	       All the examples were done using symbolic computations with Gr\"obner bases. Changing the
+	       option @TO ResidualStrategy@ to "Bertini" will do the main computations numerically, provided
+	       Bertini is @TO2 {"configuring Bertini", "installed and configured"}@ .	  
 ///
 
 doc ///
      Key
      	  segreClassList
+	  [segreClassList, ResidualStrategy]
 	  (segreClassList, Ideal)
 	  (segreClassList, ProjectiveVariety)
      Headline
@@ -481,12 +510,14 @@ doc ///
 	    a homogeneous ideal in a polynomial ring over a field, defining a subscheme X of P^k
 	  P:ProjectiveVariety
 	    a projective variety X
+	  ResidualStrategy => "Symbolic"
+	    the strategy to compute the degrees of the residuals      
      Outputs
      	  :List
-	   A list \{ deg s_0(X,P^k),..., deg s_n(X,P_K) \} of the degrees of the Segre classes of X in P^k
+	   \{ deg s_0(X,P^k),..., deg s_n(X,P_K) \} of the degrees of the Segre classes of X in P^k
      Description
      	  Text
-	       This function does the same as the function segreClass, but provides an output that is easier to read for a computer.
+	       This function does the same as the function @TO segreClass@, but provides an output that is easier to read for a computer.
 ///
 
 
@@ -494,6 +525,7 @@ doc ///
 doc ///
      Key
      	  chernClassList
+	  [chernClassList, ResidualStrategy]
 	  (chernClassList, Ideal)
 	  (chernClassList, ProjectiveVariety)
      Headline
@@ -506,15 +538,47 @@ doc ///
 	    a homogeneous ideal in a polynomial ring over a field, defining a projective scheme X
 	  P:ProjectiveVariety
 	    a projective variety X
+	  ResidualStrategy => "Symbolic"
+	    the strategy to compute the degrees of the residuals	    
      Outputs
      	  :List
-	   A list \{ deg c_0(T_X),..., deg c_n(T_X) \} of the degrees of the Chern classes of X
+	   \{ deg c_0(T_X),..., deg c_n(T_X) \} of the degrees of the Chern classes of X
      Description
      	  Text
-	       This function does the same as the function chernClass, but provides an output that is easier to read for a computer.
+	       This function does the same as the function @TO{chernClass}@, but provides an output that is easier to read for a computer.
+///
+
+doc ///
+     Key 
+          ResidualStrategy
+     Headline
+          ResidualStrategy,
+     Description
+     	  Text
+	       The option ResidualStrategy determines which strategy is used to compute the residuals, which
+	       is the main step in the computation of the Chern and Segre classes. When choosing the default
+	       "Symbolic", Gr\"obner basis methods will be used. The computations can also be done using 
+	       the regenerative cascade implemented in Bertini, choosing the option "Bertini" and provided
+	       Bertini is @TO2 {"configuring Bertini", "installed and configured"}@.	   
 ///
    
    
+doc ///
+     Key
+     	  "configuring Bertini"
+     Description
+     	  Text
+	       Using the numeric version of any command in the package characteristicClasses needs >= version 1.3 of Bertini
+	       to be installed. Download and installation of Bertini are explained at the @HREF {"http://www.nd.edu/~sommese/bertini/","Bertini homepage"}@.
+
+	       If Bertini cannot be called from the root Path (e.g. / on Unix-based system), you have to tell
+	       the package how to find Bertini. When the package is installed, a file called init-characteristicClasses.m2 is created automatically.
+     	       On most systems the file is sought in the directory {\tt HOME/.Macaulay2/}, where {\tt HOME} is replaced by 
+	       the path to the user's home directory. Under Mac OS X, the file is sought instead in the directory 
+	       {\tt  HOME/Library/Application Support/Macaulay2/}. In the file, replace "" in  the line "path" => ""
+	       by the path to Bertini in quotation marks, e.g. "path" => "/usr/local/bin/Bertini/". The / at the end is important.
+///	       
+
    
 --------------------------------------------------------
 -- Tests
@@ -541,3 +605,5 @@ TEST ///
 -- References
 ------------------------------------------------------
 -- [1] A method to compute Segre classes (David Eklund, Christine Jost, Chris Peterson), 2011, available at arXiv:1109.5895v1 [math.AG]
+-- [2] Bertini: Software for Numerical Algebraic Geometry (Daniel J. Bates, Jonathan D. Hauenstein, Andrew J. Sommese, Charles W. Wampler, available at http://www.nd.edu/~sommese/bertini
+-- [3] Regenerative cascade homotopies for solving polynomial systems (Jonathan D. Hauenstein, Andrew J. Sommese, Charles W. Wampler) 

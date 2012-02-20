@@ -8,7 +8,7 @@
 newPackage(
 	"characteristicClasses",
 	Version => "0.1", 
-    	Date => "February 6, 2012",
+    	Date => "February 20, 2012",
     	Authors => {{Name => "Christine Jost", 
 		  Email => "jost at math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
@@ -399,13 +399,12 @@ doc ///
 	       The package characteristicClasses provides commands to compute the degrees of the Chern and Segre classes of subvarieties and subschemes of projective space. 
 	       Equivalently, it computes the pushforward to projective space of the Chern and Segre classes.
 	       
-	       Let X be an n-dimensional subscheme of projective space P^k. If X is smooth, then by definition the Chern classes of X are the Chern classes c_0(T_X), ..., c_n(T_X) of the tangent bundle T_X. The Chern classes are cycles in the Chow ring of X, i.e. linear combinations of subvarieties of X modulo rational equivalence. For a subvariety V of X, the degree of the cycle [V] is defined as the degree of the variety V. This extends linearly to linear combinations of subvarieties. Computing the degrees of the Chern classes of X is equivalent to computing the pushforward of the Chern classes to the Chow ring of P^k, which is the ring ZZ[H]/(H^{k+1}), with H the hyperplane class. Also by definition, the Segre classes of the projective scheme X are the Segre classes s_0(X,P^k), ..., s_n(X,P^k) of X in P^k. For definition of the concepts used here, see e.g. W. Fulton "Intersection Theory".
-	       
+	       Let X be an n-dimensional subscheme of projective space P^k. If X is smooth, then by definition the Chern classes of X are the Chern classes c_0(T_X), ..., c_n(T_X) of the tangent bundle T_X. The Chern classes are cycles in the Chow ring of X, i.e., linear combinations of subvarieties of X modulo rational equivalence. For a subvariety V of X, the degree of the cycle [V] is defined as the degree of the variety V. This extends linearly to linear combinations of subvarieties. Computing the degrees of the Chern classes of X is equivalent to computing the pushforward of the Chern classes to the Chow ring of P^k, which is the ring ZZ[H]/(H^{k+1}), with H the hyperplane class. Also by definition, the Segre classes of the projective scheme X are the Segre classes s_0(X,P^k), ..., s_n(X,P^k) of X in P^k. For definition of the concepts used here, see e.g. W. Fulton "Intersection Theory".
 	       The functions in this package can have two different kinds of output. The functions chernClass and segreClass give back the pushforward of the total Chern class to the Chow ring of P^k, whereas chernClassList and segreClassList give a list of the degrees of the Chern or Segre classes, respectively. The scheme X can be given as either a homogeneous ideal in a polynomial ring over a field, or as projective variety.
 	       
 	       This implementation uses the algorithm given in the  articles "Chern Numbers of Smooth Varieties via Homotopy Continuation and Intersection Theory" (Sandra Di Rocco, David Eklund, Chris Peterson, Andrew J. Sommese) and "A method to compute Segre classes" (David Eklund, Christine Jost, Chris Peterson).
 	       The main step in the algorithm is the computation of the residuals. This can be done symbolically, using
-	       Gröbner bases, and numerically, using the regenerative cascade implemented in Bertini. The regenerative
+	       Gr&ouml;bner bases, and numerically, using the regenerative cascade implemented in Bertini. The regenerative
 	       cascade is described in "Regenerative cascade homotopies for solving polynomial systems" by 
 	       Jonathan Hauenstein, Andrew Sommese, and Charles Wampler. Bertini is developed
 	       by Dan Bates, Jonathan Hauenstein, Andrew Sommese, and Charles Wampler.     
@@ -425,12 +424,12 @@ doc ///
      	  Degrees of the Segre classes
      Usage
      	  segreClass I
-	  segreClass P
+	  segreClass X
      Inputs
      	  I:Ideal
 	    a homogeneous ideal in a polynomial ring over a field, defining a closed subscheme X of P^k
-	  P:ProjectiveVariety
-	    a projective variety X
+	  X:ProjectiveVariety
+	    -- a projective variety
 	  ResidualStrategy => "Symbolic"
 	    the strategy to compute the degrees of the residuals
      Outputs
@@ -444,7 +443,7 @@ doc ///
 	       segreClass ideal(x*y)
 	       segreClass ideal(x^2*y,x*y^2)	  
 	  Text
-     	       We consider two singular curves in P^2, C_1 defined by \{xy=0\}  and C_2 defined by \{x^2y=xy^2=0\}. The degrees of their Segre classes are s_0(C_1,P^2) = 2, s_1(C_1,P^2)=-4, and s_0(C_2,P^2)=2, s_1(C_2,P^2)=-3. Observe that the two curves have the same underlying space but a different scheme structure, which is detected by the Segre classes. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
+     	       We consider two singular curves in P^2, C_1 defined by \{xy=0\} \  and C_2 defined by \{x^2y=xy^2=0\}. The degrees of their Segre classes are s_0(C_1,P^2) = 2, s_1(C_1,P^2)=-4, and s_0(C_2,P^2)=2, s_1(C_2,P^2)=-3. Observe that the two curves have the same underlying space but a different scheme structure, which is detected by the Segre classes. It is also possible to provide the symbol for the hyperplane class in the Chow ring of P^k:
 	  Example
 	       segreClass( ideal(x*y), symbol t )
 	  Text
@@ -465,12 +464,12 @@ doc ///
      	  computes degrees of the Chern classes
      Usage
      	  chernClass I
-	  chernClass P
+	  chernClass X
      Inputs
           I:Ideal
 	    a homogeneous ideal in a polynomial ring over a field, defining a projective scheme X
-	  P:ProjectiveVariety
-	    a projective variety X
+	  X:ProjectiveVariety
+	    -- a projective variety
 	  ResidualStrategy => "Symbolic"
 	    the strategy to compute the degrees of the residuals
      Outputs
@@ -504,12 +503,12 @@ doc ///
      	  computes degrees of the Segre classes
      Usage
      	  segreClassList I
-	  segreClassList P
+	  segreClassList X
      Inputs
           I:Ideal
 	    a homogeneous ideal in a polynomial ring over a field, defining a subscheme X of P^k
-	  P:ProjectiveVariety
-	    a projective variety X
+	  X:ProjectiveVariety
+	    --a projective variety
 	  ResidualStrategy => "Symbolic"
 	    the strategy to compute the degrees of the residuals      
      Outputs
@@ -532,17 +531,17 @@ doc ///
      	  degrees of Chern classes
      Usage
      	  chernClassList I
-	  chernClassList P
+	  chernClassList X
      Inputs
           I:Ideal
 	    a homogeneous ideal in a polynomial ring over a field, defining a projective scheme X
-	  P:ProjectiveVariety
-	    a projective variety X
+	  X:ProjectiveVariety
+	    --a projective variety
 	  ResidualStrategy => "Symbolic"
 	    the strategy to compute the degrees of the residuals	    
      Outputs
      	  :List
-	   \{ deg c_0(T_X),..., deg c_n(T_X) \} of the degrees of the Chern classes of X
+	   \{ deg c_0(T_X),..., deg c_n(T_X) \} \ of the degrees of the Chern classes of X
      Description
      	  Text
 	       This function does the same as the function @TO{chernClass}@, but provides an output that is easier to read for a computer.
@@ -551,8 +550,8 @@ doc ///
 doc ///
      Key 
           ResidualStrategy
-     Headline
-          ResidualStrategy,
+     --Headline
+          --ResidualStrategy,
      Description
      	  Text
 	       The option ResidualStrategy determines which strategy is used to compute the residuals, which

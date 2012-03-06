@@ -282,13 +282,26 @@ The functor $\Phi$ induces all the pairings defined by Eisenbud and Schreyer: co
 \label{fig:bracket}
 \end{figure}
 
-\subsection*{Comparing Complexes and Resolutions} Here is a consequence of the analysis of Betti tables allowed by this categorification: If every bounded complex of free $S$-modules were quasi-isomorphic to its homology---which is not the case except when $n=0$, that is $S$ is the polynomial ring in just 1 variable---then the Betti table of a complex would be the sum of the Betti tables of the resolutions of its homology.  We show that the Betti table is at least a sum of Betti tables of resolutions, but with rational, not integral coefficients, and not necessarily of the original homology modules. Here, for simplicity, is the case when the homology has finite length. 
+\subsection*{Comparing Complexes and Resolutions} Here is a consequence of the analysis of Betti tables allowed by this categorification: If every bounded complex of free $S$-modules were quasi-isomorphic to its homology---which is not the case except when $n=0$, that is $S$ is the polynomial ring in just 1 variable---then the Betti table of a complex would be the sum of the Betti tables of the resolutions of its homology.  We show that the Betti table is at least a sum of Betti tables of resolutions, but with rational, not integral coefficients, and not necessarily of the original homology modules. Here, for simplicity, are two special cases of this result.
+%is the case when the homology has finite length. 
 
+\begin{cor}\label{cor:decompose}
+Let $\FF\in \DD^b(S)$.
+\begin{enumerate}
+	\item  If $\FF$ has finite length homology, then $\beta(\FF)$ may be written as a positive rational combination of Betti tables of shifted free resolutions
+	\[\beta(\FF)=\sum_{i=0}^s \beta(M^i)[i]\]
+	 where each module $M^i$ has finite length.
+	\item  If $\codim H^i\FF\geq i$ then $\beta(\FF)$ may be written as a positive rational combination of Betti tables of shifted free resolutions
+\[\beta(\FF)=\sum_{i=0}^s \beta(M^i)[i]\]
+where $\codim(M^i)\geq i$ for all $i$.
+\end{enumerate}
+As in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.	
+\end{cor}
 \begin{cor}\label{cor:decompose}
 The Betti table of any bounded graded free complex of $S$-modules, with finite length homology, is a positive rational combination of Betti tables of shifted free resolutions of modules of finite length (as in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.)
 \end{cor}
 
-The full statement and proof are given in section ****. The denominators of the coefficients involved in the decomposition may be seen as a measure of the extent to which the complex is not quasi-isomorphic to its homology. 
+The full statement and proof are given in \S\ref{sec:refined}.  \daniel{Need to add some reference to the generalizations.}  The denominators of the coefficients involved in the decomposition may be seen as a measure of the extent to which the complex is not quasi-isomorphic to its homology. 
 
 \begin{example}
 Let $S=\kk[x,y]$ and consider the complex:
@@ -452,7 +465,9 @@ The functor $\Phi'$ thus yields bilinear pairings relating multigraded Betti tab
 \text{  irrelevant homology}
 \end{matrix}\right\}
 \end{equation*}
-This opens the door to further toric generalizations of Boij--S\"oderberg theory.  In particular, we remark that the cone of free $C$-complexes with irrelevant homology is far easier to understand \dots  \daniel{I don't know how to conclude this discussion.}
+This opens the door to further toric generalizations of Boij--S\"oderberg theory.  In particular, we remark that the cone of free $C$-complexes with irrelevant homology is far easier to study than the cone of free $C$-complexes with finite length homology.  We expect that the positivity results obtained by applying Theorem~\ref{thm:Phimulti} will play an essential role in toric generalizations of Boij--S\"oderberg theory.
+
+
 
 \subsection*{Structure of this paper} The duality pairing is considered in detail in \S\ref{sec:duality pairing}. \david{the rest of this needs to be reconsidered} In \S\ref{sec:PP0} we analyze the cone $\BBQ^1(A)$ in detail, which provides a sort of base case for our positivity and duality statements.  We prove our main results in \S\ref{sec:general case}.  We then briefly discuss applications to the study of free resolutions in \S\ref{sec:refined}.  Finally, in \S\ref{sec:functor}, we extend these results to new polarized varieties and graded rings.
 
@@ -469,8 +484,6 @@ We thank Ezra Miller, Christine Berkesch, Ravi Vakil, Rob Lazarsfeld, Bhargav Bh
 \section{The Pairing $\Phi$}\label{sec:duality pairing}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Definition of $\Phi$} 
 
 As before, set $A= \kk[t]$. Let 
 $\sigma: S\to S\otimes A = S[t]$
@@ -509,16 +522,16 @@ will never need this.
 %where $\pi: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection.
 %\end{defn}
 
-\begin{defn} \label{defn:product} The functor $\Phi: D^{b}(\P^{n}) \times D^{b}(S) \to D^{b}(A)$ is given by:
+\begin{defn} \label{defn:product} The functor $\Phi: \DD^{b}(S)\times \DD^b \to \DD^{b}(A)$ is given by:
 $$
-\Phi(\cE,\FF) = R\pi_{*} \bigl((\cE\boxtimes \cO_{\AA^{1}})\otimes_{\P^{n}\times\AA^{1}} \tau(\FF)\bigr)
+\Phi(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{\P^{n}\times\AA^{1}} (\cE\boxtimes \cO_{\AA^{1}}) \bigr)
 $$
 where $\FF$ denotes a graded  complex of finitely generated free $S$-modules and
-$\pi: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection.
+$p_2: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection.
 \end{defn}
 
 
-For those comfortable with stacks, definition~\ref{defn:product}
+For those comfortable with stacks, Definition~\ref{defn:product}
 could be rephrased as follows. Consider the commutative diagram:
 \[
 \xymatrix{
@@ -630,7 +643,7 @@ table of a sheaf $\cE$ from the values of the pairing:
 
 We will focus in this paper on free complexes, and we will need to use the definition of $\Phi$
 only in the special case where $\cE$ is a vector bundle, or more generally a sheaf that is \emph{homologically transverse} to $\FF$, in the sense
-that $\widetilde FF\otimes cE $ is exact, and we will often apply the following easy result:
+that $\widetilde \FF\otimes \cE $ is exact, and we will often apply the following easy result:
 
 \begin{prop}
 If $\FF$ is a bounded graded free complex, and $\cE$ is a sheaf such that $\widetilde \FF\otimes \cE$ is exact, then the homology of the complex $\Phi(\FF,\cE)$ has finite length.
@@ -640,7 +653,7 @@ If $\FF$ is a bounded graded free complex, and $\cE$ is a sheaf such that $\wide
 a power of $t$. After inverting $t$ the map $\sigma$ becomes the usual inclusion $S\subset S[t,t^{-1}]$
 composed with the invertible change of variables $x_{i}\mapsto x_{i}t$. Thus the complex 
 $$
-\GG:=\bigl(\widetilde\FF\otimes_{\sigma}\cO_{\PP^{n}\times \Spec A[t,t^{-1}]}\bigr)
+\Gbull:=\bigl(\widetilde\FF\otimes_{\sigma}\cO_{\PP^{n}\times \Spec A[t,t^{-1}]}\bigr)
 \otimes_{\PP^{n}\times \Spec A[t,t^{-1}]}
 \cE \cong \widetilde \FF \otimes \cE \otimes \cO_{\Spec A[t,t^{-1}]}
 $$

@@ -282,26 +282,29 @@ The functor $\Phi$ induces all the pairings defined by Eisenbud and Schreyer: co
 \label{fig:bracket}
 \end{figure}
 
-\subsection*{Comparing Complexes and Resolutions} Here is a consequence of the analysis of Betti tables allowed by this categorification: If every bounded complex of free $S$-modules were quasi-isomorphic to its homology---which is not the case except when $n=0$, that is $S$ is the polynomial ring in just 1 variable---then the Betti table of a complex would be the sum of the Betti tables of the resolutions of its homology.  We show that the Betti table is at least a sum of Betti tables of resolutions, but with rational, not integral coefficients, and not necessarily of the original homology modules. Here, for simplicity, are two special cases of this result.
-%is the case when the homology has finite length. 
+\subsection*{Comparing Complexes and Resolutions} Here is a consequence of the analysis of Betti tables allowed by this categorification: If every bounded complex of free $S$-modules were quasi-isomorphic to its homology---which is not the case except when $n=0$, that is $S$ is the polynomial ring in just 1 variable---then the Betti table of a complex would be the sum of the Betti tables of the resolutions of its homology.  We show that, in great generality, the Betti table is  a sum of Betti tables of resolutions, but with rational, not integral coefficients, and not necessarily of the original homology modules. 
 
+Here, for simplicity, is the special case of this result when the homology has finite length. 
+%
+%\begin{cor}\label{cor:decompose}
+%Let $\FF\in \DD^b(S)$.  If $\FF$ 
+%\begin{enumerate}
+%	\item  If $\FF$ has finite length homology, then $\beta(\FF)$ may be written as a positive rational combination of Betti tables of shifted free resolutions
+%	\[\beta(\FF)=\sum_{i=0}^s \beta(M^i)[i]\]
+%	 where each module $M^i$ has finite length.
+%	\item  If $\codim H^i\FF\geq i$ then $\beta(\FF)$ may be written as a positive rational combination of Betti tables of shifted free resolutions
+%\[\beta(\FF)=\sum_{i=0}^s \beta(M^i)[i]\]
+%where $\codim(M^i)\geq i$ for all $i$.
+%\end{enumerate}
+%As in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.	
+%\end{cor}
 \begin{cor}\label{cor:decompose}
-Let $\FF\in \DD^b(S)$.
-\begin{enumerate}
-	\item  If $\FF$ has finite length homology, then $\beta(\FF)$ may be written as a positive rational combination of Betti tables of shifted free resolutions
-	\[\beta(\FF)=\sum_{i=0}^s \beta(M^i)[i]\]
-	 where each module $M^i$ has finite length.
-	\item  If $\codim H^i\FF\geq i$ then $\beta(\FF)$ may be written as a positive rational combination of Betti tables of shifted free resolutions
-\[\beta(\FF)=\sum_{i=0}^s \beta(M^i)[i]\]
-where $\codim(M^i)\geq i$ for all $i$.
-\end{enumerate}
-As in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.	
-\end{cor}
-\begin{cor}\label{cor:decompose}
-The Betti table of any bounded graded free complex of $S$-modules, with finite length homology, is a positive rational combination of Betti tables of shifted free resolutions of modules of finite length (as in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.)
+Let $\FF\in \DD^b(S)$ have finite length homology.  Then $\beta(\FF)$ is a positive rational combination of Betti tables of shifted free resolutions of modules of finite length (as in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.)
 \end{cor}
 
-The full statement and proof are given in \S\ref{sec:refined}.  \daniel{Need to add some reference to the generalizations.}  The denominators of the coefficients involved in the decomposition may be seen as a measure of the extent to which the complex is not quasi-isomorphic to its homology. 
+The full statement and proof are given in Theorems~\ref{thm:extremal rays} and \ref{thm:extremal rays refined}.  
+%These results specialize to the decomposition results for Betti tables of minimal free resolutions in the Cohen--Macaulay case~\cite[Theorem~0.2]{eis-schrey1} and in the general case~\cite{boij-sod2}.  
+The denominators of the coefficients involved in the decomposition may be seen as a measure of the extent to which the complex is not quasi-isomorphic to its homology. 
 
 \begin{example}
 Let $S=\kk[x,y]$ and consider the complex:
@@ -339,41 +342,49 @@ In fact, as one sees immediately,
 By contrast, $\beta(\FF)$ \emph{not} be written as a positive \emph{integral} combination of Betti tables of resolutions of modules of finite length: by Hilbert's Syzygy Theorem the Betti table of $\FF$  is not equal to any Betti table of a resolution, since $\FF$ has length 3; and the sum of the Betti numbers of any resolution of a nonzero module of finite length is at least 4, while the sum of the Betti numbers of $\FF$ is $6<2\cdot 4$.
 \end{example}
 
-\begin{example}
-Let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may apply \cite[Theorem~]{boij-sod2} and decompose
-\[
-\beta(\FF)=\begin{pmatrix}
-1^\zp&-&-&-\\
--&4&4&1
-\end{pmatrix}
-=
-\frac{1}{3}
-\begin{pmatrix}
-1^\zp&-&-&-\\
--&6&8&3
-\end{pmatrix}
-+\frac{2}{3}
-\begin{pmatrix}
-1^\zp&-&-\\
--&3&2
-\end{pmatrix}.
-\]
-On the other hand, we now set $S':=S/(\ell)$, where $\ell$ is a generic linear forms, and we let $\FF'$ be the restriction of $\FF$ to $S'$.  Since $\text{depth}(S/I)=1$, the complex $\FF'$ is not a resolution, but it does have finite length homology.  Hence, applying Corollary~\ref{cor:decompose}, we can decompose $\FF'$ in a different way:
-\[
-\beta(\FF')=
-\begin{pmatrix}
-1^\zp&-&-&-\\
--&4&4&1
-\end{pmatrix}
-=\begin{pmatrix}1^\zp&-&-\\-&3&2\end{pmatrix}
-+
-3\begin{pmatrix}
--^\zp&-&-&-\\
--&1&2&1
-\end{pmatrix}
-\] 
-\end{example}
+To give a sense of the range of further examples covered by Theorem~\ref{thm:extremal rays refined}, we include one additional special case.
 
+\begin{cor}\label{cor:decompose2}
+Let $\FF=[\FF_0\gets \dots \gets \FF_p]\in \DD^b(S)$ have the property that the $i$'th homology of $\FF$ has codimension at least $i$, for all $i\geq 0$.  Then $\beta(\FF)$ is a positive rational combination of Betti tables
+\[\beta(\FF)=\sum_{i=0}^s c_i\beta(M^i)[i] \quad \text{ with } c_i\in \QQ_{\geq 0},\]
+where $\codim(M^i)\geq i$ for all $i$. 
+\end{cor}
+%
+%\begin{example}
+%Let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may apply \cite[Theorem~]{boij-sod2} and decompose
+%\[
+%\beta(\FF)=\begin{pmatrix}
+%1^\zp&-&-&-\\
+%-&4&4&1
+%\end{pmatrix}
+%=
+%\frac{1}{3}
+%\begin{pmatrix}
+%1^\zp&-&-&-\\
+%-&6&8&3
+%\end{pmatrix}
+%+\frac{2}{3}
+%\begin{pmatrix}
+%1^\zp&-&-\\
+%-&3&2
+%\end{pmatrix}.
+%\]
+%On the other hand, we now set $S':=S/(\ell)$, where $\ell$ is a generic linear forms, and we let $\FF'$ be the restriction of $\FF$ to $S'$.  Since $\text{depth}(S/I)=1$, the complex $\FF'$ is not a resolution, but it does have finite length homology.  Hence, applying Corollary~\ref{cor:decompose}, we can decompose $\FF'$ in a different way:
+%\[
+%\beta(\FF')=
+%\begin{pmatrix}
+%1^\zp&-&-&-\\
+%-&4&4&1
+%\end{pmatrix}
+%=\begin{pmatrix}1^\zp&-&-\\-&3&2\end{pmatrix}
+%+
+%3\begin{pmatrix}
+%-^\zp&-&-&-\\
+%-&1&2&1
+%\end{pmatrix}
+%\] 
+%\end{example}
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{Beyond Polynomial Rings}

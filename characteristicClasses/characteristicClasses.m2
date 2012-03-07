@@ -248,7 +248,7 @@ residualDegs = {ResidualStrategy => "Symbolic"} >> opts -> (f, ambientDim, dimen
 	  -- write Bertini input file
 	  
 	  -- configuration 
-	  outConfig := "CONFIG \n" | "OUTPUTLEVEL: 0; \n" | "TRACKTYPE: 1; \n" | "USEREGENERATION: 1; \n" | "MAXNORM: 1e8; \n" | "SECURITYMAXNORM: 1e8; \n" |"; \n" |"END; \n \n";
+	  outConfig := "CONFIG \n" | "OUTPUTLEVEL: 0; \n" | "TRACKTYPE: 1; \n" | "USEREGENERATION: 1; \n" | "MAXNORM: 1e8; \n" | "SECURITYMAXNORM: 1e8; \n" |"END; \n \n";
 	  outVarGroup := "hom_variable_group ";
 	  -- variables
 	  variables := flatten entries vars R;
@@ -275,7 +275,7 @@ residualDegs = {ResidualStrategy => "Symbolic"} >> opts -> (f, ambientDim, dimen
 	  -- run Bertini
 	  execstr := "cd /tmp ;" | bertini'path | "bertini " | filename;
 	  ret := run(execstr);
-	  if ret =!= 0 then  error("Error occured while executing external program Bertini.");
+	  if ret =!= 0 then  error("Error occured while executing external program Bertini. Make sure that Bertini v1.3 is installed and configured.");
 	  
 	  -- Read output file "regenSummary". Remove the first two lines and the last one. 
 	  -- Furthermore remove the lines corresponding to codimensions less than the codimension of the variety,
@@ -598,6 +598,20 @@ TEST ///
    assert( totalChern == (ring(totalChern))_0 +2 * ((ring(totalChern))_0)^2 )
 ///
 
+
+TEST ///
+   R = QQ[x,y,z]
+   assert( segreClassList(ideal x, ResidualStrategy=>"Bertini") == {1,-1} )
+   assert( chernClassList(ideal x, ResidualStrategy=>"Bertini") == {1,2} )
+ ///
+ 
+TEST ///
+   R = QQ[x,y,z]
+   totalSegre = segreClass(ideal x, ResidualStrategy=>"Bertini")
+   assert( totalSegre == (ring(totalSegre))_0 - ((ring(totalSegre))_0)^2 )
+   totalChern = chernClass(ideal x, ResidualStrategy=>"Bertini")
+   assert( totalChern == (ring(totalChern))_0 +2 * ((ring(totalChern))_0)^2 )
+///
 
 
 -------------------------------------------------------

@@ -273,6 +273,8 @@ in the sense that:
 
 The target of this duality pairing, the cone of Betti tables on $A$, is easy to describe, and it is easy to write down the positive functionals that define it or the subcone composed of Betti tables of complexes with finite length homology. 
 The functor $\Phi$ induces all the pairings defined by Eisenbud and Schreyer: composing $\Phi$ with such functionals we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer.
+
+As noted above, working with the derived category $\DD^b(S)$ instead of minimal free resolutions represents a shift in perspective for Boij--S\"oderberg theory.  This shift is essential, as the functor $\Phi$ does not respect the property of being a resolution: if $\FF$ is a resolution of a finite length module, then $\Phi(\FF,\cE)$ will be a complex of $A$-modules with finite length homology, but it will generally fail to be a resolution.  
 \begin{figure}
 \begin{tikzpicture}[scale=1.2]
 %% first cone
@@ -387,7 +389,7 @@ In fact, as one sees immediately,
 By contrast, $\beta(\FF)$ \emph{not} be written as a positive \emph{integral} combination of Betti tables of resolutions of modules of finite length: by Hilbert's Syzygy Theorem the Betti table of $\FF$  is not equal to any Betti table of a resolution, since $\FF$ has length 3; and the sum of the Betti numbers of any resolution of a nonzero module of finite length is at least 4, while the sum of the Betti numbers of $\FF$ is $6<2\cdot 4$.
 \end{example}
 
-To give a sense of the range of further examples covered by Theorem~\ref{thm:extremal rays refined}, we include one additional special case.
+To give a sense of the range of further examples covered by Theorem~\ref{thm:extremal rays refined}, we include one additional special case.\daniel{I have mixed feelings about this corollary\dots}
 
 \begin{cor}\label{cor:decompose2}
 Let $\FF=[\FF_0\gets \dots \gets \FF_p]\in \DD^b(S)$ have the property that the $i$'th homology of $\FF$ has codimension at least $i$, for all $i\geq 0$.  Then $\beta(\FF)$ is a positive rational combination of Betti tables
@@ -424,7 +426,7 @@ This corollary provides the first descriptions of cones of Betti tables over a r
 
 \begin{example}\label{ex:elliptic}
 Let $E$ be an elliptic curve and let $L=2P$, where $P$ is any point of $E$.  The map $f$ corresponding to the complete
-linear series $|L|$ maps $E$ two-to-one to $\P^{1}$. The ring $R(X,L)$ has the form
+linear series $|L|$ maps $E$ two-to-one to $\P^{1}$. The ring $R(E,L)$ has the form
 $\kk[x_1,x_2,z]/(z^{2}-g(x_{1},x_{2}))$  where $\deg(x_i)=1$ and $\deg(z)=2$. \daniel{The old version of this example had a serious typo, I think.  Does
 this presentation of $R$ seem correct?}
 If $P\neq Q\in E$ then the sheaf $L(P-Q)$ is an Ulrich sheaf for $f$. Thus the cone of
@@ -967,7 +969,7 @@ Note that a complex $\Gbull$ has finite length homology if and only if $\lambda_
 \subsection{Complexes on $A$ with finite length homology}\label{sec:PP0}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-We first prove the special case of Theorem~\ref{thm:extremal rays refined} given by considering complexes of $A$-modules whose homology modules have finite length.  This leads to a description of $\BBQ^1(A)$.  We treat this case separately to help clarify our discussion in \S\ref{sec:functionals and duality}, where will interpret the functionals $\langle -,-\rangle_{\tau,\kappa}$ in terms of $\Phi$ and where we will discuss the duality of cones induced by $\Phi$.
+We first prove the special case of Theorem~\ref{thm:extremal rays refined} given by considering complexes of $A$-modules whose homology modules have finite length.  This leads to a description of $\BBQ^1(A)$.  We treat this case separately to help clarify our discussion in \S\ref{sec:duality}--\ref{sec:functionals}, where we discuss the duality of cones induced by $\Phi$ as well as the functionals $\langle -,-\rangle_{\tau,\kappa}$.
 
 \daniel{we could drop this whole subsection, but I was too hesitant to pull the trigger on that.}
 
@@ -1273,24 +1275,47 @@ We next consider the nonincreasing case.  Let $\FF$ be compatible with $\bb$ and
 As above, the complex $\nu^*(\FF)\otimes p_1^*(\cE)$ is exact in homological degrees $k\leq 0$.  Since the dimension of the support of $\cE$ is at most $k-1$, it follows that $\FF\cdot \cE$, which is the pushforward of $\nu^*(\FF)\otimes p_1^*(\cE)$, has no homology supported on the generic point of $[\AA^1/\GG_m]$ in homological degrees $\leq -k+1$.  Thus, $\FF\cdot \cE$ has finite length homology in these cases, so it is compatible with $\bb'$.
 \end{proof}
 
-\daniel{This proof needs to be updated and cleaned up.}
+
+The following lemma will be used repeatedly in our proof of Theorem~\ref{thm:extremal rays}.
+\begin{lemma}\label{lem:pure and supernatural}
+Let $d$ be the codimension $n+1$ degree sequence corresponding to a pure complex $\FF_d$, and let $f=(f_1>\dots >f_n)$ be the root sequence corresponding to a supernatural vector bundle $\cE_f$.  Then
+$
+\beta_{i,j}(\FF_d\cdot \cE_f)\ne 0
+$
+if and only if $d_\ell=j$ where $f_{\ell-i}>-d_{\ell}>f_{\ell-i+1}$.\end{lemma}
+\begin{proof}
+Without loss of generality, we may assume $i=j=0$ and we may represent $\FF_d\cdot \cE_f$ by its minimal free resolution. Unless $0$ appears in $d$ and $0$ does not appear in $f$, we clearly have $\beta_{0,0}(\FF_d\cdot \cE_f)=0$.  We take the convention that $f_0=\infty$ and $f_{n+1}=-\infty$. We may then assume that $d_{\ell}=0$ for a unique $\ell$, and that $f_m>0>f_{m+1}$ for a unique $m$.
+Since $\cE_f$ is supernatural, it then follows that $\gamma_{q,0}(\cE_f)\ne 0 \iff q=m$.  Hence, we may apply Theorem~\ref{thm:betti numbers of pairing} to conclude that
+\[
+\beta_{0,0}(\FF_d\cdot \cE_f)\ne 0 \iff m=\ell,
+\]
+implying the lemma.
+\end{proof}
+
+
 
 \begin{proof}[Proof of Theorem~\ref{thm:extremal rays refined}]
-We consider the case where $\bb$ is nondecreasing, as the nonincreasing case is essentially the same.  As in the proof of Theorem~\ref{thm:extremal rays}, we proceed by restricting to finite dimensional subcones.  For $(f,e)\in \ZZ^2$ with $f-e\geq n+1$, we set $\VV_{(f,e)}$ to be the subspace of $\VV$ defined by $\VV_{(f,e)}:=\bigoplus_{i=f}^e \bigoplus_{j=-e+i}^{-f+i} \QQ$.  We let $P_{(f,e)}$ be the poset of degree sequences that are compatible with $\bb$ and whose corresponding rays lie in $\VV_{(f,e)}$, and we set $\widetilde{\bb}=(b_{f},b_{-e+1},\dots, b_e)$ be the truncation of $\bb$.  Since we can ignore any column $i$ with $b_i=-\infty$, we may, without loss of generality, assume that $b_f>-\infty$.  We may also assume, without loss of generality that $b_{e-n-1}<\infty$, else we could replace $e$ by $e-1$.  
+We consider the case where $\bb$ is nondecreasing, as the nonincreasing case is essentially the same.  We proceed by restricting to finite dimensional subcones.  For $(\delta,\epsilon)\in \ZZ^2$ with $\epsilon-\delta\geq n+1$, we set $\VV_{(\delta,\epsilon)}$ to be the subspace of $\VV$ defined by $\VV_{(\delta,\epsilon)}:=\bigoplus_{i=\delta}^\epsilon \bigoplus_{j=-\epsilon +i}^{-\delta+i} \QQ$.  We let $P_{(\delta,\epsilon)}$ be the poset of degree sequences that are compatible with $\bb$ and whose corresponding rays lie in $\VV_{(\delta,\epsilon)}$, and we set $\widetilde{\bb}=(b_{-\delta},b_{-\delta+1},\dots, b_{\epsilon})$ be the truncation of $\bb$.  Since we can ignore any column $i$ with $b_i=\emptyset$, we may, without loss of generality, assume that $b_\delta \geq 0$.  We may also assume, without loss of generality that $b_{\epsilon-n-1}<\infty$, else we could replace $\epsilon$ by $\epsilon-1$.  
 
-By possibly shrinking $n$ (which will not affect the rest of the proof), we may assume that the minimal degree sequence in $P_{(f,e)}$ corresponds to a pure complex of finite length.  Thus, $P_{(f,e)}$ is the subposet consisting of all degree sequences between its minimal element $d_{\min}$:
-\[\bordermatrix{&&&f&&&e-n-1&&e &&\cr
+By possibly shrinking $n$ (which will not affect the rest of the proof), we may assume that the minimal degree sequence in $P_{(\delta,\epsilon)}$ corresponds to a pure complex of finite length.  Thus, $P_{(\delta,\epsilon)}$ is the subposet consisting of all degree sequences between its minimal element $d_{\min}$:
+\[\bordermatrix{&&&\delta&&&\epsilon-n-1&&\epsilon &&\cr
               d_{\min}= &\dots&-\infty,&-\infty,&\dots&-\infty,&-n-1,&\dots &0, &\infty,&\dots\cr}\]
 and its maximal element
-\[\bordermatrix{&&f&&f+b_f&&&e &&\cr
+\[\bordermatrix{&&\delta&&\delta+b_\delta&&&\epsilon &&\cr
               d_{max}= &\dots&0,&\dots&n+1,&\infty,&\dots &\infty,&\infty,&\dots\cr}\]
-Let $\Sigma_{(f,e)}$ be the cone spanned by the pure diagrams of type $d$, as $d$ ranges over the poset $P_{(f,e)}$.  We may apply the proof of  \cite[2.9]{boij-sod1} to conclude that $\Sigma_{(f,e)}$ has the structure of a simplicial fan, whose simplices correspond to chains in $P_{(f,e)}$.
+Let $\Sigma_{(\delta,\epsilon)}$ be the cone spanned by the pure diagrams of type $d$, as $d$ ranges over the poset $P_{(\delta,\epsilon)}$.  We may apply the proof of  \cite[2.9]{boij-sod1} to conclude that $\Sigma_{(\delta,\epsilon)}$ has the structure of a simplicial fan, whose simplices correspond to chains in $P_{(\delta,\epsilon)}$.
 
-We next note that any maximal chain in $P_{(f,e)}$ spans the codimension $b_f$ subspace of $\VV_{(f,e)}$ cut out by the vanishing of the total Euler characteristic.  It then follows that, inside of its span, $\Sigma_e$ is a full-dimensional, equidimensional simplicial fan.  We define $D_{(f,e)}$ to be the intersection of the halfspaces corresponding of all of the boundary facets of $\Sigma_{(f,e)}$.  We have $D_{(f,e)}\subseteq \Sigma_{(f,e)}$.
+We next note that any maximal chain in $P_{(\delta,\epsilon)}$ spans the codimension $b_f$ subspace of $\VV_{(\delta,\epsilon)}$ cut out by the vanishing of the first $b_f$ Herzog--K\"uhl equations.  It follows that, inside of its span, $\Sigma_{(\delta,\epsilon)}$ is a full-dimensional, equidimensional simplicial fan.  We define $D_{(\delta,\epsilon)}$ to be the intersection of the halfspaces corresponding of all of the boundary facets of $\Sigma_{(\delta,\epsilon)}$.  We have $D_{(\delta,\epsilon)}\subseteq \Sigma_{(\delta,\epsilon)}$ 
 
-The existence of pure resolutions~\cite[Theorem~0.1]{eis-schrey1} implies that, for any degree sequence from $P_{(f,e)}$, the corresponding ray lies in $\BBQ^{n+1}(S)$.  Hence $D_{(f,e)}$ is a subcone of $\BBQ^{n+1}(S)\cap \VV_{(f,e)}$ for all $(f,e)$.  We may thus complete the proof by showing that  $\BBQ^{n+1}(S)\cap \VV_{(f,e)} \subseteq D_{(f,e)}$ for all $(f,e)$.  
+The existence of pure resolutions~\cite[Theorem~0.1]{eis-schrey1} implies that, for any degree sequence from $P_{(\delta,\epsilon)}$, the corresponding ray lies in $\BBQ^{n+1}(S)$.  Hence $D_{(\delta,\epsilon)}$ is a subcone of $\BBQ^{n+1}(S)\cap \VV_{(\delta,\epsilon)}$ for all $(\delta,\epsilon)$.  
+As discussed in~\cite[Appendix A]{bbeg}, we may thus talk about boundary facets of $\Sigma_{(\delta,\epsilon)}$, and we define $D_{(\delta,\epsilon)}$ to be the intersection of the halfspaces corresponding to all boundary facets of $\Sigma_{(\delta,\epsilon)}$.  We have $D_{(\delta,\epsilon)} \subseteq \Sigma_{(\delta,\epsilon)}$.
+Since any point of $\BBQ^{\bb}(S)$ lies in some subspace of the form $\VV_{(\delta,\epsilon)}$, we may complete the proof by showing that
+\[
+\BBQ^{n+1}(S)\cap \VV_{(\delta,\epsilon)} \subseteq D_{(\delta,\epsilon)}
+\]
+for all $(\delta,\epsilon)$.  
 
-Now we come to a significant difference between this proof and the proof of Theorem~\ref{thm:extremal rays}.  There are now three (instead of two) ways that  adjacent elements $d<d'$ can arise in $P_{(f,e)}$.   The first way is simply that $d'$ is obtained from $d$ by adding $1$ to a single entry, as in:
+Now we come to a significant difference between this proof and similar proofs from \cites{eis-schrey1,boij-sod2}.  There are now three ways that  adjacent elements $d<d'$ can arise in $P_{(\delta,\epsilon)}$.   The first way is simply that $d'$ is obtained from $d$ by adding $1$ to a single entry, as in:
 \[
 (\dots,3^\circ,\dots)<(\dots,4^\circ,\dots).
 \]
@@ -1305,39 +1330,107 @@ For example, if $n=2$ and $i=0$, we could have:
 \[
 (\dots, -\infty, -2, 0, -f^\circ, \dots)<(\dots, -\infty,-2, 0, \infty^\circ, \dots).
 \]
-We refer this as a \defi{codimension shift}.  
+We refer this as a \defi{codimension shift}.  (Note that, since $\bb$ is nondecreasing, we only ever face codimension shifts which increase the codimension.  When $\bb$ is nonincreasing, we will only ever face codimension shifts which decrease the codimension.)
 
 
-We now identify the halfspaces corresponding to boundary facets of $\Sigma_{(f,e)}$.  Cases (i)--(iv) are nearly identical as in the proof of Theorem~\ref{thm:extremal rays}.  There is, however, one new possibility for case (ii).  We could also have $d'<d$ increases the last finite entry and then $d<d''$ is a codimension shift.  For instance,
+We now identify the halfspaces corresponding to boundary facets of $\Sigma_{(\delta,\epsilon)}$.  
+As in, e.g. \cite[Proposition~2.12]{boij-sod1}, these halfspaces are (with the exception of case (i) below) entirely determined by the omitted element $d$ and its two adjacent neighbors $d'$ and $d''$, and we refer to such a halfspace by the triplet $d'<d<d''$.  The different types of boundary facets of $\Sigma_e$ that arise are the following:
+\begin{enumerate}[(i)]
+	\item A chain where we omit either the maximal or minimal element of $P_e$.
+	\item A chain where $d'_i<d_i<d''_i$ for some $i$.  This can arise in four different ways depending on whether/where a shift occurs.  First, we could have no shift, in which case we must have $d''_i=d_i+1=d'_i+2$.  For example, the chain
+	\[
+(\dots,1^*,\dots) <(\dots, 2^*,\dots) <(\dots,3^*,\dots)
+	\]
+Second, is of this kind: $d'<d$ could be a shift from column $i+2$, followed by $d''_i=d_i+1$.  For example, if $n=1$, we could have
+	\[
+	(\dots, -\infty, -2, 0, e^*, \dots)<(\dots, -2-e,-2, 0, \infty^*, \dots)<(\dots, -e,-2, 0, \infty^*, \dots).
+	\]
+Third, we could have $d_i=d'_i+1$ and $d<d''$ a shift from column $i$. For example, if $n=1$, we could have
+	\[
+	(\dots, -\infty, -2, 0, e-1^*, \dots)<(\dots, -\infty, -2, 0, e^*, \dots)<(\dots, -2-e,-2, 0, \infty^*, \dots)	\]
+Fourth, we could have $d'<d$ increases the last finite entry and then $d<d''$ is a codimension shift.  For instance,
 \[
 (\dots,-\infty,0^\circ,-f,\infty,\dots)<(\dots,-\infty,0^\circ,-f+1,-\infty,\dots)<(\dots,-\infty,0^\circ,\infty,\infty,\dots).
 \]
 
-There are new several entirely new types of boundary facets of $\Sigma_{(f,e)}$ that arise in the following ways:
-\begin{enumerate}
-	\item[(v)] A chain where $d'<d$ is a codimension shift and $d<d''$ is also a codimension shift.  
+	\item A chain where $d', d,$ and $d''$ by $1$ in adjacent positions.  For this to be submaximal, we must have $d''_i=d_i+1=d'_i+1$, $d''_{i+1}=d_{i+1}=d'_{i+1}+1$ and $d'_i+1=d'_{i+1}$.  For example, the chain
+			\[
+(\dots,, 0,1^*,\dots) <(\dots, 0,2^*,\dots) <(\dots, 1,2^*,\dots) 
+			\]
+	\item A chain where $d'<d$ is a shift from column $i$ and $d<d''$ is a shift from column $i-1$.  For example, the chain:
+		\[
+		(\dots, 0,e-1^*,e,\infty,\dots)<(\dots, -e+2,0,e-1^*,\infty,\dots)<(\dots, -e+3,-e+2,0,\infty^*,\dots)
+		\]
+	\item A chain where $d'<d$ is a codimension shift and $d<d''$ is also a codimension shift.  
 %Let $c$ be the codimension of of $d'$ and assume that the finite entries of $d'$ lies in homological positions $\{i,\dots,i+c\}$.  Then we have $d'_j=d_j$ for all $j<i+c$; $d'_j=d''_j$ for all $j<i+c-1$; $d_{i+c}=\infty$ and $d''_{i+c-1}=d_{i+c}-\infty$.  
 For instance
 \[
 (\dots,-\infty,0^\circ,-f,\infty,\dots)<(\dots,-\infty,0^\circ,-f+1,-\infty,\dots)<(\dots,-\infty,0^\circ,\infty,\infty,\dots).
 \]
-	\item[(vi)]   A chain where $d'<d$ is a codimension shift and $d<d''$ is a homological shift.  For  instance
-	\item[(vii)]   A chain where $d'<d$ is a homological shift and $d<d''$ is a codimension shift
+	\item   A chain where $d'<d$ is a codimension shift and $d<d''$ is a homological shift.  For  instance
+	\item   A chain where $d'<d$ is a homological shift and $d<d''$ is a codimension shift
 \end{enumerate} 
 
-To complete the proof, we will identify the functional corresponding to each of these boundary facets (the functional is unique in the vector space spanned by $\Sigma_{(f,e)}$), and then we will show that this functional may be realized as $(\beta(\FF)\mapsto \zeta(\FF\cdot \cE_f))$, where $\cE_f$ is a supernatural sheaf of codimension $\ell$ (for some $\ell$) and where $\zeta$ is a functional for the dual cone of $\BBQ^{\bb\star \ell}(A)$ from Corollary~\ref{cor:dualconeA}.   Since every such functional is, by Lemma~\ref{lem:refined positivity}, nonnegative on any $\beta(\FF)\in \BBQ^{n+1}(S)$, this will complete the proof.
+To complete the proof, we will identify the functional corresponding to each of these boundary facets (the functional is unique in the vector space spanned by $\Sigma_{(\delta,\epsilon)}$), and then we will show that this functional may be realized as $(\beta(\FF)\mapsto \zeta(\FF\cdot \cE_f))$, where $\cE_f$ is a supernatural sheaf of codimension $\ell$ (for some $\ell$) and where $\zeta$ is one of the functionals that arises from Corollary~\ref{cor:dualconeA refined}.   We will then show use Lemma~\ref{lem:refined positivity} to show that  this is nonnegative on any $\beta(\FF)\in \BBQ^{\bb}(S)$.
 
 
-Cases (i)--(iv) follow from nearly the same arguments as in the proof of Theorem~\ref{thm:extremal rays}.  For each of these cases, we use the same functional as in the previous and the arguments remain largely unchanged.  Let us illustrate this point via case (iii).  Let $c$ be the codimension of $d$.  After possibly reindexing the homological indices, we can assume that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, c\}$.   We may also assume that $d_i=0$ and thus that $d_{i+1}=2$.  We then fix the root sequence $f=(-d_0>-d_1>\dots >-d_{i-1}>-d_{i+2}>\dots >-d_{c})$, and we let $\cE_f$ be any supernatural sheaf of type $f$.  We claim that the corresponding functional is given by
-\begin{equation}\label{eqn:iii refined}
-\beta(\FF) \mapsto \chi_{0,0}(\FF\cdot \cE_f)
-\end{equation}
-We may reuse the corresponding argument from the proof of Theorem~\ref{thm:extremal rays} to confirm that this functional evaluates nonnegatively on $\FF_d$.  The next step is more subtle: since our degree sequences are now allowed to vary in codimension, we cannot simply the previous to check that $\chi_{0,0}(\FF_g\cdot \cE_f)=0$ when $g\geq d''$ or some $g\leq d'$ such that $\chi_{0,0}(\FF_g\cdot \cE_f)$ is negative.  Going back to the proof for case (iii), we note that one key point in handling the cases $g\geq d''$ was that $\FF_g\cdot \cE_f$ had finite length homology.  This is still the case: the codimension of $g$ is at least the codimension of $d$, which equals $c$; the dimension of the support of $\cE_f$ is $c-1$.  Hence, the argument for the case of $g\geq d''$ goes through.   On the other hand, if $g\leq d'$, then $\FF_g\cdot \cE_f$ is always supported in the ``lower region'' corresponding to $\chi_{0,0}$, and hence $\chi_{0,0}(\FF_g\cdot \cE_f)=0$ in these cases as well.
+The corresponding functionals are obtained as follows.  For (ii), we consider the functional:
+\[
+\beta(\FF)\mapsto \beta_{i,{d_i}}(\FF\cdot \cO(d_i)).
+\]
+If $e$ is a degree sequence and $\FF_e$ is a pure complex of type $e$, then by Lemma~\ref{lem:pure and supernatural}, this functional is nonzero on $\beta(\FF_e)$ if and only if $e_i=d_i$.
+%on $\pi_e$ if and only if $[\pi_e, \cO(d_i)]$ has a nonzero entry in position $\beta_{i,d_{i}}$.  Since $\gamma_{q,d_i}(\cO(d_i))\ne 0$ only if $q=0$, we may use Theorem~\ref{thm:betti numbers of pairing} to see that the $\beta_{i,d_i}$ entry of $[\pi_e, \cO(d_i)]$ simply equals that $\beta_{i,d_i}$ entry of $\pi_e$.  Thus, the functional is positive on $\pi_d$.  Moreover, if $e\leq d'$ then $e_i\leq d'_i<d_i$ and if $e\geq d''$ then $e_i\geq d''_i>d_i$.  
+Now let $e$ be a degree sequence from any chain of type (ii).  Then $e_i=d_i$ if and only if $e=d$, and it thus follows that this functional corresponds to any boundary facet of type (ii).
 
-To complete the argument for (iii), we must check that the functional from \eqref{eqn:iii refined} is nonnegative on all elements of $\BBQ^{\bb}(S)$.  Based on our reindexing, we have $\bb_0=\codim(d)=c$.  We then combine Lemma~\ref{lem:refined positivity} and Corollary~\ref{cor:dualconeA refined} to see that \eqref{eqn:iii refined} is nonnegative on all of $\BBQ^{\bb}(S)$.
+For (i), we consider the case where we omit the maximal element, the other case being similar.  Note that $(d_{\max})_{\delta}=0$ and $e_{\delta}<0$ for all other degree sequences $e$ in $P_{(\delta,\epsilon)}$.  Then, by essentially the same argument as in the previous paragraph, the functional 
+\[
+\beta(\FF)\mapsto \beta_{\delta,0}(\FF\cdot \cO)
+\]
+corresponds to this boundary facet.
 
-By similar adaptations of our previous arguments, we can handle cases (i)--(iv).  We now turn attention to the functionals for cases (v)--(vii).  
-%We omit the arguments justifying that the these are the correct functionals, as the argument is  entirely analogous to arguments that already appear in the proof of Theorem~\ref{thm:extremal rays}.  
+For (iii), we let $c=\codim(d)$.  Without loss of generality we can assume that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, c\}$.   We may also assume that $d_i=0$ and thus that $d_{i+1}=2$.  We then fix the root sequence $f=(-d_0>-d_1>\dots >-d_{i-1}>-d_{i+2}>\dots >-d_{c})$, and we let $\cE_f$ be any supernatural vector bundle of type $f$.  We claim that the corresponding functional is given by
+\[
+\beta(\FF) \mapsto \chi_{0,0}(\FF\cdot \cE_f).
+\]
+We first observe that this functional is strictly positive on $\FF_d$.  Since $-d_j$ is a root of $\cE_f$ for all $j\ne i,i+1$, we see that $\FF_d\cdot \cE_f$ is a two-term complex of the form
+\[
+\FF_d\cdot \cE_f=\left[ \overset{\circ}{A^N} \gets A^N(-2)\right],
+\]
+for some $N>0$.  It follows from the definition of $\chi_{0,0}$ that $\chi_{0,0}(\FF_d\cdot \cE_f)=N>0$.  
+
+Next, we recall that the functional $\chi_{0,0}$ splits a Betti table on $A$ into two regions:
+\[
+\chi_{0,0}\Rightarrow 
+\left(
+\begin{array}{cccccccc}
+ & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
+\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+\dots&0&0&\multicolumn{1}{|c}{1^\circ}&-1&1&-1&\dots\\ \cline{4-5}
+\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
+\end{array}
+\right),
+\]
+where the $1^\circ$ corresponds to $\beta_{0,0}$.   If $\beta(\FF\cdot \cE_f)$ lies entirely in the upper region, then $\chi_{0,0}(\FF\cdot \cE_f)=\chi(\FF\cdot \cE_f)$ which equals zero whenever $\FF\cdot \cE_f$ has finite length homology.  On the other hand, if $\beta(\FF\cdot \cE_f)$ lies entirely in the lower region, then $\chi_{0,0}(\FF\cdot \cE_f)$ equals the dot product of $\beta(\FF\cdot \cE_f)$ with the zero matrix.
+
+Thus, to complete our computation for case (iii), it suffices to verify the following claim: if $e\leq d'$ then $\beta(\FF_c\cdot \cE_f)$ lies entirely in the upper region and $\FF_e\cdot \cE_f$ has finite length homology, and if $e\geq d''$ then $\beta(\FF_e\cdot \cE_f)$ lies entirely in the lower region.  This claim may be verified by repeated applications of Lemma~\ref{lem:pure and supernatural}.  We discuss one case of this verification, with the others being similar.  For instance, fix $e\leq d'$ and assume that $\beta_{0,e_\ell}^A(\FF_e\cdot \cE_f)\ne 0$.  We must show that $e_{\ell}\leq 0$.  By Lemma~\ref{lem:pure and supernatural}, we have
+$
+f_{\ell}>-e_{\ell}>f_{\ell+1}.
+$
+However, $e_{\ell}\leq d_{\ell}$ and thus $f_{\ell}\geq -d_{\ell}$.  By construction of $f$, this holds if and only if $\ell \leq i$.  Since $e$ is a degree sequence, we then have $e_{\ell}\leq e_i\leq d_i=0$, as desired.  Further, since $e\leq d'$ and since $\bb$ is nondecreasing, it follows that $\codim(e)\geq \codim(d')$ and thus that $\codim(\FF_e)+\codim(\cE_f)\geq n+1$.  After translating by $\GL_{n+1}$, which will not affect the Betti table of $\FF_e$, we may thus assume that $\FF_e$ and $\cE_f$ are homologically transverse.  It then follows that $\FF_e\cdot \cE_f$ has finite length homology, completing the claim when $e\leq d'$.  The argument fo $e\geq d''$ similarly follows by repeated applications of Lemma~\ref{lem:pure and supernatural}.
+
+We next consider case (iv).  We set $c=\codim(d)$, and without loss of generality, we may assume that $i=1$.  We then note that $d_j$ is finite if and only if $j\in \{-c,\dots ,0\}$.  We fix the root sequence $f=(-d_{-c+1}>-d_{-c+2}>\dots>-d_{-1})$ and we let $\cE_f$ be any supernatural bundle of type $f$.   The corresponding functional is:
+\daniel{not sure I adjusted indices right here.  recheck!}
+\[
+\beta(\FF)\mapsto \chi_{-c-1,-c-2+\delta}(\FF\cdot \cE_f).
+\]
+Now, let $e$ be any degree sequence in $P_{(\delta,\epsilon)}$.  One may verify that the above functional computes the partial Euler characteristic of $\FF_e\cdot \cE_f$ computed from homological degree $-c+1$ to column $\infty$.  Now, if $\FF_d$ is a pure complex of type $d$, then there exists some $N$ such that:
+\[
+\FF_d\cdot \cE_f=\left[ \overset{\zp}{A^N}(c-\delta)\gets A^N(-\delta) \right][-c],
+\]
+and hence the functional evaluates to $N$.  If $e\leq d'$, then, after achieving homological transversality, $\FF_e\cdot \cE_f$ has finite length homology and is supported entirely in homologiccal degrees $\geq -c+1$, and so the functional evaluates to $0$.  If $e\geq d''$, then $\FF_e\cdot \cE_f$ is supported entirely in homological degrees $<-c+1$, and so the functional also evaluates to $0$.
 
 For case (v), we let $c$ be the codimension of $d$.  By reindexing the columns, it suffices to consider the consider where the finite entries of $d$ lie in homological positions $\{0,\dots,c\}$.  We then let $f$ be the root sequence $f=(-d_0>\dots >-d_{c-2})$ and we let $\cE_f$ be a supernatural sheaf of type $f$.  The appropriate functional has the form:
 \[
@@ -1354,11 +1447,11 @@ Applying $\chi_{-1,d_{c-2}}$ to this complex yields $N$, and hence our functiona
 When $g\leq d'$, then $\FF_g\cdot \cE_f$ is supported entirely in the ``lower region'' corresponding to $\chi_{-1,d_{c-2}}$, and so the functionally trivally vanishes on this complex.  This deals with case (v).
 
 
-The above argument for case (v) applies, literally verbatim, to cases (vi) and (vii) as well. 
+Finally, the above argument for case (v) applies, literally verbatim, to cases (vi) and (vii) as well. 
 
 We have thus verified that
 \[
-\BBQ^{\bb}(S)\cap V_{(f,e)}=\Sigma_{(f,e)},t
+\BBQ^{\bb}(S)\cap V_{(\delta,\epsilon)}=\Sigma_{(\delta,\epsilon)},t
 \]
 and this implies the theorem when $\bb$ is nondecreasing.  
 
@@ -1379,7 +1472,7 @@ For the nonincreasing case, the key point is to replace each instance of a $\chi
 \section{Examples}\label{sec:examples}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In this section we compute a few examples to help clarify the results from the previous sections.
+In this section we illustrate the results from the previous sections via a few examples.
 \begin{example}\label{ex:1441}
 Let $S=\kk[x,y,z]$ and let
 \begin{equation}\label{eqn:intro ex}
@@ -1387,11 +1480,11 @@ Let $S=\kk[x,y,z]$ and let
 \end{equation}
 
 
-We first show that $\beta(\FF)$ cannot equal the Betti table of a positive complex with finite length homology.  To prove this, we choose $\cE$ to be a rank $2$ supernatural bundle of type $(0,-8)$.  Then $\FF\cdot \cE$ can be represented by a positive, free complex of the form
+We first apply Theorem~\ref{thm:Phi} to show that $\beta(\FF)$ cannot equal the Betti table of a positive complex with finite length homology.  To prove this, we choose $\cE$ to be a rank $2$ supernatural bundle of type $(0,-8)$.  Then $\FF\cdot \cE$ can be represented by a positive, free complex of the form
 \[
 \FF\cdot \cE=\left[ \begin{matrix}A(-3)^{60}\\ \oplus \\A(-4)^{64}\end{matrix} \longleftarrow \begin{matrix}A(-4)^{64}\\\oplus \\ A(-5)^{60}\end{matrix}\right].
 \]
-For any positive complex of this form, the kernel of the map will contain at least $64-60=4$ copies of $A(-4)$, and hence $\FF\cdot \cE$ cannot have finite length homology.  By Theorem~\ref{thm:pos}, we conclude that $\beta(\FF)$ cannot be the Betti table of a complex with finite length homology.
+For any positive complex of this form, the kernel of the map will contain at least $64-60=4$ copies of $A(-4)$, and hence $\FF\cdot \cE$ cannot have finite length homology.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, we conclude that $\beta(\FF)$ cannot be the Betti table of a complex with finite length homology.
 
 However, $\beta(S)$ does lie in $\BBQ^2(S)$, as illustrated by the decomposition:
 \[
@@ -1537,188 +1630,7 @@ We then have an equality of functions
 from $\VV \to \QQ$.
 \end{lemma}
 
-Note that the nonnegativity of all such functionals  follows by applying Theorem~\ref{thm:Phi}\eqref{thm:Phi:2} and Proposition~\ref{cor:dualconeA}.
-A similar statement holds for each nonnegative functional on cohomology tables.  Thus, the functor $\Phi$ provides a unifying view on all of the Eisenbud--Schreyer functionals and on the corresponding positivity results, including~\cite[Positivity 1]{eis-schrey-icm} and~ \cite[Positivity 2]{eis-schrey-icm}.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Complexes on $S$}\label{sec:finite length homology}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\daniel{This section will disappear.  But right now there are lots of hanging references to the proof of the big theorem.}
-
-In this section, we prove our main results about $\BBQ^{n+1}(S)$.
-
-
-\begin{proof}[Proof of Theorem~\ref{thm:pos}]
-Let $\FF$ be a positive, free complex with finite length homology, and let $\cE$ be any coherent sheaf on $\PP^n$.  Let $\FF'$ and $\cE'$ be as defined in Definition~\ref{defn:product}.  The homology of the complex $\FF'$ is entirely supported over the origin of $\AA^1$, and hence the same is true for $\FF'\otimes \cE'$.  It follows that $\FF\cdot \cE=Rp_{2*}(\FF'\otimes \cE')$ is quasi-isomorphic to a complex with homology supported on the origin of $\AA^1$, i.e. $\FF\cdot \cE$ has finite length homology, and thus $\FF\cdot \cE\in \DD^b(A)_{\text{tor}}$.  We conclude that $\beta(\FF\cdot \cE)$ lies in $\BBQ^1(A)$, as desired.
-\end{proof}
-
-
-
-
-The following lemma will be used in our proof of Theorem~\ref{thm:extremal rays}.
-\begin{lemma}\label{lem:pure and supernatural}
-Let $d$ be the codimension $n+1$ degree sequence corresponding to a pure complex $\FF_d$, and let $f=(f_1>\dots >f_n)$ be the root sequence corresponding to a supernatural vector bundle $\cE_f$.  Then
-$
-\beta_{i,j}(\FF_d\cdot \cE_f)\ne 0
-$
-if and only if $d_\ell=j$ where $f_{\ell-i}>-d_{\ell}>f_{\ell-i+1}$.\end{lemma}
-\begin{proof}
-Without loss of generality, we may assume $i=j=0$ and we may represent $\FF_d\cdot \cE_f$ by its minimal free resolution. Unless $0$ appears in $d$ and $0$ does not appear in $f$, we clearly have $\beta_{0,0}(\FF_d\cdot \cE_f)=0$.  We take the convention that $f_0=\infty$ and $f_{n+1}=-\infty$. We may then assume that $d_{\ell}=0$ for a unique $\ell$, and that $f_m>0>f_{m+1}$ for a unique $m$.
-Since $\cE_f$ is supernatural, it then follows that $\gamma_{q,0}(\cE_f)\ne 0 \iff q=m$.  Hence, we may apply Theorem~\ref{thm:betti numbers of pairing} to conclude that
-\[
-\beta_{0,0}(\FF_d\cdot \cE_f)\ne 0 \iff m=\ell,
-\]
-implying the lemma.
-\end{proof}
-
-%
-%\begin{lemma}\label{lem:pure and supernatural}
-%Let $d$ be the codimension $n+1$ degree sequence corresponding to a pure complex $\FF_d$, and let $f=(f_1>\dots >f_n)$ be the root sequence corresponding to a supernatural vector bundle $\cE_f$.  Then
-%$
-%\nu_{i,j,k}(\FF_d\cdot \cE_f)\ne 0
-%$
-%only if we have the following:
-%\begin{enumerate}
-%	\item\label{lem:1}  $d_\ell=j$ with $f_{\ell-i}<j<f_{\ell-i+1}$, and
-%	\item\label{lem:2}  $d_{\ell'}=j+k$ with $f_{\ell'-i-1}<j+k<f_{\ell'-i}$.
-%\end{enumerate}
-%\end{lemma}
-%\begin{proof}
-%Without loss of generality, we may assume $i=j=0$ and we may represent $\FF_d\cdot \cE_f$ by its minimal free resolution. We assume that $\nu_{0,0,k}(\FF_d\cdot \cE_f)\ne 0$.  Since this implies that some copy of the graded module $A$ appears in $\FF_d\cdot \cE_f$, it follows that there exists a unique $\ell$ such that $d_{\ell}=0$.  This also implies that $0$ must not appear in $f$, and hence there exists a unique $m$ such that $f_m<0<f_{m+1}$.  Since $\cE_f$ is supernatural, it then follows that $\gamma_{q,0}(\cE_f)\ne 0 \iff q=m$.  Hence, we may apply Theorem~\ref{thm:betti numbers of pairing} to conclude that
-%\[
-%\beta_{0,0}(\FF_d\cdot \cE_f)\ne 0 \iff m=\ell.
-%\]
-%This implies part~\eqref{lem:1} of the lemma.  A similar argument implies part~\eqref{lem:2}.
-%\end{proof}
-%
-\begin{proof}[Proof of Theorem~\ref{thm:extremal rays}]
-We first restrict to the case $\ell=n+1$.  As we note at the end of this proof, the case of a general $\ell$ is nearly identical.
-As in the proof of Proposition~\ref{prop:conePP0}, we proceed by restricting to finite dimensional subcones.  For $e\geq n+1$, we set $\VV_e$ to be the subspace of $\VV$ defined by $\VV_e:=\bigoplus_{i=-e}^e \bigoplus_{j=-e+i}^{e+i} \QQ$.  We let $P_e$ be the poset of degree sequences of codimension $n+1$ whose corresponding rays lie in $\VV_e$.  Thus, $P_e$ is the subposet consisting of all degree sequences of codimension $n+1$ between its minimal element $d_{\min}$:
-\[\bordermatrix{&&&-e&&&e-n-1&&e &&\cr
-              d_{\min}= &\dots&-\infty,&-\infty,&\dots&-\infty,&-n-1,&\dots &0, &\infty,&\dots\cr}\]
-
-\[\bordermatrix{&&-e&&-e+n+1&&&e &&\cr
-              d_{max}= &\dots&0,&\dots&n+1,&\infty,&\dots &\infty,&\infty,&\dots\cr}\]
-Let $\Sigma_e$ be the cone spanned by the pure diagrams of type $d$, as $d$ ranges over the poset $P_e$.  We may apply the proof of  \cite[2.9]{boij-sod1} nearly verbatim to conclude that $\Sigma_e$ has the structure of a simplicial fan, whose simplices correspond to chains in $P_e$.
-
-We next note that any maximal chain in $P_e$ spans the codimension $n+1$ subspace of $\VV_e$ cut out by the vanishing of the total Euler characteristic.  It then follows that, inside of its span, $\Sigma_e$ is a full-dimensional, equidimensional simplicial fan.  As discussed in~\cite[Appendix A]{bbeg}, we may thus talk about boundary facets of $\Sigma_e$, and we define $D_e$ to be the intersection of the halfspaces corresponding to all boundary facets of $\Sigma_e$.  We have $D_e\subseteq \Sigma_e$.
-
-The existence of pure resolutions~\cite[Theorem~0.1]{eis-schrey1} implies that, for any degree sequence of codimension $n+1$, the corresponding ray lies in $\BBQ^{n+1}(S)$.  Hence $D_e$ is a subcone of $\BBQ^{n+1}(S)\cap \VV_e$ for all $e$.  Since each point of $\BBQ^{n+1}(S)$ lies in some $\VV_e$, we may complete the proof by showing that  $\BBQ^{n+1}(S)\cap \VV_e \subseteq D_e$ for all $e$.  
-
-
-
-As in the proof of Proposition~\ref{prop:conePP0}, there are two ways  that adjacent elements $d<d'$ can arise in $P_e$.  The first way is simply that $d'$ is obtained from $d$ by adding $1$ to a single entry, as in:
-\[
-(\dots,3^*,\dots)<(\dots,4^*,\dots).
-\]
-The second way is when the finite entries of $d$ and $d'$ lie in different homological positions.  For this to occur, there exists a unique column $i$ such that: $d_j=d'_j$ for $j\notin \{i, i-n-2\}$; $d_i=i+e$ and $d'_i=\infty$; and $d_{i-n-2}=-\infty$ and $d'_{i-n-2}=i-n-2-e$.  For example, if $n=2$ and $i=0$, we could have:
-\[
-(\dots, -\infty, -2, 0, e^*, \dots)<(\dots, -2-e,-2, 0, \infty^*, \dots).
-\]
-As above, we refer to this second as a shift from column $i$.
-
-
-We now identify the halfspaces corresponding to boundary facets of $\Sigma_e$.  As in, e.g. \cite[Proposition~2.12]{boij-sod1}, these halfspaces are (with the exception of case (i) below) entirely determined by the omitted element $d$ and its two adjacent neighbors $d'$ and $d''$, and we refer to such a halfspace by the triplet $d'<d<d''$.  The different types of boundary facets of $\Sigma_e$ that arise are the following:
-\begin{enumerate}[(i)]
-	\item A chain where we omit either the maximal or minimal element of $P_e$.
-	\item A chain where $d'_i<d_i<d''_i$ for some $i$.  This can arise in three different ways depending on whether/where a shift occurs.  First, we could have no shift, in which case we must have $d''_i=d_i+1=d'_i+2$.  For example, the chain
-	\[
-(\dots,1^*,\dots) <(\dots, 2^*,\dots) <(\dots,3^*,\dots)
-	\]
-Second, is of this kind: $d'<d$ could be a shift from column $i+2$, followed by $d''_i=d_i+1$.  For example, if $n=1$, we could have
-	\[
-	(\dots, -\infty, -2, 0, e^*, \dots)<(\dots, -2-e,-2, 0, \infty^*, \dots)<(\dots, -e,-2, 0, \infty^*, \dots).
-	\]
-Third, we could have $d_i=d'_i+1$ and $d<d''$ a shift from column $i$. For example, if $n=1$, we could have
-	\[
-	(\dots, -\infty, -2, 0, e-1^*, \dots)<(\dots, -\infty, -2, 0, e^*, \dots)<(\dots, -2-e,-2, 0, \infty^*, \dots)	\]
-	\item A chain where $d', d,$ and $d''$ by $1$ in adjacent positions.  For this to be submaximal, we must have $d''_i=d_i+1=d'_i+1$, $d''_{i+1}=d_{i+1}=d'_{i+1}+1$ and $d'_i+1=d'_{i+1}$.  For example, the chain
-			\[
-(\dots,, 0,1^*,\dots) <(\dots, 0,2^*,\dots) <(\dots, 1,2^*,\dots) 
-			\]
-	\item A chain where $d'<d$ is a shift from column $i$ and $d<d''$ is a shift from column $i-1$.  For example, the chain:
-		\[
-		(\dots, 0,e-1^*,e,\infty,\dots)<(\dots, -e+2,0,e-1^*,\infty,\dots)<(\dots, -e+3,-e+2,0,\infty^*,\dots)
-		\]
-\end{enumerate} 
-
-To complete the proof, we will identify the functional corresponding to each of these boundary facets (the functional is unique in the vector space spanned by $\Sigma_e$), and then we will show that this functional has the form:
-\[
-(\beta(\FF))\mapsto \zeta(\FF\cdot \cE_f),
-\]
-where $\cE_f$ is an appropriately chosen supernatural bundle, and where $\zeta$ is one of the functionals from Corollary~\ref{cor:dualconeA}.  Since every such functional is, by Theorem~\ref{thm:pos}, nonnegative on any $\beta(\FF)\in \BBQ^{n+1}(S)$, this will complete the proof.
-
-The corresponding functionals are obtained as follows.  For (ii), we consider the functional:
-\[
-\beta(\FF)\mapsto \beta_{i,{d_i}}(\FF\cdot \cO(d_i)).
-\]
-If $c$ is a degree sequence and $\FF_c$ is a pure complex of type $c$, then by Lemma~\ref{lem:pure and supernatural}, this functional is nonzero on $\beta(\FF_c)$ if and only if $c_i=d_i$.
-%on $\pi_e$ if and only if $[\pi_e, \cO(d_i)]$ has a nonzero entry in position $\beta_{i,d_{i}}$.  Since $\gamma_{q,d_i}(\cO(d_i))\ne 0$ only if $q=0$, we may use Theorem~\ref{thm:betti numbers of pairing} to see that the $\beta_{i,d_i}$ entry of $[\pi_e, \cO(d_i)]$ simply equals that $\beta_{i,d_i}$ entry of $\pi_e$.  Thus, the functional is positive on $\pi_d$.  Moreover, if $e\leq d'$ then $e_i\leq d'_i<d_i$ and if $e\geq d''$ then $e_i\geq d''_i>d_i$.  
-Now let $c$ be a degree sequence from any chain of type (ii.  Tthen $c_i=d_i$ if and only if $c=d$, and it thus follows that this functional corresponds to any boundary facet of type (ii).
-
-For (i), we consider the case where we omit the maximal element, the other case being similar.  Note that $(d_{\max})_{-e}=0$ and $c_{-e}<0$ for all other degree sequences $c$ in $P_e$.  Then, by essentially the same argument as in the previous paragraph, the functional 
-\[
-\beta(\FF)\mapsto \beta_{-e,0}(\FF\cdot \cO)
-\]
-corresponds to this boundary facet.
-
-
-For (iii), without loss of generality we can assume that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, n+1\}$.   We may also assume that $d_i=0$ and thus that $d_{i+1}=2$.  We then fix the root sequence $f=(-d_0>-d_1>\dots >-d_{i-1}>-d_{i+2}>\dots >-d_{n+1})$, and we let $\cE_f$ be any supernatural vector bundle of type $f$.  We claim that the corresponding functional is given by
-\[
-\beta(\FF) \mapsto \chi_{0,0}(\FF\cdot \cE_f).
-\]
-We first observe that this functional is positive on any pure complex $\FF_d$ of type $d$.  Since $-d_j$ is a root of $\cE_f$ for all $j\ne i,i+1$, we see that $\FF_d\cdot \cE_f$ is a two-term complex of the form
-\[
-\FF_d\cdot \cE_f=\left[ \overset{\circ}{A^N} \gets A^N(-2)\right],
-\]
-for some $N>0$.  It follows that $\chi_{0,0}(\FF_d\cdot \cE_f)=N>0$.  
-
-Next, we recall that the functional $\chi_{0,0}$ splits a Betti table on $A$ into two regions:
-\[
-\chi_{0,0}\Rightarrow 
-\left(
-\begin{array}{cccccccc}
- & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
-\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
-\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
-\dots&0&0&\multicolumn{1}{|c}{1^\circ}&-1&1&-1&\dots\\ \cline{4-5}
-\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
-\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
-& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
-\end{array}
-\right),
-\]
-where the $1^\circ$ corresponds to $\beta_{0,0}$.   If $\beta(\FF\cdot \cE_f)$ lies entirely in the upper region, then $\chi_{0,0}(\FF\cdot \cE_f)=\chi(\FF\cdot \cE_f)$ which equals zero since $\FF\cdot \cE_f$ has finite length homology.  On the other hand, if $\beta(\FF\cdot \cE_f)$ lies entirely in the lower region, then $\chi_{0,0}(\FF\cdot \cE_f)$ equals the dot product of $\beta(\FF\cdot \cE_f)$ with the zero matrix.
-
-Thus, to complete our computation for case (iii), it suffices to verify the following claim: if $c\leq d'$ then $\beta(\FF_c\cdot \cE_f)$ lies entirely in the upper region, and if $c\geq d''$ then $\beta(\FF_c\cdot \cE_f)$ lies entirely in the lower region.  This claim may be verified by repeated applications of Lemma~\ref{lem:pure and supernatural}.  We discuss one case of this verification, with the others being similar.  Fix $c\leq d'$ and assume that $\beta_{0,c_\ell}^A(\FF_c\cdot \cE_f)\ne 0$.  We must show that $c_{\ell}\leq 0$.  By Lemma~\ref{lem:pure and supernatural}, we have
-$
-f_{\ell}>-c_{\ell}>f_{\ell+1}.
-$
-However, $c_{\ell}\leq d_{\ell}$ and thus $f_{\ell}\geq -d_{\ell}$.  By construction of $f$, this holds if and only if $\ell \leq i$.  Since $c$ is a degree sequence, we then  have $c_{\ell}\leq c_i\leq d_i=0$, as desired.
-
-Lastly, we consider case (iv).  Without loss of generality, we may assume that $i=1$.  We then note that $d_j$ is finite if and only if $j\in \{-n-1,\dots ,0\}$.  We fix the root sequence $f=(-d_{-n}>-d_{-n+1}>\dots>-d_{-1})$ and let $\cE_f$ be any supernatural bundle of type $f$.   The corresponding functional is:
-\[
-\beta(\FF)\mapsto \chi_{-n-2,-n-3-e}(\FF\cdot \cE_f).
-\]
-Now, let $c$ be any degree sequence in $P_e$ and $\FF_c$ be a pure complex of type $c$.  For any such $\FF_c$, we observe that the above equals the partial Euler characteristic of $\FF_c\cdot \cE_f$ computed from homological degree $-n$ to column $\infty$.  Now, if $\FF_d$ is a pure complex of type $d$, then there exists some $N$ such that:
-\[
-\FF_d\cdot \cE_f=\left[ \overset{\zp}{A^N}(n+1+e)\gets A^N(-e) \right][-n-1],
-\]
-and hence the functional evaluates to $N$.  If $c\leq d'$, then $\FF_c\cdot \cE_f$ is supported entirely in homologiccal degrees $\geq -n$, and so the functional evaluates to $0$.  If $c\geq d''$, then $\FF_c\cdot \cE_f$ is supported entirely in homological degrees $<-n$, and so the functional also evaluates to $0$.
-
-
-We have thus verified that every boundary facet of $D_e$ corresponds to a nonnegative functional on $\BBQ^{n+1}(S)$.  It follows 
-\[
-\BBQ^{n+1}(S)\cap V_e=\Sigma_e,
-\]
-and this implies the theorem in the case $\ell=n+1$.
-
-Finally, we note that this proof applies nearly verbatim to the case of an arbitrary $\ell$, so long as every instance of $n+1$ is replaced by $\ell$, and as long as we work with supernatural sheaves of codimension $n+1-\ell$ instead of supernatural vector bundles.
-\end{proof}
+Note that the nonnegativity of all such functionals follows instantly by applying Theorem~\ref{thm:Phi}\eqref{thm:Phi:2} and Proposition~\ref{cor:dualconeA}.  A similar statement holds for each nonnegative functional on cohomology tables.  Thus, the functor $\Phi$ provides a unifying view on all of the Eisenbud--Schreyer functionals and on the corresponding positivity results, including~\cite[Positivity 1]{eis-schrey-icm} and~ \cite[Positivity 2]{eis-schrey-icm}.
 
 
 
@@ -1884,7 +1796,7 @@ $\FF\cdot \cE$ for $\Phi(\FF,\cE)$.
 
 We are now prepared to prove Theorem~\ref{thm:Phimulti}.
 \begin{proof}[Proof of Theorem~\ref{thm:Phimulti}]
-
+\daniel{work in progress}
 \end{proof}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -708,7 +708,7 @@ only in the special case where $\cE$ is a vector bundle, or more generally a she
 that $\widetilde \FF\otimes \cE $ is exact.  
 % we will often apply the following observation:
 
-\begin{prop}
+\begin{prop}\label{prop:exact}
 Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$.  If $\widetilde \FF\otimes \cE$ is exact, then the homology of the complex $\Phi(\FF,\cE)$ has finite length.
 \end{prop}
 
@@ -1640,27 +1640,61 @@ Note that the nonnegativity of all such functionals follows instantly by applyin
 \section{Functoriality}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Let $(X,L)$ be a polarized projective scheme with $\dim(X)=d$ and $L$ a base-point free line bundle.  We use $\CQ^{0}(X,L)$ to denote the cone of cohomology tables of sheaves on $X$, with respect to $L$.  I.e., if $\cE$ is a sheaf on $X$ then $\gamma(\cE)\in \CQ^0(X,L)\subseteq \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq \ell \leq d$, we set $\CQ^{\ell}(X,L)$ to be the subcone of cohomology tables of sheaves whose support has codimension at least $\ell$.
+Let $f: X\to \PP^n$, with $\dim(X)=d$ and $L=f^*\cO(1)$.  We may define cohomology tables and Betti tables for the pair $(X,L)$ as follows.  If $\cE\in \DD^b(X)$then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq \ell \leq d$, we set $\CQ^{\ell}(X,L)$ to be the subcone of cohomology tables of sheaves whose support has codimension at least $\ell$.
 
-We let $f\colon X\to \PP^n$ be any morphism such that $f^*\cO_{\PP^n}(1)=L$, and we let $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ be the section ring of $L$.  Following Remark~\ref{rmk:stacky}, we consider the diagram:
-\[
-\xymatrix{
-X&X\times [\AA^1/\GG_m]\ar[l]_-{p_1} \ar[r]^-\sigma \ar[d]^{p_2}&[\Spec(R)/\GG_m]\\
-&[\AA^1/\GG_m]&%[\Spec(\kk)/\GG_m]\ar[l]_{o}
-}
-\]
-where $\sigma$ is the composition of maps
-\[
-X\times [\AA^1/\GG_m]\xrightarrow{\hspace*{.5cm}}\Proj(R)\times [\AA^1/\GG_m]\xrightarrow{\hspace*{.5cm}} [\Spec(R)/\GG_m].
-\]
-If $\FF$ is a positive, free complex of $R$-modules, and $\cE$ is a sheaf on $X$, we define $\FF\cdot \cE:=Rp_{2*}(\sigma^*(\FF)\otimes p_1^*(\cE))$.
+For Betti tables, we let $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ be the section ring of $L$.  The ring $R$ is naturally $\NN$-graded, and we define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  If $\FF \in \DD^b(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $R$.\daniel{In this level of generality, is $\widetilde{\FF}$ actually a complex on $f(X)$ on note $X$ itself?}
 
-\begin{lemma}\label{lem:betti nums genl}
-Theorem~\ref{thm:betti numbers of pairing} holds for the pairing on $(X,L)$.  Thus, the Betti table of $\FF\cdot \cE$ only depends on $\beta(\FF)$ and $\gamma(\cE)$.
-\end{lemma}
+We seek to define a functor:
+\[
+\Phi_X: \DD^b(R)\times \DD^b(X)\to \DD^b(A).
+\]
+We let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$.  
+We write $-\otimes_\sigma SR[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
+given by $\sigma$. 
+
+If $F$ is a graded  $R$-module, then 
+\[
+R\otimes_{\sigma} S[t]
+\]
+is a bigraded $S[t]$ module.
+Thus we may define a functor $\tau$ on derived
+categories that takes a graded complex of free $R$-modules $\FF$ to
+\[
+\tau(\FF): =\widetilde \FF \otimes_{\sigma}\cO_{X\times \AA^{1}},
+\]
+a complex of graded sheaves on $X\times \AA^{1}$, with the grading coming from degree in $t$, the coordinate on $\AA^{1}$.
+We let $p_2: X\times \AA^1\to \AA^1$ be the projection map, and we may define our functor $\Phi_X$, largely parallel to the definition of $\Phi$.
+\begin{defn}
+Given $\FF\in \DD^b(R)$ and $\cE\in \DD^b(X)$ we define
+\[
+\Phi_X(\FF,\cE):=Rp_{2*}\left( \tau(\FF)\otimes _{X\times \AA^1}\left( \cE\boxtimes \cO_{\AA^1}\right)\right).
+\]
+\end{defn}
+As above, we often omit $\Phi_X$ from the notation and simply write $\FF\cdot \cE$ for $\Phi_X(\FF,\cE)$.  We immediately obtain an analogue of Theorem~\ref{thm:Phi} for the functor $\Phi_X$.
+\begin{theorem}\label{thm:PhiX}
+The functor $\Phi_X$ has the following  properties:
+\begin{enumerate}
+	\item\label{thm:PhiX:1}  The Betti table of $\Phi_X(\FF,\cE)$ depends only on the Betti table of $\FF$ and the cohomology table of $\cE$.
+	\item\label{thm:PhiX:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_X(\FF,\cE)$ has finite length homology.  
+	%This occurs whenever $\FF$ is a complex with finite length homology and $\cE$ is a vector bundle.  More generally, if  $\codim(\FF)+\codim(\cE)\geq n+1$ then we may, after possibly replacing $\FF$ or $\cE$ by a general $\GL_{n+1}$-translate, assume that $\widetilde{\FF}\otimes \cE$ is exact.
+\end{enumerate}
+\end{theorem}
 \begin{proof}
-The proof of Theorem~\ref{thm:betti numbers of pairing} holds in this context as well.
+Statement \eqref{thm:PhiX:1} follows by applying exactly the same proof as used for Theorem~\ref{thm:betti numbers of pairing} above.  Statement \eqref{thm:PhiX:2} follows by applying the proof of Proposition~\ref{prop:exact}
 \end{proof}
+
+
+We first note that, in wide generality, we obtain well defined functors on the cones we have been considering.  Once again, the fact that we are working with derived categories instead of resolutions/sheaves plays an essential role in these definitions.
+
+\daniel{Here I'm just sketching an outline of where I'd like to go:}
+We have a well defined map:
+\[
+f^*\colon: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R) \text{ where } \beta(\FF) \mapsto \beta(f^*\FF).
+\]
+(We write this as $f^*$ since we may represent any $\FF\in \DD^b(S)$ by its minimal resolution, and in this case there is no need to work with $Lf^*$).
+We also have a well defined map \dots
+
+
 
 %We may now prove our generalized positivity result.
 %\begin{proof}[Proof of Theorem~\ref{thm:pos general X}]

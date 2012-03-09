@@ -425,19 +425,18 @@ as the cone of complexes with finite length homology  on $S$.
 \begin{example}\label{ex:elliptic}
 Let $E$ be an elliptic curve and let $L=2P$, where $p$ is any point of $E$.  The map $f$ corresponding to the complete
 linear series $|L|$ maps $E$ two-to-one to $\P^{1}$. The ring $R(E,L)$ has the form
-$\kk[x_1,x_2,y]/(g(x_{1},x_{2},y))$  where $\deg(x_i)=1$, $\deg(y)=2$, and $g$ is a polynomial
-of total weight 8.
+$\kk[x_1,x_2,y]/(g(x_{1},x_{2},y))$  where $\deg(x_i)=1$, $\deg(y)=2$, and where $\deg(g)=4$.
 %
 %$\kk[x_1,x_2,y]/(y^{2}-g(x_{1},x_{2}))$  where $\deg(x_i)=1$ and $\deg(y)=2$. \daniel{The old version of this example had a serious typo, I think.  Does
 %this presentation of $R$ seem correct?}
-\david{Let $D$ be the divisor of $y$, so that
-$D$ is NOT a sum of fibers of $|2p|: E\to \P^{1}$. We may as well choose $y$ so that it does not
-vanish on any complete fiber. Clearly there is 1 relation among the 9 products of the $x_{i}$ and $y$ in $|8p|$. But any section in the vector space $(x_{1}, x_{2})(y, x_{1}, x_{2})$ vanishes
-on at least one fiber. However, $y$ can be chosen to vanish on no pair of points in the fiber, so $y^{2}$ is outside this vector space. In this case there is no relation of the type specified,
-and I don't think you can produce one by changing $y$ (you can only do so by adding a linear
-combination of things in $(x_{1}, x_{2})^{2}$.) Thus I think the relation has to be written
-as above.}
-
+%\david{Let $D$ be the divisor of $y$, so that
+%$D$ is NOT a sum of fibers of $|2p|: E\to \P^{1}$. We may as well choose $y$ so that it does not
+%vanish on any complete fiber. Clearly there is 1 relation among the 9 products of the $x_{i}$ and $y$ in $|8p|$. But any section in the vector space $(x_{1}, x_{2})(y, x_{1}, x_{2})$ vanishes
+%on at least one fiber. However, $y$ can be chosen to vanish on no pair of points in the fiber, so $y^{2}$ is outside this vector space. In this case there is no relation of the type specified,
+%and I don't think you can produce one by changing $y$ (you can only do so by adding a linear
+%combination of things in $(x_{1}, x_{2})^{2}$.) Thus I think the relation has to be written
+%as above.}
+%
 If $P\neq Q\in E$ then the sheaf $L(P-Q)$ is an Ulrich sheaf for $f$. Thus the cone of
 Betti tables of bounded free complexes with finite length homology over $R$ is the same
 as the corresponding cone over $\P^{1}$.
@@ -523,7 +522,7 @@ We gather some notation and definitions that we will use throughout.  We set $\m
 \begin{defn}
 If $\FF\in \DD^b(S)$ is a free complex, then we say that $\FF$ is \defi{minimal} if each differential $\partial: \FF_i\to \FF_{i-1}$ satisfies $\partial(\FF_i)\subseteq \mathfrak m\FF_{i-1}$.
 \end{defn}
-We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.
+We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.  If $\FF$ is quasi-isomorphic to a complex with only one nonzero term, then we say that $\FF$ is a \defi{shifted resolution}.
 
 
 \begin{defn}
@@ -545,21 +544,32 @@ $$
 $$
 are shifted degree sequences of codimension 2.
 
-Given any degree sequence $d$, we say that a complex $\FF$ is \defi{pure of type $d$} if, for all $i$ such that $d_i\in \ZZ$, the free module $\FF_i$ is generated entirely in degree $d_i$. 
+Given any degree sequence $d$, we say that a complex $\FF$ is \defi{pure of type $d$} if, for all $i$ such that $d_i\in \ZZ$, the free module $\FF_i$ is generated entirely in degree $d_i$.   The existence of pure resolutions (see~\cite{efw} or \cite[\S5]{eis-schrey1}) shows that, for any shifted degree sequence $d$ of codimension $\ell\leq n+1$, there exists a shifted resolution of a Cohen-Macaulay module over $S$ that is a pure complex of type $d$.  One of the central results of Boij--S\"oderberg theory is that the Betti tables of pure resolutions correspond bijectively with the extremal rays of cone of Betti tables of minimal free resolutions.  In other words, if $\FF$ is a minimal free resolution, then $\beta(\FF)$ may be written as a positive rational combination of the Betti tables of pure resolutions.  See~\cite{eis-schrey-icm,floystad-expository} for expository introductions to Boij--S\"oderberg theory.  We remark that, in \S\ref{sec:refined}, we introduce new notation for discussing many different cones of Betti tables.
 
-The existence of pure resolutions (see~\cite{efw} or \cite[\S5]{eis-schrey1}) shows that, for any shifted degree sequence $d$ of codimension $\ell\leq n+1$, there exists a  finite free resolution of a Cohen-Macaulay module over $S$ that is a pure complex of type $d$.  \david{maybe remind the reader that B-S theory says these are the extremal rays of the cone of Betti tables of resolutions?}
 
-%Thus, for each degree sequence $d$ of codimension $\ell$, we may fix some pure, Cohen--Macaulay complex $\FF_d$ of type $d$ and codimension $\ell$.
+If $P$ is some property that may be applied to a graded $S$-module, we extend the definition to the derived category by saying that $\FF \in \DD^b(S)$ has property $P$ if the direct sum of the homology modules of $\FF$ have this property. We similarly take the definition of any property that may be applied to a coherent sheaf, and we extend this to any $\cE\in \DD^b(\PP^n)$.  
 
-If $P$ is some property that may be applied to a graded $S$-module, we extend the definition to the derived category by saying that $\FF \in \DD^b(S)$ has property $P$ if the direct sum of the homology modules of $\FF$ have this property. We similarly take the definition of any property that may be applied to a coherent sheaf, and we extend this to any $\cE\in \DD^b(\PP^n)$.  \daniel{do we need root sequence definitions here?}
+A \defi{root sequence of dimension $\ell$} is a sequence $f=(f_1,\dots,f_\ell)\in \mathbb Z^{\ell}$ with $f_i\geq f_{i-1}+1$ for all $i$.  
+A sheaf $\cE$ on $\PP^{n}$ is
+\defi{supernatural of type} $f=(f_1, \dots, f_{s})$ if the following are satisfied: 
+\begin{enumerate}
+\item The dimension of $\cE$ is $s$.
+\item For all $j\in \mathbb Z$, there exists at most one $i$ 
+		such that $\dim_\Bbbk H^i(\PP^{n}, \cE(j))\ne 0$.
+\item The Hilbert polynomial of $\cE$ has roots $f_1, \dots, f_{s}$.
+\end{enumerate}
+For every root sequence $f$, there exists a supernatural sheaf of type
+$f$~\cite[Theorem~0.4]{eis-schrey1}.
+Moreover, the cohomology table of any coherent sheaf 
+can be written as a positive real combination of cohomology tables 
+of supernatural sheaves~\cite[Theorem~0.1]{eis-schrey1}.  
+
+\daniel{brief discussion of duality?}
 
 \begin{defn}
 We index complexes in $\DD^b(S)$ homologically as in $\FF=[\dots \gets \FF_0\gets \FF_1\gets \dots]$.  For any $k\in \ZZ$, we define a \defi{shift} of $\FF$, denoted $\FF[k]$, as the complex obtained by shifting the indices in the following way:  $(\FF[k])_i=\FF_{i-k}$.
 \end{defn}
 
-We say that $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$ are \defi{homologically transverse} if $\widetilde{\FF}\otimes \cE$ is exact.
-
-\david{this definition of homologically transverse isn't quite general enough: in section 6 we want to apply it to the case where we'll deduce $H_{i} = 0$ for $i\geq 0$} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -726,9 +736,7 @@ We have:
 
 
 We will focus in this paper on free complexes, and we will need to use the definition of $\Phi$
-only in the special case where $\cE$ is a vector bundle, or more generally a sheaf that is \defi{homologically transverse} to $\FF$, in the sense
-that $\widetilde \FF\otimes \cE $ is exact.  
-% we will often apply the following observation:
+only in the special case where $\cE$ is a vector bundle, or more generally a sheaf that is supported on some linear subspace of $\PP^{\ell}\subseteq \PP^n$ and that is a vector bundle when restricted to its support.
 
 \begin{prop}\label{prop:exact}
 Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$.  If $\widetilde \FF\otimes \cE$ is exact, then the homology of the complex $\Phi(\FF,\cE)$ has finite length.
@@ -748,44 +756,88 @@ this is equal to the restriction of $\Phi(\FF,\cE)$ on the open set $t^{-1}$, an
 of $\Phi(\FF,\cE)$ is annihilated by a power of $t$, as required.
 \end{proof}
 
-%\daniel{I think we can safely drop this example.}
-%\begin{example}
-%Let $S=\kk[x_1,x_2, x_3]$ and let $\FF$ be a positive, free complex with
-%\[
-%\beta(\FF)=\begin{pmatrix} 4^\zp&8&6&-\\-&6&8&4\end{pmatrix}
-%\]
-%%of the form:
-%%\[
-%%\FF=\left[\underline{{S}}^4 \gets \begin{matrix} S^8(-1)\\ \oplus \\ S^6(-2)\end{matrix}\gets  \begin{matrix} S^6(-2)\\ \oplus \\ S^8(-3)\end{matrix}
-%%\gets S^4(-4)\gets 0.\right]
-%%\]
-%%Then $\FF\cdot \cO_{\PP^2}$ is a complex of the form:
-%%\[
-%%\FF\cdot \cF
-%%%=\left[\begin{matrix} \underline{A}\otimes_{\kk} H^0(\cO^4)\\ \oplus \\ A(-3)\otimes_{\kk} H^2(\cO(-3)^8) \end{matrix}\gets A(-4)\otimes_{\kk} H^2(\cO(-4)^4)\gets 0\right
-%%=\left[ \begin{matrix} A^4\\ \oplus \\ A^8(-3) \end{matrix} \gets A^{12}(-4)\right].
-%%\]
-%Let $\cE$ be a rank $2$ supernatural bundle of type $(0,-4)$, so that
-%\[
-%\gamma(\cE)=
-%\begin{vmatrix}
-%\dots&21&12&5&-&-&-&-&-&\dots\\
-%\dots&-&-&-&3&4&3&-&-&\dots\\
-%\dots&-&-&-&-&-&-^\circ&5&12&\dots
-%\end{vmatrix}
-%\]
-%We then have
-%\[
-%\beta(\FF\cdot \cE)=
-%\begin{pmatrix}
-%-&-^\circ\\
-%24&24\\
-%24&24
-%\end{pmatrix}.
-%\]
-%\end{example}
 
-\section*{Part II: Applications}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Categorified Eisenbud--Schreyer Positivity}\label{sec:functionals}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In this section, we illustrate how the pairing $\Phi$ provides a unifying view on all of the Eisenbud--Schreyer functionals and on the corresponding positivity results, including~\cite[Positivity 1]{eis-schrey-icm} and~ \cite[Positivity 2]{eis-schrey-icm}.  The basic idea breaks down into two steps, and can be envisioned via Figure~\ref{fig:bracket}.  First, we use $\Phi$ and a supernatural bundle $\cE_f$ to obtain a map $\Phi(-,\cE_f)$ from Betti tables on $S$ to Betti tables on $A$.  Second, we analyze the functionals on $\DD^b(A)$ which are nonnegative when evaluated on complexes with finite length homology.  
+This recipe provides lots of functionals that are nonnegative on Betti tables, including all of the Eisenbud--Schreyer functionals.
+
+\begin{defn}\label{defn:chi}
+Given $\Gbull\in \DD^b(A)$, we define $\chi_{i,j}(\Gbull)=\chi_{i,j}(\beta(\Gbull))$ as the dot product of the Betti table $\beta(\Gbull)$ with
+\[
+\chi_{i,j}:=
+\left(
+\begin{array}{cccccccc}
+ & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
+\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+\dots&0&0&\multicolumn{1}{|c}{\mathbf{1}}&-1&1&-1&\dots\\ \cline{4-5}
+\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
+\end{array}
+\right)
+\]
+where the boldface $1$ corresponds $\beta_{i,j}$, i.e. the boldface $1$ is in column $i$ and row $i-j$. 
+\end{defn}
+The line that snakes through
+the table indicates how $\chi_{i,j}$ separates a Betti into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix.
+
+\begin{thm}\label{thm:categorified}
+We have the following:
+\begin{enumerate}
+	\item  Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$ with $\codim(\FF)+\codim(\cE)\geq n+1$.  Then
+\[
+\chi_{i,j}(\FF\cdot \cE)\geq 0
+\]
+	\item  Let $\cE_{f}$ be a supernatural sheaf of type $f=(f_1>\dots>f_s)$ on $\PP^n$.  Fix $1\leq \tau \leq s$ and let $\kappa=f_{\tau+1}-3$.  Let $\langle -, \cE_{f}\rangle_{\tau,\kappa}$ be the functional defined in \cite{eis-schrey-icm}, but extended in the natural way to a functional $\VV\to \QQ$ on the entire vector space $\VV$.  We then have an equality of functions
+\[
+\bigg( \beta(\FF)\mapsto \chi_{0,\kappa}(\FF\cdot \cE_f)\bigg) =\bigg( \beta(\FF)\mapsto \langle \FF, \cE_f\rangle_{\tau,\kappa} \bigg)\]
+from $\VV \to \QQ$.
+\end{enumerate}
+\end{thm}
+The above theorem illustrates the sense in which $\Phi$ categorifies all of the Eisenbud--Schreyer nonnegativity results, and it provides a unified perspective on the nonnegativity of all such functionals.  
+
+
+
+Our proof of the theorem relies on the relative simplicity of the derived category $\DD^b(A)$.  Because the global dimension of $A$ is 1, the structure of $\DD^b(A)$ is simple: any element $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology, and the homology $\HH(\Gbull)$ decomposes as
+\begin{equation}\label{eqn:splitting}
+\HH(\Gbull)=\left( \bigoplus_{i,j\in \ZZ} A(-j)[i]^{\lambda_{i,j}(\Gbull)}\right) \bigoplus \left( \bigoplus_{\substack{i,j\in \ZZ\\ k\in \ZZ_{>0}}} (A(-j)[i]/t^k)^{\nu_{i,j,k}(\Gbull)}\right),
+\end{equation}
+for uniquely defined nonnegative integers $\lambda_{i,j}(\Gbull), \nu_{i,j,k}(\Gbull)$.  Hence, as a monoid with respect to direct sum, $\DD^b(A)$ is isomorphic to a free abelian monoid on the countable set of generators $\{\lambda_{i,j} | i,j\in \ZZ\} \cup \{ \nu_{i,j,k}  | i,j\in \ZZ, k\in \ZZ_{>0}\}$. 
+
+Note that a complex $\Gbull$ has finite length homology if and only if $\lambda_{i,j}(\Gbull)=0$ for all $i,j$.  We  define $\DD^b(A)_{\text{tor}}$ as the subcategory of complexes $\Gbull$ where $\lambda_{i,j}(\Gbull)=0$.  We use $\DD^b(A)\otimes_{\ZZ} \QQ$ and $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$ for the associated vector spaces.
+
+
+The following lemma proves the nonnegativity of the functionals $\chi_{i,j}$ when restricted to $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$.  In \S\ref{sec:A} we provide a  complete analysis of the nonnegative functionals for cones of Betti tables over $A$.
+
+\begin{lemma}\label{lem:chi nonneg}
+If $\Gbull\in \DD^b(A)_{\text{tor}}$, then $\chi_{i,j}(\Gbull)\geq 0$.
+\end{lemma}
+\begin{proof}
+%\daniel{Can we add a one-sentence proof here along the lines of ``more generators than syzygies in any degree''?  The following}Since $\Gbull$ has finite length homology, we may representative $\Gbull$ as direct sum of $2$-term shifted minimal free resolutions of finite length $A$-modules.  Thus, each minimal generator of $\Gbull$ may be uniquely partnered with another minimal generator.  A pair of generators $(m,m')$ contributes to this functional if $m'$ is a minimal generator of $\Gbull_{i+1}$ of degree $>j+1$ and if $m$ is either a minimal generator of $\Gbull_{i}$ of degree $\leq j$ or if $m$ is a minimal generator of $\Gbull_{i+2}$ of any degree.
+%
+More precisely, we claim that
+\[
+\chi_{i,j}(\Gbull)=\sum_{\substack{u,v,w \\ v< j+1<v+w}} \nu_{u,v,w}(\Gbull) + \sum_{\substack{u,v,w\\ t> j+1}} \nu_{u+1,v,w}(\Gbull).
+\]
+To check this claim, it suffices to evaluate both sides of the equation on $1$-term complexes $A(-v)[u]/t^w$, for all $u,v\in \ZZ$ and $w\in \ZZ_{>0}$, and the statement then follows.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:categorified}]
+For part (1), we note that $\chi_{i,j}(\FF\cdot \cE)$ only depends on the Betti table of $\FF\cdot \cE$, which by Theorem~\ref{thm:Phi}\eqref{thm:Phi:1} only depends on $\beta(\FF)$ and $\gamma(\cE)$.  We may thus assume that $\kk$ is an infinite field and may replace $\cE$ by a general $\GL_{n+1}$ translate, since this does not affect the cohomology table of $\cE$.  By~\cite[Theorem]{miller-speyer}, we conclude conclude $\widetilde{\FF}\otimes \cE$ is exact.  Hence, by Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, it follows that $\FF\cdot \cE$ lies in $\DD^b(A)_{\text{tor}}$.  Finally, we apply Lemma~\ref{lem:chi nonneg} to obtain the desired nonnegativity.
+
+
+The proof of part (2) follows from the argument of case (iii) of the proof of Theorem~\ref{thm:extremal rays refined}, given below.  
+\end{proof}
+
+
+
+
+\section*{Part II: Beyond Resolutions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Complexes with Homology}\label{sec:refined}
@@ -848,13 +900,10 @@ For any $\bb$ as above the cone $\BBQ^{\bb}(S)$ is locally polyhedral, and there
 \right\},
 \]
 where the shifted degree sequence $d$ corresponds to the ray spanned by 
-the Betti table of any shifted pure free resolution of type $d$of a Cohen-Macaulay module. Further, the cone $\BBQ^{\bb}(S)$ has a simplicial fan structure, where the simplices correspond to chains of shifted degree sequences.
+the Betti table of any shifted pure free resolution of type $d$ of a Cohen-Macaulay module. Further, the cone $\BBQ^{\bb}(S)$ has a simplicial fan structure, where the simplices correspond to chains of shifted degree sequences.
 \end{thm}
 
-Here by the statement that $\BBQ^{\bb}(S)$ is \defi{locally polyhedral} we mean that,
-for any integer $N$,
-the (finite dimensional) cone spanned by the Betti tables in $\BBQ^{\bb}(S)$ having
-all free modules generated by elements of degrees between $-N$ and $N$ is polyhedral.
+Here by the statement that $\BBQ^{\bb}(S)$ is \defi{locally polyhedral} we mean that if we fix any finite dimensional subspace $\VV_{\text{fin}}\subseteq \VV$ defined by the vanishing of coordinate vectors, then the restricted cone $\VV_{\text{fin}}\cap \BBQ^{\bb}(S)$ is polyhedral.  \daniel{There might be a cleaner way to say this, but the old definition was off b/c we still had infinite room for homological shifts.}
 
 The proof of Theorem~\ref{thm:extremal rays refined} involves two essential steps.  First, in \S\ref{sec:A}, we provide a detailed description of cones of Betti tables on $A$.  Since $\DD^b(A)$ is the target of the pairing $\Phi$, these results will provide a base case for our main results.  Second, in \S\ref{sec:refined}, 
 we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with Theorem~\ref{thm:Phi} to complete the proof of Theorem~\ref{thm:extremal rays refined}. We postpone the details to the next section.
@@ -865,7 +914,7 @@ we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with The
 %For instance, let
 
  Consider the codimension sequence $\bb=(\dots, \emptyset,0^\circ,0,\infty,\dots)$ and the degree sequence $\dd=(\dots, \emptyset,0^\circ ,1,\infty,\dots)$, which has codimension $\ell = 1$.  The Betti table 
- $(1^\circ, 1)$ of the complex $\FF=\left[ S^{1^\circ}\lTo^{x_{0}} S^1(-1)\right]$ is in $BBQ^{\bb}$.
+ $(1^\circ, 1)$ of the complex $\FF=\left[ S^{1^\circ}\lTo^{x_{0}} S^1(-1)\right]$ is in $\BBQ^{\bb}$.
  As such, the decomposition guaranteed by Theorem~\ref{thm:extremal rays refined} is
  $\beta(\FF) = (1^{\circ}, -) + (-^{\circ}, 1)$. Of course we might also decompose $\beta(\FF)$
  as the Betti table $(1^{\circ}, 1)$ of a single pure resolution ($\FF$ itself!). This does \emph{not} contradict the uniqueness statement of the Theorem because $\dd$ is not compatible with $\bb$
@@ -897,11 +946,10 @@ we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with The
 \begin{cor}\label{cor:decompose refined}
 Let $\bb$ be a nondecreasing or nonincreasing sequence, and let $\FF\in \DD^b(S)$ be compatible with $\bb$.  Then there exist modules $M^k$ of codimension $\geq \bb_k$ and nonnegative rational numbers $a_k\in \QQ_{\geq 0}$ such that
 \[
-\beta(\FF)=\sum_{k\in \ZZ} \beta(M^k[k]).
+\beta(\FF)=\sum_{k\in \ZZ} a_k\beta(M^k[k]).
 \]
 \end{cor}
-
-Several special cases of Theorem~\ref{thm:extremal rays refined} are of particular interest.
+As noted in the introduction, the denominators of the $a_k$ may be seen as a measurement of the extent to which $\FF$ fails to be quasi-isomorphic to its homology.  Several special cases of Theorem~\ref{thm:extremal rays refined} are of particular interest.
 
 \begin{cor}\label{cor:uniform}
 For any $k=0,\dots, n+1$, there is a natural bijection:
@@ -920,7 +968,7 @@ For any $k=0,\dots, n+1$, there is a natural bijection:
 \end{matrix}
 \right\},
 \]
-where the shifted degree sequence $d$ corresponds to the ray spanned by the Betti table of any pure, Cohen-Macaulay complex of type $d$. Further, the cone $\BBQ^{k}(S)$ has a simplicial fan structure, where the simplices correspond to chains of shifted degree sequences.
+where the shifted degree sequence $d$ corresponds to the ray spanned by the shifted pure resolution of type $d$ of a Cohen--Macaulay module. Further, the cone $\BBQ^{k}(S)$ has a simplicial fan structure, where the simplices correspond to chains of shifted degree sequences.
 \end{cor}
 
 
@@ -984,7 +1032,7 @@ Unlike the case of resolutions in Example~\ref{ex:resolutions}, there exist comp
 \end{example}
 
 \begin{example}[Approximate resolutions]
-\daniel{possibly add one more example here.}
+Let $\bb=(\dots,\emptyset,0^\zp,n-1,n-1,\dots,)$.   Let $\FF\in \DD^b(S)$ be compatible with $\bb$ and let $M$ be the $0$th homology module of $\FF$.  We note that $\FF$ is like an approximate resolution of $M$.  Such approximate resolutions play a key role in \cite[Lemma~1.6]{gruson-lazarsfeld-peskine}, where it is that the Castelnuovo--Mumford regularity can be bounded by approximate resolutions.
 \end{example}
 
 \begin{example}[Monads]
@@ -1002,139 +1050,8 @@ Unlike the case of resolutions in Example~\ref{ex:resolutions}, there exist comp
 \section{Complexes on $A$}\label{sec:A}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-In order to prove Theorem~\ref{thm:extremal rays refined}, we first consider cones on $A$, which is the target of $\Phi$.  Because the global dimension of $A$ is 1, the structure of $\DD^b(A)$ is simple: any element $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology, and the homology $\HH(\Gbull)$ decomposes as
-\[
-\HH(\Gbull)=\left( \bigoplus_{i,j\in \ZZ} A(-j)[i]^{\lambda_{i,j}(\Gbull)}\right) \bigoplus \left( \bigoplus_{\substack{i,j\in \ZZ\\ k\in \ZZ_{>0}}} (A(-j)[i]/t^k)^{\nu_{i,j,k}(\Gbull)}\right),
-\]
-for uniquely defined nonnegative integers $\lambda_{i,j}(\Gbull), \nu_{i,j,k}(\Gbull)$.  Hence, as a monoid with respect to direct sum, $\DD^b(A)$ is isomorphic to a free abelian monoid on the countable set of generators $\{\lambda_{i,j} | i,j\in \ZZ\} \cup \{ \nu_{i,j,k}  | i,j\in \ZZ, k\in \ZZ_{>0}\}$. 
-
-Note that a complex $\Gbull$ has finite length homology if and only if $\lambda_{i,j}(\Gbull)=0$ for all $i,j$.  We  define $\DD^b(A)_{\text{tor}}$ as the subcategory of complexes $\Gbull$ where $\lambda_{i,j}(\Gbull)=0$.  We use $\DD^b(A)\otimes_{\ZZ} \QQ$ and $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$ for the associated vector spaces.
-
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Complexes on $A$ with finite length homology}\label{sec:PP0}
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%We first prove the special case of Theorem~\ref{thm:extremal rays refined} given by considering complexes of $A$-modules whose homology modules have finite length.  This leads to a description of $\BBQ^1(A)$.  We treat this case separately to help clarify our discussion in \S\ref{sec:duality}--\ref{sec:functionals}, where we discuss the duality of cones induced by $\Phi$ as well as the functionals $\langle -,-\rangle_{\tau,\kappa}$.
-%
-%\daniel{we could drop this whole subsection, but I was too hesitant to pull the trigger on that.}
-%
-%%Let $\BBQ^{1}(A)\subseteq U$ be the cone of Betti tables of bounded free complexes over $A$ with 
-%%homology of codimension 1---that is to say, with finite length homology. \david{this notation has
-%%not been introduced in general yet---do it again when we come to $B^{c}(S)$.}
-%%
-%\begin{prop}\label{prop:conePP0}
-%There is a natural bijection
-%\[
-%\left\{
-%\begin{matrix}
-%\text{Extremal rays of }\\
-%\text{the cone } \BBQ^{1}(A)
-%\end{matrix}
-%\right\}
-%\longleftrightarrow
-%\left\{
-%\begin{matrix}
-%\text{Shifted degree sequences }\\
-%\text{ of codimension $1$}
-%\end{matrix}
-%\right\}.
-%\]
-%Further, $\BBQ^1(A)$ has the structure of a simplicial fan, where simplices correspond to chain of shifted degree sequences.  
-%\end{prop}
-%This proposition also leads to a description of the nonnegative linear functionals on $\BBQ^1(A)$.  To give this halfspace description, we now introduce a graded variant of a partial Euler characteristic.  Given a Betti table in $\UU$, we define $\chi_{\tau,\kappa}$ as the dot product of that Betti table with:
-%\[
-%\chi_{\tau,\kappa}:=
-%\left(
-%\begin{array}{cccccccc}
-% & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
-%\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
-%\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
-%\dots&0&0&\multicolumn{1}{|c}{\mathbf{1}}&-1&1&-1&\dots\\ \cline{4-5}
-%\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
-%\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
-%& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
-%\end{array}
-%\right)
-%\]
-%where the boldface $1$ corresponds $\beta_{\tau,\kappa}$, i.e. the boldface $1$ is in column $\tau$ and row $\tau-\kappa$. The line the snakes through
-%the table indicates how $\chi_{\tau,\kappa}$ separates a Betti into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix.
-%%We use the notation $\chi_{\tau,\kappa}$ to suggest that these functionals are  graded variants of the partial Euler characteristic functionals.  
-%The functional $\chi_{\tau,\kappa}$ is nonnegative for any complex $\Gbull$ with finite length homology.  
-%\begin{lemma}\label{lem:chi nonneg}
-%Let $\Gbull\in \DD^b(A)$.  If $\Gbull$ has finite length homology, then:
-%\[
-%\chi_{\tau,\kappa}(\Gbull)=\sum_{\substack{j,k \\ j< \kappa+1<j+k}} \nu_{\tau,j,k}(\Gbull) + \sum_{\substack{j,k \\ j> \kappa+1}} \nu_{\tau+1,j,k}(\Gbull).
-%\]
-%In particular, $\chi_{\tau,\kappa}(\Gbull)\geq 0$.
-%\end{lemma}
-%\begin{proof}
-%It suffices to evaluate both sides of the equation on $1$-term complexes $A(i)[j]/t^k$, for all $i,j\in \ZZ$ and $k\in \ZZ_{>0}$, and the statement then follows.
-%\end{proof}
-%
-%A halfspace description of $\BBQ^1(A)$ only involves individual Betti numbers and these graded partial Euler characteristics.
-%
-%\begin{cor}\label{cor:dualconeA}
-%A point $u\in \UU$ lies in $\BBQ^1(A)$ if and only if $u$ satisfies:
-%	\begin{enumerate}
-%		\item $\chi(u)= 0$.
-%		\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$.
-%		\item  $\chi_{i,j}(u)\geq 0$ for all $i\in \ZZ$ and $j\in \ZZ$.
-%	\end{enumerate}
-%\end{cor}
-%
-%\begin{proof}[Proof of Proposition~\ref{prop:conePP0} and Corollary~\ref{cor:dualconeA}]
-%The extremal ray description of $\BBQ^1(A)$ is straightforward.  Namely, the cone $\BBQ^1(A)$ is, by definition, the image of the first orthant of $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$ under the map of vector space
-%\[
-%\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ\to U
-%\]
-%that sends a complex $\Gbull$ to its Betti table.  Since each generator of $\DD^b(A)_{\text{tor}}$ maps to a distinct extremal ray of $\BBQ^1(A)$, and since there is a natural bijection between the generators of  $\DD^b(A)_{\text{tor}}$ and the shifted degree sequence $d$ of codimension $1$, this immediately proves the bijection stated in Proposition~\ref{prop:conePP0}.
-%In addition, Lemma~\ref{lem:chi nonneg} implies that each functional in Corollary~\ref{cor:dualconeA} is nonnegative on $\BBQ^1(A)$.  
-%
-%To obtain the remaining results, it suffices to show that, if a point $u\in \UU$ satisfies the inequalities in Corollary~\ref{cor:dualconeA}, then we may write $u$ uniquely as a sum of pure tables whose degree sequences form a chain.  It suffices to consider points $u\in \UU$ whose entries are all integral and which have no common factor.  Since all entries of $u$ must be nonnegative, we will then induct on the sum of all of the entries of $u$.  When all entries of $u$ are zero, then $u$ is the empty sum of pure diagrams, and this provides our base case.
-%
-%Otherwise, $u$ has some nonzero entry.  We fix $(a,b)$ so that $u_{a,b}$ is the top nonzero entry in the rightmost nonzero column of $u$.  We then set $c$ so that $u_{a-1,c}$ is the top nonzero entry in column $a-1$.  We claim that, $c<b$, i.e. that $u$ has the form:
-%\[
-%u=
-%\left(
-%\begin{array}{ccccccc}
-% & \vdots& \multicolumn{1}{|c}{\vdots}&\vdots& \vdots&&\\
-%\dots&u_{a-2,c-2}&\multicolumn{1}{|c}{0}&0&0&\dots\\
-%\dots&u_{a-2,c-1}&\multicolumn{1}{|c}{u_{a-1,c}}&0&0&\dots\\
-% & \vdots& \multicolumn{1}{|c}{\vdots}&\vdots& \vdots&&\\
-%%\dots&u_{a-2,b-4}&u_{a-1,b-3}&0&0&\dots\\
-%\dots&u_{a-2,b-3}&\multicolumn{1}{|c}{u_{a-1,b-2}}&0&0&\dots\\
-%\dots&u_{a-2,b-2}&\multicolumn{1}{|c}{u_{a-1,b-1}}&u_{a,b}&0&\dots\\ \cline{3-4}
-%\dots&u_{a-2,b-1}&u_{a-1,b}&u_{a,b+1}&\multicolumn{1}{|c}{0}&\dots\\
-%%\dots&u_{a-2,b}&u_{a-1,b+1}&u_{a,b+2}&0&\dots\\
-%& \vdots&\vdots&\vdots& \multicolumn{1}{|c}{\vdots}&&\\
-%\end{array}\right).
-%\]
-%The claim follows from the fact that $\chi_{a-1,b-1}(u)\geq 0$.  Namely, computing $\chi_{a-1,b-1}(u)$
-%is the same as computing the Euler characteristic of the region that lies above the line.  Since this must be nonnegative,
-%it follows that $c<b$.
-%
-%We now set
-%\[
-%u':=u-\beta(A(-c)[-a+1]/t^{b-c}).
-%\]
-%Since $u$ satisfies the inequalities in Corollary~\ref{cor:dualconeA}, one may verify directly that so does $u'$.  Hence, the induction hypothesis guarantees that we can write $u'$ uniquely as a sum of pure tables whose degree sequences form a chain.  Further, the degree sequence corresponding to $\beta(A(-c)[-a+1]/t^{b-c})$ is less than or equal to any degree sequence that could possibly arise in the decomposition of $u'$, and hence we can use the decomposition of $u'$ to conclude that $u$ decomposes uniquely as a sum of pure tables whose degree sequences form a chain.
-%\end{proof}
-%
-%
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Refined theory for $A$}\label{sec:refined A}
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%In this section, we will 
-
-We next describe the cones $\BBQ^{\bb}(A)$.
-This will provides a base case for positivity results about cones of the form $\BBQ^{\bb}(S)$.
+In order to prove Theorem~\ref{thm:extremal rays refined}, we first consider cones on $A$, which is the target of $\Phi$.  
+This  provides a base case for positivity results about cones of the form $\BBQ^{\bb}(S)$.
 
 \begin{prop}\label{prop:conePP0 refined}
 There is a natural bijection $\BBQ^{\bb}(A)$
@@ -1155,10 +1072,9 @@ There is a natural bijection $\BBQ^{\bb}(A)$
 \]
 Further, $\BBQ^{\bb}(A)$ has the structure of a simplicial fan, where simplices correspond to chain of shifted degree sequences.  
 \end{prop}
-\david{Let's systematically rename $\chi_{\tau, \kappa}$ a simple $\chi_{i,j}$ ---as is done haphazardly below.}
-In the proof of this proposition, it will be useful to define a ``lower facet'' version of the functional $\chi_{\tau,\kappa}$:
+In the proof of this proposition, it will be useful to define a ``lower facet'' version of the functional $\chi_{i,j}$ from Definition~\ref{defn:chi}.
 \[
-\chi^{-}_{\tau,\kappa}:=
+\chi^{-}_{i,j}:=
 \left(
 \begin{array}{cccccccc}
  & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
@@ -1171,10 +1087,11 @@ In the proof of this proposition, it will be useful to define a ``lower facet'' 
 \end{array}
 \right).
 \]
-Here, the boldfaced zero corresponds to $\beta_{\tau,\kappa}$.  
-\david{I think the following is nonsense, since $\chi$ is not really the right thing for
-shifted complexes!---or rather we need to define it using the first nonzero place.} 
-Note that $\chi_{\tau,\kappa}-\chi_{\tau,\kappa}^{-}$ equals $(-1)^{\tau}$ times the total Euler characteristic.
+Here, the boldfaced zero corresponds to $\beta_{i,j}$.  We may use these functionals to test whether or not a point lies in one of the cones $\BBQ^{\bb}(A)$.
+%We note that $\chi_{i,j}-\chi_{i,j}^{-}$ computes the total Euler characteristic of $\FF\in \DD^b(A)$ in the sense that:
+%\[
+%\chi_{i,j}(\FF)-\chi_{i,j}^{-}(\FF)=\sum_{i\in \ZZ} (-1)^i \rank(\FF_i).
+%\]
 \begin{cor}\label{cor:dualconeA refined}
 If $\bb$ is nondecreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following inequalities and equalities hold.
 \begin{enumerate}
@@ -1190,16 +1107,41 @@ If $\bb$ is nonincreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if an
 \end{enumerate}
 \end{cor}
 \begin{proof}[Proof of Proposition~\ref{prop:conePP0 refined} and Corollary~\ref{cor:dualconeA refined}]
-\david{Having commented out the previous section, the references to it have to be replace in the proof below.} 
-%Our proof will largely follow the proofs of Proposition~\ref{prop:conePP0} and Corollary~\ref{cor:dualconeA}.  
+We first consider the case that $\bb$ is nondecreasing.  The extremal ray description of $\BBQ^{\bb}(A)$ is straightforward, since any complex $\Gbull$ is quasi-isomorphic to a direct sum of its homology modules.  
 
-We first consider the case that $\bb$ is nondecreasing.  The extremal ray description of $\BBQ^{\bb}(A)$ is straightforward, since any complex $\Gbull$ is quasi-isomorphic to a direct sum of its homology modules.  \david{replace} By an argument entirely analogous to the proof of Lemma~\ref{lem:chi nonneg}, we may conclude that each functional in Corollary~\ref{cor:dualconeA} is nonnegative on $\BBQ^{\bb}(A)$.
+Any complex $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology.  We thus write $\Gbull$ as a direct sum of as in~\eqref{eqn:splitting}.  We note that each individual module appearing in that decomposition corresponds to a shifted pure resolution, and conversely each shifted degree sequence over $A$ corresponds to a unique such module.  The extremal ray description of $\BBQ^{\bb}(A)$ then immediately follows.
 
-To obtain the remaining results for $\bb$, it suffices to show that, if a point $u\in \UU$ satisfies the inequalities in Corollary~\ref{cor:dualconeA refined}, then we may write $u$ uniquely as a sum of pure tables whose degree sequences form a chain.  We may reduce to the case when $u\in \UU$ has all integral entries with no common factor, and we induct on the sum of all of the entries of $u$.  When all entries of $u$ are zero the result is obvious. 
+We next check that each functional in Corollary~\ref{cor:dualconeA refined}(i) actually vanishes on $\BBQ^{\bb}(A)$.  For the $i$ such that $b_i=\emptyset$ this simply follows from the definition of what it means for $\Gbull\in \DD^b(A)$ to be compatible with $\bb$.  If there does not exist $i$ such that $b_i=0$, then $\Gbull$ is only compatible with $\bb$ if $\Gbull$ has finite length homology, and in this case $\chi(\Gbull)=0$.  
 
-Otherwise, $u$ has some nonzero entry.  We fix $(s,t)$ so that $u_{s,t}$ is the top nonzero entry in the rightmost nonzero column of $u$.  If $b_s=0$, then $\beta(A(-t)[-s])$ is compatible with $\bb$, and we can set $u'=u-\beta(A(-t)[-s])$.  On the other hand, if $b_s>0$, then $\chi_{s-1,t-1}\geq 0$, and \david{replace} we can apply the same argument as in the proof from \S\ref{sec:PP0}.  In either case, $u'$ still satisfies the necessary inequalities, and hence the induction hypothesis guarantees that we can write $u'$ uniquely as a sum of pure tables whose degree sequences form an appropriate chain, and that this extends to a unique decomposition for $u$.
+We now claim that the other functionals in Corollary~\ref{cor:dualconeA refined} are nonnegative.  The functionals from (ii) are obviously nonnegative, so it suffices to check that $\chi_{i,j}(\Gbull)\geq 0$ when $\Gbull$ is compatible with $\bb$ and $b_i\geq 1$.  By the extremal ray description, it suffices to consider the case when $\Gbull$ is a pure resolution.  If $\Gbull$ resolves a finite length module, then Lemma~\ref{lem:chi nonneg} implies that $\chi_{i,j}(\Gbull)\geq 0$.  On the other hand, if $\Gbull$ resolves a free $A$-module then, since $b_i=1$, the homology of $\Gbull$ must lie entirely in homological degree $<i$, and in this case $\chi_{i,j}(\Gbull)=0$.
 
-We next consider the case that $\bb$ is nonincreasing.  In this case,  we fix $(s,t)$ so that $u_{s,t}$ is the lowest nonzero entry in the leftmost nonzero column of $u$.  If $b_s=0$, then $\beta(A(-t)[-s])$ is compatible with $\bb$, and we can set $u'=u-\beta(A(-t)[-t])$.  On the other hand, if $b_s\geq 1$, then we let $c$ be the lowest nonzero entry in column $s+1$.  Since $\chi^{-}_{s,t-1}\geq 0$, this implies that $c>t$, and hence $u$ has the form:
+To obtain the remaining results, it suffices to show that, if a point $u\in \UU$ satisfies the inequalities in Corollary~\ref{cor:dualconeA refined}, then we may write $u$ uniquely as a sum of pure tables whose degree sequences form a chain.  It suffices to consider points $u\in \UU$ whose entries are all integral and which have no common factor.  Since all entries of $u$ must be nonnegative, we will then induct on the sum of all of the entries of $u$.  When all entries of $u$ are zero, then $u$ is the empty sum of pure diagrams, and this provides our base case.
+
+Otherwise, $u$ has some nonzero entry.  We fix $(s,t)$ so that $u_{s,t}$ is the top nonzero entry in the rightmost nonzero column of $u$.
+If $b_s=0$, then $\beta(A(-t)[-s])$ is compatible with $\bb$, and we can set $u'=u-\beta(A(-t)[-s])$.  On the other hand, if $b_s>0$, then we set $r$ so that $u_{s-1,r}$ is the top nonzero entry in column $s-1$.  We claim that, $r<t$, i.e. that $u$ has the form:
+\[
+u=
+\left(
+\begin{array}{ccccccc}
+ & \vdots& \multicolumn{1}{|c}{\vdots}&\vdots& \vdots&&\\
+\dots&u_{s-2,r-2}&\multicolumn{1}{|c}{0}&0&0&\dots\\
+\dots&u_{s-2,r-1}&\multicolumn{1}{|c}{u_{s-1,r}}&0&0&\dots\\
+ & \vdots& \multicolumn{1}{|c}{\vdots}&\vdots& \vdots&&\\
+%\dots&u_{a-2,b-4}&u_{a-1,b-3}&0&0&\dots\\
+\dots&u_{s-2,t-3}&\multicolumn{1}{|c}{u_{s-1,t-2}}&0&0&\dots\\
+\dots&u_{s-2,t-2}&\multicolumn{1}{|c}{u_{s-1,t-1}}&u_{s,t}&0&\dots\\ \cline{3-4}
+\dots&u_{s-2,t-1}&u_{s-1,b}&u_{a,b+1}&\multicolumn{1}{|c}{0}&\dots\\
+%\dots&u_{a-2,b}&u_{a-1,b+1}&u_{a,b+2}&0&\dots\\
+& \vdots&\vdots&\vdots& \multicolumn{1}{|c}{\vdots}&&\\
+\end{array}\right).
+\]
+Since $b_s>0$ we have $\chi_{s-1,t-1}(u)\geq 0$, and it follows that $r<t$ as claimed.  When $b_s>0$, we thus set
+\[
+u':=u-\beta(A(-r)[-s+1]/t^{t-r}).
+\]
+Since $u$ satisfies the inequalities in Corollary~\ref{cor:dualconeA refined}, one may verify directly that so does $u'$.  Hence, the induction hypothesis guarantees that we can write $u'$ uniquely as a sum of pure tables whose degree sequences form a chain.  Further, the degree sequence corresponding to $\beta(A(-c)[-a+1]/t^{b-c})$ is less than or equal to any degree sequence that could possibly arise in the decomposition of $u'$, and hence we can use the decomposition of $u'$ to conclude that $u$ decomposes uniquely as a sum of pure tables whose degree sequences form a chain.
+
+We next consider the case that $\bb$ is nonincreasing.  In this case,  we fix $(s,t)$ so that $u_{s,t}$ is the lowest nonzero entry in the leftmost nonzero column of $u$.  If $b_s=0$, then $\beta(A(-t)[-s])$ is compatible with $\bb$, and we can set $u'=u-\beta(A(-t)[-t])$.  On the other hand, if $b_s\geq 1$, then we let $r$ be the lowest nonzero entry in column $s+1$.  Since $\chi^{-}_{s,t-1}\geq 0$, this implies that $r>t$, and hence $u$ has the form:
 \[
 u=
 \left(
@@ -1211,77 +1153,14 @@ u=
 \dots&0&{u_{s,t}}&u_{s+1,t+1}&\multicolumn{1}{|c}{u_{s+2,t+2}}&\dots\\ 
 \dots&0&0&u_{s+1,t+2}&\multicolumn{1}{|c}{u_{s+2,t+3}}&\dots\\
 \dots&\vdots &\vdots &\vdots &\multicolumn{1}{|c}{\vdots}&\dots\\
-\dots&0&0&u_{s+1,c}&\multicolumn{1}{|c}{u_{s+2,c+1}}&\dots\\
-\dots&0&0&0&\multicolumn{1}{|c}{u_{s+2,c+2}}&\dots\\
+\dots&0&0&u_{s+1,r}&\multicolumn{1}{|c}{u_{s+2,r+1}}&\dots\\
+\dots&0&0&0&\multicolumn{1}{|c}{u_{s+2,r+2}}&\dots\\
 %\dots&u_{s-2,t}&u_{s-1,t+1}&u_{s,t+2}&0&\dots\\
 &\vdots& \vdots&\vdots&\multicolumn{1}{|c}{\vdots}&&\\
 \end{array}\right).
 \]
-We set $u':=u-\beta(A(-s)[-t]/t^{c-t})$.  As in the previous case, the claim now follows by induction.
+We set $u':=u-\beta(A(-s)[-t]/t^{r-t})$.  As in the nondecreasing case, the claim now follows by induction.
 \end{proof}
-
-
-
-%\begin{proof}
-%We first apply  Lemma~\ref{lem:cones}\dots
-%%.  We obtain that $\Sigma_e:=\Sigma(\Phi^{-1}(V_e),\Phi)$ is a full dimensional, equidimensional simplicial fan.  We may thus talk about boundary facets of $\Sigma_e$, and we define $D_e$ to be the intersection of the halfspaces corresponding to all boundary facets of $\Sigma_e$.  We have $D_e\subseteq \Sigma_e$ by \cite[Lemma~A.3]{bbeg}.
-%%
-%%The existence of pure resolutions is trivial for $A$, and this implies that each shifted pure diagram $\pi_d$ lies in $\BBQ^{1}(A)$, and hence that $D_e$ is a subcone of $\BBQ^{1}(A)\cap V_e$ for all $e$.  Since each point of $\BBQ^{1}(A)$ lies in $V_e$ for some $e$, we may complete the proof by showing that  $\BBQ^{1}(A)\cap V_e \subseteq D_e$ for all $e$.  
-%%
-%%
-%%We note that there are two ways that adjacent elements $d<d'$ cna arise in $\Phi^{-1}(\UU_e)$.  The first is simply that $d'$ is obtained from $d$ by adding $1$ to a single entry.  The second arises when the finite entries of $d$ and $d'$ do not line up.  In this case, $d'_j=d_j$ for all $j\notin \{i-2, i\}$; $d$ satisfies $d_i=i+e$ and $d_{i+1}=\infty$; and $d'$ satisfies $d_{i-2}=(i-2)-e$.  We refer to the second case $d<d'$ as a \defi{shift from column $i$}.
-%%%The poset $\Phi^{-1}(\UU_e)$ is graded, and pairs of adjacent elements $d<d'$ arise in only two ways.
-%%%\begin{enumerate}[(a)]
-%%%	\item  $d'$ is obtained from $d$ by adding $1$ to one of the finite entries of $d$.  Thus, $d'_j=d_j$ for all $j\ne i$ and $d'_i=d_i+1$.
-%%%	\item  $d'$ is obtained from $d$ by shifting in homological dimension.  In this case $d'_j=d_j$ for all $j\notin \{i-2, i\}$; $d$ satisfies $d_i=i+e$ and $d_{i+1}=\infty$; and $d'$ satisfies $d_{i-2}=(i-2)-e$.
-%%%\end{enumerate}
-%%%
-%%
-%%We may use this fact to identify the halfspaces corresponding to essential boundary facets of $\Sigma_e$.  As in, e.g. \cite[Proposition~2.12]{boij-sod1}, these halfspaces are entirely by the omitted element $d$ and its two adjacent neighbors $d'$ and $d''$, and we refer to such a halfspace by the triplet $d'<d<d''$.
-%%\begin{enumerate}[(i)]
-%%	\item  A chain where we omit either the maximal element or minimal element from $\Phi^{-1}(V_e)$.
-%%	\item A chain where $d',d,$ and $d''$ all differ in a single position $i$.  This can arise in three ways:
-%%		\begin{itemize}
-%%			\item $d''_i=d_i+1=d'_i+2$.  For example, the chain
-%%	\[
-%%(\dots,1^*,\dots) <(\dots, 2^*,\dots) <(\dots,3^*,\dots)	\]
-%%			\item  $d'<d$ is a shift from column $i+2$ and $d''_i=d_i+1$.  For example, 	\[
-%%(\dots, \emptyset, 0, e^*, \infty, \dots)<(\dots, -e-1, 0, \infty^*, \infty, \dots)<(\dots, -e, 0, \infty^*, \infty, \dots)
-%%	\]
-%%			\item  $d_i=d'_i+1$ and $d<d''$ is then a shift in column $i$.  For example,
-%%	\[
-%%(\dots, \emptyset, 0, e-1^*, \infty, \dots)<(\dots, \emptyset, 0, e^*, \infty, \dots)<(\dots, -1-e, 0, \infty^*, \infty, \dots)
-%%	\]	
-%%			\end{itemize}
-%%	\item A chain where $d', d,$ and $d''$ differ by $1$ in adjacent positions.  For this to be submaximal, we must have $d''_i=d_i+1=d'_i+1$, $d''_{i+1}=d_{i+1}=d'_{i+1}+1$ and $d'_i+1=d'_{i+1}$.  For example, the chain
-%%			\[
-%%(\dots, 0,1^*,\dots) <(\dots, 0,2^*,\dots) <(\dots, 1,2^*,\dots) 
-%%			\]
-%%	\item A chain where $d'<d$ is a shift in column $i$ and $d<d''$ is a shift in column $i-1$.  For example, the chain:
-%%		\[
-%%		(\dots, e^*,e+1,\dots)<(\dots, -e+1,e^*,\dots)<(\dots, -e+2,-e+1,\infty^*,\dots)
-%%		\]	
-%%\end{enumerate} 
-%%These boundary facets correspond, respectively, to the halfspaces:
-%%\begin{enumerate}[(i)]
-%%	\item  Omitting the maximal element corresponds to $\epsilon_{-e,0}\geq 0$ and omitting the minimal element corresponds to $\epsilon_{e,0}\geq 0$.  
-%%	\item  All three case here correspond to $\epsilon_{i,d_i}\geq 0$
-%%	\item  $\chi_{i,d_i}\geq 0$
-%%	\item  $\chi_{i-1,i-1+e}\geq 0$
-%%%	\item  $\chi_{\tau-1,d_0-2}$.
-%%\end{enumerate}
-%%As noted above, these functionals are nonnegative on $\BBQ^1(A)$.  Hence, we may apply Lemma~\ref{lem:cones} to obtain the conclusion.
-%\end{proof}
-%
-%\begin{cor}\label{cor:dualconeA}
-%The cone $\BBQ^{\bb}(A)$ is defined by the halfspaces \daniel{fill in as appropriate}
-%	\begin{enumerate}
-%		\item $\pm \chi\geq 0$ (i.e. $\chi=0$.)
-%		\item $\epsilon_{i,j}\geq 0$ for all $i,j\in \ZZ$.
-%		\item  $\chi_{i,j}\geq 0$ for all $i\in \ZZ$ and $j\in \ZZ$.
-%	\end{enumerate}
-%\end{cor}
-
 
 
 
@@ -1325,7 +1204,7 @@ The  pairing $\Phi$ induces a map of cones:
 given by $(\beta(\FF), \gamma(\cE))\mapsto \beta(\FF\cdot \cE)$.
 \end{lemma}
 \begin{proof}
-We first consider the nondecreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  By replacing $\cE$ by a general $\GL_{n+1}$ translate, we may assume that $\FF$ and $\cE$ are homologically transverse~\cite{miller-speyer}.  It then follows that $\widetilde{\FF}\otimes \cE$ is exact in homological degrees $\geq 0$. \david{give the argument: a spectral sequence with $E^{2}$ term $Tor(\cE, H_{*} \FF)$ converging
+We first consider the nondecreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  By replacing $\cE$ by a general $\GL_{n+1}$ translate, we may assume that $\FF$ and $\cE$ are homologically transverse~\cite{miller-speyer}.  \daniel{At the moment there's no official definition of homological transversality, so we should handle it in the course of the proof.} It then follows that $\widetilde{\FF}\otimes \cE$ is exact in homological degrees $\geq 0$. \david{give the argument: a spectral sequence with $E^{2}$ term $\Tor(\cE, H_{*} \FF)$ converging
 to the homology of $\cE\otimes \FF$, plus a definition of homological transversality a little more flexible than the one given in section 1.} Over the generic point of $[\AA^1/\GG_m]$, the complex $\nu^*(\FF)\otimes p_1^*(\cE)$ is quasi-isomorphic to $\widetilde{\FF}\otimes \cE$.  Hence, when $k\geq 0$, $\FF\cdot \cE$ has no homology supported on the generic point of $[\AA^1/\GG_m]$, i.e. $\FF\cdot \cE$ has finite length homology in these cases.  This implies that $\FF\cdot \cE$ is compatible with $\bb'$.
 
 We next consider the nonincreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$ and assume that they are homologically transverse.  It then follows that $\FF\otimes \cE$ is exact in homological degrees $\leq 0$.
@@ -1333,7 +1212,7 @@ As above, the complex $\nu^*(\FF)\otimes p_1^*(\cE)$ is exact in homological deg
 \end{proof}
 
 
-The following lemma will be used repeatedly in our proof of Theorem~\ref{thm:extremal rays}.
+The following lemma will be used repeatedly in our proof of Theorem~\ref{thm:extremal rays refined}.
 \begin{lemma}\label{lem:pure and supernatural}
 Let $d$ be the codimension $n+1$ degree sequence corresponding to a pure complex $\FF_d$, and let $f=(f_1>\dots >f_n)$ be the root sequence corresponding to a supernatural vector bundle $\cE_f$.  Then
 $
@@ -1508,7 +1387,7 @@ Finally, the above argument for case (v) applies, literally verbatim, to cases (
 
 We have thus verified that
 \[
-\BBQ^{\bb}(S)\cap V_{(\delta,\epsilon)}=\Sigma_{(\delta,\epsilon)},t
+\BBQ^{\bb}(S)\cap V_{(\delta,\epsilon)}=\Sigma_{(\delta,\epsilon)}
 \]
 and this implies the theorem when $\bb$ is nondecreasing.  
 
@@ -1649,7 +1528,7 @@ We may then apply the proof of Theorem~\ref{thm:extremal rays refined} to make a
 
 
 \begin{remark}\label{rmk:issues}
-We remark on a couple of complications related to the above discussion of duality.  To begin with, there exist points in the closure of $\CQ^0(\PP^n)$ which are not the scalar multiple of the cohomology table of a coherent sheaf.   
+We remark on one complication related to the above discussion of duality.  Namely, there exist points in the closure of $\CQ^0(\PP^n)$ which are not the scalar multiple of the cohomology table of a coherent sheaf.   
 
 For instance, let $n=1$ an consider the point $w:=\sum_{i=0}^\infty \frac{1}{2^i} \gamma(\cO_{\PP^n}(-i))$.  
 This infinite sum converges, and thus $w\in \WW$.  But a direct computation shows that
@@ -1661,39 +1540,21 @@ and hence no scalar multiple of $w$ can equal the cohomology table of a sheaf on
 \beta(\FF)\mapsto \sum_{i=0}^\infty \tfrac{1}{2^i} \beta(\FF\cdot \cO_{\PP^n}(-i))
 \]
 still induces a map $\BBQ^{n+1}(S)\to \BBQ^1(A)$.
-
-Second, we note that nonnegative functionals can arise from shifted cohomology tables.  For instance, the cohomology table with $w'$ with 
-\[
-\gamma_{i,j}(w')=\begin{cases}
-1&i=1\\
-0&i\ne 1,
-\end{cases}
-\]
-also induces a linear map $\BBQ^{n+1}(S)\to \BBQ^1(A)$.
+%
+%Second, we note that nonnegative functionals can arise from shifted cohomology tables.  For instance, the cohomology table with $w'$ with 
+%\[
+%\gamma_{i,j}(w')=\begin{cases}
+%1&i=1\\
+%0&i\ne 1,
+%\end{cases}
+%\]
+%also induces a linear map $\BBQ^{n+1}(S)\to \BBQ^1(A)$.
 \end{remark}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Categorified Eisenbud--Schreyer Functionals}\label{sec:functionals}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The following lemma, which is implicit in the  proof of Theorem~\ref{thm:extremal rays refined}, describes the relationship between the Eisenbud-Schreyer functionals from \cites{eis-schrey1, eis-schrey-icm} and those functionals derived from $\Phi$.
-\begin{lemma}\label{lem:tau kappa}
-Let $\cE_{f}$ be a supernatural sheaf of type $f=(f_1>\dots>f_s)$ on $\PP^n$.  Fix $1\leq \tau \leq s$ and let $\kappa=f_{\tau+1}-3$.  Let $\langle -, \cE_{f}\rangle_{\tau,\kappa}$ be the functional defined in \cite{eis-schrey-icm}, but extended in the natural way to a functional $\VV\to \QQ$ on the entire vector space $\VV$.  
-We then have an equality of functions
-\[
-\bigg( \beta(\FF)\mapsto \chi_{0,\kappa}(\FF\cdot \cE_f)\bigg) =\bigg( \beta(\FF)\mapsto \langle \FF, \cE_f\rangle_{\tau,\kappa} \bigg)\]
-from $\VV \to \QQ$.
-\end{lemma}
-
-Note that the nonnegativity of all such functionals follows instantly by applying Theorem~\ref{thm:Phi}\eqref{thm:Phi:2} and Proposition~\ref{cor:dualconeA}.  A similar statement holds for each nonnegative functional on cohomology tables.  Thus, the functor $\Phi$ provides a unifying view on all of the Eisenbud--Schreyer functionals and on the corresponding positivity results, including~\cite[Positivity 1]{eis-schrey-icm} and~ \cite[Positivity 2]{eis-schrey-icm}.
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Part III: Beyond the polynomial ring}
 \section{Functoriality}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1706,7 +1567,7 @@ We seek to define a functor:
 \Phi_X: \DD^b(R)\times \DD^b(X)\to \DD^b(A).
 \]
 We let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$.  
-We write $-\otimes_\sigma SR[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
+We write $-\otimes_\sigma R[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
 given by $\sigma$. 
 
 If $F$ is a graded  $R$-module, then 
@@ -1742,45 +1603,53 @@ Statement \eqref{thm:PhiX:1} follows by applying exactly the same proof as used 
 
 
 We first note that, in wide generality, we obtain well defined functors on the cones we have been considering.  Once again, the fact that we are working with derived categories instead of resolutions/sheaves plays an essential role in these definitions.
-
-\daniel{Here I'm just sketching an outline of where I'd like to go:}
-We have a well defined map:
+To begin with, we have a well defined map:
 \[
-f^*\colon: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R) \text{ where } \beta(\FF) \mapsto \beta(f^*\FF).
+f^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)
 \]
-(We write this as $f^*$ since we may represent any $\FF\in \DD^b(S)$ by its minimal resolution, and in this case there is no need to work with $Lf^*$).
-We also have a well defined map \dots
+defined by sending $\beta^S(\FF)\mapsto \beta^R(f^*\FF)$.  Of course, for $f^*\FF$ to be well defined on the quasi-isomorphism class of $\FF$, we need to represent $\FF$ by a free complex.  For a free complex $\FF$, we remark that if $\FF$ is compatible with $\bb$ then $f^*\FF$ is also compatible with $\bb$.\daniel{Is this really true?  We had claimed it was true over the phone, but now I doubt it.  What if $f$ is the blowup of $\PP^2$ at the origin and $\FF$ is the minimal resolution of the origin.  Won't $\FF$ have codim $2$ whereas $f^*\FF$ will have codim $1$?  Do we need a sort of transversality argument again?  Then we can't pullback something arbitrary\dots}
 
-
-
-%We may now prove our generalized positivity result.
-%\begin{proof}[Proof of Theorem~\ref{thm:pos general X}]
-%Over the generic point of $[\AA^1/\GG_m]$, the complex $\FF\cdot \cE$ is quasi-isomorphic to the push-forward of $\widetilde{\FF}\otimes \cE$ to the point $\Spec(\kk)$.  Since $\FF$ is a free complex of $R$-modules with finite length homology, $\widetilde{\FF}\otimes \cE$ is exact.  Hence, over the generic point of $[\AA^1/\GG_m]$, the complex $\FF\cdot \cE$ is exact, thus proving the lemma.
-%\end{proof}
-
-We next restrict to the case where $f$ is a finite map. If $\FF$ is a positive, free complex of $S$-modules such whose cohomology modules have codimension at least $d+1$, then by homological transversality, we can assume that $f^*(\FF)$ is a complex with finite length homology.  In particular, we have an injection $f^*\colon \BBQ^{d+1}(S)\to \BBQ^{d+1}(R)$.
-
-If $\cE$ is a coherent sheaf on $X$, then since $f$ is finite, we have
+We also have a well defined map on cohomology tables:
 \[
-H^i(X,\cE\otimes L^j)=H^i(\PP^n, f_*(\cE)\otimes \cO(j)),
+Rf_*\colon \CQ^k(X)\to \CQ^{k-d}(\PP^n).
 \]
-and this yields the injection $f_*\colon \CQ^0(X,L)\to \CQ^{n-d}(\PP^n,\cO(1))$.
-We recall that $\cU$ is an Ulrich sheaf for $(X,L)$ if $f_*(\cU)\cong \cO_{\PP^d}^r$ for some $r>0$.  See~\cite{XXXX} for more on Ulrich sheaves.
+where $\gamma(\cE)\mapsto \gamma(Rf_* \cE)$.  The fact that this is well defined on cohomology tables follows from the projection formula combined with\daniel{need to fill this in.}
+
+
+Of course, as maps of vector spaces, $f^*$ and $Rf_*$ are both the identity maps.  Hence, we immediately obtain the inclusions:
+\[
+\BBQ^{\bb}(S)\subseteq \BBQ^{\bb}(R) \quad \text{ and } \CQ^k(X)\subseteq \CQ^{k-d}(\PP^n).
+\]
+Based on these inclusions, it turns out that $f^*$ and $Rf_*$ interact well with the functors $\Phi$ and $\Phi_X$.
 
 \begin{lemma}\label{lem:general pairing}
-If $f$ is finite then
+We have the equality:
 \[
-\beta^R(f^*\FF\cdot \cE)=\beta^S(\FF\cdot f_*\cE).
+\beta(f^*\FF\cdot \cE)=\beta(\FF\cdot Rf_*\cE).
 \]
 \end{lemma}
 \begin{proof}
-Since $\FF$ is a positive, free complex, the Betti table of of $f^*\FF$ is the same as the Betti table of $\FF$.  Since $f$ is a finite map, the cohomology table of $\cE$ on $(X,L)$ is the same as the cohomology table of $f_*\cE$ on $(\PP^n, \cO(1))$.  The lemma then follows immediately from the formulas in Theorem~\ref{thm:betti numbers of pairing} and Lemma~\ref{lem:betti nums genl}.
+We first note that $\beta(f^*\FF)$ equals $\beta(\FF)$ and $\gamma(\cE)$ equals $\gamma(Rf_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,Rf_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(Rf_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_X(f^*\FF,\cE)$ with  $\beta(\FF)$ and $\gamma(Rf_*(\cE))$.
 \end{proof}
 
+
+%We next restrict to the case where $f$ is a finite map. If $\FF$ is a positive, free complex of $S$-modules such whose cohomology modules have codimension at least $d+1$, then by homological transversality, we can assume that $f^*(\FF)$ is a complex with finite length homology.  In particular, we have an injection $f^*\colon \BBQ^{d+1}(S)\to \BBQ^{d+1}(R)$.
+%
+%If $\cE$ is a coherent sheaf on $X$, then since $f$ is finite, we have
+%\[
+%H^i(X,\cE\otimes L^j)=H^i(\PP^n, f_*(\cE)\otimes \cO(j)),
+%\]
+%and this yields the injection $f_*\colon \CQ^0(X,L)\to \CQ^{n-d}(\PP^n,\cO(1))$.
+It is natural to ask when $f^*$ and $Rf_*$ induce isomoprhisms of cones.  A partial answer is given by Corollary~\ref{cor:isom cones}.
+%For this, we recall that $\cU$ is an Ulrich sheaf for $(X,L)$ if $f_*(\cU)\cong \cO_{\PP^d}^r$ for some $r>0$.  See~\cite{XXXX} for more on Ulrich sheaves.
+
+
+
 \begin{proof}[Proof of Corollary~\ref{cor:isom cones}]
+\daniel{Needs to be rewritten somewhat.  Also, we need to extend to $\BBQ^{\bb}$ if we're going to do that.}
 Since $f$ is finite, we obtain the inclusion $\CQ^0(X,L)\subseteq \CQ^0(\PP^n,\cO(1))$.  Now, let $\cE$ be a coherent sheaf on $\PP^n$, and we seek to show that $\gamma(\cE)$ lies in $\CQ^0(X,L)$.  Let $\cU$ be an Ulrich sheaf for $(X,L)$.  The central computation in \cite[Proof of Theorem 5]{eis-schrey-abel} shows that the cohomology table of $\cU\otimes f^*\cE$ is a scalar multiple of the cohomology table of $\cE$. This proves that $\CQ^0(X,L)= \CQ^0(\PP^n,\cO(1))$ as desired.
 
-As noted above, we also have an inclusion $\BBQ^{d+1}(S)\subseteq \BBQ^{d+1}(R)$.  We next observe have a positivity result in this context as well.  Namely, we claim that the pairing induces a map of cones:
+As noted above, we also have an inclusion $\BBQ^{d+1}(S)\subseteq \BBQ^{d+1}(R)$.  We next observe that we have a positivity result in this context as well.  Namely, we claim that the pairing induces a map of cones:
 \[
 \BBQ^{d+1}(R)\times \CQ(X,L)\to \BBQ^1(A).
 \]
@@ -1790,7 +1659,7 @@ Now, imagine that  there exists a complex $\FF$ such that $\beta(\FF)\in \BBQ^{d
 \end{proof}
 
 
-We conclude with a few examples.
+We provide a few new examples of cones of Betti tables.
 
 %\subsection{Zero dimensional schemes}
 \begin{example}[Zero dimensional schemes]\label{ex:zero dim}Let $\Gamma=\Spec(B)$ be a $0$-dimensional scheme over $\Spec(\kk)$, where $B$ is an Artinian $\kk$-algebra.  Let $f\colon \Gamma\to \Spec(\kk)$ be the structure map and let $R:=B[t]$.  The cone $\BBQ^1(R)$ of positive, free $R$-complexes with finite length homology is the same as the cone $\BBQ^1(A)$ of positive free $A$-complexes with finite length homology.  
@@ -1799,7 +1668,7 @@ We conclude with a few examples.
 It is interesting to compare Example~\ref{ex:zero dim} with the main results of \cite{bbeg}.  Example~\ref{ex:zero dim} describes bounded complexes with finite length homology; \cite{bbeg} restricts attention to resolutions, but they do not impose a boundedness condition on their complexes.
 
 \begin{example}[Elliptic curve]
-Let $E$ be a smooth genus $1$ curve with a point $P\in E$, and let $L=\cO(2P)$ be a degree $2$ line bundle on $E$.  Let $f\colon E\to \PP^1$ be the $2$ to $1$ map induced by $|L|$, and let $R=R(E,L)$ be the section ring.  The ring $R$ is a complete intersection quotient of the nonstandard graded polynomial ring $\kk[x_0,x_1,z,w]$ where $\deg(x_i)=1, \deg(z)=2$ and $\deg(w)=3$.  
+Let $E$ be a smooth genus $1$ curve with a point $P\in E$, and let $L=\cO(2P)$ be a degree $2$ line bundle on $E$.  Let $f\colon E\to \PP^1$ be the $2$ to $1$ map induced by $|L|$, and let $R=R(E,L)$ be the section ring.  The ring $R$ is isomorphic to $\kk[x_0,x_1,y]/(g(x_0,x_1,y)$ where $\deg(x_i)=1,\deg(y)=2$, and $\deg(g)=4$.
 
 If $\FF$ is a positive, free complex of $R$-modules with finite length homology, then the associated complex $\widetilde{\FF}$ of split vector bundles is exact.  Corollary~\ref{cor:isom cones} describes all such complexes $\FF$, up to scalar multiple.
 For instance, since $R$ is $2$-dimensional, Example~\ref{ex:1441} implies that (up to scalar multiple), there is a positive, exact complex
@@ -1818,18 +1687,22 @@ For any degree $m>1$, fix a generic polynomial $q\in H^0(\PP^2, \cO(m))$.  Let $
 \end{example}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Further directions}\label{sec:further}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{remark}
+Eisenbud and Scheyer have conjectured that every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides the possibility of producing a counterexample.  Namely, imagine that for some $f: X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{d+1}(R)$ but where $\beta(\FF)$ does does not decompose as a sum of shifted pure tables of codimension $d+1$.  This would imply that $\BBQ^{d+1}(R)\supsetneq \BBQ^{d+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Further directions}\label{sec:further}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
 
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Toric/Multigraded generalizations}\label{subsec:toric}
+\section{Toric/Multigraded generalizations}\label{subsec:toric}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 We continue the notation from the introduction, where $X$ is a projective toric variety with $\dim(X)=n$ and $\rank \Pic(X)=m$, and where $R=\kk[x_0,\dots,x_{n+m-1}]$ is the Cox ring of $X$, presented as a $\mathbb N^m$-graded ring.  We have $I$ is the irrelevant ideal of $R$ and $C= \kk[t_1, \dots, t_m]$ with irrelevant ideal $(t_1\cdots t_m)$.
@@ -1876,13 +1749,11 @@ a complex of graded sheaves on $X\times \AA^{m}$, with the grading coming from d
 %\end{defn}
 
 \begin{defn} \label{defn:product} The functor $\Phi': \DD^{b}(R)\times \DD^b(X) \to \DD^{b}(C)$ is given by:
-\daniel{still editing this part}
 $$
-\Phi'(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{\P^{n}\times\AA^{1}} (\cE\boxtimes \cO_{\AA^{1}}) \bigr)
+\Phi'(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
 $$
-where $\FF$ denotes a graded  complex of finitely generated free $S$-modules and
-$p_2: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection. We will often write
-$\FF\cdot \cE$ for $\Phi(\FF,\cE)$.
+where $\FF\in \DD^b(R) , \cE\in \DD^b(X)$ and where $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. We  often write
+$\FF\cdot \cE$ for $\Phi'(\FF,\cE)$.
 \end{defn}
 
 We are now prepared to prove Theorem~\ref{thm:Phimulti}.
@@ -1892,7 +1763,7 @@ We are now prepared to prove Theorem~\ref{thm:Phimulti}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Infinite resolutions}\label{subsec:infinite}
+\section{Infinite resolutions}\label{subsec:infinite}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 With notation as in \S\ref{sec:functor}, let $R=R(X,L)$ satisfy the hypotheses of Corollary~\ref{cor:isom cones}.  Let $\FF$ be the minimal free resolution of a finite length $R$-module, and assume that $\FF$ has infinite projective dimension.  We may apply the structure of coresolutions from Example~\ref{ex:coresolutions} for $R$ to show that $\FF$ decomposes as an infinite sum of shifted pure diagrams of codimension $d+1$.  The basic idea can be illustrated by the following examples.\daniel{Some technical stuff to check if we want to keep this subsection.  Namely, we need to extend Corollary~\ref{cor:isom cones} to the refined case.}
@@ -2021,8 +1892,6 @@ NUMBER = {0709.1529},
 YEAR = {2008},
 }
 
-
-
 \bib{eis-schrey1}{article}{
    author={Eisenbud, David},
    author={Schreyer, Frank-Olaf},
@@ -2078,6 +1947,24 @@ YEAR = {2009},
    review={\MR{2810424}},
 }
 
+\bib{eis-schrey-chow}{article}{
+   author={Eisenbud, David},
+   author={Schreyer, Frank-Olaf},
+   author={Weyman, Jerzy},
+   title={Resultants and Chow forms via exterior syzygies},
+   journal={J. Amer. Math. Soc.},
+   volume={16},
+   date={2003},
+   number={3},
+   pages={537--579},
+   issn={0894-0347},
+%   review={\MR{1969204 (2004j:14067)}},
+%   doi={10.1090/S0894-0347-03-00423-5},
+}
+	
+
+
+
 \bib{floystad-multigraded}{article}{
    author={Fl{\o}ystad, Gunnar},
    title={The linear space of Betti diagrams of multigraded Artinian
@@ -2091,6 +1978,31 @@ YEAR = {2009},
    review={\MR{2727620 (2012c:13032)}},
 }
 	
+
+\bib{floystad-expository}{article}{
+	AUTHOR = {Fl{\o}ystad, Gunnar},
+     TITLE = {Boij-S\"oderberg theory: Introduction and survey},
+     NOTE = {\tt arXiv:1106.0381},
+YEAR = {2011},
+     }
+     
+	
+	
+\bib{gruson-lazarsfeld-peskine}{article}{
+   author={Gruson, L.},
+   author={Lazarsfeld, R.},
+   author={Peskine, C.},
+   title={On a theorem of Castelnuovo, and the equations defining space
+   curves},
+   journal={Invent. Math.},
+   volume={72},
+   date={1983},
+   number={3},
+   pages={491--506},
+   issn={0020-9910},
+   review={\MR{704401 (85g:14033)}},
+   doi={10.1007/BF01398398},
+}
 
 \bib{herzog-srinivasan}{article}{
    author={Herzog, J{\"u}rgen},

@@ -197,7 +197,8 @@ with the following properties:
 \begin{theorem}\label{thm:Phi}
 \begin{enumerate}
 	\item\label{thm:Phi:1}  The Betti table of $\Phi(\FF,\cE)$ depends only on the Betti table of $\FF$ and the cohomology table of $\cE$.
-	\item\label{thm:Phi:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi(\FF,\cE)$ has finite length homology.  This occurs whenever $\FF$ is a complex with finite length homology and $\cE$ is a vector bundle.  Moreover, if $\codim(\FF)+\codim(\cE)\geq n+1$ then  $\Phi(\FF,\cE)$ has the Betti table of a complex with finite length homology\end{enumerate}
+	\item\label{thm:Phi:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi(\FF,\cE)$ has finite length homology.  This occurs whenever $\FF$ is a complex with finite length homology and $\cE$ is a vector bundle.  Moreover, if $\codim(\FF)+\codim(\cE)\geq n+1$, then $\Phi(\FF,\cE)$ always has the Betti table of a complex with finite length homology.
+\end{enumerate}
 \end{theorem}
 
 The functor $\Phi$ thus yields bilinear pairings relating Betti tables and cohomology tables.  For instance, one such pairing is given by:
@@ -722,7 +723,15 @@ We conclude that
 which proves the formula.
 \end{proof}
 
-For example, we can recover the Betti numbers of a complex $\FF$  or the cohomology
+
+\begin{remark}\label{rmk:generic}
+The proof of Theorem~\ref{thm:betti numbers of pairing} illustrates the following useful fact:  over the generic point of $\AA^1$, we have the isomorphism
+\[
+(\FF\cdot \cE)\otimes_{A} \kk(t)\cong \left( Rp_{2*}(\widetilde{\FF}\otimes \cE)\right) \otimes_{\kk} \kk(t).
+\]
+\end{remark}
+
+As a Corollary of Theorem~\ref{thm:betti numbers of pairing}, we can recover the Betti numbers of a complex $\FF$  or the cohomology
 table of a sheaf $\cE$ from the values of the pairing:
 \begin{cor} 
 We have:
@@ -755,7 +764,6 @@ the complex $R\pi_{2*}\GG$ on $\Spec A[t,t^{-1}]$ has no homology. By flat base 
 this is equal to the restriction of $\Phi(\FF,\cE)$ on the open set $t^{-1}$, and we see that the homology
 of $\Phi(\FF,\cE)$ is annihilated by a power of $t$, as required.
 \end{proof}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1032,7 +1040,7 @@ Unlike the case of resolutions in Example~\ref{ex:resolutions}, there exist comp
 \end{example}
 
 \begin{example}[Approximate resolutions]
-Let $\bb=(\dots,\emptyset,0^\zp,n-1,n-1,\dots,)$.   Let $\FF\in \DD^b(S)$ be compatible with $\bb$ and let $M$ be the $0$th homology module of $\FF$.  We note that $\FF$ is like an approximate resolution of $M$.  Such approximate resolutions play a key role in \cite[Lemma~1.6]{gruson-lazarsfeld-peskine}, where it is that the Castelnuovo--Mumford regularity can be bounded by approximate resolutions.
+Let $\bb=(\dots,\emptyset,0^\zp,n-1,n-1,\dots,)$.   Let $\FF\in \DD^b(S)$ be compatible with $\bb$ and let $M$ be the $0$th homology module of $\FF$.  We note that $\FF$ provides an approximate resolution of $M$, in the sense that the homology of $[\FF\to M]$ has dimension at most $1$.  Such approximate resolutions play a key role in \cite[Lemma~1.6]{gruson-lazarsfeld-peskine}, where they are used to bound the Castelnuovo--Mumford regularity of $M$.
 \end{example}
 
 \begin{example}[Monads]
@@ -1173,8 +1181,7 @@ We set $u':=u-\beta(A(-s)[-t]/t^{r-t})$.  As in the nondecreasing case, the clai
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The key to proving Theorem~\ref{thm:extremal rays refined} is to combine Theorem~\ref{thm:Phi} with Corollary~\ref{cor:dualconeA refined}
-to produce lots of nonnegative functionals on $\BBQ^{\bb}(S)$.  This is accomplished in the following lemma.
+The key to proving Theorem~\ref{thm:extremal rays refined} is to produce lots of nonnegative functionals on $\BBQ^{\bb}(S)$.  This will be accomplished by combining Corollary~\ref{cor:dualconeA refined} with the following lemma, which is like a refined version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}
 
 %For instance, if $\FF$ is the free resolution of a (non-finite length) module, then $\FF\cdot \cE$ will be supported entirely in homological degrees $-n, \dots, n+1$, but it may fail to have finite length homology in some of these homological degrees.  More generally, if $\FF$ is compatible with $\bb$, then this will force certain conditions on the possible homology $\FF\cdot \cE$, and the following definition captures this phenomenom.
 
@@ -1199,16 +1206,32 @@ Let $\bb$ be any nondecreasing (resp. nonincreasing) sequence with $\bb_0=k$.   
 \]
 The  pairing $\Phi$ induces a map of cones:
 \[
-\BBQ^{\bb}(S)\times \CQ^{n+1-k}\to \BBQ^{\bb'}(A)
+\BBQ^{\bb}(S)\times \CQ^{n+1-k}(\PP^n)\to \BBQ^{\bb'}(A)
 \]
 given by $(\beta(\FF), \gamma(\cE))\mapsto \beta(\FF\cdot \cE)$.
 \end{lemma}
 \begin{proof}
-We first consider the nondecreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  By replacing $\cE$ by a general $\GL_{n+1}$ translate, we may assume that $\FF$ and $\cE$ are homologically transverse~\cite{miller-speyer}.  \daniel{At the moment there's no official definition of homological transversality, so we should handle it in the course of the proof.} It then follows that $\widetilde{\FF}\otimes \cE$ is exact in homological degrees $\geq 0$. \david{give the argument: a spectral sequence with $E^{2}$ term $\Tor(\cE, H_{*} \FF)$ converging
-to the homology of $\cE\otimes \FF$, plus a definition of homological transversality a little more flexible than the one given in section 1.} Over the generic point of $[\AA^1/\GG_m]$, the complex $\nu^*(\FF)\otimes p_1^*(\cE)$ is quasi-isomorphic to $\widetilde{\FF}\otimes \cE$.  Hence, when $k\geq 0$, $\FF\cdot \cE$ has no homology supported on the generic point of $[\AA^1/\GG_m]$, i.e. $\FF\cdot \cE$ has finite length homology in these cases.  This implies that $\FF\cdot \cE$ is compatible with $\bb'$.
+We first consider the nondecreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}, the Betti table of $\FF\cdot \cE$ only depends only the Betti table of $\FF$ and on the cohomology table of $\cE$.  Since extending the ground field does not affect either of these tables, we may assume $\kk$ is infinite.  We let $\HH_r(\widetilde{\FF})$ denote the $pr$th homology module of $\widetilde{\FF}$.  Fixing $r$, we may replace $\cE$ by a general $\GL_{n+1}(\kk)$ and apply~\cite[Theorem]{miller-speyer} to obtain that $\HH_r(\widetilde{\FF})$ and $\cE$ are homologically transverse, i.e:
+\begin{itemize}
+	\item $\Tor_i(\HH_r(\widetilde{\FF}),\cE)=0 \text{ for } i>0$, and
+	\item $\codim \HH_r(\widetilde{\FF})\otimes \cE= \min\{n+1, \codim \HH_r(\widetilde{\FF})+\codim \cE\}.$
+\end{itemize}
+In fact, since $\FF$ is bounded, a sufficiently general translate of $\cE$ will be homologically transverse to all of the $\HH_r(\widetilde{\FF})$ simultaneously.  Further, based on the second condition and the fact that $b_0=k$, we have $\HH_r(\widetilde{\FF})\otimes \cE=0$ whenever $r\geq 0$.
 
-We next consider the nonincreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$ and assume that they are homologically transverse.  It then follows that $\FF\otimes \cE$ is exact in homological degrees $\leq 0$.
-As above, the complex $\nu^*(\FF)\otimes p_1^*(\cE)$ is exact in homological degrees $k\leq 0$.  Since the dimension of the support of $\cE$ is at most $k-1$, it follows that $\FF\cdot \cE$, which is the pushforward of $\nu^*(\FF)\otimes p_1^*(\cE)$, has no homology supported on the generic point of $[\AA^1/\GG_m]$ in homological degrees $\leq -k+1$.  Thus, $\FF\cdot \cE$ has finite length homology in these cases, so it is compatible with $\bb'$.
+\daniel{double check indices in both spectral sequences.}We then claim that $\widetilde{\FF}\otimes \cE$ is exact in homological degrees $\geq 0$.  There is a spectral sequence
+\[
+E^2_{r,q}=\Tor_q(\HH_r(\widetilde{\FF}),\cE)\Rightarrow \Tor_{r+q}(\widetilde{\FF},\cE)
+\]
+The above argument shows that $E^2_{r,q}=0$ whenever $r+q\geq 0$, thus proving the claim.
+
+To complete the argument, use Remark~\ref{rmk:generic} to conclude that, over the generic point of $\AA^1$, the complex $\Phi(\FF,\cE)$ is quasi-isomorphic to $Rp_{2*}\left(\widetilde{\FF}\otimes \cE\right)$.  It follows that $\Phi(\FF,\cE)$ is compatible with $\bb'$ if and only if $R^qp_{2*}\left(\widetilde{\FF}\otimes \cE\right)=0$ for $q\geq 0$.  This in turn follows from immediately from the above computation and from the hypercohomology spectral sequence
+\[
+E_2^{-r,q}=R^rp_{2*}(\HH_q(\widetilde{\FF}\otimes \cE))\Rightarrow R^{q-r}p_{2*}(\widetilde{\FF}\otimes \cE).
+\]
+
+
+We next consider the nonincreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  Arguing as in the nondecreasing case, we conclude that $\widetilde{\FF}\otimes \cE$ is exact in homological degrees $\leq 0$.
+By a similar argument as above, we then further reduce to showing that  $R^qp_{2*}\left(\widetilde{\FF}\otimes \cE\right)=0$ for $q\leq -k+1$.  This then followsby applying the hypercohomology spectral sequence and using the fact that $\dim(\HH_q(\widetilde{\FF}\otimes \cE)\leq \dim(\cE)\leq k-1$ for all $q$.
 \end{proof}
 
 
@@ -1558,19 +1581,22 @@ still induces a map $\BBQ^{n+1}(S)\to \BBQ^1(A)$.
 \section{Functoriality}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Let $f: X\to \PP^n$, with $\dim(X)=d$ and $L=f^*\cO(1)$.  We may define cohomology tables and Betti tables for the pair $(X,L)$ as follows.  If $\cE\in \DD^b(X)$then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq \ell \leq d$, we set $\CQ^{\ell}(X,L)$ to be the subcone of cohomology tables of sheaves whose support has codimension at least $\ell$.
+In this section, we use our new foundation for Boij--S\"oderberg theory over $S$ to analyze cones of Betti tables of more general $\NN$-graded rings.  Throughout this section, our setup will be as follows.  Let $f: X\to \PP^n$, with $\dim(X)=d$ and $L=f^*\cO(1)$.  
 
-For Betti tables, we let $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ be the section ring of $L$.  The ring $R$ is naturally $\NN$-graded, and we define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  If $\FF \in \DD^b(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $R$.\daniel{In this level of generality, is $\widetilde{\FF}$ actually a complex on $f(X)$ on note $X$ itself?}
+We may then define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq \ell \leq d$, we set $\CQ^{\ell}(X,L)$ to be the cone of cohomology tables of sheaves whose support has codimension at least $\ell$.
 
-We seek to define a functor:
+For Betti tables, we let $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ be the section ring of $L$.  The ring $R$ is naturally $\NN$-graded, and we define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  For $\FF\in \DD^b(R)$, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  If $\bb$ is a nondecreasing or nonincreasing codimension sequence, then we define $\BBQ^{\bb}(R)$ in parallel with the definitions from \S\ref{sec:refined}.
+
+To extend our results from $S$ to $R$, it will be useful to define a functor
 \[
 \Phi_X: \DD^b(R)\times \DD^b(X)\to \DD^b(A).
 \]
+If $\FF \in \DD^b(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $R$.
 We let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$.  
 We write $-\otimes_\sigma R[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
 given by $\sigma$. 
 
-If $F$ is a graded  $R$-module, then 
+Note that, if $F$ is a graded  $R$-module, then 
 \[
 R\otimes_{\sigma} S[t]
 \]
@@ -1590,7 +1616,6 @@ Given $\FF\in \DD^b(R)$ and $\cE\in \DD^b(X)$ we define
 \end{defn}
 As above, we often omit $\Phi_X$ from the notation and simply write $\FF\cdot \cE$ for $\Phi_X(\FF,\cE)$.  We immediately obtain an analogue of Theorem~\ref{thm:Phi} for the functor $\Phi_X$.
 \begin{theorem}\label{thm:PhiX}
-The functor $\Phi_X$ has the following  properties:
 \begin{enumerate}
 	\item\label{thm:PhiX:1}  The Betti table of $\Phi_X(\FF,\cE)$ depends only on the Betti table of $\FF$ and the cohomology table of $\cE$.
 	\item\label{thm:PhiX:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_X(\FF,\cE)$ has finite length homology.  
@@ -1603,29 +1628,47 @@ Statement \eqref{thm:PhiX:1} follows by applying exactly the same proof as used 
 
 
 We first note that, in wide generality, we obtain well defined functors on the cones we have been considering.  Once again, the fact that we are working with derived categories instead of resolutions/sheaves plays an essential role in these definitions.
-To begin with, we have a well defined map:
-\[
-f^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)
-\]
-defined by sending $\beta^S(\FF)\mapsto \beta^R(f^*\FF)$.  Of course, for $f^*\FF$ to be well defined on the quasi-isomorphism class of $\FF$, we need to represent $\FF$ by a free complex.  For a free complex $\FF$, we remark that if $\FF$ is compatible with $\bb$ then $f^*\FF$ is also compatible with $\bb$.\daniel{Is this really true?  We had claimed it was true over the phone, but now I doubt it.  What if $f$ is the blowup of $\PP^2$ at the origin and $\FF$ is the minimal resolution of the origin.  Won't $\FF$ have codim $2$ whereas $f^*\FF$ will have codim $1$?  Do we need a sort of transversality argument again?  Then we can't pullback something arbitrary\dots}
 
-We also have a well defined map on cohomology tables:
+\begin{prop}\label{prop:pushpull}
+With $(X,L)$ and $f$ as above, we have:
+\begin{enumerate}
+	\item Let $\bb$ be a codimension sequence such that $b_i\in \{\emptyset, 0,d+1\}$ for all $i$.   Then we have a well defined map of cones
+	\[
+Lf^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)
+\]
+given by $\beta(\FF)\mapsto \beta(Lf^*\FF)$.  More generally, if $f$ is flat, then for any codimension sequence $\bb$, the above map is well defined.
+	\item	For any $f$ we have a well defined map on cohomology tables:
 \[
 Rf_*\colon \CQ^k(X)\to \CQ^{k-d}(\PP^n).
 \]
-where $\gamma(\cE)\mapsto \gamma(Rf_* \cE)$.  The fact that this is well defined on cohomology tables follows from the projection formula combined with\daniel{need to fill this in.}
+where $\gamma(\cE)\mapsto \gamma(Rf_* \cE)$.  
+\end{enumerate}
+\end{prop}
+\begin{proof}
+(1)  Flat case is easy.  General case needs to be filled in.
 
+(2) follows from the projection formula combined with\daniel{need to fill this in.}
+\end{proof}
+%
+%
+%To begin with, we have a well defined map:
+%\[
+%f^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)
+%\]
+%defined by sending $\beta^S(\FF)\mapsto \beta^R(f^*\FF)$.  Of course, for $f^*\FF$ to be well defined on the quasi-isomorphism class of $\FF$, we need to represent $\FF$ by a free complex.  For a free complex $\FF$, we remark that if $\FF$ is compatible with $\bb$ then $f^*\FF$ is also compatible with $\bb$.\daniel{Is this really true?  We had claimed it was true over the phone, but now I doubt it.  What if $f$ is the blowup of $\PP^2$ at the origin and $\FF$ is the minimal resolution of the origin.  Won't $\FF$ have codim $2$ whereas $f^*\FF$ will have codim $1$?  Do we need a sort of transversality argument again?  Then we can't pullback something arbitrary\dots}
+%
+%We also have a 
 
-Of course, as maps of vector spaces, $f^*$ and $Rf_*$ are both the identity maps.  Hence, we immediately obtain the inclusions:
+Of course, as maps of vector spaces, $Lf^*$ and $Rf_*$ are both the identity maps.  Hence, we immediately obtain the inclusions:
 \[
 \BBQ^{\bb}(S)\subseteq \BBQ^{\bb}(R) \quad \text{ and } \CQ^k(X)\subseteq \CQ^{k-d}(\PP^n).
 \]
-Based on these inclusions, it turns out that $f^*$ and $Rf_*$ interact well with the functors $\Phi$ and $\Phi_X$.
+Based on these inclusions, it turns out that $Lf^*$ and $Rf_*$ interact well with the functors $\Phi$ and $\Phi_X$.
 
 \begin{lemma}\label{lem:general pairing}
 We have the equality:
 \[
-\beta(f^*\FF\cdot \cE)=\beta(\FF\cdot Rf_*\cE).
+\beta(Lf^*\FF\cdot \cE)=\beta(\FF\cdot Rf_*\cE).
 \]
 \end{lemma}
 \begin{proof}
@@ -1691,13 +1734,34 @@ For any degree $m>1$, fix a generic polynomial $q\in H^0(\PP^2, \cO(m))$.  Let $
 Eisenbud and Scheyer have conjectured that every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides the possibility of producing a counterexample.  Namely, imagine that for some $f: X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{d+1}(R)$ but where $\beta(\FF)$ does does not decompose as a sum of shifted pure tables of codimension $d+1$.  This would imply that $\BBQ^{d+1}(R)\supsetneq \BBQ^{d+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
 \end{remark}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section{Further directions}\label{sec:further}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Infinite resolutions}\label{subsec:infinite}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+With notation as in \S\ref{sec:functor}, let $R=R(X,L)$ satisfy the hypotheses of Corollary~\ref{cor:isom cones}.  Let $\FF$ be the minimal free resolution of a finite length $R$-module, and assume that $\FF$ has infinite projective dimension.  We may apply the structure of coresolutions from Example~\ref{ex:coresolutions} for $R$ to show that $\FF$ decomposes as an infinite sum of shifted pure diagrams of codimension $d+1$.  The basic idea can be illustrated by the following examples.\daniel{Some technical stuff to check if we want to keep this subsection.  Namely, we need to extend Corollary~\ref{cor:isom cones} to the refined case.}
+
+\begin{example}
+Imagine $R=\kk[x,y]/(x^3)$ and that $\FF$ is the minimal free resolution of the residue field.  Then
+\begin{align*}
+\beta(\FF)&=\begin{pmatrix}1&2&1&-&-&\dots \\ -&-&1&2&1&\dots \\-&-&-&-&1 &\dots \\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}\\
+&=\begin{pmatrix}1&1&-&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}+
+\begin{pmatrix}-&1&1&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}+\dots
+\end{align*}
+\end{example}
+
+\begin{example}
+Imagine $R=\kk[x,y,z]/(x^2,y^2)$ and that $\FF$ is the minimal free resolution of $R/(x,y)$.  Then
+\begin{align*}
+\beta(\FF)&=\begin{pmatrix}1&3&5&7&\dots \end{pmatrix}\\
+&=\begin{pmatrix}1&1&-&-&\dots \end{pmatrix}+\begin{pmatrix}-&2&2&-&\dots \end{pmatrix}+\begin{pmatrix}-&-&3&3&\dots \end{pmatrix}+\dots
+\end{align*}
+\end{example}
+
+We produce the decomposition as follows.  We consider the truncation $\tr_{\leq e}(\FF)$ obtained by truncating $\FF$ in homological degrees $>e$.  We can decompose $\tr_{\leq e}(\FF)$ as the sum of pure Betti tables using the coresolution cones.  As $e\to \infty$, the decomposition will stabilize in low homological degree, and will only involve diagrams of finite length.  Hence, we'll be able to write $\beta(\FF)$ as an infinite sum of shifted pure diagrams of finite length.
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1760,33 +1824,6 @@ We are now prepared to prove Theorem~\ref{thm:Phimulti}.
 \begin{proof}[Proof of Theorem~\ref{thm:Phimulti}]
 \daniel{work in progress}
 \end{proof}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Infinite resolutions}\label{subsec:infinite}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-With notation as in \S\ref{sec:functor}, let $R=R(X,L)$ satisfy the hypotheses of Corollary~\ref{cor:isom cones}.  Let $\FF$ be the minimal free resolution of a finite length $R$-module, and assume that $\FF$ has infinite projective dimension.  We may apply the structure of coresolutions from Example~\ref{ex:coresolutions} for $R$ to show that $\FF$ decomposes as an infinite sum of shifted pure diagrams of codimension $d+1$.  The basic idea can be illustrated by the following examples.\daniel{Some technical stuff to check if we want to keep this subsection.  Namely, we need to extend Corollary~\ref{cor:isom cones} to the refined case.}
-
-\begin{example}
-Imagine $R=\kk[x,y]/(x^3)$ and that $\FF$ is the minimal free resolution of the residue field.  Then
-\begin{align*}
-\beta(\FF)&=\begin{pmatrix}1&2&1&-&-&\dots \\ -&-&1&2&1&\dots \\-&-&-&-&1 &\dots \\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}\\
-&=\begin{pmatrix}1&1&-&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}+
-\begin{pmatrix}-&1&1&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}+\dots
-\end{align*}
-\end{example}
-
-\begin{example}
-Imagine $R=\kk[x,y,z]/(x^2,y^2)$ and that $\FF$ is the minimal free resolution of $R/(x,y)$.  Then
-\begin{align*}
-\beta(\FF)&=\begin{pmatrix}1&3&5&7&\dots \end{pmatrix}\\
-&=\begin{pmatrix}1&1&-&-&\dots \end{pmatrix}+\begin{pmatrix}-&2&2&-&\dots \end{pmatrix}+\begin{pmatrix}-&-&3&3&\dots \end{pmatrix}+\dots
-\end{align*}
-\end{example}
-
-We produce the decomposition as follows.  We consider the truncation $\tr_{\leq e}(\FF)$ obtained by truncating $\FF$ in homological degrees $>e$.  We can decompose $\tr_{\leq e}(\FF)$ as the sum of pure Betti tables using the coresolution cones.  As $e\to \infty$, the decomposition will stabilize in low homological degree, and will only involve diagrams of finite length.  Hence, we'll be able to write $\beta(\FF)$ as an infinite sum of shifted pure diagrams of finite length.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

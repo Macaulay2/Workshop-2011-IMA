@@ -417,7 +417,7 @@ Write $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ for the \emph{sect
 of $L$.
 
 We say that $\cU$ is an \defi{Ulrich sheaf} for $f$ if $f_*(\cU)\cong \cO_{\PP^n}^r$ for some $r>0$.  It was pointed out in \cite[Theorem~5]{eis-schrey-abel} that the existence of an Ulrich sheaf for $f$ implies that  the cone of cohomology tables of vector bundles on $X$ is the same as that on $\PP^{n}$. (The theorem is stated there in the special case when $L$ is very ample, but the proof
-carries over to the more general situation.) The situation for Betti tables of resolutions over $R$ is not at all analogous to the situation of resolutions over $S$. But we prove a complete analogy for bounded complexes with finite length homology:\daniel{At the moment, there's a $|\kk|=\infty$ assumption needed in the proof of this corollary.  So this needs to be reconciled.}
+carries over to the more general situation.) The situation for Betti tables of resolutions over $R$ is not at all analogous to the situation of resolutions over $S$. But we prove a complete analogy for bounded complexes with finite length homology:
 
 \begin{cor}\label{cor:isom cones}
 If $f:X\to \P^{d}$ is a  finite map from an $d$-dimensional variety and $X$ admits an Ulrich sheaf for $f$, then the cone of Betti tables
@@ -1737,12 +1737,10 @@ We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and $\gamma(\cE)$ equals
 %H^i(X,\cE\otimes L^j)=H^i(\PP^n, f_*(\cE)\otimes \cO(j)),
 %\]
 %and this yields the injection $f_*\colon \CQ^0(X,L)\to \CQ^{n-d}(\PP^n,\cO(1))$.
-Next we ask when $Lf^*$ and $Rf_*$ induce isomoprhisms of cones.  A partial answer is given by Corollary~\ref{cor:isom cones}.  In fact,
-we prove the following slightly more general result.
+Next we ask when $Lf^*$ and $Rf_*$ induce isomoprhisms of cones.  A partial answer by Corollary~\ref{cor:isom cones} or by the following more general result.
 
-\daniel{The infinite field hypothesis is used to get that $Lf^*$ is well defined.  We could probably prove Corollary~\ref{cor:isom cones} as stated without a $\kk$ infinite hypothesis.}
 \begin{cor}\label{cor:new graded rings}
-Let $\kk$ be an infinite field, and let $R$ be a graded ring of the form $R=R(X,L)$ where $f\colon X\to \PP^n$ is finite and where $X$ contains an Ulrich sheaf.  and Let $\bb$ be a codimension sequence such that $b_i\leq \dim(R)$ for all $i$.  Then we have  an isomorphism of cones:
+Let $\kk$ be an infinite field, and let $R$ be a graded ring of the form $R=R(X,L)$ where $f\colon X\to \PP^n$ is finite and where $X$ contains an Ulrich sheaf.   Let $\bb$ be a codimension sequence such that $b_i\leq \dim(R)$ for all $i$.  Then we have  an isomorphism of cones:
 \[
 Lf^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R).
 \]
@@ -1750,12 +1748,19 @@ Lf^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R).
 \begin{proof}
 %Extending the ground field $\kk$ has no effect on $\BBQ^{\bb}(S)$.  Since such an extension is flat, it can only potentially increase the size of $\BBQ^{\bb}(R)$.  Since we already have shown that $Lf^*$ is an inclusion of cones, it suffices to prove the corollary after passing to an infinite ground field $\kk$.  
 
-Set $d:=\dim(X)=\dim(R)-1$.  Since $b_i\leq d+1$ for all $i$, Theorem~\ref{thm:extremal rays refined} implies that $\BBQ^{\bb}(S)=\BBQ^{\bb}(\kk[x_0,\dots,x_d]).$  Hence, we may replace $f$ by a general linear projection $X\to \PP^d$, thus replacing $S$ by $\kk[x_0,\dots,x_d]$, and it suffices to prove the theorem in this case.
+Set $d:=\dim(X)=\dim(R)-1$.  Since $b_i\leq d+1$ for all $i$, Theorem~\ref{thm:extremal rays refined} implies that $\BBQ^{\bb}(S)=\BBQ^{\bb}(\kk[x_0,\dots,x_d]).$  Hence,  since $\kk$ is infinite, we may replace $f$ by a general linear projection $X\to \PP^d$, thus replacing $S$ by $\kk[x_0,\dots,x_d]$, and it suffices to prove the theorem in this case.
 
 We first remark that $Rf_*\colon \CQ^0(X,L)\to \CQ^{0}(\PP^d, \cO(1))$  is an isomorphism.  We have an inclusion by Proposition~\ref{prop:pushpull}\eqref{prop:pushpull:2}.  Now, let $\cE$ be a coherent sheaf on $\PP^d$, and we seek to show that $\gamma(\cE)$ lies in $\CQ^0(X,L)$.  Let $\cU$ be an Ulrich sheaf for $(X,L)$.  The central computation in \cite[Proof of Theorem 5]{eis-schrey-abel} shows that the cohomology table of $\cU\otimes f^*\cE$ is a scalar multiple of the cohomology table of $\cE$. This proves that $\CQ^0(X,L)= \CQ^{0}(\PP^d,\cO(1))$ as desired.
 
 Since $\kk$ is infinite, we already have an inclusion $\BBQ^{\bb}(S)\subseteq \BBQ^{\bb}(R)$.  To prove that this is an isomorphism, we claim that the proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\bb}(S)$ holds for $\BBQ^{\bb}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\bb$, and these arguments go through the unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof Lemma~\ref{lem:refined positivity} to obtain an analogue $R$-complexes that are compatible with $\bb$.  
 \end{proof}
+
+\daniel{Should we add a remark about the hypothees of Corollary~\ref{cor:isom cones} that is targeted at algbraists?  I.e. something of the form ``Let $R$ be an $\NN$-graded ring that is a finite extension of $S$ and that contains an Ulrich module.''}
+Since Corollary~\ref{cor:isom cones} is stated without the assumption that $\kk$ is an infinite field, it does not directly follow from Corollary~\ref{cor:new graded rings}, and we thus provide a separate proof.
+\begin{proof}[Proof of Corollary~\ref{cor:isom cones}]
+Based on the hypotheses, we already have $f\colon X\to \PP^d$ is a finite map, and $S=\kk[x_0, \dots, x_d]$.  The only other point in the proof of Corollary~\ref{cor:new graded rings} that uses the fact that $\kk$ is infinite is when we sought to show that $Lf^*: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)$ is well defined and is an inclusion.  If we work with $\BBQ^{d+1}(S)$ and $\BBQ^{d+1}(R)$, instead then we are only interested in pulling back complexes $\FF\in \DD^b(S)$ where $\FF$ has finite length homology.  Any such $\FF$ is automatically homologically transverse to $R$, and hence $Lf^*: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)$ is well defined in this case.  The rest of the proof of Corollary~\ref{cor:new graded rings} goes through unchanged.
+\end{proof}
+
 
 We provide a few new examples of cones of Betti tables.
 

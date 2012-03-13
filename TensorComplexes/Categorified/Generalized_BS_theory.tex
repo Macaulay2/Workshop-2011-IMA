@@ -1219,6 +1219,8 @@ The key to proving Theorem~\ref{thm:extremal rays refined} is to produce lots of
 %For the second statement, we see that
 %\end{proof}
 
+
+
 \begin{lemma}\label{lem:refined positivity}
 Let $\bb$ be any nondecreasing (resp. nonincreasing) sequence with $\bb_0=k$.   We define $\bb'$ by the formula:
 \[
@@ -1234,7 +1236,7 @@ The  pairing $\Phi$ induces a map of cones:
 given by $(\beta(\FF), \gamma(\cE))\mapsto \beta(\FF\cdot \cE)$.
 \end{lemma}
 \begin{proof}
-We first consider the nondecreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}, the Betti table of $\FF\cdot \cE$ only depends only the Betti table of $\FF$ and on the cohomology table of $\cE$.  Since extending the ground field does not affect either of these tables, we may assume $\kk$ is infinite.  We let $\HH_r(\widetilde{\FF})$ denote the $pr$th homology module of $\widetilde{\FF}$.  Fixing $r$, we may replace $\cE$ by a general $\GL_{n+1}(\kk)$ and apply~\cite[Theorem]{miller-speyer} to obtain that $\HH_r(\widetilde{\FF})$ and $\cE$ are homologically transverse, i.e:
+We first consider the nondecreasing case.  Let $\FF$ be compatible with $\bb$ and let $\cE$ be a coherent sheaf of codimension $\geq n+1-k$.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}, the Betti table of $\FF\cdot \cE$ only depends only the Betti table of $\FF$ and on the cohomology table of $\cE$.  Since extending the ground field does not affect either of these tables, we may assume $\kk$ is infinite.  We let $\HH_r(\widetilde{\FF})$ denote the $r$th homology module of $\widetilde{\FF}$.  Fixing $r$, we may replace $\cE$ by a general $\GL_{n+1}(\kk)$ and apply~\cite[Theorem]{miller-speyer} to obtain that $\HH_r(\widetilde{\FF})$ and $\cE$ are homologically transverse, i.e:
 \begin{itemize}
 	\item $\Tor_i(\HH_r(\widetilde{\FF}),\cE)=0 \text{ for } i>0$, and
 	\item $\codim \HH_r(\widetilde{\FF})\otimes \cE= \min\{n+1, \codim \HH_r(\widetilde{\FF})+\codim \cE\}.$
@@ -1651,15 +1653,23 @@ Statement \eqref{thm:PhiX:1} follows by applying exactly the same proof as used 
 
 
 We first note that, in wide generality, we obtain well defined functors on the cones we have been considering.  Once again, the fact that we are working with derived categories instead of resolutions/sheaves plays an essential role in these definitions.
+\begin{defn}
+We say that $\FF\in \DD^b(S)$ \defi{ is homologically transverse to $R$} if we have:\daniel{redo}
+\begin{itemize}
+	\item $\Tor^S_q(\HH_r(\FF),R)=0 \text{ for } q>0$, and all $r$, and
+	\item $\codim \HH_r(\FF)\otimes_S R= \min\{d+1, \codim \HH_r(\widetilde{\FF})+\codim \cE\}.$
+\end{itemize}
+\end{defn}
 
+\daniel{Infinite field???}
 \begin{prop}\label{prop:pushpull}
-With $(X,L)$ and $f$ as above, we have:
+Let $(X,L)$ and $f$ as above, and assume that $\kk$ is infinite.
 \begin{enumerate}
-	\item Let $\bb$ be a codimension sequence such that $b_i\in \{\emptyset, 0,d+1\}$ for all $i$.   Then we have a well defined map of cones
+	\item Let $\bb$ be any codimension sequence.   Then we have a well defined map of cones
 	\[
 Lf^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)
 \]
-given by $\beta(\FF)\mapsto \beta(Lf^*\FF)$.  If $f$ is flat, then the above map is well defined for any codimension sequence $\bb$.
+given by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  
 	\item	For any $f$ we have a well defined map on cohomology tables:
 \[
 Rf_*\colon \CQ^k(X)\to \CQ^{k-d}(\PP^n).
@@ -1668,18 +1678,35 @@ where $\gamma(\cE)\mapsto \gamma(Rf_* \cE)$.
 \end{enumerate}
 \end{prop}
 \begin{proof}
-(1)  Let $\bb$ be a codimesnion such that $b_i\in \{\emptyset, 0, d+1\}$ for all $i$, and let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\bb$.  \daniel{Another spectral sequence here?}
+(1)  Let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\bb$.  Since $\kk$ is infinite and $\FF$ is bounded, we may apply \cite[Theorem]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We consider the spectral sequence:
+\[
+E^{r,q}_2=\Tor^S_{q}(\HH_r(\FF),R)\Rightarrow \HH_{q+r}(\FF\otimes_S R).
+\]
 
-(2) follows from the projection formula combined with\daniel{need to fill this in.}
+
+For (2), we fix $\cE\in \DD^b(X)$ and we claim that $\gamma(\cE)=\gamma(Rf_* \cE)$.  We consider the commutative diagram:
+\[
+\xymatrix{
+X\ar[r]^f\ar[rd]^{q}& \PP^n\ar[d]^{\pi}\\
+& \Spec(\kk)
+}
+\]
+For every $j\in \ZZ$, we have
+\[
+Rq_*(E\otimes L^j)
+\cong R\pi_* \circ Rf_* (E\otimes L^j)
+\cong R\pi_* (  Rf_*(E) \otimes O(j) ),
+\]
+where the first equality follows from the commutativity of derived pushforwards, and the second isomorphism follows from the projection formula.  Since this holds for every $j\in \ZZ$, this implies that $\gamma(\cE)=\gamma(Rf_* \cE)$ as claimed.
 \end{proof}
 
 \begin{remark}
-For a general map $f$, the map $\beta(\FF)\mapsto \beta(Lf^*\FF)$ may not preserve codimension sequences.  For instance, let $f: X\to \PP^2$ be the blow-up of point $P$, and let $\FF$ be the free resolution of homogenous coordinate ring of $P$.  Let $\bb:=(\dots,\emptyset, 2^\zp,\infty,\dots)$.  Then $\FF$ is compatible with $\bb$.  However, $\HH_0(Lf^*\FF)$ is supported on the exceptional divisor, and hence $Lf^*\FF$ is not compatible with $\bb$.
+In the definition of $Lf^*$, the homologically transverse assumption is crucial.  For instance, let $f: X\to \PP^2$ be the blow-up of point $P$, and let $\FF$ be the free resolution of homogenous coordinate ring of $P$.  Let $\bb:=(\dots,\emptyset, 2^\zp,\infty,\dots)$.  Then $\FF$ is compatible with $\bb$.  However, $\HH_0(Lf^*\FF)$ is supported on the exceptional divisor, and hence $Lf^*\FF$ is not compatible with $\bb$.
 \end{remark}
 
 As maps of vector spaces, $Lf^*\colon \VV\to \VV$ and $Rf_*\colon \WW\to \WW$ are simply the identity maps.  Hence, we immediately obtain the inclusions:
 \[
-\BBQ^{\bb}(S)\subseteq \BBQ^{\bb}(R) \quad \text{ and } \CQ^k(X)\subseteq \CQ^{k-d}(\PP^n).
+\BBQ^{\bb}(S)\subseteq \BBQ^{\bb}(R) \quad \text{ and } \quad \CQ^k(X,L)\subseteq \CQ^{k-d}(\PP^n).
 \]
 We next show that $Lf^*$ and $Rf_*$ interact well with the functors $\Phi$ and $\Phi_X$.
 
@@ -1690,7 +1717,7 @@ We have the equality:
 \]
 \end{lemma}
 \begin{proof}
-We first note that $\beta(f^*\FF)$ equals $\beta(\FF)$ and $\gamma(\cE)$ equals $\gamma(Rf_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,Rf_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(Rf_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_X(f^*\FF,\cE)$ with  $\beta(\FF)$ and $\gamma(Rf_*(\cE))$.
+We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and $\gamma(\cE)$ equals $\gamma(Rf_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,Rf_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(Rf_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_X(f^*\FF,\cE)$ with  $\beta(\FF)$ and $\gamma(Rf_*(\cE))$.
 \end{proof}
 
 
@@ -1705,30 +1732,18 @@ Next we ask when $Lf^*$ and $Rf_*$ induce isomoprhisms of cones.  A partial answ
 we prove the following slightly more general result.
 
 \begin{cor}\label{cor:new graded rings}
-Let $\bb$ be a codimension sequence such that $b_i\in \{\emptyset, 0,d+1\}$ for all $i$.  Assume that $f: X\to \PP^n$ is finite and that $X$ contains an Ulrich sheaf.  Then we have an isomorphism of cones:
+Let $\bb$ be a codimension sequence such that $b_i\in \{\emptyset, 0,d+1\}$ for all $i$.  Assume that $f: X\to \PP^n$ is finite and that $X$ contains an Ulrich sheaf.  Then we have  an isomorphism of cones:
 \[
-Lf^*: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R).
+Lf^*\colon \BBQ^{\bb}(S)\to \BBQ^{\bb}(R).
 \]
 \end{cor}
 \begin{proof}
-\daniel{To fill in.}
+Extending the ground field $\kk$ has no effect on $\BBQ^{\bb}(S)$.  Since such an extension is flat, it can only potentially increase the size of $\BBQ^{\bb}(R)$.  Since we already have shown that $Lf^*$ is an inclusion of cones, it suffices to prove the corollary after passing to an infinite ground field $\kk$.  Since $b_i\in \{\emptyset, 0,d+1\}$ for all $i$, Theorem~\ref{thm:extremal rays refined} implies that $\BBQ^{\bb}(S)=\BBQ^{\bb}(\kk[x_0,\dots,x_d]).$  Hence, we may replace $f$ by a general linear projection $X\to \PP^d$, thus replacing $S$ by $\kk[x_0,\dots,x_d]$, and it suffices to prove the theorem in this case.
+
+We first remark that $Rf_*\colon \CQ^0(X,L)\to \CQ^{0}(\PP^n, \cO(1))$  is an isomorphism.  Since $f$ is finite, we obtain the inclusion $\CQ^0(X,L)\subseteq \CQ^0(\PP^n,\cO(1))$.  Now, let $\cE$ be a coherent sheaf on $\PP^n$, and we seek to show that $\gamma(\cE)$ lies in $\CQ^0(X,L)$.  Let $\cU$ be an Ulrich sheaf for $(X,L)$.  The central computation in \cite[Proof of Theorem 5]{eis-schrey-abel} shows that the cohomology table of $\cU\otimes f^*\cE$ is a scalar multiple of the cohomology table of $\cE$. This proves that $\CQ^0(X,L)= \CQ^{0}(\PP^n,\cO(1))$ as desired.
+
+As noted above, we already have an inclusion $\BBQ^{\bb}(S)\subseteq \BBQ^{\bb}(R)$.  To prove that this is an isomorphism, we claim that the proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\bb}(S)$ holds for $\BBQ^{\bb}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\bb$, and these arguments go through the unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof Lemma~\ref{lem:refined positivity} to obtain an analogue $R$-complexes that are compatible with $\bb$.  
 \end{proof}
-%For this, we recall that $\cU$ is an Ulrich sheaf for $(X,L)$ if $f_*(\cU)\cong \cO_{\PP^d}^r$ for some $r>0$.  See~\cite{XXXX} for more on Ulrich sheaves.
-
-
-
-\begin{proof}[Proof of Corollary~\ref{cor:isom cones}]
-Since $f$ is finite, we obtain the inclusion $\CQ^0(X,L)\subseteq \CQ^0(\PP^n,\cO(1))$.  Now, let $\cE$ be a coherent sheaf on $\PP^n$, and we seek to show that $\gamma(\cE)$ lies in $\CQ^0(X,L)$.  Let $\cU$ be an Ulrich sheaf for $(X,L)$.  The central computation in \cite[Proof of Theorem 5]{eis-schrey-abel} shows that the cohomology table of $\cU\otimes f^*\cE$ is a scalar multiple of the cohomology table of $\cE$. This proves that $\CQ^0(X,L)= \CQ^0(\PP^n,\cO(1))$ as desired.
-
-As noted above, we also have an inclusion $\BBQ^{d+1}(S)\subseteq \BBQ^{d+1}(R)$.  We next observe that we have a positivity result in this context as well.  Namely, we claim that the pairing induces a map of cones:
-\[
-\BBQ^{d+1}(R)\times \CQ^0(X,L)\to \BBQ^1(A).
-\]
-Over the generic point of $[\AA^1/\GG_m]$, the complex $\FF\cdot \cE$ is quasi-isomorphic to the push-forward of $\widetilde{\FF}\otimes \cE$ to the point $\Spec(\kk)$.  Since $\FF$ is a free complex of $R$-modules with finite length homology, $\widetilde{\FF}\otimes \cE$ is exact.  Hence, over the generic point of $[\AA^1/\GG_m]$, the complex $\FF\cdot \cE$ is exact, and we thus conclude that $\beta(\FF\cdot \cE)\in \BBQ^1(A)$.
-
-Now, imagine that  there exists a complex $\FF$ such that $\beta(\FF)\in \BBQ^{d+1}(R)$ but not in $\BBQ^{d+1}(S)$.  Then, by the duality results of \S\ref{sec:duality}, there must exist a vector bundle $\cE$ on $\PP^n$ such that $\beta(\FF\cdot \cE)$ does not lie in $\BBQ^1(A)$.  However, since $\gamma(\cE)$ lies in $\CQ^0(X,L)$, this contradicts the above map of cones.
-\end{proof}
-
 
 We provide a few new examples of cones of Betti tables.
 

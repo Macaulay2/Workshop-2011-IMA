@@ -365,9 +365,9 @@ Here, for simplicity, is the special case of this result when the homology has f
 Let $\FF\in \DD^b(S)$ have finite length homology.  Then $\beta(\FF)$ is a positive rational combination of Betti tables of shifted free resolutions of modules of finite length (as in the case of resolutions, the decomposition is algorithmic and, in a certain sense, unique.)
 \end{cor}
 
-Similar statements hold for any $\FF\in \DD^b(S)$.  Theorem~\ref{thm:extremal rays refined} provides the full statement and proof, which implies the known results about decompositions of Betti tables
+Similar statements hold for any $\FF\in \DD^b(S)$, thus expanding the theory to the treatment of complexes with arbitrary homology.  Theorem~\ref{thm:extremal rays refined} provides the full statement and proof, and implies the known results about decompositions of Betti tables
 of minimal free resolutions from \cites{eis-schrey1,boij-sod2}.
-The denominators of the coefficients involved in the decomposition may be seen as a measure of the extent to which the complex is not quasi-isomorphic to its homology. 
+The denominators of the coefficients involved in the decomposition of $\beta(\FF)$ may be seen as a measure of the extent to which $\FF$ is not quasi-isomorphic to its homology. 
 
 By convention we display the Betti table of $\FF$ as a table
 of integers where the element of the $i$-th column and $j$-th row is $\beta_{i,i+j}\FF$, and we replace each zero with $-$. For clarity we often decorate the $(0,0)$ entry
@@ -506,13 +506,12 @@ It seems from this that the cone of free $R$-complexes with irrelevant homology 
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-We thank Ezra Miller, Christine Berkesch, Ravi Vakil, Rob Lazarsfeld, Bhargav Bhatt,\dots
-
+We thank Christine Berkesch, Bhargav Bhatt, Rob Lazarsfeld, Ezra Miller, and Ravi Vakil for conversations and suggestions related to this paper.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-\section*{Part I: Categorifying the Duality in Boij-S\"oderberg Theory}
+\section*{\underline{Part I: Categorifying the Duality in Boij-S\"oderberg Theory}}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background and Notation}\label{sec:notation}
@@ -810,17 +809,23 @@ from $\VV \to \QQ$.
 The above theorem illustrates the sense in which $\Phi$ categorifies all of the Eisenbud--Schreyer nonnegativity results, and it provides a unified perspective on the nonnegativity of all such functionals.  
 
 
-\daniel{There's a lot of notation introduced below that we don't really use\dots This could be streamlined a lot probably.}
-Our proof of the theorem relies on the relative simplicity of the derived category $\DD^b(A)$.  Because the global dimension of $A$ is 1, any element $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology, and the homology $\HH(\Gbull)$ decomposes as
-\begin{equation}\label{eqn:splitting}
-\HH(\Gbull)=\left( \bigoplus_{i,j\in \ZZ} A(-j)[i]^{\lambda_{i,j}(\Gbull)}\right) \bigoplus \left( \bigoplus_{\substack{i,j\in \ZZ\\ k\in \ZZ_{>0}}} (A(-j)[i]/t^k)^{\nu_{i,j,k}(\Gbull)}\right),
-\end{equation}
-for uniquely defined nonnegative integers $\lambda_{i,j}(\Gbull), \nu_{i,j,k}(\Gbull)$.  Hence, as a monoid with respect to direct sum, $\DD^b(A)$ is isomorphic to a free abelian monoid on the countable set of generators $\{\lambda_{i,j} | i,j\in \ZZ\} \cup \{ \nu_{i,j,k}  | i,j\in \ZZ, k\in \ZZ_{>0}\}$. 
+%Our proof of the theorem relies on the relative simplicity of the derived category $\DD^b(A)$.  The indecomposableBecause the global dimension of $A$ is 1, any element $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology, and the homology $\HH(\Gbull)$ decomposes as
+%\begin{equation}\label{eqn:splitting}
+%\HH(\Gbull)=\left( \bigoplus_{i,j\in \ZZ} A(-j)[i]^{\lambda_{i,j}(\Gbull)}\right) \bigoplus \left( \bigoplus_{\substack{i,j\in \ZZ\\ k\in \ZZ_{>0}}} (A(-j)[i]/t^k)^{\nu_{i,j,k}(\Gbull)}\right),
+%\end{equation}
+%for uniquely defined nonnegative integers $\lambda_{i,j}(\Gbull), \nu_{i,j,k}(\Gbull)$.  Hence, as a monoid with respect to direct sum, $\DD^b(A)$ is isomorphic to a free abelian monoid on the countable set of generators $\{\lambda_{i,j} | i,j\in \ZZ\} \cup \{ \nu_{i,j,k}  | i,j\in \ZZ, k\in \ZZ_{>0}\}$. 
+%
+%Note that a complex $\Gbull$ has finite length homology if and only if $\lambda_{i,j}(\Gbull)=0$ for all $i,j$.  We  define $\DD^b(A)_{\text{tor}}$ as the subcategory of complexes $\Gbull$ where $\lambda_{i,j}(\Gbull)=0$.  We use $\DD^b(A)\otimes_{\ZZ} \QQ$ and $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$ for the associated vector spaces.
 
-Note that a complex $\Gbull$ has finite length homology if and only if $\lambda_{i,j}(\Gbull)=0$ for all $i,j$.  We  define $\DD^b(A)_{\text{tor}}$ as the subcategory of complexes $\Gbull$ where $\lambda_{i,j}(\Gbull)=0$.  We use $\DD^b(A)\otimes_{\ZZ} \QQ$ and $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$ for the associated vector spaces.
+Our proof of the theorem relies on the relative simplicity of the derived category $\DD^b(A)$.  Every indecomposable module has the form $A(-j)$ or $A(-j)/t^k$ for uniquely defined $j$ and $k$.  Thus, for any $\Gbull\in \DD^b(A)$ and any $i\in \ZZ$, we talk about the number of copies of $A(-j)$ (or of $A(-j)/t^k$) in $\HH_i(\Gbull)$. Further, because the global dimension of $A$ is 1, any element $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology, and thus any $\Gbull\in \DD^b(A)$ is quasi-isomorphic to a direct sum of shifted indecomposable modules.
+%This enables 
+%
+%We note Note that a complex $\Gbull$ has finite length homology if and only if $\lambda_{i,j}(\Gbull)=0$ for all $i,j$.  We  define $\DD^b(A)_{\text{tor}}$ as the subcategory of complexes $\Gbull$ where $\lambda_{i,j}(\Gbull)=0$.  
+%We use $\DD^b(A)\otimes_{\ZZ} \QQ$ and $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$ for the associated vector spaces.
 
 
-The following lemma proves the nonnegativity of the functionals $\chi_{i,j}$ when restricted to $\DD^b(A)_{\text{tor}}\otimes_{\ZZ} \QQ$.  In \S\ref{sec:A} we provide a  complete analysis of the nonnegative functionals for cones of Betti tables over $A$.
+The following lemma proves the nonnegativity of $\chi_{i,j}$ when restricted to complexes $\Gbull$ with finite length homology, and is the basis of our proof of Theorem~\ref{thm:categorified}.
+%  In \S\ref{sec:A} we provide a  complete analysis of the nonnegative functionals for cones of Betti tables over $A$.
 
 \begin{lemma}\label{lem:chi nonneg}
 If $\Gbull\in \DD^b(A)_{\text{tor}}$, then $\chi_{i,j}(\Gbull)\geq 0$.
@@ -830,11 +835,20 @@ If $\Gbull\in \DD^b(A)_{\text{tor}}$, then $\chi_{i,j}(\Gbull)\geq 0$.
 %Since $\Gbull$ has finite length homology, we may representative $\Gbull$ as direct sum of $2$-term shifted minimal free resolutions of finite length $A$-modules.  Thus, each minimal generator of $\Gbull$ may be uniquely partnered with another minimal generator.  A pair of generators $(m,m')$ contributes to this functional if $m'$ is a minimal generator of $\Gbull_{i+1}$ of degree $>j+1$ and if $m$ is either a minimal generator of $\Gbull_{i}$ of degree $\leq j$ or if $m$ is a minimal generator of $\Gbull_{i+2}$ of any degree.
 %
 
+%More precisely, we claim that
+%\[
+%\chi_{i,j}(\Gbull)=\sum_{\substack{u,v,w \\ v< j+1<v+w}} \nu_{u,v,w}(\Gbull) + \sum_{\substack{u,v,w\\ t> j+1}} \nu_{u+1,v,w}(\Gbull).
+%\]
+%To check this claim, it suffices to evaluate both sides of the equation on $1$-term complexes $A(-v)[u]/t^w$, for all $u,v\in \ZZ$ and $w\in \ZZ_{>0}$, and the statement then follows.
 More precisely, we claim that
 \[
-\chi_{i,j}(\Gbull)=\sum_{\substack{u,v,w \\ v< j+1<v+w}} \nu_{u,v,w}(\Gbull) + \sum_{\substack{u,v,w\\ t> j+1}} \nu_{u+1,v,w}(\Gbull).
+%\chi_{i,j}(\Gbull)=\sum_{v<j+1<w} \left(\begin{smallmatrix} \# \text{ of copies }\\ \text{ of } A(-v)/t^w \\\text{ in } \HH_i(\Gbull) \end{smallmatrix}\right) +
+%\sum_{v>j+1} \left(\begin{smallmatrix} \# \text{ of copies }\\ \text{ of } A(-v)/t^w \\\text{ in } \HH_{i+1}(\Gbull) \end{smallmatrix}\right).
+\chi_{i,j}(\Gbull)=\sum_{\substack{v,w\\v<j+1<w}} \begin{pmatrix} \# \text{ of copies  of }\\ A(-v)/t^w \text{ in } \HH_i(\Gbull) \end{pmatrix} +
+\sum_{\substack{v,w\\ v>j+1}}\begin{pmatrix} \# \text{ of copies of } \\ A(-v)/t^w \text{ in } \HH_{i+1}(\Gbull) \end{pmatrix}.
+%\sum_{\substack{u,v,w \\ v< j+1<v+w}} \nu_{u,v,w}(\Gbull) + \sum_{\substack{u,v,w\\ t> j+1}} \nu_{u+1,v,w}(\Gbull).
 \]
-To check this claim, it suffices to evaluate both sides of the equation on $1$-term complexes $A(-v)[u]/t^w$, for all $u,v\in \ZZ$ and $w\in \ZZ_{>0}$, and the statement then follows.
+Since $\Gbull$ is quasi-isomorphic to homology, it suffices to evaluate both sides of the equation on $1$-term complexes $A(-v)[u]/t^w$, for all $u,v\in \ZZ$ and $w\in \ZZ_{>0}$, and the statement then follows.
 \end{proof}
 
 \begin{proof}[Proof of Theorem~\ref{thm:categorified}]
@@ -844,10 +858,7 @@ For part (1), we note that $\chi_{i,j}(\FF\cdot \cE)$ only depends on the Betti 
 The proof of part (2) follows from the argument of case (iii) of the proof of Theorem~\ref{thm:extremal rays refined}, given below.  
 \end{proof}
 
-
-
-
-\section*{Part II: Comparing Complexes and Resolutions}
+\section*{\underline{Part II: Comparing Complexes and Resolutions}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Complexes with Homology}\label{sec:refined}
@@ -892,7 +903,7 @@ such that $d_{k}\in \ZZ$. We say that $\dd$ is \defi{compatible with $\bb$} if $
 
 Our main result is a description of the structure of a simplicial fan for $\BBQ^{\bb}(S)$ in terms of  Betti tables of pure resolutions.  
 
-\begin{thm}\label{thm:extremal rays refined}
+\begin{thm}[Main Decomposition Theorem]\label{thm:extremal rays refined}
 For any $\bb$ as above the cone $\BBQ^{\bb}(S)$ is locally polyhedral, and there is a natural bijection:
 \[
 \left\{
@@ -917,6 +928,7 @@ Here by the statement that $\BBQ^{\bb}(S)$ is \defi{locally polyhedral} we mean 
 
 The proof of Theorem~\ref{thm:extremal rays refined} involves two essential steps.  First, in \S\ref{sec:A}, we provide a detailed description of cones of Betti tables on $A$.  Since $\DD^b(A)$ is the target of the pairing $\Phi$, these results will provide a base case for our main results.  Second, in \S\ref{sec:refined}, 
 we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with Theorem~\ref{thm:Phi} to complete the proof of Theorem~\ref{thm:extremal rays refined}. We postpone the details to the next section.
+
 
 \begin{example}  
 %There is a necessary subtlety in Definition~\ref{defn:deg compatible}, which is
@@ -1089,8 +1101,11 @@ is a monad for the ideal sheaf of a certain rational surface in $\PP^4$.  This d
 \section{Complexes on $A$}\label{sec:A}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-In order to prove Theorem~\ref{thm:extremal rays refined}, we first consider cones on $A$, which is the target of $\Phi$.  
-This  provides a base case for positivity results about cones of the form $\BBQ^{\bb}(S)$.
+In order to prove our Main Decomposition Theorem (Theorem ~\ref{thm:extremal rays refined}), we first consider cones on $A$, which is the target of $\Phi$.  
+This will provide a base case for our main result.
+% about cones of the form $\BBQ^{\bb}(S)$
+
+\daniel{rewrite intro:  add exposition about ES-functionals and $\BBQ^1(A)$ functionals, and use that to lead into the general statement.}
 
 \begin{prop}\label{prop:conePP0 refined}
 There is a natural bijection $\BBQ^{\bb}(A)$
@@ -1611,7 +1626,7 @@ still induces a map $\BBQ^{n+1}(S)\to \BBQ^1(A)$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{Part III: Beyond the polynomial ring}
+\section*{\underline{Part III: Beyond the polynomial ring}}
 \section{Functoriality}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -25,10 +25,11 @@
 \newtheorem{notation}[lemma]{Notation}
 
 \theoremstyle{definition}
-\newtheorem{example}[lemma]{Example}
-\newtheorem{defn}[lemma]{Definition}
+
 
 \theoremstyle{remark}
+\newtheorem{defn}[lemma]{Definition}
+\newtheorem{example}[lemma]{Example}
 \newtheorem{remark}[lemma]{Remark}
 \newtheorem{question}[lemma]{Question}
 
@@ -682,8 +683,7 @@ for some $u\in \kk$. But the complex $\FF$ has homology of finite length, so the
 %\section{The Betti table of $\Phi(\FF,\cE)$}\label{sec:Betti of Phi}
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\daniel{I combined the section defining $\Phi$ with the section decsribing the Betti table of $\Phi(\FF,\cE)$.  We can easily go back\dots}
-The following result, which is a strengthened version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}.
+The following result is a strengthened version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}.
 \begin{theorem}\label{thm:betti numbers of pairing}
 The Betti numbers of $\FF\cdot \cE = \Phi(\FF,\cE)$ are given by the formula:
 \[
@@ -927,8 +927,11 @@ the Betti table of any shifted pure free resolution of type $d$ of a Cohen-Macau
 Here by the statement that $\BBQ^{\bb}(S)$ is \defi{locally polyhedral} we mean that if we fix any finite dimensional subspace $\VV_{\text{fin}}\subseteq \VV$ defined by the vanishing of coordinate vectors, then the restricted cone $\VV_{\text{fin}}\cap \BBQ^{\bb}(S)$ is polyhedral.  \daniel{There might be a cleaner way to say this, but the old definition was off b/c we still had infinite room for homological shifts.}
 
 The proof of Theorem~\ref{thm:extremal rays refined} involves two essential steps.  First, in \S\ref{sec:A}, we provide a detailed description of cones of Betti tables on $A$.  Since $\DD^b(A)$ is the target of the pairing $\Phi$, these results will provide a base case for our main results.  Second, in \S\ref{sec:refined}, 
-we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with Theorem~\ref{thm:Phi} to complete the proof of Theorem~\ref{thm:extremal rays refined}. We postpone the details to the next section.
-
+we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with Theorem~\ref{thm:Phi} to complete the proof of Theorem~\ref{thm:extremal rays refined}. 
+We postpone the details to the next section.
+%
+%We postpone the details until the next section, though we remark that this basic outline simplifies the structure of Eisenbud--Schereyer's proof of the original Boij--S\"oderberg conjectures.  Namely, in~\cite[Proof of Theorem 0.3]{eis-schrey1}, the key technical tool is the construction of nonnegative functionals on the cone of Betti tables.  
+%
 
 \begin{example}  
 %There is a necessary subtlety in Definition~\ref{defn:deg compatible}, which is
@@ -1101,32 +1104,32 @@ is a monad for the ideal sheaf of a certain rational surface in $\PP^4$.  This d
 \section{Complexes on $A$}\label{sec:A}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-In order to prove our Main Decomposition Theorem (Theorem ~\ref{thm:extremal rays refined}), we first consider cones on $A$, which is the target of $\Phi$.  
-This will provide a base case for our main result.
-% about cones of the form $\BBQ^{\bb}(S)$
+Since the target of $\Phi$ is the ring $A$, our proof of Theorem~\ref{thm:extremal rays refined} will involve a study of cones of Betti tables over $A$. We thus first prove Theorem~\ref{thm:extremal rays refined} for cones of the form $\BBQ^{\bb}(A)$ (which is $n=0$ case of the theorem), as these provide a base case for our main result.  In addition, we provide a halfspace description of each such cone.
 
-\daniel{rewrite intro:  add exposition about ES-functionals and $\BBQ^1(A)$ functionals, and use that to lead into the general statement.}
+For instance, if we restrict attention to the cone $\BBQ^1(A)$ of Betti tables $\beta(\Gbull)$ of complexes over $A$ with finite length homology, then it turns (as a special case of Corollary~\ref{cor:dualconeA refined} below),  that a halfspace description of $\BBQ^1(A)$ can be given entirely in terms of halfspaces of the form $\beta_{i,j}(\Gbull)\geq 0$ and $\chi_{i,j}(\Gbull)\geq 0$.  This explains why Eisenbud and Schreyer's proof of the original conjectures of Boij and S\"oderberg relies on the nonnegativity of two different types of functionals:  functionals corresponding to an individual Betti, as in $\beta(\FF)\mapsto \beta_{i,j}(\FF)$; and functionals obtained from the $\chi_{i,j}$, like those of Theorem~\ref{thm:categorified}(2).  
 
-\begin{prop}\label{prop:conePP0 refined}
-There is a natural bijection $\BBQ^{\bb}(A)$
-\[
-\left\{
-\begin{matrix}
-\text{Extremal rays of }\\
-\text{the cone } \BBQ^{\bb}(A)
-\end{matrix}
-\right\}
-\longleftrightarrow
-\left\{
-\begin{matrix}
-\text{Shifted degree sequences }\\
-\text{ compatible with $\bb$}
-\end{matrix}
-\right\}.
-\]
-Further, $\BBQ^{\bb}(A)$ has the structure of a simplicial fan, where simplices correspond to chain of shifted degree sequences.  
-\end{prop}
-In the proof of this proposition, it will be useful to define a ``lower facet'' version of the functional $\chi_{i,j}$ from Definition~\ref{defn:chi}.
+%
+%\begin{prop}\label{prop:conePP0 refined}
+%There is a natural bijection $\BBQ^{\bb}(A)$
+%\[
+%\left\{
+%\begin{matrix}
+%\text{Extremal rays of }\\
+%\text{the cone } \BBQ^{\bb}(A)
+%\end{matrix}
+%\right\}
+%\longleftrightarrow
+%\left\{
+%\begin{matrix}
+%\text{Shifted degree sequences }\\
+%\text{ compatible with $\bb$}
+%\end{matrix}
+%\right\}.
+%\]
+%Further, $\BBQ^{\bb}(A)$ has the structure of a simplicial fan, where simplices correspond to chain of shifted degree sequences.  
+%\end{prop}
+
+For the more general statements of Theorem~\ref{thm:extremal rays refined}, we will use halfspace descriptions of $\BBQ^{\bb}(A)$ for all codimension sequences $\bb$.  It is necessary to define the following ``lower facet'' version of the functional $\chi_{i,j}$ from Definition~\ref{defn:chi}.
 \[
 \chi^{-}_{i,j}:=
 \left(
@@ -1142,13 +1145,9 @@ In the proof of this proposition, it will be useful to define a ``lower facet'' 
 \right).
 \]
 Here, the boldfaced zero corresponds to $\beta_{i,j}$.  We may use these functionals to test whether or not a point lies in one of the cones $\BBQ^{\bb}(A)$.
-%We note that $\chi_{i,j}-\chi_{i,j}^{-}$ computes the total Euler characteristic of $\FF\in \DD^b(A)$ in the sense that:
-%\[
-%\chi_{i,j}(\FF)-\chi_{i,j}^{-}(\FF)=\sum_{i\in \ZZ} (-1)^i \rank(\FF_i).
-%\]
-\daniel{I feel like the simplicity of the functionals on $\BBQ^1(A)$ is compelling (all $\beta_{i,j}$ and all $\chi_{i,j}$), whereas the following corollary is hopelessly complicated.  I'm still not sure how to resolve this tension.\dots}
+
 \begin{cor}\label{cor:dualconeA refined}
-If $\bb$ is nondecreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following inequalities and equalities hold.
+If $\bb$ is nondecreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following equalities and inequalities hold.
 \begin{enumerate}
 	\item $\beta_{i,j}(u)=0$ for all $i$ such that $b_i=\emptyset$.  If there does not exist $i$ such that $b_i=0$, then we also include the equation $\chi(u)=0$.
 	\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$.
@@ -1161,10 +1160,10 @@ If $\bb$ is nonincreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if an
 	\item  $\chi^{-}_{i,j}(u)\geq 0$ for all $i$ such that $b_i\geq 1$ and for all $j\in \ZZ$.
 \end{enumerate}
 \end{cor}
-\begin{proof}[Proof of Proposition~\ref{prop:conePP0 refined} and Corollary~\ref{cor:dualconeA refined}]
+\begin{proof}[Proof of Theorem~\ref{thm:extremal rays refined} for $\BBQ^{\bb}(A)$ and of Corollary~\ref{cor:dualconeA refined}]
 We first consider the case that $\bb$ is nondecreasing.  The extremal ray description of $\BBQ^{\bb}(A)$ is straightforward, since any complex $\Gbull$ is quasi-isomorphic to a direct sum of its homology modules.  
 
-Any complex $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology.  We thus write $\Gbull$ as a direct sum of as in~\eqref{eqn:splitting}.  We note that each individual module appearing in that decomposition corresponds to a shifted pure resolution, and conversely each shifted degree sequence over $A$ corresponds to a unique such module.  The extremal ray description of $\BBQ^{\bb}(A)$ then immediately follows.
+Any complex $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology.  We thus write $\Gbull$ as a direct sum of shifted indecompasable modules, as discussed in~\ref{sec:functionals}.  Each individual module appearing in that decomposition corresponds to a shifted pure resolution, and conversely each shifted degree sequence over $A$ corresponds to a unique such module.  The extremal ray description of $\BBQ^{\bb}(A)$ then immediately follows.
 
 We next check that each functional in Corollary~\ref{cor:dualconeA refined}(i) actually vanishes on $\BBQ^{\bb}(A)$.  For the $i$ such that $b_i=\emptyset$ this simply follows from the definition of what it means for $\Gbull\in \DD^b(A)$ to be compatible with $\bb$.  If there does not exist $i$ such that $b_i=0$, then $\Gbull$ is only compatible with $\bb$ if $\Gbull$ has finite length homology, and in this case $\chi(\Gbull)=0$.  
 
@@ -1228,7 +1227,8 @@ We set $u':=u-\beta(A(-s)[-t]/t^{r-t})$.  As in the nondecreasing case, the clai
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The key to proving Theorem~\ref{thm:extremal rays refined} is to produce lots of nonnegative functionals on $\BBQ^{\bb}(S)$.  This will be accomplished by combining Corollary~\ref{cor:dualconeA refined} with the following lemma, which is like a refined version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}
+
+We begin with a lemma which is like a refined version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}.  By combining this lemma with Corollary~\ref{cor:dualconeA refined}, we produce lots of nonnegative functionals on $\BBQ^{\bb}(S)$.
 
 %For instance, if $\FF$ is the free resolution of a (non-finite length) module, then $\FF\cdot \cE$ will be supported entirely in homological degrees $-n, \dots, n+1$, but it may fail to have finite length homology in some of these homological degrees.  More generally, if $\FF$ is compatible with $\bb$, then this will force certain conditions on the possible homology $\FF\cdot \cE$, and the following definition captures this phenomenom.
 
@@ -1448,7 +1448,7 @@ We continue with the notation where, for a degree sequence $g$, $\FF_g$ represen
 \[
 \FF_d\cdot \cE_f=\left[\overset{\zp}{A^N}(-d_{c-1})\gets A^N(-d_{c-2}) \right].
 \]
-Applying $\chi_{-1,d_{c-2}}$ to this complex yields $N$, and hence our functional is nonnegative on $d$.  As in the proof of cases (iii) and (iv) from Theorem~\ref{thm:extremal rays refined} \david{is this the right reference? It used to refer to ``thm:extremal rays'', which does not exist.} the cases $g\geq d''$ and $g\leq d'$ split in half.  When $g\geq d''$ then $\FF_g\cdot \cE_f$ is supported entirely in the ``upper region'' corresponding to $\chi_{-1,d_{c-2}}$.  Since $\codim(\cE_F)=c-1$ and since $\FF_g$ has codimension $c$, it follows $\FF_g\cdot \cE_f$ has finite length homology, and hence
+Applying $\chi_{-1,d_{c-2}}$ to this complex yields $N$, and hence our functional is nonnegative on $d$.  As in the proof of cases (iii) and (iv) above, the cases $g\geq d''$ and $g\leq d'$ split in half.  When $g\geq d''$ then $\FF_g\cdot \cE_f$ is supported entirely in the ``upper region'' corresponding to $\chi_{-1,d_{c-2}}$.  Since $\codim(\cE_F)=c-1$ and since $\FF_g$ has codimension $c$, it follows $\FF_g\cdot \cE_f$ has finite length homology, and hence
 \[
 \chi_{-1,d_{c-2}}(\FF_g\cdot \cE_f)=\chi(\FF_g\cdot \cE_f)=0.
 \]
@@ -1580,7 +1580,7 @@ This second decomposition is stable under taking a hyperplane section.  Namely, 
 \section{Duality of cones}\label{sec:duality}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In this section we focus on the cones of the form $\BBQ^\ell(S)$ in order to help clarify the duality results from \cite{eis-schrey1}.  We first we observe that Theorem~\ref{thm:betti numbers of pairing} shows that the pairing $\Phi$ induces a bilinear map of vector spaces:
+We focus on the cones of the form $\BBQ^\ell(S)$ in order to help clarify the duality results from \cite{eis-schrey1}.  We first we observe that Theorem~\ref{thm:betti numbers of pairing} shows that the pairing $\Phi$ induces a bilinear map of vector spaces:
 \begin{align*}
 \VV\times \WW & \to \UU\\
 (\beta(\FF),\gamma(\cE))&\mapsto \beta(\FF\cdot \cE).
@@ -1590,7 +1590,7 @@ This yields a map between three cones of interest, as illustrated in Figure~\ref
 \BBQ^{\ell}(S)\times \CQ^{n+1-\ell}(\PP^n)\to \BBQ^1(A).
 \]
 
-This pairing will clarify the duality properties of our cones, although the fact that $\WW$ is an infinite direct product complicates the picture a bit (see Remark~\ref{rmk:issues}).  Fortunately, as shown in \cite{eis-schrey1} (and in the above proof of Theorem~\ref{thm:extremal rays refined}), it turns out that the study of $\BBQ^{n+1}(S)$ only requires functionals coming from the cohomology tables of vector bundles, and a similar statement holds for $\BBQ^{\ell}(S)$ when $\ell<n+1$.  Thus, for any $\ell$, we fix a linear subspace $\PP^{\ell-1}\subseteq \PP^n$ and we define $\CvbQ(\PP^{\ell-1})$ as the subcone of $\WW$ generated by cohomology tables of vector bundles on $\PP^{\ell-1}$.
+The fact that $\WW$ is an infinite direct product complicates the duality description a bit (see Remark~\ref{rmk:issues}).  Fortunately, as shown in \cite{eis-schrey1} (and in the above proof of Theorem~\ref{thm:extremal rays refined}), it turns out that the study of $\BBQ^{n+1}(S)$ only requires functionals coming from the cohomology tables of vector bundles, and a similar statement holds for $\BBQ^{\ell}(S)$ when $\ell<n+1$.  Thus, for any $\ell$, we fix a linear subspace $\PP^{\ell-1}\subseteq \PP^n$ and we define $\CvbQ(\PP^{\ell-1})$ as the subcone of $\WW$ generated by cohomology tables of vector bundles on $\PP^{\ell-1}$.
 
 We may then apply the proof of Theorem~\ref{thm:extremal rays refined} to make a precise duality statement relating $\BBQ^{\ell}$ and $\CvbQ(\PP^{\ell-1})$.  Namely:
 \begin{itemize}
@@ -1741,8 +1741,7 @@ As maps of vector spaces, $Lf^*\colon \VV\to \VV$ and $Rf_*\colon \WW\to \WW$ ar
 We next show that $Lf^*$ and $Rf_*$ interact well with the functors $\Phi$ and $\Phi_X$.
 
 \begin{lemma}\label{lem:general pairing}
-\david{add hyp of transv on $\FF$}We have the equality:
-\[
+Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\PP^n)$.  Then\[
 \beta(Lf^*\FF\cdot \cE)=\beta(\FF\cdot Rf_*\cE).
 \]
 \end{lemma}
@@ -1758,7 +1757,7 @@ We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and $\gamma(\cE)$ equals
 %H^i(X,\cE\otimes L^j)=H^i(\PP^n, f_*(\cE)\otimes \cO(j)),
 %\]
 %and this yields the injection $f_*\colon \CQ^0(X,L)\to \CQ^{n-d}(\PP^n,\cO(1))$.
-Next we ask when $Lf^*$ and $Rf_*$ induce isomoprhisms of cones.  A partial answer by Corollary~\ref{cor:isom cones} or by the following more general result.
+Next we ask when $Lf^*$ and $Rf_*$ induce isomoprhisms of cones.  A partial answer is given by Corollary~\ref{cor:isom cones} or by the following more general result.
 
 \begin{cor}\label{cor:new graded rings}
 Let $\kk$ be an infinite field, and let $R$ be a graded ring of the form $R=R(X,L)$ where $f\colon X\to \PP^n$ is finite and where $X$ contains an Ulrich sheaf.   Let $\bb$ be a codimension sequence such that $b_i\leq \dim(R)$ for all $i$.  Then we have  an isomorphism of cones:
@@ -1777,7 +1776,8 @@ Since $\kk$ is infinite, we already have an inclusion $\BBQ^{\bb}(S)\subseteq \B
 \end{proof}
 
 \daniel{Should we add a remark about the hypothees of Corollary~\ref{cor:isom cones} that is targeted at algbraists?  I.e. something of the form ``Let $R$ be an $\NN$-graded ring that is a finite extension of $S$ and that contains an Ulrich module.''}
-Since Corollary~\ref{cor:isom cones} is stated without the assumption that $\kk$ is an infinite field, it does not directly follow from Corollary~\ref{cor:new graded rings}, and we thus provide a separate proof.
+
+Corollary~\ref{cor:isom cones} holds without the assumption that $\kk$ is an infinite field, and we thus provide a separate proof.
 \begin{proof}[Proof of Corollary~\ref{cor:isom cones}]
 Based on the hypotheses, we already have $f\colon X\to \PP^d$ is a finite map, and $S=\kk[x_0, \dots, x_d]$.  The only other point in the proof of Corollary~\ref{cor:new graded rings} that uses the fact that $\kk$ is infinite is when we sought to show that $Lf^*: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)$ is well defined and is an inclusion.  If we work with $\BBQ^{d+1}(S)$ and $\BBQ^{d+1}(R)$, instead then we are only interested in pulling back complexes $\FF\in \DD^b(S)$ where $\FF$ has finite length homology.  Any such $\FF$ is automatically homologically transverse to $R$, and hence $Lf^*: \BBQ^{\bb}(S)\to \BBQ^{\bb}(R)$ is well defined in this case.  The rest of the proof of Corollary~\ref{cor:new graded rings} goes through unchanged.
 \end{proof}

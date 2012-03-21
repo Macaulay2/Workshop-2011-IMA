@@ -522,8 +522,7 @@ We gather some notation and definitions that we will use throughout.  We set $\m
 \begin{defn}
 If $\FF\in \DD^b(S)$ is a free complex, then we say that $\FF$ is \defi{minimal} if each differential $\partial: \FF_i\to \FF_{i-1}$ satisfies $\partial(\FF_i)\subseteq \mathfrak m\FF_{i-1}$.
 \end{defn}
-We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.  If $\FF$ is quasi-isomorphic to a complex with only one nonzero term, then we say that $\FF$ is a \defi{shifted resolution}.
-
+We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.  If $\FF$ is quasi-isomorphic to a complex with only one nonzero term, then we say that $\FF$ is a \defi{shifted resolution}.  We use the notation $\HH_r(\FF)$ to denote the $r$th homology module of $\FF$.
 
 \begin{defn}
 A \defi{shifted degree sequence of codimension $\ell$} is a sequence
@@ -1146,22 +1145,38 @@ For the more general statements of Theorem~\ref{thm:extremal rays refined}, we w
 \]
 Here, the boldfaced zero corresponds to $\beta_{i,j}$.  We may use these functionals to test whether or not a point lies in one of the cones $\BBQ^{\bb}(A)$.
 
+
+
+
+%\begin{cor}\label{cor:dualconeA refined}
+%If $\bb$ is nondecreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following equalities and inequalities hold.
+%\begin{enumerate}
+%	\item $\beta_{i,j}(u)=0$ for all $i$ such that $b_i=\emptyset$.  If there does not exist $i$ such that $b_i=0$, then we also include the equation $\chi(u)=0$.
+%	\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$.
+%	\item  $\chi_{i,j}(u)\geq 0$ for all $i$ such that $b_i\geq 1$ and for all $j\in \ZZ$.
+%\end{enumerate}
+%If $\bb$ is nonincreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following inequalities and equalities hold.
+%\begin{enumerate}
+%	\item $\beta_{i,j}(u)=0$ for all $i$ such that $b_i=\emptyset$.  If there does not exist $i$ such that $b_i=0$, then we also include the equation $\chi(u)=0$.
+%	\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$.
+%	\item  $\chi^{-}_{i,j}(u)\geq 0$ for all $i$ such that $b_i\geq 1$ and for all $j\in \ZZ$.
+%\end{enumerate}
+%\end{cor}
+
 \begin{cor}\label{cor:dualconeA refined}
-If $\bb$ is nondecreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following equalities and inequalities hold.
+Let $\bb$ be a codimension sequence for $A$ and let $u\in \UU$.
+ %be a point in the vector space spanned by $\BBQ^{\bb}(A)$.  
+If $\bb$ is nondecreasing (respectively nonincreasing), then $u$ lies in the cone $\BBQ^{\bb}(A)$ if and only if the following equalities and inequalities hold:
 \begin{enumerate}
 	\item $\beta_{i,j}(u)=0$ for all $i$ such that $b_i=\emptyset$.  If there does not exist $i$ such that $b_i=0$, then we also include the equation $\chi(u)=0$.
-	\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$.
-	\item  $\chi_{i,j}(u)\geq 0$ for all $i$ such that $b_i\geq 1$ and for all $j\in \ZZ$.
-\end{enumerate}
-If $\bb$ is nonincreasing, then a point $u\in \UU$ lies in $\BBQ^{\bb}(A)$ if and only if the following inequalities and equalities hold.
-\begin{enumerate}
-	\item $\beta_{i,j}(u)=0$ for all $i$ such that $b_i=\emptyset$.  If there does not exist $i$ such that $b_i=0$, then we also include the equation $\chi(u)=0$.
-	\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$.
-	\item  $\chi^{-}_{i,j}(u)\geq 0$ for all $i$ such that $b_i\geq 1$ and for all $j\in \ZZ$.
+	\item $\beta_{i,j}(u)\geq 0$ for all $i,j\in \ZZ$, and
+	\item  $\chi_{i,j}(u)\geq 0$ (respectively $\chi^{-}_{i,j}(u)\geq 0$) for all $i$ such that $b_i\geq 1$ and for all $j\in \ZZ$.
 \end{enumerate}
 \end{cor}
+
 \begin{proof}[Proof of Theorem~\ref{thm:extremal rays refined} for $\BBQ^{\bb}(A)$ and of Corollary~\ref{cor:dualconeA refined}]
-We first consider the case that $\bb$ is nondecreasing.  The extremal ray description of $\BBQ^{\bb}(A)$ is straightforward, since any complex $\Gbull$ is quasi-isomorphic to a direct sum of its homology modules.  
+We first consider the case that $\bb$ is nondecreasing.  
+%The extremal ray description of $\BBQ^{\bb}(A)$ is straightforward, since any complex $\Gbull$ is quasi-isomorphic to a direct sum of its homology modules.  
 
 Any complex $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology.  We thus write $\Gbull$ as a direct sum of shifted indecompasable modules, as discussed in~\ref{sec:functionals}.  Each individual module appearing in that decomposition corresponds to a shifted pure resolution, and conversely each shifted degree sequence over $A$ corresponds to a unique such module.  The extremal ray description of $\BBQ^{\bb}(A)$ then immediately follows.
 
@@ -1580,7 +1595,7 @@ This second decomposition is stable under taking a hyperplane section.  Namely, 
 \section{Duality of cones}\label{sec:duality}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We focus on the cones of the form $\BBQ^\ell(S)$ in order to help clarify the duality results from \cite{eis-schrey1}.  We first we observe that Theorem~\ref{thm:betti numbers of pairing} shows that the pairing $\Phi$ induces a bilinear map of vector spaces:
+We focus on the cones of the form $\BBQ^\ell(S)$ in order to clarify the duality results from \cite{eis-schrey1}.  We first we observe that Theorem~\ref{thm:betti numbers of pairing} shows that the pairing $\Phi$ induces a bilinear map of vector spaces:
 \begin{align*}
 \VV\times \WW & \to \UU\\
 (\beta(\FF),\gamma(\cE))&\mapsto \beta(\FF\cdot \cE).
@@ -1630,25 +1645,25 @@ still induces a map $\BBQ^{n+1}(S)\to \BBQ^1(A)$.
 \section{Functoriality}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In this section, we use our new foundation for Boij--S\"oderberg theory over $S$ to analyze cones of Betti tables of more general $\NN$-graded rings.  Throughout this section, our setup will be as follows.  Let $f: X\to \PP^n$, with $\dim(X)=d$ and $L=f^*\cO(1)$.  
+In this section, we use our new foundation for Boij--S\"oderberg theory over $S$ to analyze cones of Betti tables of more general $\NN$-graded rings.  Throughout this section, our setup will be as follows.  Let $f: X\to \PP^n$, with $\dim(X)=d$ and $L=f^*\cO(1)$.  We also let $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ be the section ring of $L$.
 
 We may then define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq \ell \leq d$, we set $\CQ^{\ell}(X,L)$ to be the cone of cohomology tables of sheaves whose support has codimension at least $\ell$.
 
-For Betti tables, we let $R=R(X,L)=\oplus_{e\in \mathbb N} H^0(X,L^{\otimes e})$ be the section ring of $L$.  The ring $R$ is naturally $\NN$-graded, and we define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  For $\FF\in \DD^b(R)$, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  If $\bb$ is a nondecreasing or nonincreasing codimension sequence, then we define $\BBQ^{\bb}(R)$ in parallel with the definitions from \S\ref{sec:refined}.
+For Betti tables, we note that the ring $R$ is naturally $\NN$-graded, and we define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  For $\FF\in \DD^b(R)$, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  If $\bb$ is a codimension sequence, then we define $\BBQ^{\bb}(R)$ in parallel with the definitions from \S\ref{sec:refined}.
 
 To extend our results from $S$ to $R$, we define a functor
 \[
 \Phi_X: \DD^b(R)\times \DD^b(X)\to \DD^b(A).
 \]
 If $\FF \in \DD^b(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $R$.
-We let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$.  
-We write $-\otimes_\sigma R[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
+We let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$, and
+we write $-\otimes_\sigma R[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
 given by $\sigma$. 
 
-Note that, if $F$ is a graded  $R$-module, then 
-\[
-R\otimes_{\sigma} S[t]
-\]
+If $F$ is a graded  $R$-module, then 
+$
+F\otimes_{\sigma} S[t]
+$
 is a bigraded $S[t]$ module.
 Thus we may define a functor $\tau$ on derived
 categories that takes a graded complex of free $R$-modules $\FF$ to
@@ -1656,7 +1671,7 @@ categories that takes a graded complex of free $R$-modules $\FF$ to
 \tau(\FF): =\widetilde \FF \otimes_{\sigma}\cO_{X\times \AA^{1}},
 \]
 a complex of graded sheaves on $X\times \AA^{1}$, with the grading coming from degree in $t$, the coordinate on $\AA^{1}$.
-We let $p_2: X\times \AA^1\to \AA^1$ be the projection map, and we may define our functor $\Phi_X$, largely parallel to the definition of $\Phi$.
+We let $p_2: X\times \AA^1\to \AA^1$ be the projection map, and we may define our functor $\Phi_X$ in parallel to the definition of $\Phi$.
 \begin{defn}
 Given $\FF\in \DD^b(R)$ and $\cE\in \DD^b(X)$ we define
 \[
@@ -1675,8 +1690,7 @@ As above, we often omit $\Phi_X$ from the notation and simply write $\FF\cdot \c
 Statement \eqref{thm:PhiX:1} follows by applying exactly the same proof as used for Theorem~\ref{thm:betti numbers of pairing} above.  Statement \eqref{thm:PhiX:2} follows by applying the proof of Proposition~\ref{prop:exact}
 \end{proof}
 
-
-We first note that, in wide generality, we obtain well defined functors on the cones we have been considering.  Once again, the fact that we are working with derived categories instead of resolutions/sheaves plays an essential role in these definitions.
+We may use $f$ to introduce maps between cones of Betti tables or between cones of cohomology tables.  The fact that we are working with derived categories instead of resolutions/sheaves plays is essential to defining these maps.
 
 \begin{defn}
 We say that $\FF\in \DD^b(S)$ \defi{ is homologically transverse to $R$} if we have:

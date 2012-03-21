@@ -8,7 +8,7 @@
 newPackage(
 	"characteristicClasses",
 	Version => "0.1", 
-    	Date => "February 20, 2012",
+    	Date => "March 21, 2012",
     	Authors => {{Name => "Christine Jost", 
 		  Email => "jost at math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
@@ -196,11 +196,12 @@ internalSegre = {ResidualStrategy => "Symbolic"} >> opts -> I -> (
      segreList= {};
     
      -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
-     f := for i from 1 to ambientDim list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
+     f := for i from 1 to (ambientDim + 1) list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
      
      -- Compute the degree of the residual of Z in the intersection of d hypersurfaces, where d = codimension of Z, ... , dimension of the ambient space.
      -- Depends on the strategy (symbolic/Bertini).
      degR := residualDegs(f, ambientDim, dimension, minDegGen, ResidualStrategy => opts.ResidualStrategy);  
+         
      
      -- The for loop computes the degrees of the Segre classes of Z using the degrees of the residuals
      for d from (ambientDim - dimension) to ambientDim do (
@@ -477,7 +478,7 @@ doc ///
 	   the pushforward of the total Chern class of the scheme X to the Chow ring ZZ[H]/(H^{k+1}) of projective space P^k.
      Description
      	  Text
-	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Chern class of X to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Chern classes c_0(T_X),...,c_n(T_X) as coefficients.
+	       For a non-singular n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Chern class of X to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Chern classes c_0(T_X),...,c_n(T_X) as coefficients.
 	  Example
 	       R = QQ[x,y,z,w]
 	       A = matrix{{x,y,z},{y,z,w}}
@@ -490,7 +491,9 @@ doc ///
 	  Text
 	       All the examples were done using symbolic computations with Gr\"obner bases. Changing the
 	       option @TO ResidualStrategy@ to "Bertini" will do the main computations numerically, provided
-	       Bertini is @TO2 {"configuring Bertini", "installed and configured"}@ .	  
+	       Bertini is @TO2 {"configuring Bertini", "installed and configured"}@ .  
+	       
+	       The command chernClass actually computes the push-forward of the total @EM {"Chern-Fulton class"}@ of the subscheme X of projective space P^k. The Chern-Fulton class is one of several generalizations of Chern classes to possibly singular subschemes of projective space. It is defined as c_{CF}(X) = c(T_{P^k}|_X) \cap s(X,P^k). For non-singular schemes, the Chern-Fulton class coincides with the Chern class of the tangent bundle. So for non-singular input, the command will compute just the usual Chern class.
 ///
 
 doc ///
@@ -585,32 +588,36 @@ doc ///
  
 
 TEST ///
-   R = QQ[x,y,z]
-   assert( segreClassList ideal x == {1,-1} )
-   assert( chernClassList ideal x == {1,2} )
+   R = QQ[x,y,z,w]
+   I = minors(2,matrix{{x,y,z},{y,z,w}})
+   assert( segreClassList I == {3,-10} )
+   assert( chernClassList I == {3,2} )
  ///
  
 TEST ///
-   R = QQ[x,y,z]
-   totalSegre = segreClass ideal x
-   assert( totalSegre == (ring(totalSegre))_0 - ((ring(totalSegre))_0)^2 )
-   totalChern = chernClass ideal x
-   assert( totalChern == (ring(totalChern))_0 +2 * ((ring(totalChern))_0)^2 )
+   R = QQ[x,y,z,w]
+   I = minors(2,matrix{{x,y,z},{y,z,w}})
+   totalSegre = segreClass I
+   assert( totalSegre == 3*( (ring(totalSegre))_0 )^2 - 10*( (ring(totalSegre))_0 )^3 )
+   totalChern = chernClass I
+   assert( totalChern == 3*( (ring(totalChern))_0 )^2 + 2 * ((ring(totalChern))_0)^3 )
 ///
 
 
 TEST ///
-   R = QQ[x,y,z]
-   assert( segreClassList(ideal x, ResidualStrategy=>"Bertini") == {1,-1} )
-   assert( chernClassList(ideal x, ResidualStrategy=>"Bertini") == {1,2} )
+   R = QQ[x,y,z,w]
+   I = minors(2,matrix{{x,y,z},{y,z,w}})
+   assert( segreClassList(I, ResidualStrategy=>"Bertini") == {3,-10} )
+   assert( chernClassList(I, ResidualStrategy=>"Bertini") == {3,2} )
  ///
  
 TEST ///
-   R = QQ[x,y,z]
-   totalSegre = segreClass(ideal x, ResidualStrategy=>"Bertini")
-   assert( totalSegre == (ring(totalSegre))_0 - ((ring(totalSegre))_0)^2 )
-   totalChern = chernClass(ideal x, ResidualStrategy=>"Bertini")
-   assert( totalChern == (ring(totalChern))_0 +2 * ((ring(totalChern))_0)^2 )
+   R = QQ[x,y,z,w]
+   I = minors(2,matrix{{x,y,z},{y,z,w}})
+   totalSegre = segreClass(I, ResidualStrategy=>"Bertini")
+   assert( totalSegre == 3*( (ring(totalSegre))_0 )^2 - 10*( (ring(totalSegre))_0 )^3 )
+   totalChern = chernClass(I, ResidualStrategy=>"Bertini")
+   assert( totalChern == 3*( (ring(totalChern))_0 )^2 + 2 * ((ring(totalChern))_0)^3 )
 ///
 
 

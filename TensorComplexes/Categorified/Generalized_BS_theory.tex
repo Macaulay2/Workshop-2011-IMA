@@ -1765,7 +1765,7 @@ given by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically tran
 %where $\gamma(\cE)\mapsto \gamma(Rf_* \cE)$.  
 \end{prop}
 \begin{proof}
-Let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\bb$.  Since $\kk$ is infinite and $\FF$ is bounded, we may apply \cite[Theorem]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We then consider the spectral sequence:
+Let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\bb$.  Since $\kk$ is infinite and $\FF$ is bounded, we may apply \cite[Theorem]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  \daniel{If $f$ is not finite, then we can't actually apply the Miller--Speyer result, since $R$ won't be a finitely $S$-module. I suspect this is fixable, but for the moment, this is a gap.}Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We then consider the spectral sequence:
 \[
 E^{r,q}_2=\Tor^S_{q}(\HH_r(\FF),R)\Rightarrow \HH_{q+r}(\FF\otimes_S R).
 \]

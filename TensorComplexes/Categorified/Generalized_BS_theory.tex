@@ -86,7 +86,7 @@
 \newcommand{\NN}{\mathbb{N}}
 \newcommand{\CC}{\mathbb{C}}
 \newcommand{\RR}{\mathbb{R}}
-\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bb}{c}
 \newcommand{\dd}{d}
 %\newcommand{\dd}{\mathbf{d}}
 \newcommand{\bmin}{\mathbf{b}_{\text{min}}}
@@ -144,7 +144,7 @@
 \def\ES{Eisenbud--Schreyer}
 \def\BS{Boij--S\"oderberg~}
 
-\title{Categorified duality and the structure of free complexes}
+\title{Categorified duality in Boij--S\"oderberg Theory and the structure of free complexes}
 %\title{Categorified Duality in Boij--S\"oderberg Theory}
 \author{David Eisenbud}
 \author{Daniel Erman}\thanks{The first author was partially supported by an NSF grant, and the second author was partially supported by an NSF fellowship and by a Simons Foundation fellowship.}
@@ -409,21 +409,21 @@ S^3(-2)\overset{\left(\begin{smallmatrix}y&0\\-x&y\\0&-x\end{smallmatrix}\right)
 \]
 The Betti table
 $$
-\beta(\FF)=\begin{pmatrix} 1^\circ&2&-&-\\-&-&2&1\end{pmatrix}
+\beta(\FF)=\begin{bmatrix} 1^\circ&2&-&-\\-&-&2&1\end{bmatrix}
 $$
-decomposes as a rational combination of the Betti table of $\bG$ shifted in 
+decomposes as a rational sum of the Betti table of $\bG(1)$ shifted in 
 homological degree by 1,
 $$
-\beta(\bG[1]) =\begin{pmatrix} -^{\circ}&1&-&-\\-&-&3&2\end{pmatrix},
+\beta(\bG(1)[1]) =\begin{bmatrix} -^{\circ}&1&-&-\\-&-&3&2\end{bmatrix},
 $$
 and the Betti table of the dual of $\bG$, 
 $$
-\beta(\bG^{*}) = \begin{pmatrix} 2^\circ&3&-\\-&-&1\end{pmatrix}.
+\beta(\bG^{*}) = \begin{bmatrix} 2^\circ&3&-\\-&-&1\end{bmatrix}.
 $$
 In fact, as one sees immediately,
 \[
 \beta(\FF)=
-\frac{1}{2}\beta(\bG[1])
+\frac{1}{2}\beta(\bG(1)[1])
 +
 \frac{1}{2}\beta(\bG^{*}).
 \]
@@ -519,11 +519,6 @@ The functor $\Phi'$ thus yields bilinear pairings relating multigraded Betti tab
 \end{equation*}
 As we discuss in \S\ref{sec:toric}, the target of this pairing, i.e.\ the cone of free $C$-complexes with irrelevant homology, is simpler than the cone of free resolutions of over $C$.  This enables the construction of toric/multigraded analogues of the Eisenbud--Schreyer functionals, and it thus seems that the cone of free $R$-complexes with irrelevant homology will be easier to study than the cone of free resolutions over $R$. 
 
-\subsection*{Structure of this paper}
-\daniel{The last few paragraphs on p.2, as well of the table of contents, do much the same thing as this paragraph would.  I propose dropping this paragraph.}
-%
-% The duality pairing is considered in detail in \S\ref{sec:duality pairing}. In \S\ref{sec:A} we analyze the cone $\BBQ^1(A)$ in detail, which provides a sort of base case for our positivity and duality statements.  We prove our main results in \S\ref{sec:general case}.  We then briefly discuss applications to the study of free resolutions in \S\ref{sec:refined}.  Finally, in \S\ref{sec:functor}, we extend these results to new polarized varieties and graded rings.
-
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
 \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
@@ -552,7 +547,7 @@ We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this a
 
 \begin{defn}
 A \defi{shifted degree sequence of codimension $\ell$} is a sequence
-\[{\bf d}=(\dots, d_i, d_{i+1}, \dots)
+\[{\dd}=(\dots, d_i, d_{i+1}, \dots)
 \]
 with  $d_{i} \in \{-\infty\}\cup \ZZ\cup \{\infty\}$ and $d_i \leq d_{i+1}-1$ and 
 where there are precisely $\ell+1$ entries of $\dd$ lying in $\ZZ$. 
@@ -709,7 +704,7 @@ The following result is a strengthened version of Theorem~\ref{thm:Phi}\eqref{th
 \begin{theorem}\label{thm:betti numbers of pairing}
 The Betti numbers of $\FF\cdot \cE = \Phi(\FF,\cE)$ are given by the formula:
 \[
-\beta_{i,j}(\FF\cdot \cE)=\sum_{p-q=i}  \beta_{p,j}(\FF)\gamma_{q,-j}(\cE).
+\beta_{i,j}(\FF\cdot \cE)=\sum_{\substack{p-q=i\\ j\in \ZZ}}  \beta_{p,j}(\FF)\gamma_{q,-j}(\cE).
 \]
 In particular, the Betti table of $\FF\cdot \cE$ only depends on $\beta(\FF)$ and $\gamma(\cE)$.
 \end{theorem}
@@ -744,6 +739,35 @@ We conclude that
 which proves the formula.
 \end{proof}
 
+\begin{example}\label{ex:sup1}
+On $\PP^2$, let $\cE$ be a supernatural bundle of type $(3,-1)$ and rank $2$.  
+%Using the notation of XXXX, the cohomology table of $\cE$ is a given by
+%\[
+%\gamma(\cE)=
+%\bordermatrix{
+%&&&&&&&&&\cr
+%h^2&\dots &12&5&-&-&-&-&-&\dots\cr
+%h^1&\dots&-&-&3&4&3&-&-&\dots\cr
+%h^0&\dots&-&-&-&-&-&5&12&\dots
+%}
+%\]
+To understand the map $\beta(\FF)\mapsto \beta(\FF\cdot \cE)$, which takes a Betti table on $S$ to a Betti table on $A$, we consider:
+\[
+\beta(-\cdot \cE)\Rightarrow
+\begin{vmatrix}
+&\vdots&\vdots&&\vdots&\\
+\dots&12&5&0&\dots\\
+\dots&5&0&3[-1]&\dots\\
+\dots&0&3[-1]&4[-1]&\dots\\
+\dots&3^\zp[-1]&4[-1]&3[-1]&\dots\\
+\dots&4[-1]&3[-1]&0&\dots\\
+\dots&3[-1]&0&5[-2]&\dots\\
+\dots&0&5[-2]&12[-2]&\dots\\
+&\vdots&\vdots&&\vdots&\\
+\end{vmatrix}.
+\]
+Each entry above has the form $\gamma_{i,j}(\cE)[-i]$, where the bracketed number indicates a homological shift.  To apply this to a Betti table, consider the example where $\FF=S^\alpha$ is a one-term complex with $\beta_{0,0}\FF=\alpha$.  Since $3^\zp[-1]$ lies in position $(0,0)$, the above functional indicates that $\beta(\FF\cdot \cE)$ is a one-term complex with $\FF\cdot \cE=(S^{\alpha})^3[-1]$.
+\end{example}
 %
 %\begin{remark}\label{rmk:generic}
 %The proof of Theorem~\ref{thm:betti numbers of pairing} illustrates the following useful fact:  over the generic point of $\AA^1$, we have the isomorphism
@@ -754,7 +778,7 @@ which proves the formula.
 
 As a Corollary of Theorem~\ref{thm:betti numbers of pairing}, we can use $\Phi$ to recover the Betti numbers of $\FF$  or the cohomology
 table of $\cE$:
-\begin{cor} Let $\FF\in \DD^b(S)$ and let $\cE|in \DD^b(\PP^n)$.
+\begin{cor} Let $\FF\in \DD^b(S)$ and let $\cE\in \DD^b(\PP^n)$.
 \begin{enumerate}
 \item 
  $\beta_{i,j}(\FF) = \beta_{i,j}(\FF\cdot \cO_{\P^{n}}(j))$ for all $i,j$, where $\cO_{\PP^n}(j)$ is regarded as a complex concentrated in homological degree 0.
@@ -762,6 +786,7 @@ table of $\cE$:
 \end{enumerate}
 %\qed
 \end{cor}
+
 
 
 We will focus in this paper on free complexes, and we will need to use the definition of $\Phi$
@@ -833,7 +858,6 @@ For minimal free resolutions $\FF$, we have an equality of functions:
 \end{thm}
 The above theorem illustrates the sense in which the complex of $A$-modules $\Phi(\FF,\cE)$ categorifies all of the nonnegative integers $\langle \FF,\cE\rangle_{\tau,\kappa}$ constructed by Eisenbud and Schreyer.
 
-
 %Our proof of the theorem relies on the relative simplicity of the derived category $\DD^b(A)$.  The indecomposableBecause the global dimension of $A$ is 1, any element $\Gbull\in \DD^b(A)$ is quasi-isomorphic to its homology, and the homology $\HH(\Gbull)$ decomposes as
 %\begin{equation}\label{eqn:splitting}
 %\HH(\Gbull)=\left( \bigoplus_{i,j\in \ZZ} A(-j)[i]^{\lambda_{i,j}(\Gbull)}\right) \bigoplus \left( \bigoplus_{\substack{i,j\in \ZZ\\ k\in \ZZ_{>0}}} (A(-j)[i]/t^k)^{\nu_{i,j,k}(\Gbull)}\right),
@@ -865,11 +889,50 @@ Since $\Gbull$ is quasi-isomorphic to its homology, it suffices to evaluate both
 For part \eqref{thm:categorified:1}, we note that $\chi_{i,j}(\FF\cdot \cE)$ only depends on the Betti table of $\FF\cdot \cE$, which by Theorem~\ref{thm:Phi}\eqref{thm:Phi:1} only depends on $\beta(\FF)$ and $\gamma(\cE)$.  We may thus assume that $\kk$ is an infinite field, and we may replace $\cE$ by a general $\GL_{n+1}$ translate, since this does not affect the cohomology table of $\cE$.  By~\cite[Theorem]{miller-speyer}, we  conclude $\widetilde{\FF}\otimes \cE$ is exact.  Hence, by Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, it follows that $\FF\cdot \cE$ lies in $\DD^b(A)_{\text{tor}}$.  Finally, we apply Lemma~\ref{lem:chi nonneg} to obtain the desired nonnegativity.
 
 
-The proof is of part \eqref{thm:categorified:2} is more involved, but it follows from the argument for case (iii) of the proof of Theorem~\ref{thm:extremal rays refined}, given below.  
+For part \eqref{thm:categorified:2}, it suffices to verify this in the case where $\FF$ is a one-term complex of the form $\FF=S^1(-u)[v]$ for all $u,v$.  For convenience, we set $f_0=\infty$ and $f_{s+1}=-\infty$. If $-u=f_i$ for some $i$ then both functions trivially evaluate to $0$.  Otherwise, there exists a unique $i$ such that $f_i>-u>f_{i+1}$.  In this case, $\FF\cdot \cE_f$ is a one-term complex with $\beta_{-i+v,u}(\FF\cdot \cE_f)=\gamma_{i,-u}(\cE_f)$, and with all other Betti numbers equal to $0$.  We thus have \daniel{still filling this in.}
+%is more involved, but it follows from the argument for case (iii) of the proof of Theorem~\ref{thm:extremal rays refined}, given below.  
 \end{proof}
 
 
-\section*{\underline{{Part II: Comparing complexes and resolutions}}}
+\begin{example}\label{ex:sup2}
+Continuing with the notation from Example~\ref{ex:sup1}, we now consider the functional $\beta(\FF)\mapsto \chi_{0,0}(\FF\cdot \cE)$, which takes a Betti table on $S$ to a rational number.  This functional is given the dot product of $\beta(\FF)$ with
+%Using the notation of XXXX, the cohomology table of $\cE$ is a given by
+%\[
+%\gamma(\cE)=
+%\bordermatrix{
+%&&&&&&&&&\cr
+%h^2&\dots &12&5&-&-&-&-&-&\dots\cr
+%h^1&\dots&-&-&3&4&3&-&-&\dots\cr
+%h^0&\dots&-&-&-&-&-&5&12&\dots
+%}
+%\]
+\[
+\chi_{0,0}(-\cdot \cE)=
+\left|
+\begin{array}{ccccccc}
+&\multicolumn{1}{|c}{\vdots}&\vdots&\vdots&\vdots&&\\
+\dots&\multicolumn{1}{|c}{12}&-5&0&3&\dots\\
+\dots&\multicolumn{1}{|c}{5}&0&-3&4&\dots\\ \cline{2-2}
+\dots&{0}&\multicolumn{1}{|c}{3}&-4&3&\dots\\ \cline{3-5}
+\dots&0^\zp&0&0&{0}&\multicolumn{1}{|c}{\dots}\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
+&\vdots&\vdots&\vdots&\vdots&\multicolumn{1}{|c}{}&\\
+% & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
+%\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+%\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+%\dots&0&0&\multicolumn{1}{|c}{\mathbf{1}}&-1&1&-1&\dots\\ \cline{4-5}
+%\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+%\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+%& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
+\end{array}
+\right|
+\]
+The line that snakes through the table corresponds to the line in the definition of $\chi_{0,0}$. The shape of the line has changed, due to the homological shifts introduced by the cohomology table of $\cE$, as in Example~\ref{ex:sup1}.  Note that this functional equals the functional from~[p. XXXX]\cite{eis-schrey-icm}. \daniel{need page from published version.}
+\end{example}
+
+\section*{\underline{{Part II: The structure of free complexes}}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Complexes with homology}\label{sec:refined}
@@ -964,8 +1027,8 @@ We postpone the details to the next section.
  Consider the codimension sequence $\bb=(\dots, \nothing,0^\circ,0,\infty,\dots)$ and the degree sequence $\dd=(\dots, -\infty,0^\circ ,1,\infty,\dots)$, which has codimension $\ell = 1$.  The Betti table 
  $(1^\circ, 1)$ of the complex $\FF=\left[ S^{1^\circ}\lTo^{x_{0}} S^1(-1)\right]$ is in $\BBQ^{\bb}$.
  As such, the decomposition guaranteed by Theorem~\ref{thm:extremal rays refined} is
- $\beta(\FF) = (1^{\circ}, -) + (-^{\circ}, 1)$. Of course we might also decompose $\beta(\FF)$
- as the Betti table $(1^{\circ}, 1)$ of a single pure resolution ($\FF$ itself!). This does \emph{not} contradict the uniqueness statement of the Theorem because $\dd$ is not compatible with $\bb$
+ $\beta(\FF) = [1^{\circ}, -] + [-^{\circ}, 1]$. Of course we might also decompose $\beta(\FF)$
+ as the Betti table $[1^{\circ}, 1]$ of a single pure resolution ($\FF$ itself!). This does \emph{not} contradict the uniqueness statement of the Theorem because $\dd$ is not compatible with $\bb$
  since $1= \ell \not\leq b_{1}= 0$.
 \end{example}
 
@@ -976,18 +1039,18 @@ We postpone the details to the next section.
 %
 %This distinction is necessary in order to obtain the uniquesness of decompositions of Betti tables in Theorem~\ref{thm:extremal rays refined}.  Otherwise, in this case, $\FF_d$ would have two decompositions into pure tables:
 %\[
-%\beta(\FF_d)=\begin{pmatrix}
+%\beta(\FF_d)=\begin{bmatrix}
 %1^\circ & 1
-%\end{pmatrix}
+%\end{bmatrix}
 %\quad \text{ or } \quad
 %\beta(\FF_d)=
-%\begin{pmatrix}
+%\begin{bmatrix}
 %1^\circ & -
-%\end{pmatrix}
+%\end{bmatrix}
 %+
-%\begin{pmatrix}
+%\begin{bmatrix}
 %-^\circ & 1
-%\end{pmatrix}.
+%\end{bmatrix}.
 %\]
 %
 
@@ -1044,26 +1107,26 @@ For instance, in \cite[Example 8.2]{eis-floy-schrey}, it is shown that
 is a monad for the ideal sheaf of a certain rational surface in $\PP^4$.  This decomposes as
 \begin{align*}
 \beta(\FF)&=
-\begin{pmatrix}
+\begin{bmatrix}
 2&11&20^\zp&10
-\end{pmatrix}
+\end{bmatrix}
 \\
 &=
-\begin{pmatrix}
+\begin{bmatrix}
 2&4&2^\zp&-
-\end{pmatrix}
+\end{bmatrix}
 +
-\begin{pmatrix}
+\begin{bmatrix}
 -&7&7^\zp&-
-\end{pmatrix}
+\end{bmatrix}
 +
-\begin{pmatrix}
+\begin{bmatrix}
 -&-&10^\zp&10
-\end{pmatrix}
+\end{bmatrix}
 +
-\begin{pmatrix}
+\begin{bmatrix}
 -&-&1^\zp&-
-\end{pmatrix}.
+\end{bmatrix}.
 \end{align*}
 \end{example}
 
@@ -1110,7 +1173,7 @@ Otherwise, $u$ has some nonzero entry.  We fix $(s,t)$ so that $u_{s,t}$ is the 
 If $b_s=0$, then $\beta(A(-t)[-s])$ is compatible with $\bb$, and we can set $u'=u-\beta(A(-t)[-s])$.  On the other hand, if $b_s>0$, then we choose $r$ so that $u_{s-1,r}$ is the top nonzero entry in column $s-1$.  We claim that, $r<t$, i.e. that $u$ has the form:
 \[
 u=
-\left(
+\left[
 \begin{array}{ccccccc}
  & \vdots& \multicolumn{1}{|c}{\vdots}&\vdots& \vdots&&\\
 \dots&u_{s-2,r-2}&\multicolumn{1}{|c}{0}&0&0&\dots\\
@@ -1122,7 +1185,7 @@ u=
 \dots&u_{s-2,t-1}&u_{s-1,b}&u_{a,b+1}&\multicolumn{1}{|c}{0}&\dots\\
 %\dots&u_{a-2,b}&u_{a-1,b+1}&u_{a,b+2}&0&\dots\\
 & \vdots&\vdots&\vdots& \multicolumn{1}{|c}{\vdots}&&\\
-\end{array}\right).
+\end{array}\right].
 \]
 Since $b_s>0$ we have $\chi_{s-1,t-1}(u)\geq 0$, and it follows that $r<t$ as claimed.  When $b_s>0$, we thus set
 \[
@@ -1353,7 +1416,7 @@ For (i), we consider the case where we omit the maximal element, the other case 
 \]
 corresponds to this boundary facet.
 
-For (iii), we let $c=\codim(d)$.  Without loss of generality we can shift homological indices and assume that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, c\}$.   We may also assume that $d_i=0$ and thus that $d_{i+1}=2$.  We then fix the root sequence $f=(-d_0>-d_1>\dots >-d_{i-1}>-d_{i+2}>\dots >-d_{c})$, and we let $\cE_f$ be any supernatural vector bundle of type $f$.  We claim that the corresponding functional is given by
+For (iii), we let $b=\codim(d)$.  Without loss of generality we can shift homological indices and assume that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, b\}$.   We may also assume that $d_i=0$ and thus that $d_{i+1}=2$.  We then fix the root sequence $f=(-d_0>-d_1>\dots >-d_{i-1}>-d_{i+2}>\dots >-d_{b})$, and we let $\cE_f$ be any supernatural vector bundle of type $f$.  We claim that the corresponding functional is given by
 \[
 \beta(\FF) \mapsto \chi_{0,0}(\FF\cdot \cE_f).
 \]
@@ -1389,23 +1452,23 @@ $
 However, $e_{\ell}\leq d_{\ell}$ and thus $f_{\ell}\geq -d_{\ell}$.  By construction of $f$, this holds if and only if $\ell \leq i$.  Since $e$ is a degree sequence, we then have $e_{\ell}\leq e_i\leq d_i=0$, as desired.  Further, since $e\leq d'$ and since $\bb$ is nondecreasing, it follows that $\codim(e)\geq \codim(d')$ and thus that $\codim(\FF_e)+\codim(\cE_f)\geq n+1$.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, we see that $\FF_e\cdot \cE_f$ has the Betti table of a complex with finite length homology, completing the claim when $e\leq d'$.  
 %The argument fo $e\geq d''$ similarly follows by repeated applications of Lemma~\ref{lem:pure and supernatural}.
 
-We next consider case (iv).  We set $c=\codim(d)$ and we shift homological indices so that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, c\}$.
-We fix the root sequence $f=(-d_{1}>-d_{2}>\dots>-d_{c-1})$ and we let $\cE_f$ be any supernatural bundle of type $f$.   The corresponding functional is:
+We next consider case (iv).  We set $b=\codim(d)$ and we shift homological indices so that $d_j\in \ZZ$ if and only if $j\in \{0, \dots, b\}$.
+We fix the root sequence $f=(-d_{1}>-d_{2}>\dots>-d_{b-1})$ and we let $\cE_f$ be any supernatural bundle of type $f$.   The corresponding functional is:
 \[
 \beta(\FF)\mapsto \chi_{1,-\delta-c}(\FF\cdot \cE_f).
 \]
 If $\FF_d$ is a pure complex of type $\dd$, then there exists some $N$ such that:
 \[
-\FF_d\cdot \cE_f=\left[ \overset{\zp}{A^N}(-\epsilon)\gets A^N(-\delta-c) \right],
+\FF_d\cdot \cE_f=\left[ \overset{\zp}{A^N}(-\epsilon)\gets A^N(-\delta-b) \right],
 \]
 and hence the functional evaluates to $N$.  
 Now, let $e$ be any degree sequence in $P_{(\delta,\epsilon)}$.  As in the proof of case (iii) above, the cases $e\geq d''$ and $e\leq d'$ split in half:
-if $e\leq d'$, then $\FF_e\cdot \cE_f$ has the Betti table of a complex with finite length homology and, by Lemma~\ref{lem:pure and supernatural}, it is supported entirely in the ``upper region'' defined by $\chi_{1,-\delta-c}$; if $e\geq d''$, then $\beta(\FF_e\cdot \cE_f)$ is supported entirely in the ``lower region''.
+if $e\leq d'$, then $\FF_e\cdot \cE_f$ has the Betti table of a complex with finite length homology and, by Lemma~\ref{lem:pure and supernatural}, it is supported entirely in the ``upper region'' defined by $\chi_{1,-\delta-b}$; if $e\geq d''$, then $\beta(\FF_e\cdot \cE_f)$ is supported entirely in the ``lower region''.
 %homological degrees $<1$, and so the functional also evaluates to $0$.
 
-For case (v), we let $c$ be the codimension of $\dd$.  By reindexing the columns, it suffices to consider the consider where the finite entries of $\dd$ lie in homological positions $\{0,\dots,c\}$.  We then let $f$ be the root sequence $f=(-d_0>\dots >-d_{c-2})$ and we let $\cE_f$ be a supernatural sheaf of type $f$.  The appropriate functional has the form:
+For case (v), we let $b$ be the codimension of $\dd$.  By reindexing the columns, it suffices to consider the consider where the finite entries of $\dd$ lie in homological positions $\{0,\dots,b\}$.  We then let $f$ be the root sequence $f=(-d_0>\dots >-d_{b-2})$ and we let $\cE_f$ be a supernatural sheaf of type $f$.  The appropriate functional has the form:
 \[
-\beta(\FF)\mapsto \chi_{-1,d_{c-2}}(\FF\cdot \cE_f).
+\beta(\FF)\mapsto \chi_{-1,d_{b-2}}(\FF\cdot \cE_f).
 \]
 We may confirm that this is the correct functional by a minor adaption of the argument used for case (iii).
 %As above, the cases $g\geq d''$ and $g\leq d'$ split in half.  When $g\geq d''$ then $\FF_g\cdot \cE_f$ is supported entirely in the ``upper region'' corresponding to $\chi_{-1,d_{c-2}}$.  Since $\codim(\cE_F)=c-1$ and since $\FF_g$ has codimension $c$, it follows $\FF_g\cdot \cE_f$ has finite length homology, and hence
@@ -1433,7 +1496,7 @@ To illustrate the results from the previous sections, we provide a few examples.
 \begin{example}\label{ex:1441}
 Let $S=\kk[x,y,z]$ and let
 \begin{equation}\label{eqn:intro ex}
-\beta(\FF)=\begin{pmatrix} 1&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{pmatrix}.
+\beta(\FF)=\begin{bmatrix} 1&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}.
 \end{equation}
 
 
@@ -1447,15 +1510,15 @@ For any positive complex of this form, the kernel of the map will contain at lea
 
 However, as illustrated by the following decomposition, $\beta(\FF)$ does lie in $\BBQ^2(S)$.
 \[
-\begin{pmatrix} 1^\zp&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{pmatrix}
+\begin{bmatrix} 1^\zp&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}
 =
-\begin{pmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{16}{5}&4&-\\-&-&-&-\\-&-&-&-\\-&-&-&\frac{4}{5} \end{pmatrix}
+\begin{bmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{16}{5}&4&-\\-&-&-&-\\-&-&-&-\\-&-&-&\frac{4}{5} \end{bmatrix}
 +
-\begin{pmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{3}{10}&-&-\\-&-&\frac{1}{2}&-\\-&-&-&-\\-&-&-&\frac{1}{5} \end{pmatrix}
+\begin{bmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{3}{10}&-&-\\-&-&\frac{1}{2}&-\\-&-&-&-\\-&-&-&\frac{1}{5} \end{bmatrix}
 +
-\begin{pmatrix} \frac{1}{5}^\zp&-&-&-\\ -&-&-&-\\-&\frac{1}{2}&-&-\\-&-&\frac{3}{10}&-\\-&-&-&-\\-&-&-&- \end{pmatrix}
+\begin{bmatrix} \frac{1}{5}^\zp&-&-&-\\ -&-&-&-\\-&\frac{1}{2}&-&-\\-&-&\frac{3}{10}&-\\-&-&-&-\\-&-&-&- \end{bmatrix}
 +
-\begin{pmatrix} \frac{4}{5}^\zp&-&-&-\\ -&-&-&-\\-&-&-&-\\-&4&\frac{16}{5}&-\\-&-&-&-\\-&-&-&- \end{pmatrix}.
+\begin{bmatrix} \frac{4}{5}^\zp&-&-&-\\ -&-&-&-\\-&-&-&-\\-&4&\frac{16}{5}&-\\-&-&-&-\\-&-&-&- \end{bmatrix}.
 \]
 Up to scalar multiple, $\beta(\FF)$ thus equals the Betti table of a complex whose homology modules have codimension $2$.
 \end{example}
@@ -1467,23 +1530,23 @@ Up to scalar multiple, $\beta(\FF)$ thus equals the Betti table of a complex who
 \begin{example}
 Corollary~\ref{cor:uniform} recovers the fact, first observed by Mats Boij, that a pure table of type $d=(d_0, \dots, d_{n+1})$ can be written the sum of a pure table of type $(d_0, \dots, d_n)$ and a shifted pure table of type $(d_1, \dots, d_{n+1})[-1]$.  For instance
 \[
-\begin{pmatrix}
+\begin{bmatrix}
 1&-&-&-\\
 -&5&5&-\\
 -&-&-&1
-\end{pmatrix}
+\end{bmatrix}
 =
-\begin{pmatrix}
+\begin{bmatrix}
 1&-&-&-\\
 -&3&2&-\\
 -&-&-&-
-\end{pmatrix}
+\end{bmatrix}
 +
-\begin{pmatrix}
+\begin{bmatrix}
 -&-&-&-\\
 -&2&3&-\\
 -&-&-&1
-\end{pmatrix}.
+\end{bmatrix}.
 \]
 We may interpret this decomposition as follows.  Let $M$ be an $S=\kk[x,y,z]$-module whose resolution equals the diagram on the left. If $\ell$ is a generic linear form (assuming $\kk$ is infinite), then as $S/\ell$-modules, the Betti tables of $\Tor^0_S(M,S/\ell)$ and $\Tor^1(M,S/\ell)$ correspond to the other Betti tables above.
 \end{example}
@@ -1491,35 +1554,35 @@ We may interpret this decomposition as follows.  Let $M$ be an $S=\kk[x,y,z]$-mo
 \begin{example}
 For any complex $\FF\in \DD^b(S)$, there exist many different values of $\bb$ that are compatible with $\FF$, and the decomposition of $\beta(\FF)$ induced by Theorem~\ref{thm:extremal rays refined} may depend on the choice of $\bb$.   For instance, let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may choose $\bb=(\dots, \nothing, 2^\zp, \infty, \dots)$ and then we decompose
 \[
-\beta(\FF)=\begin{pmatrix}
+\beta(\FF)=\begin{bmatrix}
 1^\zp&-&-&-\\
 -&4&4&1
-\end{pmatrix}
+\end{bmatrix}
 =
 \frac{1}{3}
-\begin{pmatrix}
+\begin{bmatrix}
 1^\zp&-&-&-\\
 -&6&8&3
-\end{pmatrix}
+\end{bmatrix}
 +\frac{2}{3}
-\begin{pmatrix}
+\begin{bmatrix}
 1^\zp&-&-\\
 -&3&2
-\end{pmatrix}.
+\end{bmatrix}.
 \]
 $\FF$ is also compatible with $\bb'=(\dots, 2, 2^\zp, 2, \dots)$.  In this case, we obtain the decomposition:
 \[
 \beta(\FF)=
-\begin{pmatrix}
+\begin{bmatrix}
 1^\zp&-&-&-\\
 -&4&4&1
-\end{pmatrix}
-=\begin{pmatrix}1^\zp&-&-\\-&3&2\end{pmatrix}
+\end{bmatrix}
+=\begin{bmatrix}1^\zp&-&-\\-&3&2\end{bmatrix}
 +
-3\begin{pmatrix}
+3\begin{bmatrix}
 -^\zp&-&-&-\\
 -&1&2&1
-\end{pmatrix}
+\end{bmatrix}
 \] 
 This second decomposition is stable under taking a hyperplane section.  Namely, set $S':=S/(\ell)$, where $\ell$ is a generic linear form, and let $\FF'$ be the restriction of $\FF$ to $S'$.  Since $\text{depth}(S/I)=1$, the complex $\FF'$ is not a resolution, but it is still compatible with $\bb'$, and hence the second decomposition still holds for $\FF'$.
 \end{example}
@@ -1855,22 +1918,17 @@ with each $N_k$ a finite length module.  Setting $M_k:=\Hom(M_k,\kk)$ and using 
 %Imagine $R=\kk[x,y]/(x^3)$ and that $\FF$ is the minimal free resolution of the residue field.  Then
 %\begin{align*}
 %\beta(\FF)&=\begin{pmatrix}1&2&1&-&-&\dots \\ -&-&1&2&1&\dots \\-&-&-&-&1 &\dots \\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}\\
-%&=\begin{pmatrix}1&1&-&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}+
-%\begin{pmatrix}-&1&1&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{pmatrix}+\dots
+%&=\begin{bmatrix}1&1&-&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{bmatrix}+
+%\begin{bmatrix}-&1&1&-&-&\dots\\ -&-&-&-&-&\dots\\ -&-&-&-&-&\dots\\ \vdots &\vdots &\vdots &\vdots &\vdots &\ddots \end{bmatrix}+\dots
 %\end{align*}
 %\end{example}
 
 \begin{example}
 Let $R=\kk[x,y,z]/(x^2,y^2)$ and let $\FF$ be the minimal free resolution of $R/(x,y)$.  Then
 \begin{align*}
-\beta(\FF)&=\begin{pmatrix}1^\zp&3&5&7&\dots \end{pmatrix}\\
-&=\begin{pmatrix}1^\zp&1&-&-&\dots \end{pmatrix}+\begin{pmatrix}-^\zp&2&2&-&\dots \end{pmatrix}+\begin{pmatrix}-^\zp&-&3&3&\dots \end{pmatrix}+\dots
+\beta(\FF)&=\begin{bmatrix}1^\zp&3&5&7&\dots \end{bmatrix}\\
+&=\begin{bmatrix}1^\zp&1&-&-&\dots \end{bmatrix}+\begin{bmatrix}-^\zp&2&2&-&\dots \end{bmatrix}+\begin{bmatrix}-^\zp&-&3&3&\dots \end{bmatrix}+\dots
 \end{align*}
-%If we truncate in homological degree $3$, then we have:
-%\begin{align*}
-%\beta(\FF_{\leq 3})&=\begin{pmatrix}1^\zp&3&5&7\end{pmatrix}\\
-%&=\begin{pmatrix}1^\zp&1&-&- \end{pmatrix}+\begin{pmatrix}-^\zp&2&2&- \end{pmatrix}+\begin{pmatrix}-^\zp&-&3&3 \end{pmatrix}+\begin{pmatrix}-^\zp&-&-&4\end{pmatrix}
-%\end{align*}
 \end{example}
 
 

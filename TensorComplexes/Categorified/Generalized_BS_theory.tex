@@ -837,11 +837,11 @@ We have the following:
 \[
 \chi_{i,j}(\FF\cdot \cE)\geq 0
 \]
-	\item\label{thm:categorified:2}  Let $\cE_{f}$ be a supernatural sheaf of codimension $s$ on $\PP^n$.  Fix $1\leq \tau \leq s$ and $\kappa\in \ZZ$.  Then 
+	\item\label{thm:categorified:2}  Let $\cE_{f}$ be a supernatural sheaf of codimension $s$ on $\PP^n$.  Fix $1\leq \tau \leq s$ and $\kappa\in \ZZ$.  If we set $\nu:=\min\{\kappa, f_{\tau}-1\}$,
 	%there exists $\nu \in \ZZ$ such that 
-	we have an equality of functions:
+	then we have an equality of functions:
 \[
-\bigg( \beta(\FF)\mapsto \chi_{0,\kappa}(\FF\cdot \cE_f)\bigg) =\bigg( \beta(\FF)\mapsto \langle \FF, \cE_f\rangle_{\tau,\kappa} \bigg).
+\bigg( \beta(\FF)\mapsto \chi_{0,\nu}(\FF\cdot \cE_f)\bigg) =\bigg( \beta(\FF)\mapsto \langle \FF, \cE_f\rangle_{\tau,\kappa} \bigg).
 \]
 %from $\VV \to \QQ$, where $\langle -, \cE_{f}\rangle_{\tau,\kappa}$ is the functional defined in \cite{eis-schrey-icm}, extended in the natural way to all of $\VV$.
 \end{enumerate}
@@ -879,9 +879,9 @@ Since $\Gbull$ is quasi-isomorphic to its homology, it suffices to evaluate both
 For part \eqref{thm:categorified:1}, we note that $\chi_{i,j}(\FF\cdot \cE)$ only depends on the Betti table of $\FF\cdot \cE$, which by Theorem~\ref{thm:Phi}\eqref{thm:Phi:1} only depends on $\beta(\FF)$ and $\gamma(\cE)$.  We may thus assume that $\kk$ is an infinite field, and we may replace $\cE$ by a general $\GL_{n+1}$ translate, since this does not affect the cohomology table of $\cE$.  By~\cite[Theorem]{miller-speyer}, we  conclude $\widetilde{\FF}\otimes \cE$ is exact.  Hence, by Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, it follows that $\FF\cdot \cE$ lies in $\DD^b(A)_{\text{tor}}$.  Finally, we apply Lemma~\ref{lem:chi nonneg} to obtain the desired nonnegativity.
 
 
-For part \eqref{thm:categorified:2}, we set $\nu:=\min\{\kappa, f_{\tau}-1\}$.
+For part \eqref{thm:categorified:2}, 
 % then there is a unique $i$ such that $f_i\geq \kappa >f_{i+1}$.  \
-It suffices to verify the claim for one-term complexes of the form $\FF=S^1(-u)[v]$, with $u$ and $v$ arbitrary.  
+it suffices to verify the claim for one-term complexes of the form $\FF=S^1(-u)[v]$, with $u$ and $v$ arbitrary.  
 %Without loss of generality, we may also assume that $\kappa=0$.  
 If we set $f_0=\infty$ and $f_{s+1}=-\infty$, then there exists a unique $j$ such that $f_j\geq -u>f_{j+1}$, and thus $\FF\cdot \cE_f$ equals the complex with $\beta_{v-j,u}(\FF\cdot \cE_f)=\gamma_{j,-u}(\cE_f)$ and with all other Betti numbers equal to $0$.  
 

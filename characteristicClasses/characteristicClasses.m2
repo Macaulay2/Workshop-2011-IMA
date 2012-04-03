@@ -1,4 +1,4 @@
--- -*- coding: utf-8 -*-
+§-- -*- coding: utf-8 -*-
 
 
 -----------------------------------------------------------------
@@ -13,7 +13,7 @@ newPackage(
 		  Email => "jost at math.su.se", 
 		  HomePage => "http://www.math.su.se/~jost"}},
     	Headline => "Degrees of Chern and Segre classes",
-    	DebuggingMode => true,
+    	DebuggingMode => false,
 	Configuration => { 
 	     "pathToBertini" => ""
 	      }
@@ -153,7 +153,7 @@ internalChernClassList = {ResidualStrategy => Symbolic} >> opts -> I -> (
      return internalChern(localI, ResidualStrategy => opts.ResidualStrategy);
      )
 
--- The function internalSegre is one of the two main function in this package which do the actual 
+-- The function internalSegre is one of the two main functions in this package which do the actual 
 -- computation of the Segre classes. It uses the algorithm described in [1].
 -- Computing the degrees of the residuals as defined in [1] is the heart of the algorithm. This
 -- is done by the subroutine residualDegs.
@@ -195,11 +195,11 @@ internalSegre = {ResidualStrategy => Symbolic} >> opts -> I -> (
      -- initialize segreList as an empty list
      segreList= {};
     
-     -- Pick random elements in I of degree maxdeg, as many as the dimension of the ambient space, store in the list f.
+     -- Pick random elements in I of degree maxdeg, one more than the dimension of the ambient space, store in the list f.
      f := for i from 1 to (ambientDim + 1) list sum( gensI, g -> g * random(maxDeg - first(degree(g)), R) );      
      
      -- Compute the degree of the residual of Z in the intersection of d hypersurfaces, where d = codimension of Z, ... , dimension of the ambient space.
-     -- Depends on the strategy (symbolic/Bertini).
+     -- Depends on the strategy (Symbolic/Bertini).
      degR := residualDegs(f, ambientDim, dimension, minDegGen, ResidualStrategy => opts.ResidualStrategy);  
          
      
@@ -219,7 +219,7 @@ internalSegre = {ResidualStrategy => Symbolic} >> opts -> I -> (
      )
 
 
--- The function residualDegs is the other one of the two main function in this package which do the actual 
+-- The function residualDegs is the other one of the two main functions in this package which do the actual 
 -- computation of the Segre classes. It computes the degrees of the residuals as defined in [1].
 -- The option ResidualStrategy determines which method is used to compute the degrees of the residuals.
 -- Symbolic uses Groebner bases to compute the saturation of ideals.
@@ -281,7 +281,7 @@ residualDegs = {ResidualStrategy => Symbolic} >> opts -> (f, ambientDim, dimensi
 	  -- Read output file "regenSummary". Remove the first two lines and the last one. 
 	  -- Furthermore remove the lines corresponding to codimensions less than the codimension of the variety,
 	  -- these are not relevant. The degrees of the residuals are then the numbers in the 5th column.
-	  degR = apply(drop(drop(lines(get "/tmp/regenSummary"),1 + ambientDim-dimension),-1), myString->value((separate(" ", myString))_5));
+	  degR = apply(drop(drop(lines(get "/tmp/regenSummary"),1 + ambientDim-dimension),-1), myString->value( (separate(" ", myString))_5 ) );
 	  
 	  -- If the residuals are empty, we have to add zeros manually.
 	  numberOfMissingLines := dimension + 1 - #degR; 	 
@@ -355,7 +355,7 @@ checkUserInput = (I,residualStrategy) -> (
 	      )
 
 
--- The function prepare does two things to prepare the later computations. Firstly, it trims the ideal I, taking away
+-- The function prepare does two things to prepare the later computations. At first, it trims the ideal I, taking away
 -- nonnecessary generators. Then it creates a ring only used internally and an ideal in it isomorphic to I and returns this ideal. This 
 -- step is done to avoid possible later conflicts in the choice of variables.
 prepare = I -> (
@@ -457,7 +457,7 @@ doc ///
 	   the pushforward of the total Segre class of the scheme X to the Chow ring ZZ[H]/(H^{k+1}) of projective space P^k.
      Description
      	  Text
-	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Segre class of X in P^k to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Segre classes s_0(X,P^k),...,s_n(X,P^k) as coefficients.
+	       For an n-dimensional subscheme X of projective space P^k, this command computes the push-forward of the total Segre class s(X,P^k) of X in P^k to the Chow ring of P^k. The output is a polynomial in the hyperplane class, containing the degrees of the Segre classes s_0(X,P^k),...,s_n(X,P^k) as coefficients.
 	  Example
 	       R = QQ[x,y,z]
 	       segreClass ideal(x*y)
@@ -586,9 +586,9 @@ doc ///
      	  Text
 	       The option ResidualStrategy determines which strategy is used to compute the residuals, which
 	       is the main step in the computation of the Chern and Segre classes. When choosing the default
-	       Symbolic, Gr\"obner basis methods will be used. The computations can also be done using 
-	       the regenerative cascade implemented in Bertini, choosing the option Bertini and provided
-	       Bertini is @TO2 {"configuring Bertini", "installed and configured"}@.	   
+	       Symbolic, Gr\"obner basis methods will be used. The computations can also be done numerically using 
+	       the regenerative cascade implemented in Bertini. This is done by choosing the option Bertini and provided
+	       Bertini is @TO2 {"configuring Bertini", "installed and configured"}@. Using Bertini will usually result in a considerable speed-up.	   
 	  Example
 	       R = QQ[x,y,z,w]
 	       chernClass( minors(2,matrix{{x,y,z},{y,z,w}}), ResidualStrategy=>Symbolic)  
@@ -681,5 +681,5 @@ TEST ///
 -- References
 ------------------------------------------------------
 -- [1] A method to compute Segre classes (David Eklund, Christine Jost, Chris Peterson), 2011, available at arXiv:1109.5895v1 [math.AG]
--- [2] Bertini: Software for Numerical Algebraic Geometry (Daniel J. Bates, Jonathan D. Hauenstein, Andrew J. Sommese, Charles W. Wampler, available at http://www.nd.edu/~sommese/bertini
--- [3] Regenerative cascade homotopies for solving polynomial systems (Jonathan D. Hauenstein, Andrew J. Sommese, Charles W. Wampler) 
+-- [2] Bertini: Software for Numerical Algebraic Geometry (Daniel J. Bates, Jonathan D. Hauenstein, Andrew J. Sommese, Charles W. Wampler), available at http://www.nd.edu/~sommese/bertini
+-- [3] Regenerative cascade homotopies for solving polynomial systems (Jonathan D. Hauenstein, Andrew J. Sommese, Charles W. Wampler), Applied Mathematics and Computation

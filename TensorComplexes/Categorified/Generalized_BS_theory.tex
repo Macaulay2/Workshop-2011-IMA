@@ -428,7 +428,7 @@ Further,  the sum of the Betti numbers of any resolution of a nonzero $S$-module
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Our description of the cone of Betti tables of bounded complexes
 extends to a wide class of rings in the following way. 
-Let $R\supseteq S$ be a finite extension of graded rings, and let
+Let $S\subseteq R$ be a finite extension of graded rings, and let
 $X=\Proj(R)$.  We let $f\colon X\to \PP^n$ denote the corresponding finite
 map of projective schemes of dimension $n$, and we set $L:=f^*\cO(1)$.
 %
@@ -1716,7 +1716,11 @@ Hence, no scalar multiple of $w$ can equal the cohomology table of a sheaf on $\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 We next use our new foundation for \BS theory over $S$ to analyze the structure of bounded free complexes over more general $\NN$-graded rings.  Throughout this section, our setup is as follows.  We fix a graded ring $R$ that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other words, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes.  We set $L:=f^*\cO(1)$.
 
-We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  We define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  For $\FF\in \DD^b(R)$, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  If $\cc$ is a codimension sequence, then we define $\BBQ^{\cc}(R)$ in parallel with the definitions from \S\ref{sec:refined}.
+We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
+We are interested in bounded free complexes, but since $R$ will generally fail to be a regular ring, it is no longer the case that arbitrary elements of the derived category 
+$\DD^b(R)$ may be represented by a bounded free complex.  
+We thus restrict attention to the subcategory $\DD^{\text{perf}}(R)\subseteq \DD^b(R)$ of perfect complexes.
+If $\cc$ is a codimension sequence, then we define $\BBQ^{\cc}(R)$ in parallel with the definitions from \S\ref{sec:refined}.  
 
 The main result in this section is a proof that relating cones of Betti tables of $R$ to cones of Betti tables over $S$, at least when $X$ contains an Ulrich sheaf.  This implies Corollary~\ref{cor:isom cones}.
 
@@ -1731,9 +1735,9 @@ $
 
 To prove this corollary, we will pull back complexes from $S$ and then use a variant of the pairing $\Phi$.  We begin by defining the pairing $\Phi_f$:
 \[
-\xymatrix{\DD^{b}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_f}&\DD^{b}(A).}
+\xymatrix{\DD^{\text{perf}}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_f}&\DD^{b}(A).}
 \]
-If $\FF \in \DD^b(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $X$.
+If $\FF \in \DD^{\text{perf}}(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $X$.
 Let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$, and
 write $-\otimes_\sigma R[t]$ to denote tensoring over $R$ with $R[t]$ using the structure
 given by $\sigma$. 
@@ -1751,7 +1755,7 @@ categories that takes a graded complex of free $R$-modules $\FF$ to
 a complex of graded sheaves on $X\times \AA^{1}$, with the grading coming from degree in $t$, the coordinate on $\AA^{1}$.
 We let $p_2: X\times \AA^1\to \AA^1$ be the projection map, and we define $\Phi_f$ in parallel to the definition of $\Phi$.
 \begin{defn}
-Given $\FF\in \DD^b(R)$ and $\cE\in \DD^b(X)$ we define
+Given $\FF\in \DD^{\text{perf}}(R)$ and $\cE\in \DD^b(X)$ we define
 \[
 \Phi_f(\FF,\cE):=Rp_{2*}\left( \tau(\FF)\otimes _{X\times \AA^1}\left( \cE\boxtimes \cO_{\AA^1}\right)\right).
 \]
@@ -1836,7 +1840,7 @@ It follows that $Lf^*\FF$ is compatible with $\cc$, as claimed.
 Let $\cc$ be any codimension sequence for $R$ and let $\overline{\kk}$ be the algebraic closure of $\kk$.  Then there is a natural isomorphism $\BBQ^{\cc}(R)\cong\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$.
 \end{lemma}
 \begin{proof}
-Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$.  We seek to show the opposite inclusion.  Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We seek to show that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ over $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a free complex $\FF'\in \DD^b(R')$ with $\beta(\FF')=\beta(\FF)$.  Since the extnension $R\subseteq R'$ is finite and free, it follows that $\FF'$ induces an element $\FF''\in\DD^b(R)$ such that $\beta(\FF'')=[\kk':\kk]\cdot \beta(\FF)$. 
+Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$ induced by $\beta(\FF)\mapsto \beta(\FF\otimes_{\kk} \overline{\kk})$.  We seek to show the opposite inclusion.  Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We claim that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ over $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a bounded free complex $\FF'$ of $R'$-modules with $\beta(\FF')=\beta(\FF)$.  Since the extension $R\subseteq R'$ is finite and free, it follows that if $\FF''$ is the complex $\FF'$ viewed as an $R$-module, then $\beta^R(\FF'')=[\kk':\kk]\cdot \beta^{R'}(\FF')$. 
 \end{proof}
 
 The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_f$ interact with the map $f$.
@@ -1897,24 +1901,28 @@ These results enable us to compute many new examples of cones of Betti tables.
 \begin{example}[Curves]\label{ex:res over section ring of ell curve}
 Let $C$ be any smooth curve of genus $g$ and let $f\colon C\to \PP^n$ be any embedding of $C$.  Then $C$ admits an Ulrich sheaf by~\cite[Corollary~4.5]{eis-schrey-chow}.  (If $\kk$ is an algebraically closed field, then the rank $1$ Ulrich sheaves correspond to line bundles of degree $g-1$ with no sections.)  Set $R$ to be the homogeneous coordinate ring of $C$ in $\PP^n$.  Then $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.
 
-For instance, we might let $C$ be the rational quartic curve $f\colon C\to \PP^3$ given by the linear series $\langle x_0^4,x_0^3x_1,x_0x_1^3,x_4^4\rangle$.  In this case, $R=\kk[x_0^4,x_0^3x_1,x_0x_1^3,x_4^4]$, with all generators having degree $1$.  Since $\cO_{\PP^1}(3)$ is an Ulrich sheaf for $f$, we thus have $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.
+For instance, let $C$ be the rational quartic curve $f\colon C\to \PP^3$ given by the linear series $\langle x_0^4,x_0^3x_1,x_0x_1^3,x_4^4\rangle$.  In this case, $R=\kk[x_0^4,x_0^3x_1,x_0x_1^3,x_1^4]$, with all generators having degree $1$.  Since $\cO_{\PP^1}(3)$ is an Ulrich sheaf for $f$, we thus have $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.  
+%It then follows from Example~\ref{ex:1441} that there exists a minimal complex of $R$-modules with finite length homology that has the form:
+%\[
+%R\longleftarrow \begin{matrix}  R(-3)^4\\ \oplus\\ R(-4)^4\end{matrix}\longleftarrow \begin{matrix} R(-4)^4\\ \oplus\\ R(-5)^4\end{matrix} \longleftarrow R(-8)\longleftarrow 0.
+%\]
 \end{example}
+%
+%\begin{example}[Veronese surface in $\PP^4$]
+%Let $R$ be the homogeneous coordinate ring for the Veronese surface $f\colon \PP^2\to \PP^4$.  Since $\Omega_{\PP^2}(3)$ is an Ulrich bundle for $f$, it follows that $\BBQ^3(R)=\BBQ^3(S)$.  For instance, Example~\ref{ex:1441} implies that there cannot exist a minimal, complex of $R$-modules with finite length homology that has the form:
+%\[
+%R\longleftarrow \begin{matrix}  R(-3)^4\\ \oplus\\ R(-4)^4\end{matrix}\longleftarrow \begin{matrix} R(-4)^4\\ \oplus\\ R(-5)^4\end{matrix} \longleftarrow R(-8)\longleftarrow 0.
+%\]
+%%Here $R=\kk[\subseteq \PP^4$ be the image of $f\colon \PP^2\to \PP^4$
+%\end{example}
+%
 
-\begin{example}[Veronese surface in $\PP^4$]
-Let $R$ be the homogeneous coordinate ring for the Veronese surface $f\colon \PP^2\to \PP^4$.  Since $\Omega_{\PP^2}(3)$ is an Ulrich bundle for $f$, it follows that $\BBQ^3(R)=\BBQ^3(S)$.  For instance, Example~\ref{ex:1441} implies that there cannot exist a minimal, complex of $R$-modules with finite length homology that has the form:
-\[
-R\longleftarrow \begin{matrix}  R(-3)^4\\ \oplus\\ R(-4)^4\end{matrix}\longleftarrow \begin{matrix} R(-4)^4\\ \oplus\\ R(-5)^4\end{matrix} \longleftarrow R(-8)\longleftarrow 0.
-\]
-%Here $R=\kk[\subseteq \PP^4$ be the image of $f\colon \PP^2\to \PP^4$
-\end{example}
-
-
-\daniel{This example and the previous one are pretty repetitive.  I could drop either.}
+\daniel{I wrote an example about the Veronse in $\PP^4$ but then commented it out in favor of the next example.}
 \begin{example}[K3 surface in $\PP^5$]
 Let $R$ be the homogeneous coordinate ring of a K3 surface in $X\subseteq \PP^5$ that is the complete intersection of three quadrics. 
 Since $X$ is a complete intersection, it admits an Ulrich bundle, and thus $\BBQ^3(R)=\BBQ^3(S)$.  It then follows form Example~\ref{ex:1441} that there cannot exist an exact sequence of the form:
 \[
-\cO_X\longleftarrow \begin{matrix}  \cO_X(-3)^4\\ \oplus\\ \cO_X(-4)^4\end{matrix}\longleftarrow \begin{matrix} \cO_X(-4)^4\\ \oplus\\ \cO_X(-5)^4\end{matrix} \longleftarrow \cO_X-8)\longleftarrow 0.
+\cO_X\longleftarrow \begin{matrix}  \cO_X(-3)^4\\ \oplus\\ \cO_X(-4)^4\end{matrix}\longleftarrow \begin{matrix} \cO_X(-4)^4\\ \oplus\\ \cO_X(-5)^4\end{matrix} \longleftarrow \cO_X(-8)\longleftarrow 0.
 \]
 %Here $R=\kk[\subseteq \PP^4$ be the image of $f\colon \PP^2\to \PP^4$
 \end{example}
@@ -1929,7 +1937,7 @@ Since $X$ is a complete intersection, it admits an Ulrich bundle, and thus $\BBQ
 
 
 \begin{remark}
-Eisenbud and Scheyer have conjectured that every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides a method for producing a counterexample.  Namely, imagine that for some $f\colon X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{d+1}(R)$ but where $\beta(\FF)$ does not decompose as a sum of shifted pure tables of codimension $d+1$.  This would imply that $\BBQ^{d+1}(R)\supsetneq \BBQ^{d+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
+Eisenbud and Scheyer have conjectured that every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides a method for producing a counterexample.  Namely, imagine that for some $f\colon X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{n+1}(R)$ but where $\beta(\FF)$ does not decompose as a sum of shifted pure tables of codimension $n+1$.  This would imply that $\BBQ^{n+1}(R)\supsetneq \BBQ^{n+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
 \end{remark}
 
 \david{possible place for a counterexample to the existence of U modules: the ell quintic scroll}
@@ -2055,7 +2063,7 @@ a complex of graded sheaves on $X\times \AA^{m}$, with the grading coming from d
 $$
 \Phi_X(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
 $$
-where $\FF\in \DD^b(R) , \cE\in \DD^b(X)$ and where $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. We also write
+where $\FF\in \DD^{\text{perf}}(R) , \cE\in \DD^b(X)$ and where $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. We also write
 $\FF\cdot \cE$ for $\Phi_X(\FF,\cE)$.
 \end{defn}
 

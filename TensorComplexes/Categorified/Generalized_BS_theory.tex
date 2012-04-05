@@ -285,7 +285,7 @@ Fix a point $v\in \VV$.   The following are equivalent:
 %Fix a point $v\in \VV$ and an integer $1\leq k\leq n+1$.  Then $v$ lies in the rational cone spanned by Betti tables of complexes of codimension $k$ if and only if $v$ pairs with all cohomology
 %pair with all elements of the cone 
 \end{thm}
-This result is essentially due to~\cite{eis-schrey1}: their main results imply a similar statement for free resolutions, and their proof may be adapted to the case of more general complexes.  We use the functor $\Phi$ to sharpen the statement and proof of the theorem.  %See \S\ref{sec:duality} for more discussion of this duality.
+This result is essentially due to~\cite{eis-schrey1}: their main results imply a similar statement for free resolutions, and their proof may be adapted to the case of more general complexes.  Using the functor $\Phi$ allows us to sharpen the statement and proof of the theorem.  %See \S\ref{sec:duality} for more discussion of this duality.
 
 \begin{figure}
 \begin{tikzpicture}[scale=1.2]
@@ -1719,10 +1719,11 @@ We next use our new foundation for \BS theory over $S$ to analyze the structure 
 We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
 We are interested in bounded free complexes, but since $R$ will generally fail to be a regular ring, it is no longer the case that arbitrary elements of the derived category 
 $\DD^b(R)$ may be represented by a bounded free complex.  
-We thus restrict attention to the subcategory $\DD^{\text{perf}}(R)\subseteq \DD^b(R)$ of perfect complexes.
+We thus restrict attention to the subcategory $\DD^{\text{perf}}(R)\subseteq \DD^b(R)$ of perfect complexes, i.e. the subcategory of elements that may be
+represented by a  bounded free complex.
 If $\cc$ is a codimension sequence, then we define $\BBQ^{\cc}(R)$ in parallel with the definitions from \S\ref{sec:refined}.  
 
-The main result in this section is a proof that relating cones of Betti tables of $R$ to cones of Betti tables over $S$, at least when $X$ contains an Ulrich sheaf.  This implies Corollary~\ref{cor:isom cones}.
+The main result in this section is a proof relating cones of Betti tables of $R$ to cones of Betti tables over $S$, at least when $X$ contains an Ulrich sheaf.  This implies Corollary~\ref{cor:isom cones}.
 
 \begin{cor}\label{cor:new graded rings}
 %Let $\kk$ be an infinite field.  
@@ -1840,7 +1841,7 @@ It follows that $Lf^*\FF$ is compatible with $\cc$, as claimed.
 Let $\cc$ be any codimension sequence for $R$ and let $\overline{\kk}$ be the algebraic closure of $\kk$.  Then there is a natural isomorphism $\BBQ^{\cc}(R)\cong\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$.
 \end{lemma}
 \begin{proof}
-Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$ induced by $\beta(\FF)\mapsto \beta(\FF\otimes_{\kk} \overline{\kk})$.  We seek to show the opposite inclusion.  Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We claim that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ over $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a bounded free complex $\FF'$ of $R'$-modules with $\beta(\FF')=\beta(\FF)$.  Since the extension $R\subseteq R'$ is finite and free, it follows that if $\FF''$ is the complex $\FF'$ viewed as an $R$-module, then $\beta^R(\FF'')=[\kk':\kk]\cdot \beta^{R'}(\FF')$. 
+Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$ induced by $\beta(\FF)\mapsto \beta(\FF\otimes_{\kk} \overline{\kk})$.  We seek to show the opposite inclusion.  Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We claim that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ of $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a bounded free complex $\FF'$ of $R'$-modules with $\beta(\FF')=\beta(\FF)$.  Since the extension $R\subseteq R'$ is finite and free of rank $[\kk':\kk]$, it follows that if $\FF''$ is the complex $\FF'$ viewed as an $R$-module, then $\beta^R(\FF'')=[\kk':\kk]\cdot \beta^{R'}(\FF')$. 
 \end{proof}
 
 The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_f$ interact with the map $f$.
@@ -1860,11 +1861,10 @@ We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and, since $f$ is finite
 
 \begin{proof}[Proof of Corollary~\ref{cor:new graded rings}]
 By Lemma~\ref{lem:ground field}, we may assume that $\kk$ is infinite.
-We then claim that there exists a map of cones $Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ defined by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  Since $R$ is a finite $S$-module, and since $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$. 
+We then claim that there exists a map of cones $Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ defined by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  We fix some $\beta(\FF)\in \BBQ^{\cc}(S)$.  Since $R$ is a finite $S$-module, and since $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  Lemma~\ref{lem:pushpull} then implies that $Lf^*(\FF)$ is compatible with $c$, and hence $\beta(Lf^*(\FF))$ lies in $\BBQ^{\cc}(R)$.
 
 Note that, as a map of vector spaces, $Lf^*\colon \VV\to \VV$ 
-is simply the identity map.  
-Hence, when $\kk$ is infinite, we obtain the inclusion:
+is simply the identity map, yielding the inclusion
 $
 Lf^*\colon \BBQ^{\cc}(S)\subseteq \BBQ^{\cc}(R).
 $
@@ -1885,7 +1885,7 @@ To prove that $\BBQ^{\cc}(S)$ is actually isomorphic to $\BBQ^{\cc}(R)$, we clai
 %The only point in the proof of Corollary~\ref{cor:new graded rings} that uses the fact that $\kk$ is infinite is when we sought to show that $Lf^*: \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ is well defined and is an inclusion.  If we work with $\BBQ^{n+1}(S)$ and $\BBQ^{n+1}(R)$, instead then we are only interested in pulling back complexes $\FF\in \DD^b(S)$ where $\FF$ has finite length homology.  Any such $\FF$ is automatically homologically transverse to $R$, and hence $Lf^*: \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ is well defined in this case.  The rest of the proof of Corollary~\ref{cor:new graded rings} goes through unchanged.
 %\end{proof}
 
-\begin{remark}\daniel{I wrote this hastily based on our last conversation.  But I must admit that I didn't think deeply about a few aspects of the argument.}
+\begin{remark}
 There is another way to approach these results in some cases.  For instance, let $\kk$ be a field of characteristic $0$, let $S\subseteq R$ be a finite extension of graded domains of dimension $n+1$.  By tensoring $-\otimes_S R$, we obtain an inclusion $\BBQ^{n+1}(R)\supseteq \BBQ^{n+1}(S)$.  
 
 For the opposite inclusion, we let $K$ be the Galois closure of the fraction field of $R$ in the fraction field of $S$, and we define $G$ as the corresponding Galois group.  We set $R'$ to be the integral closure of $R$ in $K$.  If we fix a free complex $\FF$ of $R$-modules with finite length homology, then, since taking invariants is exact in characteristic $0$, the complex $(\FF\otimes_R R')^G$ is a free complex of $S$-modules with finite length homology and with the same Betti table as $\FF$.  This yields the desired inclusion $\BBQ^{n+1}(S)\subseteq \BBQ^{n+1}(S)$.
@@ -1937,7 +1937,7 @@ Since $X$ is a complete intersection, it admits an Ulrich bundle, and thus $\BBQ
 
 
 \begin{remark}
-Eisenbud and Scheyer have conjectured that every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides a method for producing a counterexample.  Namely, imagine that for some $f\colon X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{n+1}(R)$ but where $\beta(\FF)$ does not decompose as a sum of shifted pure tables of codimension $n+1$.  This would imply that $\BBQ^{n+1}(R)\supsetneq \BBQ^{n+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
+Eisenbud and Scheyer have conjectured that, when $L$ is very ample, every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides a method for producing a counterexample.  Namely, imagine that for some $f\colon X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{n+1}(R)$ but where $\beta(\FF)$ does not decompose as a sum of shifted pure tables of codimension $n+1$.  This would imply that $\BBQ^{n+1}(R)\supsetneq \BBQ^{n+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
 \end{remark}
 
 \david{possible place for a counterexample to the existence of U modules: the ell quintic scroll}
@@ -2006,7 +2006,6 @@ Let $R=\kk[x,y,z,w]/(xz,xw,yz,yw)$ and let $\FF$ be the minimal free resolution 
 \cdots
 \end{align*}
 \end{example}
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

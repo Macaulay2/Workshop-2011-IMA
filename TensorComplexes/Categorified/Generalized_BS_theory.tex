@@ -1718,9 +1718,20 @@ We next use our new foundation for \BS theory over $S$ to analyze the structure 
 
 We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  We define $\DD^b(R)$ as the bounded derived category of finitely generated, graded $R$-modules.  For $\FF\in \DD^b(R)$, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  If $\cc$ is a codimension sequence, then we define $\BBQ^{\cc}(R)$ in parallel with the definitions from \S\ref{sec:refined}.
 
-We now define a functor $\Phi_f$:
+The main result in this section is a proof that relating cones of Betti tables of $R$ to cones of Betti tables over $S$, at least when $X$ contains an Ulrich sheaf.  This implies Corollary~\ref{cor:isom cones}.
+
+\begin{cor}\label{cor:new graded rings}
+%Let $\kk$ be an infinite field.  
+Let $R$ be a finite, graded extension of $S$ such that $\Proj(R)$ admits an Ulrich sheaf.  For any codimension sequence $\cc$, we have  a natural isomorphism
+$
+%Lf^*\colon 
+\BBQ^{\cc}(S)\overset{\cong}{\to} \BBQ^{\cc}(R).
+$
+\end{cor}
+
+To prove this corollary, we will pull back complexes from $S$ and then use a variant of the pairing $\Phi$.  We begin by defining the pairing $\Phi_f$:
 \[
-\xymatrix{\DD^{b}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_f}&\DD^{b}(A),}
+\xymatrix{\DD^{b}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_f}&\DD^{b}(A).}
 \]
 If $\FF \in \DD^b(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $X$.
 Let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$, and
@@ -1759,7 +1770,7 @@ Statement \eqref{thm:PhiX:1} follows by applying exactly the same proof as used 
 \end{proof}
 
 
-To compare cones of Betti tables on $S$ and on $R$, we seek to introduce a map of cones.
+We would like to pull back a Betti table from $S$ to $R$ in a way that is compatible with codimension sequences.  This requires the following definition.
 % or between cones of cohomology tables.  
 %The fact that we are working with derived categories instead of resolutions/sheaves plays is essential to defining these maps.
 
@@ -1774,23 +1785,27 @@ We say that $\FF\in \DD^b(S)$ \defi{ is homologically transverse to $R$} if we h
 
 
 
- \begin{prop}\label{prop:pushpull}
-Let $R$ and $f$ as above, and assume that $\kk$ is infinite.
-Let $\cc$ be any codimension sequence with $b_i\leq d+1$ for all $i$.   Then we have a well defined map of cones
-	\[
-Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)
-\]
-given by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  
-
+ \begin{lemma}\label{lem:pushpull}
+Fix a codimension sequence $\cc$, and let $\FF\in \DD^b(S)$ be compatible with $\cc$.  If $\FF$ is homologically transverse to $R$, then $Lf^*(\FF)$ is compatible with $\cc$.
+% Then $Lf^*(\FF)$ is
+%Let $R$ and $f$ as above, and assume that $\kk$ is infinite.
+%Let $\cc$ be any codimension sequence with $b_i\leq d+1$ for all $i$.   Then we have a well defined map of cones
+%	\[
+%Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)
+%\]
+%given by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  
+%
 
 %For any $f$ we have a well defined map on cohomology tables:
 %\[
 %Rf_*\colon \CQ^k(X)\to \CQ^{k+n-d}(\PP^n).
 %\]
 %where $\gamma(\cE)\mapsto \gamma(Rf_* \cE)$.  
-\end{prop}
+\end{lemma}
 \begin{proof}
-Let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\cc$.  Since $\kk$ is infinite, $R$ is a finite $S$-module, and $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$. Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We then consider the spectral sequence:
+Let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\cc$.  
+%Since $\kk$ is infinite, $R$ is a finite $S$-module, and $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$. 
+Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We then consider the spectral sequence:
 \[
 E^{r,q}_2=\Tor^S_{q}(\HH_r(\FF),R)\Rightarrow \HH_{q+r}(\FF\otimes_S R).
 \]
@@ -1817,15 +1832,14 @@ It follows that $Lf^*\FF$ is compatible with $\cc$, as claimed.
 %where the first equality follows from the commutativity of derived pushforwards, and the second isomorphism follows from the projection formula.  Since this holds for every $j\in \ZZ$, this implies that $\gamma(\cE)=\gamma(Rf_* \cE)$ as claimed.
 \end{proof}
 
-As a map of vector spaces, $Lf^*\colon \VV\to \VV$ 
-%and $Rf_*\colon \WW\to \WW$ are 
-is simply the identity map.  Hence, when $\kk$ is infinite, we immediately obtain the inclusion:
-\[
-\BBQ^{\cc}(S)\subseteq \BBQ^{\cc}(R) 
-%\quad \text{ and } \quad \CQ^k(X,L)\subseteq \CQ^{k-d}(\PP^n).
-\]
-Since $f$ is finite, we also obtain an inclusion $\CQ^k(X,L)\subseteq \CQ^{k-d}(\PP^n)$ given by $\gamma(\cE)\mapsto \gamma(f_*\cE)$.  
-We next show that the maps $Lf^*$ and $f_*$ interact well with the functors $\Phi$ and $\Phi_f$.
+\begin{lemma}\label{lem:ground field}
+Let $\cc$ be any codimension sequence for $R$ and let $\overline{\kk}$ be the algebraic closure of $\kk$.  Then there is a natural isomorphism $\BBQ^{\cc}(R)\cong\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$.
+\end{lemma}
+\begin{proof}
+Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$.  We seek to show the opposite inclusion.  Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We seek to show that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ over $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a free complex $\FF'\in \DD^b(R')$ with $\beta(\FF')=\beta(\FF)$.  Since the extnension $R\subseteq R'$ is finite and free, it follows that $\FF'$ induces an element $\FF''\in\DD^b(R)$ such that $\beta(\FF'')=[\kk':\kk]\cdot \beta(\FF)$. 
+\end{proof}
+
+The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_f$ interact with the map $f$.
 
 \begin{lemma}\label{lem:general pairing}
 Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\PP^n)$.  Then
@@ -1836,36 +1850,41 @@ Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\
 \begin{proof}
 We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and, since $f$ is finite, $\gamma(\cE)$ equals $\gamma(f_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,f_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(f_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_f(Lf^*\FF,\cE)$ with  $\beta(Lf^*\FF)$ and $\gamma(\cE)$.
 \end{proof}
-
-Next we ask when the above inclusion of cones is actually an isomorphism. Partial answers are given by Corollary~\ref{cor:isom cones} and by the following more general result.
-
-\begin{cor}\label{cor:new graded rings}
-Let $\kk$ be an infinite field.  Let $R$ be a finite, graded extension of $S$ and assume that $\Proj(R)$ contains an Ulrich sheaf.  Then, for any codimension sequence $\cc$, we have  an isomorphism of cones:
-\[
-Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R).
-\]
-\end{cor}
-
-\begin{proof}%[Proof of Corollary~\ref{cor:new graded rings}]
-%Set $d:=\dim(X)=\dim(R)-1$.  Since $b_i\leq d+1$ for all $i$, Theorem~\ref{thm:extremal rays refined} implies that $\BBQ^{\cc}(S)=\BBQ^{\cc}(\kk[x_0,\dots,x_d]).$  Since $\kk$ is infinite, we may replace $f$ by a general linear projection $X\to \PP^d$, thus replacing $S$ by $\kk[x_0,\dots,x_d]$, and it suffices to prove the theorem in this case.
 %
-We remark that $f_*\colon \CQ^0(X,L)\to \CQ^{0}(\PP^n, \cO(1))$  is an isomorphism.  This follows from the central argument in
+%Next we ask when the above inclusion of cones is actually an isomorphism. Partial answers are given by Corollary~\ref{cor:isom cones} and by the following more general result.
+%We are now prepared to prove Corollary~\ref{cor:new graded rings}.
+
+\begin{proof}[Proof of Corollary~\ref{cor:new graded rings}]
+By Lemma~\ref{lem:ground field}, we may assume that $\kk$ is infinite.
+We then claim that there exists a map of cones $Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ defined by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  Since $R$ is a finite $S$-module, and since $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$. 
+
+Note that, as a map of vector spaces, $Lf^*\colon \VV\to \VV$ 
+is simply the identity map.  
+Hence, when $\kk$ is infinite, we obtain the inclusion:
+$
+Lf^*\colon \BBQ^{\cc}(S)\subseteq \BBQ^{\cc}(R).
+$
+Further, since $f$ is finite, we also obtain an inclusion $\CQ^k(X,L)\subseteq \CQ^{k-d}(\PP^n)$ given by $\gamma(\cE)\mapsto \gamma(f_*\cE)$.  
+
+In fact, $f_*\colon \CQ^0(X,L)\to \CQ^{0}(\PP^n)$  is an isomorphism.  This follows from the central argument in
 \cite[Proof of Theorem 5]{eis-schrey-abel}: although $L$ was assumed to be very ample in that proof, the same argument
 holds in this context.
 %We have an inclusion by Proposition~\ref{prop:pushpull}\eqref{prop:pushpull:2}.  Now, let $\cE$ be a coherent sheaf on $\PP^d$, and we seek to show that $\gamma(\cE)$ lies in $\CQ^0(X,L)$.  Let $\cU$ be an Ulrich sheaf for $(X,L)$.  The central computation in \cite[Proof of Theorem 5]{eis-schrey-abel} shows that the cohomology table of $\cU\otimes f^*\cE$ is a scalar multiple of the cohomology table of $\cE$. This proves that $\CQ^0(X,L)= \CQ^{0}(\PP^d,\cO(1))$ as desired.
 
-Since $\kk$ is infinite, we already have an inclusion $\BBQ^{\cc}(S)\subseteq \BBQ^{\cc}(R)$.  To prove that this is an isomorphism, we claim that the proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\cc}(S)$ holds for $\BBQ^{\cc}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\cc$, and these arguments go through unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof of Lemma~\ref{lem:refined positivity} to obtain an analogue for $R$-complexes that are compatible with $\cc$.  
+To prove that $\BBQ^{\cc}(S)$ is actually isomorphic to $\BBQ^{\cc}(R)$, we claim that the proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\cc}(S)$ holds for $\BBQ^{\cc}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\cc$, and these arguments go through unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof of Lemma~\ref{lem:refined positivity} to obtain an analogue for $R$-complexes that are compatible with $\cc$.  
 \end{proof}
 
-Corollary~\ref{cor:isom cones} holds without the assumption that $\kk$ is an infinite field, and we thus provide a separate proof.
-\begin{proof}[Proof of Corollary~\ref{cor:isom cones}]
-The only point in the proof of Corollary~\ref{cor:new graded rings} that uses the fact that $\kk$ is infinite is when we sought to show that $Lf^*: \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ is well defined and is an inclusion.  If we work with $\BBQ^{n+1}(S)$ and $\BBQ^{n+1}(R)$, instead then we are only interested in pulling back complexes $\FF\in \DD^b(S)$ where $\FF$ has finite length homology.  Any such $\FF$ is automatically homologically transverse to $R$, and hence $Lf^*: \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ is well defined in this case.  The rest of the proof of Corollary~\ref{cor:new graded rings} goes through unchanged.
-\end{proof}
+%
+%
+%Corollary~\ref{cor:isom cones} holds without the assumption that $\kk$ is an infinite field, and we thus provide a separate proof.
+%\begin{proof}[Proof of Corollary~\ref{cor:isom cones}]
+%The only point in the proof of Corollary~\ref{cor:new graded rings} that uses the fact that $\kk$ is infinite is when we sought to show that $Lf^*: \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ is well defined and is an inclusion.  If we work with $\BBQ^{n+1}(S)$ and $\BBQ^{n+1}(R)$, instead then we are only interested in pulling back complexes $\FF\in \DD^b(S)$ where $\FF$ has finite length homology.  Any such $\FF$ is automatically homologically transverse to $R$, and hence $Lf^*: \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ is well defined in this case.  The rest of the proof of Corollary~\ref{cor:new graded rings} goes through unchanged.
+%\end{proof}
 
 \begin{remark}\daniel{I wrote this hastily based on our last conversation.  But I must admit that I didn't think deeply about a few aspects of the argument.}
-There is another way to approach these results in some cases.  For instance, let $\kk$ be a field of characteristic $0$, let $R\supseteq S$ be a finite extension of domains of dimension.  By tensoring $-\otimes_S R$, we obtain an inclusion $\BBQ^{d+1}(R)\supseteq \BBQ^{d+1}(S)$.  
+There is another way to approach these results in some cases.  For instance, let $\kk$ be a field of characteristic $0$, let $S\subseteq R$ be a finite extension of graded domains of dimension $n+1$.  By tensoring $-\otimes_S R$, we obtain an inclusion $\BBQ^{n+1}(R)\supseteq \BBQ^{n+1}(S)$.  
 
-For the opposite inclusion, we let $K$ be the Galois closure of the extension of fraction fields induced by $S\subseteq R$, and we define $G$ as the corresponding Galois group.  We set $R'$ to be the integral closure of $R$ in $K$.  If we fix a free complex $\FF$ of $R$-modules with finite length homology, then, since taking invariants is exact in characteristic $0$, the complex $(\FF\otimes_R R')^G$ is a free complex of $S$-modules with finite length homology and with the same Betti table as $\FF$.  This yields the inclusion $\BBQ^{d+1}(S)\subseteq \BBQ^{d+1}(S)$.
+For the opposite inclusion, we let $K$ be the Galois closure of the fraction field of $R$ in the fraction field of $S$, and we define $G$ as the corresponding Galois group.  We set $R'$ to be the integral closure of $R$ in $K$.  If we fix a free complex $\FF$ of $R$-modules with finite length homology, then, since taking invariants is exact in characteristic $0$, the complex $(\FF\otimes_R R')^G$ is a free complex of $S$-modules with finite length homology and with the same Betti table as $\FF$.  This yields the desired inclusion $\BBQ^{n+1}(S)\subseteq \BBQ^{n+1}(S)$.
 \end{remark}
 
 These results enable us to compute many new examples of cones of Betti tables.
@@ -1882,7 +1901,7 @@ For instance, we might let $C$ be the rational quartic curve $f\colon C\to \PP^3
 \end{example}
 
 \begin{example}[Veronese surface in $\PP^4$]
-Let $R$ be the homogeneous coordinate ring for the Veronese surface $f\colon \PP^2\to \PP^4$.  Since $\Omega_{\PP^2}(3)$ is an Ulrich bundle for $f$, it follows that $\BBQ^3(R)=\BBQ^3(S)$.  For instance, Example~\ref{ex:1441} implies that there cannot exist a minimal, complex of $R$-modules with finite length homology that has sequence of the form:
+Let $R$ be the homogeneous coordinate ring for the Veronese surface $f\colon \PP^2\to \PP^4$.  Since $\Omega_{\PP^2}(3)$ is an Ulrich bundle for $f$, it follows that $\BBQ^3(R)=\BBQ^3(S)$.  For instance, Example~\ref{ex:1441} implies that there cannot exist a minimal, complex of $R$-modules with finite length homology that has the form:
 \[
 R\longleftarrow \begin{matrix}  R(-3)^4\\ \oplus\\ R(-4)^4\end{matrix}\longleftarrow \begin{matrix} R(-4)^4\\ \oplus\\ R(-5)^4\end{matrix} \longleftarrow R(-8)\longleftarrow 0.
 \]
@@ -1915,10 +1934,6 @@ Eisenbud and Scheyer have conjectured that every projective scheme admits an Ulr
 
 \david{possible place for a counterexample to the existence of U modules: the ell quintic scroll}
 
-\begin{question}
-Does there exist a counterexample to Corollary~\ref{cor:new graded rings} when $\kk$ is a finite field?  
-More generally, does there exist any example of a finite field $\kk$, a codimension sequence $\cc$, and a graded $\kk$-algebra $R$ such that extending the ground field enlarges the cone $\BBQ^{\cc}(R)$?
-\end{question}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

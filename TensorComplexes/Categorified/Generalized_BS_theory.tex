@@ -485,20 +485,20 @@ Let $\DD^b(R)$ and $\DD^b(C)$ denote the bounded derived categories of finitely 
 
 For  $\FF\in \DD^b(R)$, let $\widetilde{\FF}$ denote the corresponding complex of coherent sheaves in $\DD^b(X)$.  We construct a functor
 \[
-\Phi_X: \DD^b(R)\times \DD^b(X)\to \DD^b(C)
+\Phi_{X}: \DD^b(R)\times \DD^b(X)\to \DD^b(C)
 \]
 with the following properties:
 \begin{theorem}\label{thm:Phimulti}
 If $\FF$ is a multigraded complex of free graded $R$-modules and $\cE$ is a bounded complex of coherent sheaves on $X$, then:
 \begin{enumerate} 
-	\item\label{thm:Phi':1}  The multigraded Betti table of $\Phi_X(\FF,\cE)$ depends only on the multigraded Betti table of $\FF$ and the multigraded cohomology table of $\cE$.
-	\item\label{thm:Phi':2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_X(\FF,\cE)$ has irrelevant homology.  
+	\item\label{thm:Phi':1}  The multigraded Betti table of $\Phi_{X}(\FF,\cE)$ depends only on the multigraded Betti table of $\FF$ and the multigraded cohomology table of $\cE$.
+	\item\label{thm:Phi':2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_{X}(\FF,\cE)$ has irrelevant homology.  
 \end{enumerate}
 \end{theorem}
 
 
 Note that, if  $\FF$ is a complex with irrelevant homology and if $\cE$ is a vector bundle, then $\widetilde{\FF}\otimes \cE$ is always exact.
-The functor $\Phi_X$ thus yields a pairing of the form:
+The functor $\Phi_{X}$ thus yields a pairing of the form:
 \begin{equation*}%\tag{**}
 \label{eqn:multipairing}
 %
@@ -1735,9 +1735,9 @@ $
 $
 \end{cor}
 
-To prove this corollary, we will pull back complexes from $S$ and then use a variant of the pairing $\Phi$.  We begin by defining the pairing $\Phi_f$:
+To prove this corollary, we will pull back complexes from $S$ and then use a variant of the pairing $\Phi$.  We begin by defining the pairing $\Phi_{R}$:
 \[
-\xymatrix{\DD^{\text{perf}}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_f}&\DD^{b}(A).}
+\xymatrix{\DD^{\text{perf}}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_{R}}&\DD^{b}(A).}
 \]
 If $\FF \in \DD^{\text{perf}}(R)$ then we use the notation $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves on $X$.
 Let $\sigma: R\to R\otimes A=R[t]$ be the map of rings defined by $\sigma(r)=rt^{\deg(r)}$, and
@@ -1755,19 +1755,19 @@ categories that takes a graded complex of free $R$-modules $\FF$ to
 \tau(\FF): =\widetilde \FF \otimes_{\sigma}\cO_{X\times \AA^{1}},
 \]
 a complex of graded sheaves on $X\times \AA^{1}$, with the grading coming from degree in $t$, the coordinate on $\AA^{1}$.
-We let $p_2: X\times \AA^1\to \AA^1$ be the projection map, and we define $\Phi_f$ in parallel to the definition of $\Phi$.
+We let $p_2: X\times \AA^1\to \AA^1$ be the projection map, and we define $\Phi_{R}$ in parallel to the definition of $\Phi$.
 \begin{defn}
 Given $\FF\in \DD^{\text{perf}}(R)$ and $\cE\in \DD^b(X)$ we define
 \[
-\Phi_f(\FF,\cE):=Rp_{2*}\left( \tau(\FF)\otimes _{X\times \AA^1}\left( \cE\boxtimes \cO_{\AA^1}\right)\right).
+\Phi_{R}(\FF,\cE):=Rp_{2*}\left( \tau(\FF)\otimes _{X\times \AA^1}\left( \cE\boxtimes \cO_{\AA^1}\right)\right).
 \]
 \end{defn}
-As above, we often omit $\Phi_f$ from the notation and simply write $\FF\cdot \cE$ for $\Phi_f(\FF,\cE)$.  We immediately obtain an analogue of Theorem~\ref{thm:Phi} for the functor $\Phi_f$.
+As above, we often omit $\Phi_{R}$ from the notation and simply write $\FF\cdot \cE$ for $\Phi_{R}(\FF,\cE)$.  We immediately obtain an analogue of Theorem~\ref{thm:Phi} for the functor $\Phi_{R}$.
 \begin{theorem}\label{thm:PhiX}
 If $\FF$ is a bounded complex of free graded $R$-modules and $\cE$ is a bounded complex of coherent sheaves on $X$ then:
 \begin{enumerate}
-	\item\label{thm:PhiX:1}  The Betti table of $\Phi_f(\FF,\cE)$ depends only on the Betti table of $\FF$ and the cohomology table of $\cE$.
-	\item\label{thm:PhiX:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_f(\FF,\cE)$ has finite length homology.  
+	\item\label{thm:PhiX:1}  The Betti table of $\Phi_{R}(\FF,\cE)$ depends only on the Betti table of $\FF$ and the cohomology table of $\cE$.
+	\item\label{thm:PhiX:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_{R}(\FF,\cE)$ has finite length homology.  
 	%This occurs whenever $\FF$ is a complex with finite length homology and $\cE$ is a vector bundle.  More generally, if  $\codim(\FF)+\codim(\cE)\geq n+1$ then we may, after possibly replacing $\FF$ or $\cE$ by a general $\GL_{n+1}$-translate, assume that $\widetilde{\FF}\otimes \cE$ is exact.
 \end{enumerate}
 \end{theorem}
@@ -1845,7 +1845,7 @@ Let $\cc$ be any codimension sequence for $R$ and let $\overline{\kk}$ be the al
 Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk} \overline{\kk})$ induced by $\beta(\FF)\mapsto \beta(\FF\otimes_{\kk} \overline{\kk})$.  We seek to show the opposite inclusion.  Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We claim that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ of $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a bounded free complex $\FF'$ of $R'$-modules with $\beta(\FF')=\beta(\FF)$.  Since the extension $R\subseteq R'$ is finite and free of rank $[\kk':\kk]$, it follows that if $\FF''$ is the complex $\FF'$ viewed as an $R$-module, then $\beta^R(\FF'')=[\kk':\kk]\cdot \beta^{R'}(\FF')$. 
 \end{proof}
 
-The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_f$ interact with the map $f$.
+The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_{R}$ interact with the map $f$.
 
 \begin{lemma}\label{lem:general pairing}
 Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\PP^n)$.  Then
@@ -1854,7 +1854,7 @@ Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\
 \]
 \end{lemma}
 \begin{proof}
-We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and, since $f$ is finite, $\gamma(\cE)$ equals $\gamma(f_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,f_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(f_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_f(Lf^*\FF,\cE)$ with  $\beta(Lf^*\FF)$ and $\gamma(\cE)$.
+We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and, since $f$ is finite, $\gamma(\cE)$ equals $\gamma(f_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,f_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(f_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_{R}(Lf^*\FF,\cE)$ with  $\beta(Lf^*\FF)$ and $\gamma(\cE)$.
 \end{proof}
 %
 %Next we ask when the above inclusion of cones is actually an isomorphism. Partial answers are given by Corollary~\ref{cor:isom cones} and by the following more general result.
@@ -2059,17 +2059,17 @@ a complex of graded sheaves on $X\times \AA^{m}$, with the grading coming from d
 %where $\pi: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection.
 %\end{defn}
 
-\begin{defn} \label{defn:product1} The functor $\Phi_X: \DD^{b}(R)\times \DD^b(X) \to \DD^{b}(C)$ is given by:
+\begin{defn} \label{defn:product1} The functor $\Phi_{X}: \DD^{b}(R)\times \DD^b(X) \to \DD^{b}(C)$ is given by:
 $$
-\Phi_X(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
+\Phi_{X}(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
 $$
 where $\FF\in \DD^{\text{perf}}(R) , \cE\in \DD^b(X)$ and where $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. We also write
-$\FF\cdot \cE$ for $\Phi_X(\FF,\cE)$.
+$\FF\cdot \cE$ for $\Phi_{X}(\FF,\cE)$.
 \end{defn}
 
 We are now prepared to prove Theorem~\ref{thm:Phimulti}.
 \begin{proof}[Proof of Theorem~\ref{thm:Phimulti}]
-Statement \eqref{thm:Phi:1} follows by applying essentially the same proof as used for Theorem~\ref{thm:betti numbers of pairing} above.  We now consider statement \eqref{thm:Phi:2}. It suffices to show that the homology of $\Phi_X(\FF,\cE)$ is annihilated by
+Statement \eqref{thm:Phi:1} follows by applying essentially the same proof as used for Theorem~\ref{thm:betti numbers of pairing} above.  We now consider statement \eqref{thm:Phi:2}. It suffices to show that the homology of $\Phi_{X}(\FF,\cE)$ is annihilated by
 a power of $h:=t_1\cdots t_m$. After inverting $h$ the map $\sigma$ becomes the usual inclusion $R\subset R[t_1,t_1^{-1},\dots, t_m,t_m^{-1}]$
 composed with the invertible change of variables $x_{i}\mapsto x_{i}t^{\deg(x_i)}$. If $U:=\Spec C[t_1,t_1^{-1},\dots, t_m,t_m^{-1}]$, then the complex 
 \[
@@ -2080,12 +2080,12 @@ composed with the invertible change of variables $x_{i}\mapsto x_{i}t^{\deg(x_i)
 has no homology since $\widetilde{\FF}\otimes \cE$ is exact.
 
 
-Using $p_2$ to denote the restriction of $p_2$ to $X\times U$, it follows by a spectral sequence computation that the complex $Rp_{2*}\Gbull$ has no homology.  By flat base change, this is equal to the restriction of $\Phi_X(\FF,\cE)$ on the open set $U\subseteq \Spec(C)$, and we see that the homology
-of $\Phi_X(\FF,\cE)$ is annihilated by a power of $h$, as required.
+Using $p_2$ to denote the restriction of $p_2$ to $X\times U$, it follows by a spectral sequence computation that the complex $Rp_{2*}\Gbull$ has no homology.  By flat base change, this is equal to the restriction of $\Phi_{X}(\FF,\cE)$ on the open set $U\subseteq \Spec(C)$, and we see that the homology
+of $\Phi_{X}(\FF,\cE)$ is annihilated by a power of $h$, as required.
 \end{proof}
 
 
-We define $\BBirr(R)$ as the cone of multigraded Betti tables of complexes with irrelevant homology, and similarly for $\BBirr(C)$.  We also define $\CQ^0(X)$ as the cone of multigraded cohomology tables on $X$.  By Theorem~\ref{thm:Phimulti}, the functor $\Phi_X$ induces a bilinear pairing:
+We define $\BBirr(R)$ as the cone of multigraded Betti tables of complexes with irrelevant homology, and similarly for $\BBirr(C)$.  We also define $\CQ^0(X)$ as the cone of multigraded cohomology tables on $X$.  By Theorem~\ref{thm:Phimulti}, the functor $\Phi_{X}$ induces a bilinear pairing:
 \[
 \BBirr(R)\times \CQ^0(X)\to \BBirr(C),
 \]

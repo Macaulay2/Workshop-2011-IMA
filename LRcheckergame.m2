@@ -1,7 +1,7 @@
 newPackage(
      "LRcheckergame",
      Version => "0.1",
-     Date => "July 25, 2011",
+     Date => "April 5, 2012",
      Authors =>{Name => "Abraham Martin del Campo", 
                   Email => "asanchez@math.tamu.edu", 
                   HomePage => "www.math.tamu.edu/~asanchez"},
@@ -19,13 +19,22 @@ export{
      redChkrPos,
      moveRed,
      moveCheckers,
-     playCheckers
+     playCheckers,
+	 NC,
+	 Board,
+	 Parent,
+	 Children,
+	 printTree,
+	makeLocalCoordinates
      }
 -- Abraham Martin del Campo
 -- 25/July/2011
 -- ---------------------
 -- This is a file where I implement Ravis LR-decomposition
 -- ---------------------
+
+-- NC means no checker in that column
+NC = infinity;
 
 -- ---------------------
 --	verifyLength	--
@@ -59,7 +68,7 @@ partition2bracket(List,ZZ,ZZ) := (l, k, n) -> (
 output2partition = method(TypicalValue => List)
 output2partition(List) := redpos ->(
 		n:= #redpos;
-		posn := select(redpos, x->x!= 99);
+		posn := select(redpos, x->x!= NC);
 		k:= #posn;
 		partitn := new MutableList from k:0;
 		apply(#posn, j->(
@@ -68,17 +77,19 @@ output2partition(List) := redpos ->(
 		reverse sort toList partitn
 )
 
+-- not using this function
 bracket2input = method(TypicalValue => List)
 bracket2input(List,ZZ) := (br,n) ->(
-     inp := for i to n-1 list 99;
+     inp := for i to n-1 list NC;
      inp = new MutableList from inp;
      apply(br, b-> inp#(b-1) = b-1);
      toList inp
 )
 
+-- not using this function either
 output2bracket = method(TypicalValue=>List)
 output2bracket List := outp -> (
-     br := select(outp, x-> x!=99);
+     br := select(outp, x-> x!=NC);
      apply(br, x-> x=x+1)
 ) 
 
@@ -87,36 +98,63 @@ bracket2partition(List,ZZ) := (l, n) -> (
 --     l = reverse sort l;
      partitn := for i to #l-1 list (n-#l)+(i+1)-l#i 
 )
-
+---------------------
 -- change this method to be between checkers
+---------------------
+-- input: two schubert conditions l and m
+--			entered as brackets
+--		  the Grassmannian G(k,n)
+--
+-- Output: checkboard coordinates for the 
+--         red checkers
+---------------------
+-- example: for {2,1}*{2} in G(3,6)
+--
+--partition2bracket({2,1},3,6)
+--partition2bracket({2},3,6)
+--redChkrPos({2,4,6},{2,5,6},3,6)
+--------------------
 redChkrPos = method(TypicalValue => List)
 redChkrPos(List,List,ZZ,ZZ) := (l,m,k,n) -> (
      -- input the Schubert conditions l and m
      -- as bracket
      -- input the Grassmannian G(k,n)
      m = reverse m;
-     board := for i to n-1 list 99;
+     board := for i to n-1 list NC;
      redPos := new MutableList from board;
      apply(#l, j -> redPos#(l#j-1) = m#j-1);
      toList redPos
 )
+------- TEST -----
+-- first, given the partitions 
+-- {2,1}*{2} in G(3,6)
+-- we test if the positions of the 
+-- redcheckers is {NC,5,NC,4,NC,1}
+------------------
+-- partition2bracket({2,1},3,6)
+-- partition2bracket({2},3,6)
+-- redChkrPos({2,4,6},{2,5,6},3,6)
+-- redChkrPos(partition2bracket({2,1},3,6),partition2bracket({2},3,6),3,6)
 
 --####################
--- "rtest" moves the red checkers
+-- "moveRed" moves the red checkers
 --
 -- input:
 --       blackup - Coordinates of the ascending black checker
 --       blackdown - Coordinates of the descending black checker
 --       redpos - List of red checker positions
---       n - Dimension of the board
 --
 --	output:
---       redpos - Updated list of red checker positions
---       split - "1" if a split occured, "0" otherwise
+--       redpos - Updated list (of lists) of red checker positions
 --
 moveRed = method(TypicalValue => List)
-moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
-     split:=0;
+moveRed(List,List,List) := (blackup, blackdown, redposition) -> (
+	------------------------------------------------
+	-- We need to check first if it is a valid configuration
+	-- that is why I have been having errors
+	------------------------------------------------
+	 n := #redposition; -- n is the size of the checkboard
+	 split:=0;
      critrow := 0;
      critdiag := 0;
      g:=2; -- These are two flags to indicate in which situation we are 
@@ -126,13 +164,12 @@ moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
      -- find the "critical row"
      indx = for i to n-blackdown#0-1 list n-1-i;
      apply(indx, j -> (
-	  if redpos#j == blackdown#1 then (
+	  if redpos#j === blackdown#1 then (
 	       critrow = j;
 	       if j == blackdown#0 then g=0 else g=1;
 	  ) 
      ));
      -- find the "critical diagonal"
---     print(critrow,g);
      indx= for i to blackdown#0-1 list i;
      indx = reverse indx;
      apply(indx, j->(
@@ -141,7 +178,6 @@ moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
 	       if blackup === {j,redpos#j} then r=0 else r=1;
 	  )
      ));
---     print(critdiag, r);
      if r == 0 then (
 	  redpos#(blackup#0)=redpos#(blackup#0)-1;
 	  if g == 0 then redpos#(blackdown#0) = redpos#(blackdown#0)+1;
@@ -149,116 +185,97 @@ moveRed(List,List,List,ZZ) := (blackup, blackdown, redposition, n) -> (
      ) else if r == 1 then (
 	  if g == 0 then(
 	       redpos#critrow = redpos#critdiag;
-	       redpos#critdiag = 99;
+	       redpos#critdiag = NC;
 	       redpos#(blackup#0) = blackdown#1;
 	  ) else if g == 1 then(
 	       block := 0;
 	       blockindx := for i to critrow-1-critdiag-1 list critrow-1-i;
-	       print(blockindx);
-	       apply(blockindx, b -> if redpos#critrow < redpos#b and redpos#b < redpos#critdiag then (block = 1; print(redpos#critrow,redpos#b, redpos#critdiag )));
+	       apply(blockindx, b -> if redpos#critrow < redpos#b and redpos#b < redpos#critdiag then block = 1);
 	       if block != 1 then (
 		    -- switch the rows of the red checkers in the critical diagonal and row
 		    -- then, move the left one over to the column of the ascending black
-		    switchred := redpos;
-		    switchred#critrow = switchred#critdiag;
-		    switchred#critdiag = 99;
-		    switchred#(blackup#0) = blackdown#1;
-		    redpos = join(redposition, switchred);
+		    redpos#critrow = redpos#critdiag;
+		    redpos#critdiag = NC;
+		    redpos#(blackup#0) = blackdown#1;
 		    split = 1;
 	       );
 	  );
      ) else if r == 2 and g == 0 then (
      	  redpos#(blackup#0)=redpos#critrow;
-	  redpos#critrow = 99;
+	  redpos#critrow = NC;
      );
-     redpos = new List from redpos;
-     {redpos, split}
+     if split == 0 then {toList redpos} else {redposition, toList redpos}
 )
 -- TEST THE FUNCTION HERE!!
 
---moveRed({0, 2}, {2, 1}, {99, 3, 99, 1}, 4)
+--moveRed({0,2},{2,1},{NC,3,NC,1})
 -- The output must be
--- {{99, 3, 99, 1, 1, 99, 99, 3},1}
+-- {{NC, 3, NC, 1, 1, NC, NC, 3},1}
 
---moveRed({0, 3}, {1, 2}, {99, 3, 99, 1}, 4)
---moveRed({0, 2}, {2, 1}, {99, 3, 99, 1}, 4)
---moveRed( {1, 3}, {2, 2}, {99, 3, 99, 1, 1, 99, 99, 3}, 4)
---moveRed({0, 1}, {3, 0}, {99, 2, 99, 1, 1, 99, 99, 3}, 4)
---moveRed({ 1, 2}, {3, 1}, {99, 2, 99, 1, 1, 99, 99, 3}, 4)
---moveRed({2, 3}, {3, 2}, {99, 1, 99, 2, 1, 99, 99, 3}, 4)
---moveRed({1, 3}, {2, 2}, {1, 99, 99, 3}, 4)
---moveRed( {0, 1}, {3, 0}, {1, 99, 99, 3}, 4)
---moveRed({1, 2}, {3, 1}, {0, 99, 99, 3}, 4)
---moveRed({2, 3}, {3, 2}, {0, 99, 99, 3}, 4)
-
-
-
-
---moveRed({0,3},{3,2},{3,99,99,5,99,1},6) -- this should move the red
---moveRed({2,5},{3,4},{2,99,99,5,99,1},6) -- this shouldnt move the red
---moveRed({0, 2}, {4, 1}, {2, 99, 99, 5, 99, 1},6) --this one should move the red!!
---moveRed({1, 3}, {4, 2}, {1, 99, 99, 5, 99, 2},6) -- and this error is even worse!
+--moveRed({0, 3}, {1, 2}, {NC, 3, NC, 1})
+--moveRed({0, 2}, {2, 1}, {NC, 3, NC, 1})
+--moveRed( {1, 3}, {2, 2}, {NC, 3, NC, 1, 1, NC, NC, 3})
+--moveRed({0, 1}, {3, 0}, {NC, 2, NC, 1, 1, NC, NC, 3})
+--moveRed({ 1, 2}, {3, 1}, {NC, 2, NC, 1, 1, NC, NC, 3})
+--moveRed({2, 3}, {3, 2}, {NC, 1, NC, 2, 1, NC, NC, 3})
+--moveRed({1, 3}, {2, 2}, {1, NC, NC, 3})
+--moveRed( {0, 1}, {3, 0}, {1, NC, NC, 3})
+--moveRed({1, 2}, {3, 1}, {0, NC, NC, 3})
+--moveRed({2, 3}, {3, 2}, {0, NC, NC, 3})
 
 moveCheckers = method(TypicalValue => List)
-moveCheckers(List,List,ZZ) := (blackposition, redposition, n) ->(
+moveCheckers Array := blackred -> (
+	blackposition := first blackred;
+	redposition := last blackred;
+     n := #redposition; -- n is the size of the board
      splitcount:=0;
      copies:=0;
      -- determine the columns of the descending and ascending black checkers
-     desccol := 1 + position(blackposition, x->x == n-1);
-     asccol := position(blackposition, x-> x == 1+blackposition#desccol);
-     for blackdown1 from desccol to n-1 do(
-	  if blackdown1 == desccol+1 then asccol=0;
-	  for blackup1 from asccol to blackdown1-1 do(
-	       blackup2 := n-blackdown1+blackup1;
-	       blackdown2 := blackup2-1;
-	       print("this was the input");
-	       print({blackup1,blackup2},{blackdown1,blackdown2}, redposition,n);
-	       (redposition,copies) = toSequence moveRed({blackup1,blackup2},{blackdown1,blackdown2}, redposition,n);
-	       print("this output");
-	       print(redposition,copies);
-	       blackposition = new MutableList from blackposition;
-	       blackposition#blackup1 = blackposition#blackup1 - 1;
-	       blackposition#blackdown1 = blackposition#blackdown1 + 1;
-	       if copies == 1 then (
-		    blackposition = join(blackposition,blackposition);
-		    splitcount = splitcount + 1;
-	       );
-	  );
-     );
-     {toList(blackposition), toList(redposition), splitcount}
+     -- blackdown1 is the column to the right of the column of the lowest black checker
+	 -- blackup1 is the column of the checker that is one row lower than the checker 
+	 --        in blackdown1 
+     blackdown1 := position(blackposition, x->x == n-1) + 1;
+     if blackdown1 == n then return {};
+     blackup1 := position(blackposition, x-> x == 1+blackposition#blackdown1);
+     -- The column of the right black checker to be sorted goes from desccol 
+     -- to the end of the board.
+     -- Determine the rows of the next pair of black checkers to be sorted.
+	 blackup2 := n-blackdown1+blackup1;
+	 blackdown2 := blackup2-1;
+	 redposition = moveRed({blackup1,blackup2},{blackdown1,blackdown2}, redposition);
+	 blackposition = new MutableList from blackposition;
+	 blackposition#blackup1 = blackposition#blackup1 - 1;
+	 blackposition#blackdown1 = blackposition#blackdown1 + 1;
+	 apply(redposition, r-> [toList blackposition, r])
 )
---moveCheckers({3,5,4,2,1,0},{3,99,99,5,99,1},6)
+--moveCheckers({3,5,4,2,1,0},{3,NC,NC,5,NC,1})
+
 
 playCheckers = method(TypicalValue => List)
 playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
-     reds:= new List;
-     tree := new List;
-     storeRed:=new List;
-		 redChkrs := new List;
-     splitcount := 0;
-		 if partn1 > partn2 then(
-		   redChkrs=redChkrPos(partition2bracket(partn2,k,n),partition2bracket(partn1,k,n),k,n);
-		 ) else (
-		   redChkrs=redChkrPos(partition2bracket(partn1,k,n),partition2bracket(partn2,k,n),k,n);
-		 );
-     -- we check for red checkers above the diagonal. If one, give a null output
-     --apply(#redChkrs, i->(
-	--  if i+redChkrs#i < n-1 then return({toList(n:99)})
-     --));
-     blackChkrs:=new List;
-     counter:=0;
-     blackChkrs = reverse toList (0..(n-1)); --initial black positions.
-     while blackChkrs != {} do (
-	  (blackChkrs, redChkrs, splitcount) = toSequence moveCheckers(blackChkrs, redChkrs, n);
-	  counter = counter+1;
-	  tree=join(tree,toList(splitcount:counter));
-	  storeRed = join(storeRed, {take(redChkrs,n)});
-          blackChkrs = drop(blackChkrs,n);
-	  redChkrs = drop(redChkrs,n);
-    );
-     -- here call the function makeTree
-    --storeRed
-    storeRed / output2partition
+     redChkrs := 
+     if partn1 > partn2 then
+     	  redChkrPos(partition2bracket(partn2,k,n),partition2bracket(partn1,k,n),k,n)
+      else 
+          redChkrPos(partition2bracket(partn1,k,n),partition2bracket(partn2,k,n),k,n)
+     ;
+     blackChkrs := reverse toList (0..(n-1)); --initial black positions
+     playCheckers ([blackChkrs, redChkrs], new MutableHashTable)  -- returns the root of the tree
+)
+
+playCheckers (Array,MutableHashTable) := (board,parent) ->(
+	self := new MutableHashTable from {
+	   Board => board, 
+	   Parent => parent
+	};
+	self.Children = apply(moveCheckers board, b -> playCheckers (b,self));
+	self
+)
+
+printTree = method()
+printTree MutableHashTable := node ->(
+	print node.Board;
+	scan(node.Children, c-> printTree c);
 )
 
 --Examples:
@@ -267,7 +284,7 @@ playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
 --partition2bracket({1,1},3,7)
 --partition2bracket({1},3,7)
 --bracket2input({4,6,7},7)
---output2bracket({99, 99, 99, 3, 99, 5, 6})
+--output2bracket({NC, NC, NC, 3, NC, 5, 6})
 --bracket2partition({2,4,6},6)
 
 --redChkrPos(partition2bracket({2,1},3,6),partition2bracket({1,1},3,6),3,6)
@@ -279,3 +296,38 @@ playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
 --playCheckers({1,1},{2,1},3,6)
 --playCheckers({2,1},{1,1},3,6)
 
+-----------------
+--- makeLocalCoordinates
+--
+-- This procedure will translate a checker 
+-- board configuration into a matrix with
+-- 0's 1's and variables
+-----------------
+-- input: an array of black and red checkers
+-- output: a matrix
+-----------------
+-- example:
+-----------------
+
+makeLocalCoordinates = method(TypicalValue => MutableHashTable)
+makeLocalCoordinates Array := blackred ->(
+  blackposition := first blackred;
+	redposition := last blackred;
+	VAR := symbol VAR;
+  n := #redposition; -- n is the size of the board
+  -- we find how many black checkers are in northwest to a given red
+  rowsred := sort select(redposition, r->r=!=NC);
+  E := new MutableHashTable;
+	for r to #rowsred-1 do(
+			columnred := position(redposition, j-> j== rowsred#r); 
+			E#(rowsred#r-1,r) = 1;
+			variablerows := take(blackposition,columnred+1);
+			variablerows = select(variablerows, b-> b< rowsred#r);			
+			scan(take(rowsred,columnred-1),i-> variablerows = delete(i,variablerows));
+			apply(variablerows, col-> (
+			  E#(col,r)=VAR;
+				)
+			);
+		 );
+	return E
+)

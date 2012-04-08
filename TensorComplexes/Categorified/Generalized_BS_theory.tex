@@ -1676,7 +1676,10 @@ Hence, no scalar multiple of $w$ can equal the cohomology table of a sheaf on $\
 \section{Graded rings}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-By a \defi{graded ring} we will mean a finitely generated $\NN$-graded $k$-algebra (not necessarilyt generated in degree 1).  In this section, $R$ will denote a graded ring that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other terms, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes. Set $L:=f^*\cO(1)$. We will use the functor $\Phi$ to analyze the structure of bounded free complexes over $R$.   
+By a \defi{graded ring} we will mean a finitely generated $\NN$-graded $k$-algebra (not necessarily generated in degree 1).  In this section, $R$ will denote a graded ring that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other terms, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes. Set $L:=f^*\cO(1)$. We will use the functor $\Phi$ to analyze the structure of bounded free complexes over $R$.  For example, we might take
+$R = \kk[s^{4}, s^{3}t, st^{3}, t^{4}]$, the homogeneous coordinate ring of the smooth rational
+quartic in $\P^{3}$; or $R = \kk[x_{0}, x_{1}, y]/(y^{2m}-g(x_{0}, x_{1})$ where $x_{0},x_{1}$ have
+degree 1 and the degree of $g$ is $4m$.
 
 We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
 We are interested in bounded free complexes, but since $R$ will generally fail to be a regular ring, it is no longer the case that arbitrary elements of the derived category 

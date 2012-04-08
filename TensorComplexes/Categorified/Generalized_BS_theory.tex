@@ -222,9 +222,13 @@ with the following properties:
 \end{theorem}
 
 Part of the power of this result comes from a homological transversality argument implying that, if
-$\codim(\FF)+\codim(\cE)\geq n+1$, then $\Phi(\FF,\cE)$ always has the Betti table of a complex with finite length homology. (As usual, the codimension of an object in the derived category is defined to be the codimension of the support of its homology.) This follows easily from a result of Miller and Speyer~\cite[Theorem, p.\ 335]{miller-speyer}.
+$\codim(\FF)+\codim(\cE)\geq n+1$, then $\Phi(\FF,\cE)$ always has the Betti table of a complex with finite length homology. (As usual, the codimension of an object in the derived category is defined to be the codimension of the support of its homology.) This follows easily from a result of Miller and Speyer~\cite[Theorem, p.\ 335]{miller-speyer}. 
 
-The functor $\Phi$ thus yields bilinear pairings relating Betti tables of complexes with homology to cohomology tables in a number of cases (\S\ref{sec:duality}).  For example, in the case of complexes with homology of finite length, we obtain a pairing
+The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
+By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Working with complexes with homology is essential here, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Since the results on resolutions follow easily from our results on complexes (possibly) with homology, nothing is lost.
+
+
+ For example, in the case of complexes with homology of finite length, we obtain a pairing
  \begin{equation}%\tag{**}
 \label{eqn:**}
 \begin{tabular}{c c c c c}
@@ -249,31 +253,7 @@ $\left\{\begin{matrix}
 \end{matrix}\right\},$
 \end{tabular}
 \end{equation}
-%\begin{equation}%\tag{**}
-%\label{eqn:**}
-%\begin{tabular}{c c c c c}
-%$\left\{\begin{matrix}
-%\text{Betti tables of} \\ \text{free $S$-complexes}\\
-%\text{ with homology}\\ \text{ of finite length}
-%\end{matrix}\right\}$
-%&
-%$\times$
-%&
-%$\left\{\begin{matrix}
-%\text{cohomology }\\
-%\text{tables of vector}\\
-%\text{ bundles on } \PP^n
-%\end{matrix}\right\}$
-%&
-%$\longrightarrow$
-%&
-%$\left\{\begin{matrix}
-%\text{Betti tables of} \\ \text{free $A$-complexes}\\
-%\text{ with homology}\\ \text{ of finite length}
-%\end{matrix}\right\},$
-%\end{tabular}
-%\end{equation}
-where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  By extending this pairing linearly, we obtain a bilinear pairing among the three positive, rational cones spanned by the tables the from \eqref{eqn:**}.  This is
+where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  By extending this pairing linearly, we obtain a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**}.  This is
  a \emph{duality pairing} of cones in the following sense:
 \begin{thm}\label{thm:duality}
 Fix a point $v\in \VV$.   The following are equivalent:
@@ -281,11 +261,8 @@ Fix a point $v\in \VV$.   The following are equivalent:
 	\item   $v$ is a positive, rational multiple of a Betti table $\beta(\FF)$ for some free complex $\FF$ of codimension $k$;
 	\item  Given any sheaf $\cE$ of codimension $n+1-k$, $v$ pairs with $\gamma(\cE)$ to give an element of the cone of Betti tables of $A$-complexes with finite length homology.
 \end{enumerate}
-%A point $v\in \VV$ is a scalar The only elements of $\VV$ that pair with all elements of the cone in the second factor
-%Fix a point $v\in \VV$ and an integer $1\leq k\leq n+1$.  Then $v$ lies in the rational cone spanned by Betti tables of complexes of codimension $k$ if and only if $v$ pairs with all cohomology
-%pair with all elements of the cone 
 \end{thm}
-This result is essentially due to~\cite{eis-schrey1}: their main results imply a similar statement for free resolutions, and their proof may be adapted to the case of more general complexes.  Using the functor $\Phi$ allows us to sharpen the statement and proof of the theorem.  %See \S\ref{sec:duality} for more discussion of this duality.
+This result is essentially due to~\cite{eis-schrey1}: one of their main results is a similar statement for free resolutions, and, given our construction of $\Phi$, their proof may be adapted to the case of more general complexes. See \S\ref{sec:duality} for corresponding results with less restrictions on the codimension of the complex $\FF$.
 
 \begin{figure}
 \begin{tikzpicture}[scale=1.2]
@@ -296,9 +273,6 @@ This result is essentially due to~\cite{eis-schrey1}: their main results imply a
 \draw[-](.5,.5)--(3.6,2.8);
 \draw(1.5,3.0) node {$\bullet$};
 \draw(2.0,3.0) node {$\beta(\FF)$};
-%\draw(2.2,1.0) node {$\BBQ^{n+1}(S)$};
-%\draw[dashed,-](.5,.5)--(3.2,3.5);
-%\draw[dashed,-,thick](.5,.5)--(2.2,3.5);
 \draw[-](1,3)--(2,2.5)--(3,2.5)--(3.6,2.8)--(3.2,3.5)--(2.2,3.5)--cycle;
 %% the cross
 \draw[-] (3.8,2)--(4.1,2.3);
@@ -308,26 +282,17 @@ This result is essentially due to~\cite{eis-schrey1}: their main results imply a
 \draw[-](4.5,.5)--(5.2,2.5);
 \draw(6.0,2.8) node {$\bullet$};
 \draw(6.45,2.8) node {$\gamma(\cE)$};
-%\draw(6.0,1.0) node {$\CQ^0(\PP^{n})$};
 \draw[-](4.5,.5)--(6.5,2.5);
 \draw[-](4.5,.5)--(7.1,2.8);
-%\draw[dashed,-](4.5,.5)--(7.2,3.5);
-%\draw[dashed,-,thick](4.5,.5)--(6.2,3.5);
 \draw[-](5,3)--(5.2,2.5)--(6.5,2.5)--(7.1,2.8)--(7.2,3.5)--(6.2,3.5)--cycle;
 %%the arrow
 \draw[->,thick](7,2.1)--(9,2.1);
-%\draw(8,2.4) node {$(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$};
 %% third cone
-%\draw[-](9.5,.5)--(10,3);
 \draw[-](10.8,.8)--(9.8,2.5);
 \draw[-](10.8,.8)--(11.4,2.5);
-%\draw[-](9.5,.5)--(10.4,2.8);
-%\draw[-](9.5,.5)--(11.5,2.5);
 \draw[-](10.8,.8)--(12.1,3.5);
-%\draw[dashed,-,thick](9.8,.8)--(10.4,3.5);
 \draw(10.4,2.9) node {$\bullet$};
-\draw(11.05,3.2) node {$\beta(\Phi(\FF,\cE))$};
-%\draw(11.5,1.0) node {$\BBQ^{1}(A)$};
+\draw(11.05,3.2) node {$\beta\Phi(\FF,\cE)$};
 \draw[-](9.8,2.5)--(11.4,2.5)--(12.1,3.5)--(10.4,3.5)--cycle;
 \end{tikzpicture}
 \caption{The duality between Betti tables and cohomology tables involves three cones.  Namely, given the Betti table $\beta(\FF)$ of a complex of free $S$-modules, and the cohomology table $\gamma(\cE)$ of a complex of coherent sheaves on $\PP^n$, we use our pairing to produce the Betti table $\beta(\Phi(\FF,\cE))$ of a complex free $A$-modules. 
@@ -336,11 +301,7 @@ This result is essentially due to~\cite{eis-schrey1}: their main results imply a
 \end{figure}
 
 
-Namely, the cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
-By then composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer.  In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}.
 
-\daniel{The following paragraph now feels out of place.}
-Working with the derived category $\DD^b(S)$ instead of with minimal free resolutions represents a shift in perspective for \BS theory.  This shift is essential, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution.  
 
 
 \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
@@ -1715,7 +1676,7 @@ Hence, no scalar multiple of $w$ can equal the cohomology table of a sheaf on $\
 \section{Graded rings}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We next use our new foundation for \BS theory over $S$ to analyze the structure of bounded free complexes over more general $\NN$-graded rings.  Throughout this section, our setup is as follows.  We fix a graded ring $R$ that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other words, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes.  We set $L:=f^*\cO(1)$.
+By a \defi{graded ring} we will mean a finitely generated $\NN$-graded $k$-algebra (not necessarilyt generated in degree 1).  In this section, $R$ will denote a graded ring that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other terms, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes. Set $L:=f^*\cO(1)$. We will use the functor $\Phi$ to analyze the structure of bounded free complexes over $R$.   
 
 We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
 We are interested in bounded free complexes, but since $R$ will generally fail to be a regular ring, it is no longer the case that arbitrary elements of the derived category 

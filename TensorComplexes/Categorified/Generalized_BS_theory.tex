@@ -224,10 +224,6 @@ with the following properties:
 Part of the power of this result comes from a homological transversality argument implying that, if
 $\codim(\FF)+\codim(\cE)\geq n+1$, then $\Phi(\FF,\cE)$ always has the Betti table of a complex with finite length homology. (As usual, the codimension of an object in the derived category is defined to be the codimension of the support of its homology.) This follows easily from a result of Miller and Speyer~\cite[Theorem, p.\ 335]{miller-speyer}. 
 
-The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
-By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Working with complexes with homology is essential here, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Since the results on resolutions follow easily from our results on complexes (possibly) with homology, nothing is lost.
-
-
  For example, in the case of complexes with homology of finite length, we obtain a pairing
  \begin{equation}%\tag{**}
 \label{eqn:**}
@@ -253,8 +249,13 @@ $\left\{\begin{matrix}
 \end{matrix}\right\},$
 \end{tabular}
 \end{equation}
-where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  By extending this pairing linearly, we obtain a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**}.  This is
- a \emph{duality pairing} of cones in the following sense:
+where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  By extending this pairing linearly, we obtain a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**}. 
+
+The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
+By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Working with complexes with homology is essential here, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Since the results on resolutions follow easily from our results on complexes (possibly) with homology, nothing is lost.
+
+The pairing in \eqref{eqn:**} is a \emph{duality pairing} of cones in the following sense:
+ 
 \begin{thm}\label{thm:duality}
 Fix a point $v\in \VV$.   The following are equivalent:
 \begin{enumerate}
@@ -1678,10 +1679,10 @@ Hence, no scalar multiple of $w$ can equal the cohomology table of a sheaf on $\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 By a \defi{graded ring} we will mean a finitely generated $\NN$-graded $k$-algebra (not necessarily generated in degree 1).  In this section, $R$ will denote a graded ring that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other terms, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes. Set $L:=f^*\cO(1)$. We will use the functor $\Phi$ to analyze the structure of bounded free complexes over $R$.  For example, we might take
 $R = \kk[s^{4}, s^{3}t, st^{3}, t^{4}]$, the homogeneous coordinate ring of the smooth rational
-quartic in $\P^{3}$; or $R = \kk[x_{0}, x_{1}, y]/(y^{2m}-g(x_{0}, x_{1})$ where $x_{0},x_{1}$ have
+quartic in $\P^{3}$; or $R = \kk[x_{0}, x_{1}, y]/(y^{2m}-g(x_{0}, x_{1}))$ where $x_{0},x_{1}$ have
 degree 1 and the degree of $g$ is $4m$.
 
-We define cohomology tables and Betti tables for the pair $(X,L)$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
+We define cohomology tables and Betti tables for $R$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
 We are interested in bounded free complexes, but since $R$ will generally fail to be a regular ring, it is no longer the case that arbitrary elements of the derived category 
 $\DD^b(R)$ may be represented by a bounded free complex.  
 We thus restrict attention to the subcategory $\DD^{\text{perf}}(R)\subseteq \DD^b(R)$ of perfect complexes, i.e. the subcategory of elements that may be

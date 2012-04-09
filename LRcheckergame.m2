@@ -10,6 +10,7 @@ newPackage(
      )
 
 export{
+     trackHomotopy,
      verifyLength,
      partition2bracket,
      bracket2input,
@@ -20,12 +21,20 @@ export{
      moveRed,
      moveCheckers,
      playCheckers,
-	 NC,
-	 Board,
-	 Parent,
-	 Children,
-	 printTree,
-	makeLocalCoordinates
+     NC,
+     FFF,
+     Board,
+     Parent,
+     Children,
+     TypeOfMoveFromParent,
+     printTree,
+     makeLocalCoordinates,
+     resolveNode,
+     FlagM,
+     CriticalRow,
+     Polynomials,
+     Solutions,
+     SolutionsSuperset -- temporary
      }
 -- Abraham Martin del Campo
 -- 25/July/2011
@@ -33,8 +42,14 @@ export{
 -- This is a file where I implement Ravis LR-decomposition
 -- ---------------------
 
+needsPackage "NumericalAlgebraicGeometry"
+
+
 -- NC means no checker in that column
-NC = infinity;
+NC = infinity
+
+-- OUR FIELD
+FFF = QQ
 
 -- ---------------------
 --	verifyLength	--
@@ -144,9 +159,15 @@ redChkrPos(List,List,ZZ,ZZ) := (l,m,k,n) -> (
 --       blackdown - Coordinates of the descending black checker
 --       redpos - List of red checker positions
 --
---	output:
+--	output: {(repos,typeofmove,critrow)} or {(repos1,typeofmove1,critrow),(repos2,typeofmove2,critrow)}
 --       redpos - Updated list (of lists) of red checker positions
---
+--       typeofmove - {row,column,split}
+--                    a tuple which tells the type of the move we had to perform from
+--                    the 3x3 table of moves. This is given as a 
+--                    tuple {row,column,split} where split says
+--                    if you moved or not the red checkers
+--                    (by 0 and 1 respectively) when there was a split
+--        critrow - the critical row
 moveRed = method(TypicalValue => List)
 moveRed(List,List,List) := (blackup, blackdown, redposition) -> (
 	------------------------------------------------
@@ -204,7 +225,7 @@ moveRed(List,List,List) := (blackup, blackdown, redposition) -> (
      	  redpos#(blackup#0)=redpos#critrow;
 	  redpos#critrow = NC;
      );
-     if split == 0 then {toList redpos} else {redposition, toList redpos}
+     if split == 0 then {(toList redpos,{r,g,split})} else {(redposition,{r,g,0}), (toList redpos,{r,g,split})}
 )
 -- TEST THE FUNCTION HERE!!
 
@@ -225,8 +246,8 @@ moveRed(List,List,List) := (blackup, blackdown, redposition) -> (
 
 moveCheckers = method(TypicalValue => List)
 moveCheckers Array := blackred -> (
-	blackposition := first blackred;
-	redposition := last blackred;
+     blackposition := first blackred;
+     redposition := last blackred;
      n := #redposition; -- n is the size of the board
      splitcount:=0;
      copies:=0;
@@ -235,23 +256,29 @@ moveCheckers Array := blackred -> (
 	 -- blackup1 is the column of the checker that is one row lower than the checker 
 	 --        in blackdown1 
      blackdown1 := position(blackposition, x->x == n-1) + 1;
-     if blackdown1 == n then return {};
+     if blackdown1 == n then return ({},"leaf");
      blackup1 := position(blackposition, x-> x == 1+blackposition#blackdown1);
      -- The column of the right black checker to be sorted goes from desccol 
      -- to the end of the board.
      -- Determine the rows of the next pair of black checkers to be sorted.
 	 blackup2 := n-blackdown1+blackup1;
-	 blackdown2 := blackup2-1;
-	 redposition = moveRed({blackup1,blackup2},{blackdown1,blackdown2}, redposition);
+	 blackdown2 := blackup2-1; -- this is the critical row
+	 listofredpositions := moveRed({blackup1,blackup2},{blackdown1,blackdown2}, redposition);
 	 blackposition = new MutableList from blackposition;
 	 blackposition#blackup1 = blackposition#blackup1 - 1;
 	 blackposition#blackdown1 = blackposition#blackdown1 + 1;
-	 apply(redposition, r-> [toList blackposition, r])
+	 (
+	      apply(listofredpositions, r-> [toList blackposition, 
+		   	first r, -- new redposition
+		   	last r -- new type of move
+		   	]), 
+	      blackdown2 --return also the critical row
+	      )
 )
 --moveCheckers({3,5,4,2,1,0},{3,NC,NC,5,NC,1})
 
 
-playCheckers = method(TypicalValue => List)
+playCheckers = method(TypicalValue => MutableHashTable)
 playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
      redChkrs := 
      if partn1 > partn2 then
@@ -260,21 +287,24 @@ playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
           redChkrPos(partition2bracket(partn1,k,n),partition2bracket(partn2,k,n),k,n)
      ;
      blackChkrs := reverse toList (0..(n-1)); --initial black positions
-     playCheckers ([blackChkrs, redChkrs], new MutableHashTable)  -- returns the root of the tree
+     playCheckers ([blackChkrs, redChkrs], "root", {})  -- returns the root of the tree
 )
 
-playCheckers (Array,MutableHashTable) := (board,parent) ->(
-	self := new MutableHashTable from {
-	   Board => board, 
-	   Parent => parent
-	};
-	self.Children = apply(moveCheckers board, b -> playCheckers (b,self));
-	self
+playCheckers (Array,Thing,List) := (board,parent,typeofmove) ->(
+     self := new MutableHashTable from {
+	  Board => board, 
+	  Parent => parent,
+	  TypeOfMoveFromParent => typeofmove
+	  };
+     (children,c) := moveCheckers board;
+     self.CriticalRow = c;
+     self.Children = apply(children, b -> playCheckers (take(b,2),self,last b));
+     self
 )
 
 printTree = method()
 printTree MutableHashTable := node ->(
-	print node.Board;
+	print peek node;
 	scan(node.Children, c-> printTree c);
 )
 
@@ -304,30 +334,177 @@ printTree MutableHashTable := node ->(
 -- 0's 1's and variables
 -----------------
 -- input: an array of black and red checkers
--- output: a matrix
+--        in the form ( ListofPositionsBlack, ListofPositionsRed)
+-- output: a matrix with local coordinates
 -----------------
 -- example:
 -----------------
 
-makeLocalCoordinates = method(TypicalValue => MutableHashTable)
+makeLocalCoordinates = method(TypicalValue => MutableMatrix)
 makeLocalCoordinates Array := blackred ->(
   blackposition := first blackred;
-	redposition := last blackred;
-	VAR := symbol VAR;
+  redposition := last blackred;
+  VAR := symbol VAR;
   n := #redposition; -- n is the size of the board
   -- we find how many black checkers are in northwest to a given red
   rowsred := sort select(redposition, r->r=!=NC);
+  colsred := apply(rowsred, r -> position(redposition, j-> j == r));
   E := new MutableHashTable;
-	for r to #rowsred-1 do(
-			columnred := position(redposition, j-> j== rowsred#r); 
-			E#(rowsred#r-1,r) = 1;
-			variablerows := take(blackposition,columnred+1);
-			variablerows = select(variablerows, b-> b< rowsred#r);			
-			scan(take(rowsred,columnred-1),i-> variablerows = delete(i,variablerows));
-			apply(variablerows, col-> (
-			  E#(col,r)=VAR;
-				)
-			);
-		 );
-	return E
+    for r to #rowsred-1 do(
+      E#(rowsred#r,r) = 1;
+      variablerows := take(blackposition,colsred#r+1);
+      variablerows = select(variablerows, b-> b< rowsred#r);
+      scan(variablerows, j->(
+        if member(j,rowsred) and position(redposition, i-> i == j) < colsred#r then
+	  variablerows = delete(j,variablerows);
+      ));
+      scan(variablerows, col-> (
+        E#(col,r)=VAR;
+      ));
+   );
+   x:= symbol x;
+   R:=FFF[apply(select(keys E, k-> E#k===VAR), k-> x_k)];
+   X := mutableMatrix(R,n,#rowsred);
+   scan(keys E, k-> X_k = if E#k === 1 then 1 else x_k);
+   matrix X
 )
+
+------------------
+-- resolveNode
+------------------
+-- A function that will be the skeleton
+-- of the homotopy.
+-- It first transform the Flag of the child Sch. Var
+-- into a generalized flag for the parent
+------------------
+resolveNode = method()
+resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
+     n := #node.Board#0;
+     node.Solutions = {};
+     if node.Children == {} then node.FlagM = matrix mutableIdentity(FFF,n)
+     else scan(node.Children, c->resolveNode(c,remaining'conditions'and'flags));
+     
+     -- temporary: creates a superset of solutions via a blackbox solver
+     X := makeLocalCoordinates node.Board;
+     node.Polynomials = makePolynomials(node.FlagM * X,remaining'conditions'and'flags);
+     node.SolutionsSuperset = apply(solveSystem flatten entries node.Polynomials, s-> (map(CC,ring X,matrix s)) X);
+     
+     if node.Children == {} then node.Solutions = node.SolutionsSuperset;  -- should change!!! 
+     
+     if node.Parent =!= "root" then (
+     	  r := node.Parent.CriticalRow; -- critical row: rows r and r+1 are the most important ones
+	  M := node.FlagM;
+	  M'':= M_{0..(r-1)} | M_{r} - M_{r+1} | M_{r}| M_{(r+2)..(n-1)};
+      	  node.Parent.FlagM = M'';
+	  node.Parent.Solutions = node.Parent.Solutions |  
+	  if node.Solutions == {} then {} -- means: not implemented
+	  else if node.TypeOfMoveFromParent#1 == 2 then (-- case (_,2)
+     	       apply(node.Solutions, X->(
+		    	 X'' := (X^{0..r-1}) || (-X^{r+1}) || (X^{r}+X^{r+1}) ||( X^{r+2..n-1});
+		    	 normalizeAndReduce(X'',node.Parent)
+	       	    	 ))
+	       )
+	  else if member(node.TypeOfMoveFromParent,{{2,0,0},{2,1,0},{1,1,0}}) then (-- case "STAY"
+	       coordX := makeLocalCoordinates node.Board; -- local coordinates X = (x_(i,j))
+	       R := ring coordX;
+	       t := symbol t;
+	       Rt := (coefficientRing R)[t,gens R]; -- homotopy ring
+	       mapRtoRt := map(Rt,R,drop(gens Rt,1));
+	       Xt := mapRtoRt coordX; --  "homotopy" X 
+	       M'X' := promote(M,Rt) * (Xt^{0..r-1} || Xt^{r} + Xt^{r+1} || -t*Xt^{r} || Xt^{r+2..n-1}); -- this is V(t) = M'(t) X'(t)
+	       polys := makePolynomials(M'X',remaining'conditions'and'flags);
+	       startSolutions := apply(node.Solutions, X->toRawSolutions(coordX,X));
+	       
+	       -- track homotopy and plug in the solution together with t=1 into Xt
+	       targetSolutions := trackHomotopy(polys,startSolutions);
+	       apply(targetSolutions, s->( 
+		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix s)) Xt;
+      		    X'' := inverse node.Parent.FlagM * M''X'';
+		    normalizeAndReduce(X'',node.Parent)
+		    ))
+	       )
+     	  else {} -- means: not implemented
+	  );
+     )
+
+toRawSolutions = method()
+toRawSolutions(Matrix,Matrix) := (coordX,X) -> (
+     a := flatten entries coordX;
+     b := flatten entries X;
+     delete(null, apply(#a, i->if a#i == 1 or a#i == 0 then null else b#i))
+     )
+
+normalizeAndReduce = method()
+normalizeAndReduce(Matrix,MutableHashTable) := (X'', father) -> (  
+     k := numgens source X'';
+     n := numgens target X'';
+     r := father.CriticalRow;
+     j := position(sort delete(NC, father.Board#1), i-> i==r+1);
+     if j=!=null then(
+	  X'' = mutableMatrix(X''_{0..j-1} | (1/X''_(r+1,j))*X''_{j}  | X''_{j+1..k-1}); -- X''_(r+1,j) = X_(r,j)+X_(r+1,j) = 1+X_(r+1,j), so is the first part of Ravi's mistake
+	  --X''_(r,j) =-1/(1+X_(r,j)); -- error in Ravi's notes: should be -X_(r+1,j)/(1+X_(r,j))
+	  --X''_(r+1,j) = 1; -- this is correct, but is also already taken care of 
+	  redCheckersColumnReduce(father.Board#1, (j, n, k), X'');
+	  );
+     matrix X''
+     )
+redCheckersColumnReduce = method()
+redCheckersColumnReduce(List,Sequence,MutableMatrix) := (red, jnk, X'') -> (
+     redSorted := sort delete(NC,red);
+     (j,n,k) := jnk; -- (moving red column, numrows X'', numcols X'')
+     -- if j == 0  then 1/0; --!!!!!!!!
+     for jj from j+1 to k-1 do 
+     if position(red, jjj->redSorted#jj == jjj) > j then (
+	  r := redSorted#j; -- crit.row + 1
+	  c := X''_(r,jj)/X''_(r,j); 
+	  scan(n, i->X''_(i,jj) = X''_(i,jj) - c*X''_(i,j))
+	  );
+     )
+
+-----------------
+-- makePolynomials
+--
+-- creates a zero dimensional system
+-- that corresponds to a localization pattern
+-- and the list of Schubert conditions
+-- together with specified flags.
+----------------
+-- input:
+--     	   MX = global coordinates for an open subset
+--     	        of a checkerboard variety (or MX' in the homotopy (in Ravi's notes))
+--
+--     	    conds = list of pairs (l,F) where l is a Schubert condition and F is a flag
+--
+-- output:  a matrix of polynomials
+-----------------
+makePolynomials = method(TypicalValue => Matrix)
+makePolynomials(Matrix, List) := (MX,conds) ->(
+     R := ring MX;
+     k := numgens source MX;
+     n := numgens target MX;
+     eqs := sum(conds, lF ->(
+	       (l,F) := lF;
+	       MXF:=MX|promote(F,R);
+	       b := partition2bracket(l,k,n);
+	       sum(#b, r->( 
+			 c := b#r;
+			 minors(k+c-(r+1)+1, MXF_{0..k+c-1})
+			 ))
+	  ));
+     gens eqs
+)
+
+-- Tracks a homotopy
+-- Input: 
+--    H -- a list of polynomials in k[xx,t];
+--    S = {{...},...,{...}} -- a list of solutions to H at t=0
+-- Output: 
+--    T - a list of Points that are solutions to H at t=1
+trackHomotopy = method(TypicalValue=>List)
+trackHomotopy (Matrix,List) := (H,S) -> (
+     Rt := ring H;
+     R := (coefficientRing Rt)[drop(gens Rt,1)];
+     map't'0 := map(R, Rt, matrix{{0}}|vars R);
+     map't'1 := map(R, Rt, matrix{{1}}|vars R);
+     track(first entries map't'0 H, first entries map't'1 H, S)
+     )

@@ -168,8 +168,9 @@ then load "./NumericalAlgebraicGeometry/PHCpack/PHCpack.interface.m2" else (
      trackPHCpack = null; refinePHCpack = null; solvePHCpack = null;
      --solveBlackBox = null; trackPaths = null; refineSolutions = null 
      ) 
-load "./NumericalAlgebraicGeometry/Bertini/Bertini.interface.m2" 
-
+--load "./NumericalAlgebraicGeometry/Bertini/Bertini.interface.m2" 
+trackBertini = null; refineBertini = null; solveBertini = null; cleanupOutput = null;
+     
 -- CONVENTIONS ---------------------------------------
 
 -- Polynomial systems are represented as lists of polynomials.

@@ -249,7 +249,7 @@ $\left\{\begin{matrix}
 \end{matrix}\right\},$
 \end{tabular}
 \end{equation}
-where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  By extending this pairing linearly, we obtain a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**}. 
+where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  By extending this pairing linearly, we obtain a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**} as illustrated in Figure~\ref{fig:bracket}. 
 
 The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
 By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Working with complexes with homology is essential here, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Since the results on resolutions follow easily from our results on complexes (possibly) with homology, nothing is lost.
@@ -263,7 +263,7 @@ Fix a point $v\in \VV$.   The following are equivalent:
 	\item  Given any sheaf $\cE$ of codimension $n+1-k$, $v$ pairs with $\gamma(\cE)$ to give an element of the cone of Betti tables of $A$-complexes with finite length homology.
 \end{enumerate}
 \end{thm}
-This result is essentially due to~\cite{eis-schrey1}: one of their main results is a similar statement for free resolutions, and, given our construction of $\Phi$, their proof may be adapted to the case of more general complexes. See \S\ref{sec:duality} for corresponding results with less restrictions on the codimension of the complex $\FF$.
+One of the main results of~\cite{eis-schrey1} is a similar statement for free resolutions, and, given our construction of $\Phi$. The introduction of $D^{b}(A)$ both simplifies the statement and enables us to extend their arguments to  more general cases.  See \S\ref{sec:duality} for results with less restrictions on the codimension of the complex $\FF$.
 
 \begin{figure}
 \begin{tikzpicture}[scale=1.2]
@@ -513,7 +513,7 @@ If $\FF\in \DD^b(S)$ is a free complex, then we say that $\FF$ is \defi{minimal}
 \end{defn}
 We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.  If $\FF$ is quasi-isomorphic to a complex with only one nonzero term, then we say that $\FF$ is a \defi{shifted resolution}.  We use the notation $\HH_r\FF$ to denote the $r$th homology module of $\FF$.
 
-\begin{defn}
+\begin{defn}\label{def:deg seq}
 A \defi{shifted degree sequence of codimension $\ell$} is a sequence
 \[{\dd}=(\dots, d_i, d_{i+1}, \dots)
 \]
@@ -521,6 +521,7 @@ with  $d_{i} \in \{-\infty\}\cup \ZZ\cup \{\infty\}$ and $d_i \leq d_{i+1}-1$ an
 where there are precisely $\ell+1$ entries of $\dd$ lying in $\ZZ$. 
 We define a partial order on shifted degree sequences by the termwise partial order, so $d\leq d'$ if $d_i\leq d_i'$ for all $i$.
 \end{defn}
+\david{later we sometimes forget the word ``shifted''. Drop it from the defn, or put it in everywhere!}
 As with Betti tables, we use a $\zp$ to indicate homological position zero when writing a degree sequence. 
 Thus for example
 $$
@@ -948,10 +949,10 @@ and if $\FF_i=0$ whenever $b_i=\nothing$.
 %We say that $i$ is a \defi{nondecreasing index} (resp.\ a \defi{nonincreasing index}) of $\cc$ if the sequence $(\cc_i,\cc_{i+1},\dots)$ is nondecreasing (resp.\ nonincreasing.)
 \end{defn}
 
-\begin{example}
-Any complex $\FF\in \DD^b(S)$ is compatible with the codimension sequence $(\dots, 0,0^\zp,0,\dots)$.  By contrast, if $M$ is a module of codimension $c$ and if $\FF$ is its minimal free resolution of $M$, then $\FF$ is not compatible with the codimension sequence $(\dots, 0,0,c+1^\zp,c+1,\dots)$.
-%Let $\FF=[\FF_0\gets \dots \gets \FF_p]$ be the minimal free resolution of a module of codimension $c$.  The complex $\FF$ is compatible with $\cc=(\dots, 0,c-1^\circ,c,c+5,\dots)$.  However, $\FF$ is not compatible with $\cc=(\dots,c+1^\circ,c+1,\dots)$.  
-\end{example}
+%\begin{example}
+%Any complex $\FF\in \DD^b(S)$ is compatible with the codimension sequence $(\dots, 0,0^\zp,0,\dots)$.  By contrast, if $M$ is a module of codimension $c$ and if $\FF$ is its minimal free resolution of $M$, then $\FF$ is not compatible with the codimension sequence $(\dots, 0,0,c+1^\zp,c+1,\dots)$.
+%%Let $\FF=[\FF_0\gets \dots \gets \FF_p]$ be the minimal free resolution of a module of codimension $c$.  The complex $\FF$ is compatible with $\cc=(\dots, 0,c-1^\circ,c,c+5,\dots)$.  However, $\FF$ is not compatible with $\cc=(\dots,c+1^\circ,c+1,\dots)$.  
+%\end{example}
 
 Here are the cones of Betti tables and cohomology tables we will work with:
 \begin{defn}\label{defn:cones}
@@ -960,22 +961,36 @@ We write $\BBQ^{\cc}(S)$ for the subcone of $\VV$ spanned by $\beta(\FF)$ as $\F
 For any $k=0, \dots, n$, we define $\CQ^k(\PP^n)$ to be the subcone of $\WW$ spanned by all $\cE\in \DD^b(\PP^n)$ satisfying $\codim(\cE)\geq k$.
 \end{defn}
 
+
+Thus 
 \begin{defn}\label{defn:deg compatible}
-Suppose that $\cc$ is a codimension sequence  and $\dd$ is a degree sequence  of codimension $\ell$. Let $k$ be the smallest index
-such that $d_{k}\in \ZZ$. We say that $\dd$ is \defi{compatible with $\cc$} if $\cc_k\leq \ell\leq \cc_{k+1}$.
+Suppose that $\cc$ is a codimension sequence. Let $\dd$ be a degree sequence 
+of codimension $\ell$ (Definition~\ref{def:deg seq}), having the form
+$$
+\cdots -\infty, d_{k}, \cdots, d_{k+\ell}, \infty, \cdots
+$$
+with $d_{k}k\dots, d_{k+\ell}\in \ZZ$.
+We say that $\dd$ is \defi{compatible} with $\cc$ if $c_{k}\leq \ell \leq c_{k+1}$. 
 \end{defn}
-%\begin{defn}\label{defn:deg compatible}
-%Suppose that $\cc$ is codimension sequence 
-%and ${\dd}$ is a degree sequence  of codimension $\ell$. Let $k$ be the smallest index
-%such that $d_{k}\in \ZZ$. If $k$ is a nondecreasing index of $\cc$ (resp.\ a nonincreasing index of $\cc$), then we say that $\dd$ is \defi{compatible with $\cc$} if $\cc_k\leq \ell\leq \cc_{k+1}$  (resp.\ if $\cc_{k+\ell}\leq \ell\leq \cc_{k+\ell-1}$).
-%\end{defn}
 
+For example, if the terms of $\cc$ are all equal to $k$, then the degree sequences
+compatible with $\cc$ are precisely those of codimension $k$.
 
+It follows from the main result of \cite{WMACE} that if a complex
+$$
+\FF: F_{k}\leftarrow \cdots \leftarrow F_{k+\ell}\leftarrow 0,
+$$
+has $i$-th homology $\HH_{i}\FF$ of codimension $\geq\ell$ for $i>k$, then $\FF$ is actually a (shifted) resolution, and the module $\HH_{k}\FF$ that it resolves must have codimension $\leq \ell$. Thus to say that a pure complex has degree sequence and codimension sequence satisfying the following compatibility
+condition is the same as saying that it is a homologically shifted resolution of a module whose codimension is between
+$c_{k}$ and $\ell$. This module is Cohen-Macaulay if and only if its codimension is exactly $\ell$.
 
 Our main result is a description of the structure of a simplicial fan for $\BBQ^{\cc}(S)$ in terms of  Betti tables of pure resolutions.  
 
 \begin{thm}[Main Decomposition Theorem]\label{thm:extremal rays refined}
-For any codimension sequence $\cc$, the cone $\BBQ^{\cc}(S)$ is locally polyhedral, and there is a natural bijection:
+If $\FF\in \DD^b(S)$  is compatible with $\cc$ then  $\beta(\FF)$ can be expressed
+uniquely as a positive rational linear combination of the Betti tables of shifted pure resolutions of Cohen--Macaulay modules whose degree sequences form a chain and are compatible with $\cc$.
+
+Thus the cone $\BBQ^{\cc}(S)$ is locally a simplicial fan, and there is a natural bijection:
 \[
 \left\{
 \begin{matrix}
@@ -993,81 +1008,27 @@ For any codimension sequence $\cc$, the cone $\BBQ^{\cc}(S)$ is locally polyhedr
 \]
 where the shifted degree sequence $\dd$ corresponds to the ray spanned by 
 the Betti table of any shifted pure free resolution of type $\dd$ of a Cohen-Macaulay module. 
-
-Further, the cone $\BBQ^{\cc}(S)$ has a simplicial fan structure where simplices correspond to chains of shifted degree sequences.  Thus, for any $\FF\in \DD^b(S)$ that is compatible with $\cc$, we may uniquely express $\beta(\FF)$ as a positive rational linear combination of the Betti tables of shifted pure resolutions of Cohen--Macaulay modules whose degree sequences form a chain and are compatible with $\cc$.
 \end{thm}
 
-Here by the statement that $\BBQ^{\cc}(S)$ is \defi{locally polyhedral} we mean that if we fix any finite dimensional subspace $\VV_{\text{fin}}\subseteq \VV$ defined by the vanishing of coordinate vectors, then the restricted cone $\VV_{\text{fin}}\cap \BBQ^{\cc}(S)$ is polyhedral. 
+Here by the statement that $\BBQ^{\cc}(S)$ is locally a simplicial fan we mean that if we fix any finite dimensional subspace $\VV_{\text{fin}}\subseteq \VV$ defined by the vanishing of coordinate vectors, then the restricted cone $\VV_{\text{fin}}\cap \BBQ^{\cc}(S)$ is a simplicial fan (and, in particular,
+is polyhedral). 
 
 The proof of Theorem~\ref{thm:extremal rays refined} involves two essential steps.  First, in \S\ref{sec:A}, we provide a detailed description of cones of Betti tables on $A$.  Since $\DD^b(A)$ is the target of the pairing $\Phi$, these results will provide a base case for the theorem  Second, in \S\ref{sec:refined}, 
 we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with Theorem~\ref{thm:Phi} to complete the proof of Theorem~\ref{thm:extremal rays refined}. 
 We postpone the details to the next section.
-%
-%We postpone the details until the next section, though we remark that this basic outline simplifies the structure of Eisenbud--Schereyer's proof of the original Boij--S\"oderberg conjectures.  Namely, in~\cite[Proof of Theorem 0.2]{eis-schrey1}, the key technical tool is the construction of nonnegative functionals on the cone of Betti tables.  
-%
-
-\begin{example}  
-%There is a necessary subtlety in Definition~\ref{defn:deg compatible}, which is
-%\emph{not} equivalent to asking that $\FF_d$ be compatible with $\cc$. 
-%For instance, let
-
- Consider the codimension sequence $\cc=(\dots, \nothing,0^\circ,0,\infty,\dots)$ and the degree sequence $\dd=(\dots, -\infty,0^\circ ,1,\infty,\dots)$, which has codimension $\ell = 1$.  The Betti table 
- $(1^\circ, 1)$ of the complex $\FF=\left[ S^{1^\circ}\lTo^{x_{0}} S^1(-1)\right]$ is in $\BBQ^{\cc}$.
- As such, the decomposition guaranteed by Theorem~\ref{thm:extremal rays refined} is
- $\beta(\FF) = [1^{\circ}, -] + [-^{\circ}, 1]$. Of course we might also decompose $\beta(\FF)$
- as the Betti table $[1^{\circ}, 1]$ of a single pure resolution ($\FF$ itself!). This does \emph{not} contradict the uniqueness statement of the Theorem because $\dd$ is not compatible with $\cc$
- since $1= \ell \not\leq b_{1}= 0$.
-\end{example}
-
-%compatible with $\cc$
-% 
-% 
-% , whereas the degree sequence $\dd$ is not compatible with $\cc$.
-%
-%This distinction is necessary in order to obtain the uniquesness of decompositions of Betti tables in Theorem~\ref{thm:extremal rays refined}.  Otherwise, in this case, $\FF_d$ would have two decompositions into pure tables:
-%\[
-%\beta(\FF_d)=\begin{bmatrix}
-%1^\circ & 1
-%\end{bmatrix}
-%\quad \text{ or } \quad
-%\beta(\FF_d)=
-%\begin{bmatrix}
-%1^\circ & -
-%\end{bmatrix}
-%+
-%\begin{bmatrix}
-%-^\circ & 1
-%\end{bmatrix}.
-%\]
-%
 
 \begin{cor}\label{cor:decompose refined}
-Let $\cc$ be a codimension sequence and let $\FF\in \DD^b(S)$ be compatible with $\cc$.  Then there exist graded $S$-modules $M^k$ of codimension $\geq \cc_k$ and nonnegative rational numbers $a_k$ such that
+If $\FF\in \DD^b(S)$ is compatible with a codimension sequence $\cc$,
+then there exist Cohen-Macaulay graded $S$-modules $M^k$ of codimension $\geq \cc_k$ and nonnegative rational numbers $a_k$ such that
 \[
 \beta(\FF)=\sum_{k\in \ZZ} a_k\beta(M^k[k]).
 \]
 \end{cor}
-As noted in the introduction, the denominators of the $a_k$ may be seen as a measurement of the extent to which $\FF$ fails to be quasi-isomorphic to its homology.  Several special cases of Theorem~\ref{thm:extremal rays refined} are of particular interest.
+As noted in the introduction, the denominators of the $a_k$ may be seen as a measurement of the extent to which $\FF$ fails to be quasi-isomorphic to its homology.  
 
-\begin{cor}\label{cor:uniform}
-For any $k=0,\dots, n+1$, there is a natural bijection:
-\[
-\left\{
-\begin{matrix}
-\text{Extremal rays of }\\
-\text{the cone } \BBQ^{k}(S)
-\end{matrix}
-\right\}
-\longleftrightarrow
-\left\{
-\begin{matrix}
-\text{Shifted degree sequences }\\
-\text{ of codimension $k$}
-\end{matrix}
-\right\}.
-\]
-Thus, if $\FF\in \DD^b(S)$ satisfies $\codim \FF\geq k$, then $\beta(\FF)$ may be uniquely written as a rational sum of shifted pure resolutions of codimension $k$ whose degree sequences form a chain.%where the shifted degree sequence $\dd$ corresponds to the ray spanned by the shifted pure resolution of type $\dd$ of a Cohen--Macaulay module. 
-\end{cor}
+\david{add an example showing how the decomposition proceeds, from higher to lower codim and from right to left.}
+
+\david{put examples from section 7 here}
 
 \begin{example}[Resolutions]\label{ex:resolutions}
 If $\cc=(\dots, \nothing, 0^\zp, \infty, \dots)$ then a complex $\FF$ is compatible with $\cc$ if and only if $\FF$ is the minimal free resolution of an $S$-module.  Hence, for this value of $\cc$, Theorem~\ref{thm:extremal rays refined} recovers the main results of \cite{boij-sod2}.  If instead $\cc=(\dots, \nothing, n+1^\zp, \infty, \dots)$, then we recover \cite[Theorem~0.2]{eis-schrey1}.
@@ -1083,6 +1044,7 @@ If $\cc=(\dots,\nothing,0^{\zp},n+1,n+1,\dots)$ then a complex $\FF$ is compatib
 Let $\cc=(\dots,\nothing,0^\zp,n-1,n-1,\dots,)$.   Let $\FF\in \DD^b(S)$ be compatible with $\cc$ and let $M$ be the $0$th homology module of $\FF$.  We note that $\FF$ provides an approximate resolution of $M$, in the sense that the homology of $[\widetilde{\FF}\to \widetilde{M}]$ has dimension at most $1$.  Such approximate resolutions play a key role in \cite[Lemma~1.6]{gruson-lazarsfeld-peskine}, where they are used to bound the Castelnuovo--Mumford regularity of $\widetilde{M}$.
 \end{example}
 
+\david{move to a new ``monads'' section that might replace the current section 7 (or come before the proof of the decomp theorem. Explain that this is NOT a decomposition in a chain.}
 \begin{example}[Free Monads]\label{ex:monads}
 Given a sheaf $\cF$ on $\PP^n$, we recall that a free complex $\FF$ is a \defi{free monad} for $\cF$ if $\HH_0(\FF)\cong \cF$ and if $\HH_i(\widetilde{\FF})=0$ otherwise (cf. \cite[\S8]{eis-floy-schrey}.)  As an application of this theorem (see Corollary~\ref{cor:monads} below), we can use shifted pure Betti tables to decompose the Betti table any free monad.  
 
@@ -1245,6 +1207,9 @@ E_2^{r,q}=R^{r}p_{2*}(\HH_{-q}(\widetilde{\FF}\otimes \cE))\Rightarrow R^{q+r}p_
 %By a similar argument as above, we then further reduce to showing that  $R^qp_{2*}\left(\widetilde{\FF}\otimes \cE\right)=0$ for $q\leq -k+1$.  This then followsby applying the hypercohomology spectral sequence and using the fact that $\dim(\HH_q(\widetilde{\FF}\otimes \cE)\leq \dim(\cE)\leq k-1$ for all $q$.
 \end{proof}
 
+\david{remark that although $\FF\cdot \cE$ does NOT necessarily have finite length homology,
+we're going to show that it has the same betti table as something with finite length homology.
+(I retract the suggestion about $[\FF, \cE]$.)}
 
 The following lemma will be used repeatedly in our proof of Theorem~\ref{thm:extremal rays refined}.
 \begin{lemma}\label{lem:pure and supernatural}
@@ -1461,6 +1426,8 @@ and this implies the theorem.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 To illustrate the results from the previous sections, we provide a few examples.  We also apply Theorem~\ref{thm:extremal rays refined} to prove a decomposition result for the Betti tables of monads.
 \begin{example}\label{ex:1441}
+\david{clarify that the first half is about resolutions, so the non-existence comes from the older
+B-S theory -- and that the point is to compute the actual complex $\FF\cdot \cE$.}
 Let $S=\kk[x,y,z]$ and let
 \begin{equation}\label{eqn:intro ex}
 \beta(\FF)=\begin{bmatrix} 1&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}.
@@ -1496,6 +1463,8 @@ equals (up to scalar multiple) the Betti table of a complex over $\kk[x,y]$ with
 
 
 \begin{example}
+\david{ use the notation with the $^\circ$ here -- I think the $[-1]$ is then unnecessary.}
+
 Corollary~\ref{cor:uniform} recovers the fact, first observed by Mats Boij, that a pure table of type $d=(d_0, \dots, d_{n+1})$ can be written the sum of a pure table of type $(d_0, \dots, d_n)$ and a shifted pure table of type $(d_1, \dots, d_{n+1})[-1]$.  For instance
 \[
 \begin{bmatrix}
@@ -1519,7 +1488,7 @@ Corollary~\ref{cor:uniform} recovers the fact, first observed by Mats Boij, that
 We may interpret this decomposition as follows.  Let $M$ be an $S=\kk[x,y,z]$-module whose resolution equals the diagram on the left. If $\ell$ is a generic linear form (assuming $\kk$ is infinite), then as $S/\ell$-modules, the Betti tables of $\Tor^0_S(M,S/\ell)$ and $\Tor^1(M,S/\ell)$ correspond to the other Betti tables above.
 \end{example}
 
-\begin{example}
+\begin{example}\label{example:many decompositions}
 For any complex $\FF\in \DD^b(S)$, there exist many different values of $\cc$ that are compatible with $\FF$, and the decomposition of $\beta(\FF)$ induced by Theorem~\ref{thm:extremal rays refined} may depend on the choice of $\cc$.   For instance, let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may choose $\cc=(\dots, \nothing, 2^\zp, \infty, \dots)$ and then we decompose
 \[
 \beta(\FF)=\begin{bmatrix}
@@ -1555,7 +1524,8 @@ $\FF$ is also compatible with $\cc'=(\dots, 2, 2^\zp, 2, \dots)$.  In this case,
 This second decomposition is stable under taking a hyperplane section.  Namely, set $S':=S/(\ell)$, where $\ell$ is a generic linear form, and let $\FF'$ be the restriction of $\FF$ to $S'$.  Since $\text{depth}(S/I)=1$, the complex $\FF'$ is not a resolution, but it is still compatible with $\cc'$, and hence the second decomposition still holds for $\FF'$.
 \end{example}
 
-Recall that, for a sheaf $\cF$ on $\PP^n$, we say that $\FF=[\dots \gets \FF_{-1}\gets \FF_0\gets \FF_1\gets \dots]$ is a \defi{free monad} for $\cF$ if $\HH_0\widetilde{\FF}\cong \cF$ and if $\HH_i(\widetilde{\FF})=0$ otherwise.   See \cite[\S8]{eis-floy-schrey}, and the references therein, for more on free monads.  We prove a structural result about the Betti table of a free monad. 
+\david{the next material needs to be cleaned up and made into its own ``monad'' section}
+Recall that, for a sheaf $\cF$ on $\PP^n$, we say that $\FF=[\dots \gets \FF_{-1}\gets \FF_0\gets \FF_1\gets \dots]$ is a \defi{free monad} for $\cF$ if $\HH_0\widetilde{\FF}\cong \cF$ and if $\HH_i(\widetilde{\FF})=0$ otherwise.   See \cite[\S8]{eis-floy-schrey}, and the references therein, for more on free monads.  
 % See also Example~\ref{ex:monads}.
 \begin{cor}\label{cor:monads}
 Let $\FF$ be a free monad for a sheaf $\cF$ on $\PP^n$.  Then there exists a free resolution $\FF'$; a free complex $\FF''$ such that $\widetilde{\FF''}$ resolves a coherent sheaf on $\PP^n$; and positive rational scalars $\lambda', \lambda''$, such that
@@ -1812,6 +1782,7 @@ Since the extension $\kk\subseteq \overline{\kk}$ is flat, we have an obvious in
 
 The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_{R}$ interact with the map $f$.
 
+\david{we should replace this with the general  field extension, as we discussed.}
 \begin{lemma}\label{lem:general pairing}
 Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\PP^n)$.  Then
 \[
@@ -1864,6 +1835,9 @@ These results enable us to compute many new examples of cones of Betti tables.
 %
 %\end{example}
 
+\david{We can do ANY curve with a nonconstant map to $\P^{1}$: I now see (and it's very easy)
+that a given any effective divisor $D$, a general line bundle of degree genus$(C)-1$ is an ulrich sheaf for $\cO(D)$.}
+ 
 \begin{example}[Curves]\label{ex:res over section ring of ell curve}
 Let $C$ be any smooth curve of genus $g$ and let $f\colon C\to \PP^n$ be any embedding of $C$.  Then $C$ admits an Ulrich sheaf by~\cite[Corollary~4.5]{eis-schrey-chow}.  (If $\kk$ is an algebraically closed field, then the rank $1$ Ulrich sheaves correspond to line bundles of degree $g-1$ with no sections.)  Set $R$ to be the homogeneous coordinate ring of $C$ in $\PP^n$.  Then $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.
 

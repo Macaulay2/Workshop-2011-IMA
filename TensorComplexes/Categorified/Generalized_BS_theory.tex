@@ -707,13 +707,25 @@ We conclude that
 \]
 which proves the formula.
 \end{proof}
-%
-%\begin{remark}\label{rmk:generic}
-%The proof of Theorem~\ref{thm:betti numbers of pairing} illustrates the following useful fact:  over the generic point of $\AA^1$, we have the isomorphism
-%\[
-%(\FF\cdot \cE)\otimes_{A} \kk(t)\cong \left( Rp_{2*}(\widetilde{\FF}\otimes \cE)\right) \otimes_{\kk} \kk(t).
-%\]
-%\end{remark}
+
+
+\begin{example}\label{ex:1441}
+Let $S=\kk[x,y,z]$ and let
+\begin{equation}\label{eqn:intro ex}
+\beta(\FF)=\begin{bmatrix} 1&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}.
+\end{equation}
+
+No multiple of the Betti table $\beta(\FF)$ cannot equal the Betti table of a minimal, free complex with finite length homology. Indeed, such a complex would be a resolution,  so this case is covered by the theory of \cite{Eis-Schr}. But it is instructive to see how this follows directly from
+Theorem~\ref{thm:Phi}:
+
+If $\cE$ to be a rank $8$ supernatural bundle of type $(0,-8)$ then 
+$\FF\cdot \cE$ would be a minimal complex of the form
+\[
+\FF\cdot \cE=\left[ \begin{matrix}A(-3)^{240}\\ \oplus \\A(-4)^{256}\end{matrix} \longleftarrow \begin{matrix}A(-4)^{256}\\\oplus \\ A(-5)^{240}\end{matrix}\right].
+\]
+Since the complex is minimal, the kernel of the map will contain a subsheaf of $A(-4)^{256}$ of rank at least $256-240=16$, and hence $\FF\cdot \cE$ cannot have finite length homology, and  by Theorem~\ref{thm:Phi}\eqref{thm:Phi:2} it follows that no multiple of $\beta(\FF)$ can be the Betti table of a complex with finite length homology. However, we shall see in Example~\ref{ex:1441bis} that 
+there that $10\beta(\FF)$ is the Betti table of a complex with 1-dimensional homology.
+\end{example}
 
 As a Corollary of Theorem~\ref{thm:betti numbers of pairing}, we can use $\Phi$ to recover the Betti numbers of $\FF$  or the cohomology
 table of $\cE$:
@@ -920,13 +932,15 @@ The line that snakes through the table corresponds to the dividing line in the d
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{\underline{{Part II: The structure of free complexes}}}
+\section*{\underline{{Part II: Free Complexes with Homology}}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Complexes with homology}\label{sec:refined}
+\section{Decomposing Betti Tables}\label{sec:refined}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The main result of this section and the next two is Theorem~\ref{thm:extremal rays refined}.  This provides structural results about the Betti tables of free complexes with prescribed homology, generalizng the main decomposition results in \BS theory from \cites{eis-schrey1,boij-sod2} (c.f. Example~\ref{ex:resolutions}.)  
+The main result of this section and the next two is Theorem~\ref{thm:extremal rays refined},
+which extends the main decomposition results in \BS theory from \cites{eis-schrey1,boij-sod2}
+to describe the cones of Betti tables of free complexes with  homology of at least a given codimension. More generally, we can treat certain cases where the homology modules have distinct codimensions. For this we make use of the following definitions.
 
 \begin{defn} A \defi{codimension sequence} is a nondecreasing
 doubly infinite sequence
@@ -945,31 +959,23 @@ $
 \codim \HH^i(\FF) \geq b_i, \text{ for all } i,
 $
 and if $\FF_i=0$ whenever $b_i=\nothing$.
-%
-%We say that $i$ is a \defi{nondecreasing index} (resp.\ a \defi{nonincreasing index}) of $\cc$ if the sequence $(\cc_i,\cc_{i+1},\dots)$ is nondecreasing (resp.\ nonincreasing.)
 \end{defn}
 
-%\begin{example}
-%Any complex $\FF\in \DD^b(S)$ is compatible with the codimension sequence $(\dots, 0,0^\zp,0,\dots)$.  By contrast, if $M$ is a module of codimension $c$ and if $\FF$ is its minimal free resolution of $M$, then $\FF$ is not compatible with the codimension sequence $(\dots, 0,0,c+1^\zp,c+1,\dots)$.
-%%Let $\FF=[\FF_0\gets \dots \gets \FF_p]$ be the minimal free resolution of a module of codimension $c$.  The complex $\FF$ is compatible with $\cc=(\dots, 0,c-1^\circ,c,c+5,\dots)$.  However, $\FF$ is not compatible with $\cc=(\dots,c+1^\circ,c+1,\dots)$.  
-%\end{example}
+Here are the cones of Betti tables and cohomology tables we will consider:
 
-Here are the cones of Betti tables and cohomology tables we will work with:
 \begin{defn}\label{defn:cones}
 We write $\BBQ^{\cc}(S)$ for the subcone of $\VV$ spanned by $\beta(\FF)$ as $\FF$ ranges over all elements of $\DD^b(S)$ that are compatible with $\cc$.  For an integer $k\in \ZZ$, we write $\BBQ^k(S)$ to denote the cone corresponding to the codimension sequence $(\dots, k,k,\dots)$.
 
 For any $k=0, \dots, n$, we define $\CQ^k(\PP^n)$ to be the subcone of $\WW$ spanned by all $\cE\in \DD^b(\PP^n)$ satisfying $\codim(\cE)\geq k$.
 \end{defn}
 
-
-Thus 
 \begin{defn}\label{defn:deg compatible}
 Suppose that $\cc$ is a codimension sequence. Let $\dd$ be a degree sequence 
 of codimension $\ell$ (Definition~\ref{def:deg seq}), having the form
 $$
 \cdots -\infty, d_{k}, \cdots, d_{k+\ell}, \infty, \cdots
 $$
-with $d_{k}k\dots, d_{k+\ell}\in \ZZ$.
+with $d_{k},\dots, d_{k+\ell}\in \ZZ$.
 We say that $\dd$ is \defi{compatible} with $\cc$ if $c_{k}\leq \ell \leq c_{k+1}$. 
 \end{defn}
 
@@ -980,13 +986,14 @@ It follows from the main result of \cite{WMACE} that if a complex
 $$
 \FF: F_{k}\leftarrow \cdots \leftarrow F_{k+\ell}\leftarrow 0,
 $$
-has $i$-th homology $\HH_{i}\FF$ of codimension $\geq\ell$ for $i>k$, then $\FF$ is actually a (shifted) resolution, and the module $\HH_{k}\FF$ that it resolves must have codimension $\leq \ell$. Thus to say that a pure complex has degree sequence and codimension sequence satisfying the following compatibility
-condition is the same as saying that it is a homologically shifted resolution of a module whose codimension is between
-$c_{k}$ and $\ell$. This module is Cohen-Macaulay if and only if its codimension is exactly $\ell$.
+has $i$-th homology $\HH_{i}\FF$ of codimension $\geq\ell$ for $i>k$, then $\FF$ is actually a (shifted) resolution, and the module $\HH_{k}\FF$ that it resolves must have codimension $\leq \ell$. Thus if $\FF$ is compatible with a codimension sequence $\cc$
+and has  degree sequence $\dd$ that is compatible with $\cc$, then
+$\FF$ is a homologically shifted resolution of a module whose projective dimension is $\ell$ and whose codimension is between
+$c_{k}$ and $\ell$. 
 
 Our main result is a description of the structure of a simplicial fan for $\BBQ^{\cc}(S)$ in terms of  Betti tables of pure resolutions.  
 
-\begin{thm}[Main Decomposition Theorem]\label{thm:extremal rays refined}
+\begin{thm}[Decomposition Theorem]\label{thm:extremal rays refined}
 If $\FF\in \DD^b(S)$  is compatible with $\cc$ then  $\beta(\FF)$ can be expressed
 uniquely as a positive rational linear combination of the Betti tables of shifted pure resolutions of Cohen--Macaulay modules whose degree sequences form a chain and are compatible with $\cc$.
 
@@ -1024,14 +1031,49 @@ then there exist Cohen-Macaulay graded $S$-modules $M^k$ of codimension $\geq \c
 \beta(\FF)=\sum_{k\in \ZZ} a_k\beta(M^k[k]).
 \]
 \end{cor}
-As noted in the introduction, the denominators of the $a_k$ may be seen as a measurement of the extent to which $\FF$ fails to be quasi-isomorphic to its homology.  
+As noted in the introduction, the denominators of the $a_k$ may be seen as a measurement of the extent to which $\FF$ fails to be quasi-isomorphic to its homology.  \david{I begin to wonder about this. Even if they were all equal to 1, the modules resolved might not be the cohomology modules. Can this occur?}
 
 \david{add an example showing how the decomposition proceeds, from higher to lower codim and from right to left.}
 
-\david{put examples from section 7 here}
+\begin{example}\label{example:many decompositions}
+For any complex $\FF\in \DD^b(S)$, there exist many different values of $\cc$ that are compatible with $\FF$, and the decomposition of $\beta(\FF)$ induced by Theorem~\ref{thm:extremal rays refined} may depend on the choice of $\cc$.   For instance, let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may choose $\cc=(\dots, \nothing, 2^\zp, \infty, \dots)$ and then we decompose
+\[
+\beta(\FF)=\begin{bmatrix}
+1^\zp&-&-&-\\
+-&4&4&1
+\end{bmatrix}
+=
+\frac{1}{3}
+\begin{bmatrix}
+1^\zp&-&-&-\\
+-&6&8&3
+\end{bmatrix}
++\frac{2}{3}
+\begin{bmatrix}
+1^\zp&-&-\\
+-&3&2
+\end{bmatrix}.
+\]
+$\FF$ is also compatible with $\cc'=(\dots, 2, 2^\zp, 2, \dots)$.  In this case, we obtain the decomposition:
+\[
+\beta(\FF)=
+\begin{bmatrix}
+1^\zp&-&-&-\\
+-&4&4&1
+\end{bmatrix}
+=\begin{bmatrix}1^\zp&-&-\\-&3&2\end{bmatrix}
++
+3\begin{bmatrix}
+-^\zp&-&-&-\\
+-&1&2&1
+\end{bmatrix}
+\] 
+This second decomposition is stable under taking a hyperplane section.  Namely, set $S':=S/(\ell)$, where $\ell$ is a generic linear form, and let $\FF'$ be the restriction of $\FF$ to $S'$.  Since $\text{depth}(S/I)=1$, the complex $\FF'$ is not a resolution, but it is still compatible with $\cc'$, and hence the second decomposition still holds for $\FF'$.
+\end{example}
 
 \begin{example}[Resolutions]\label{ex:resolutions}
-If $\cc=(\dots, \nothing, 0^\zp, \infty, \dots)$ then a complex $\FF$ is compatible with $\cc$ if and only if $\FF$ is the minimal free resolution of an $S$-module.  Hence, for this value of $\cc$, Theorem~\ref{thm:extremal rays refined} recovers the main results of \cite{boij-sod2}.  If instead $\cc=(\dots, \nothing, n+1^\zp, \infty, \dots)$, then we recover \cite[Theorem~0.2]{eis-schrey1}.
+ If  $\cc=(\dots, \nothing, n+1^\zp, \infty, \dots)$, then a complex $\FF$ is compatible with $\cc$ if and only if $\FF$ is the minimal free resolution of an $S$-module of finite length, and we recover \cite[Theorem~0.2]{eis-schrey1}. More generally, the resolution of any module is compatible with
+$\cc=(\dots, \nothing, 0^\zp, \infty, \dots)$, and we recover the main results of \cite{boij-sod2}. 
 \end{example}
 
 
@@ -1044,40 +1086,51 @@ If $\cc=(\dots,\nothing,0^{\zp},n+1,n+1,\dots)$ then a complex $\FF$ is compatib
 Let $\cc=(\dots,\nothing,0^\zp,n-1,n-1,\dots,)$.   Let $\FF\in \DD^b(S)$ be compatible with $\cc$ and let $M$ be the $0$th homology module of $\FF$.  We note that $\FF$ provides an approximate resolution of $M$, in the sense that the homology of $[\widetilde{\FF}\to \widetilde{M}]$ has dimension at most $1$.  Such approximate resolutions play a key role in \cite[Lemma~1.6]{gruson-lazarsfeld-peskine}, where they are used to bound the Castelnuovo--Mumford regularity of $\widetilde{M}$.
 \end{example}
 
-\david{move to a new ``monads'' section that might replace the current section 7 (or come before the proof of the decomp theorem. Explain that this is NOT a decomposition in a chain.}
-\begin{example}[Free Monads]\label{ex:monads}
-Given a sheaf $\cF$ on $\PP^n$, we recall that a free complex $\FF$ is a \defi{free monad} for $\cF$ if $\HH_0(\FF)\cong \cF$ and if $\HH_i(\widetilde{\FF})=0$ otherwise (cf. \cite[\S8]{eis-floy-schrey}.)  As an application of this theorem (see Corollary~\ref{cor:monads} below), we can use shifted pure Betti tables to decompose the Betti table any free monad.  
-
-For instance, in \cite[Example 8.2]{eis-floy-schrey}, it is shown that
+\begin{example}\label{ex:1441bis}
+Returning to the complex $\FF$ of Example~\ref{ex:1441}
+we see from the following decomposition that $\beta(\FF)$ does lie in $\BBQ^2(S)$:
 \[
-\widetilde{\FF}:=\left[0\gets \cO_{\PP^4}(-1)^2 \gets  \cO_{\PP^4}(-2)^{11}\gets \overset{\zp}{\cO_{\PP^4}(-3)^{20}}\gets \cO_{\PP^4}(-4)^{10}\gets 0 \right]
+\begin{bmatrix} 1^\zp&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}
+=
+\begin{bmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{16}{5}&4&-\\-&-&-&-\\-&-&-&-\\-&-&-&\frac{4}{5} \end{bmatrix}
++
+\begin{bmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{3}{10}&-&-\\-&-&\frac{1}{2}&-\\-&-&-&-\\-&-&-&\frac{1}{5} \end{bmatrix}
++
+\begin{bmatrix} \frac{1}{5}^\zp&-&-&-\\ -&-&-&-\\-&\frac{1}{2}&-&-\\-&-&\frac{3}{10}&-\\-&-&-&-\\-&-&-&- \end{bmatrix}
++
+\begin{bmatrix} \frac{4}{5}^\zp&-&-&-\\ -&-&-&-\\-&-&-&-\\-&4&\frac{16}{5}&-\\-&-&-&-\\-&-&-&- \end{bmatrix}.
 \]
-is a free monad for the ideal sheaf of a certain rational surface in $\PP^4$.  This decomposes as
-\begin{align*}
-\beta(\FF)&=
-\begin{bmatrix}
-2&11&20^\zp&10
-\end{bmatrix}
-\\
-&=
-\begin{bmatrix}
-2&4&2^\zp&-
-\end{bmatrix}
-+
-\begin{bmatrix}
--&7&7^\zp&-
-\end{bmatrix}
-+
-\begin{bmatrix}
--&-&10^\zp&10
-\end{bmatrix}
-+
-\begin{bmatrix}
--&-&1^\zp&-
-\end{bmatrix}.
-\end{align*}
+Up to scalar multiple, $\beta(\FF)$ thus equals the Betti table of a complex whose homology modules have codimension $2$.  Equivalently, $\beta(\FF)$ 
+equals (up to scalar multiple) the Betti table of a complex over $\kk[x,y]$ with finite length homology.
 \end{example}
 
+
+
+
+
+\begin{example}
+If we think of a pure resolution of a module of finite length as a complex with homology of dimension at most 1 we recover the fact, first observed by Mats Boij, that a pure table of type $d=(d_0, \dots, d_{n+1})$ can be written the sum of a pure table of type $(d_0, \dots, d_n)$ and a shifted pure table of type $(d_1, \dots, d_{n+1})$.  For instance
+\[
+\begin{bmatrix}
+1^{\zp}&-&-&-\\
+-&5&5&-\\
+-&-&-&1
+\end{bmatrix}
+=
+\begin{bmatrix}
+1^{\zp}&-&-&-\\
+-&3&2&-\\
+-&-&-&-
+\end{bmatrix}
++
+\begin{bmatrix}
+-^{\zp}&-&-&-\\
+-&2&3&-\\
+-&-&-&1
+\end{bmatrix}.
+\]
+We may interpret this decomposition as follows.  Let $M$ be an $S=\kk[x,y,z]$-module whose Betti table is the diagram on the left. If $\ell$ is a generic linear form (assuming $\kk$ is infinite), then as $S/\ell$-modules, the Betti tables of $\Tor^0_S(M,S/\ell)$ and $\Tor^1(M,S/\ell)$ correspond to the other Betti tables above.
+\end{example}
 
 
 
@@ -1146,7 +1199,7 @@ Since $u$ satisfies the inequalities in Corollary~\ref{cor:dualconeA refined}, o
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Proof of Main Decomposition Theorem}\label{sec:refined proof}\label{sec:general case}
+\section{Proof of the Decomposition Theorem}\label{sec:refined proof}\label{sec:general case}
 %\subsection{Resolutions and refined Boij--S\"oderberg theory for $S$}\label{sec:refined}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1421,111 +1474,18 @@ and this implies the theorem.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Examples and an application to monads}\label{sec:examples}
+\section{Monads}\label{sec:examples}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-To illustrate the results from the previous sections, we provide a few examples.  We also apply Theorem~\ref{thm:extremal rays refined} to prove a decomposition result for the Betti tables of monads.
-\begin{example}\label{ex:1441}
-\david{clarify that the first half is about resolutions, so the non-existence comes from the older
-B-S theory -- and that the point is to compute the actual complex $\FF\cdot \cE$.}
-Let $S=\kk[x,y,z]$ and let
-\begin{equation}\label{eqn:intro ex}
-\beta(\FF)=\begin{bmatrix} 1&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}.
-\end{equation}
 
-
-We first apply Theorem~\ref{thm:Phi} to show that $\beta(\FF)$ cannot equal the Betti table of a minimal, free complex with finite length homology.  To prove this, we choose $\cE$ to be a rank $8$ supernatural bundle of type $(0,-8)$.  
-%Note that $\cE=\Sym_7(\Omega_{\PP^2}))\otimes \cO(\pm 13)$ works.
-Then $\FF\cdot \cE$ would have the form
-\[
-\FF\cdot \cE=\left[ \begin{matrix}A(-3)^{240}\\ \oplus \\A(-4)^{256}\end{matrix} \longleftarrow \begin{matrix}A(-4)^{256}\\\oplus \\ A(-5)^{240}\end{matrix}\right].
-\]
-For any minimal, free complex of this form, the kernel of the map will contain a subsheaf of $A(-4)^{256}$ of rank at least $256-240=16$, and hence $\FF\cdot \cE$ cannot have finite length homology.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, we conclude that $\beta(\FF)$ cannot be the Betti table of a complex with finite length homology.
-
-However, as illustrated by the following decomposition, $\beta(\FF)$ does lie in $\BBQ^2(S)$.
-\[
-\begin{bmatrix} 1^\zp&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}
-=
-\begin{bmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{16}{5}&4&-\\-&-&-&-\\-&-&-&-\\-&-&-&\frac{4}{5} \end{bmatrix}
-+
-\begin{bmatrix} -^\zp&-&-&-\\ -&-&-&-\\-&\frac{3}{10}&-&-\\-&-&\frac{1}{2}&-\\-&-&-&-\\-&-&-&\frac{1}{5} \end{bmatrix}
-+
-\begin{bmatrix} \frac{1}{5}^\zp&-&-&-\\ -&-&-&-\\-&\frac{1}{2}&-&-\\-&-&\frac{3}{10}&-\\-&-&-&-\\-&-&-&- \end{bmatrix}
-+
-\begin{bmatrix} \frac{4}{5}^\zp&-&-&-\\ -&-&-&-\\-&-&-&-\\-&4&\frac{16}{5}&-\\-&-&-&-\\-&-&-&- \end{bmatrix}.
-\]
-Up to scalar multiple, $\beta(\FF)$ thus equals the Betti table of a complex whose homology modules have codimension $2$.  Equivalently, $\beta(\FF)$ 
-equals (up to scalar multiple) the Betti table of a complex over $\kk[x,y]$ with finite length homology.
-\end{example}
-
-
-
-
-
-\begin{example}
-\david{ use the notation with the $^\circ$ here -- I think the $[-1]$ is then unnecessary.}
-
-Corollary~\ref{cor:uniform} recovers the fact, first observed by Mats Boij, that a pure table of type $d=(d_0, \dots, d_{n+1})$ can be written the sum of a pure table of type $(d_0, \dots, d_n)$ and a shifted pure table of type $(d_1, \dots, d_{n+1})[-1]$.  For instance
-\[
-\begin{bmatrix}
-1&-&-&-\\
--&5&5&-\\
--&-&-&1
-\end{bmatrix}
-=
-\begin{bmatrix}
-1&-&-&-\\
--&3&2&-\\
--&-&-&-
-\end{bmatrix}
-+
-\begin{bmatrix}
--&-&-&-\\
--&2&3&-\\
--&-&-&1
-\end{bmatrix}.
-\]
-We may interpret this decomposition as follows.  Let $M$ be an $S=\kk[x,y,z]$-module whose resolution equals the diagram on the left. If $\ell$ is a generic linear form (assuming $\kk$ is infinite), then as $S/\ell$-modules, the Betti tables of $\Tor^0_S(M,S/\ell)$ and $\Tor^1(M,S/\ell)$ correspond to the other Betti tables above.
-\end{example}
-
-\begin{example}\label{example:many decompositions}
-For any complex $\FF\in \DD^b(S)$, there exist many different values of $\cc$ that are compatible with $\FF$, and the decomposition of $\beta(\FF)$ induced by Theorem~\ref{thm:extremal rays refined} may depend on the choice of $\cc$.   For instance, let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may choose $\cc=(\dots, \nothing, 2^\zp, \infty, \dots)$ and then we decompose
-\[
-\beta(\FF)=\begin{bmatrix}
-1^\zp&-&-&-\\
--&4&4&1
-\end{bmatrix}
-=
-\frac{1}{3}
-\begin{bmatrix}
-1^\zp&-&-&-\\
--&6&8&3
-\end{bmatrix}
-+\frac{2}{3}
-\begin{bmatrix}
-1^\zp&-&-\\
--&3&2
-\end{bmatrix}.
-\]
-$\FF$ is also compatible with $\cc'=(\dots, 2, 2^\zp, 2, \dots)$.  In this case, we obtain the decomposition:
-\[
-\beta(\FF)=
-\begin{bmatrix}
-1^\zp&-&-&-\\
--&4&4&1
-\end{bmatrix}
-=\begin{bmatrix}1^\zp&-&-\\-&3&2\end{bmatrix}
-+
-3\begin{bmatrix}
--^\zp&-&-&-\\
--&1&2&1
-\end{bmatrix}
-\] 
-This second decomposition is stable under taking a hyperplane section.  Namely, set $S':=S/(\ell)$, where $\ell$ is a generic linear form, and let $\FF'$ be the restriction of $\FF$ to $S'$.  Since $\text{depth}(S/I)=1$, the complex $\FF'$ is not a resolution, but it is still compatible with $\cc'$, and hence the second decomposition still holds for $\FF'$.
-\end{example}
-
-\david{the next material needs to be cleaned up and made into its own ``monad'' section}
-Recall that, for a sheaf $\cF$ on $\PP^n$, we say that $\FF=[\dots \gets \FF_{-1}\gets \FF_0\gets \FF_1\gets \dots]$ is a \defi{free monad} for $\cF$ if $\HH_0\widetilde{\FF}\cong \cF$ and if $\HH_i(\widetilde{\FF})=0$ otherwise.   See \cite[\S8]{eis-floy-schrey}, and the references therein, for more on free monads.  
+Recall that a free complex $\FF=[\dots \gets \FF_{-1}\gets \FF_0\gets \FF_1\gets \dots]$ is a \defi{free monad} for a sheaf $\cF$ on $\PP^{n}$ if 
+$$
+\HH_i\widetilde{\FF}\cong
+\begin{cases}                    \cF&\text{ if } i=0\\
+					0 &\text{ if } i\neq 0.
+\end{cases}
+$$					
+See \cite[\S8]{eis-floy-schrey}, and the references therein, for more on free monads.  
 % See also Example~\ref{ex:monads}.
 \begin{cor}\label{cor:monads}
 Let $\FF$ be a free monad for a sheaf $\cF$ on $\PP^n$.  Then there exists a free resolution $\FF'$; a free complex $\FF''$ such that $\widetilde{\FF''}$ resolves a coherent sheaf on $\PP^n$; and positive rational scalars $\lambda', \lambda''$, such that
@@ -1533,7 +1493,8 @@ Let $\FF$ be a free monad for a sheaf $\cF$ on $\PP^n$.  Then there exists a fre
 \beta(\FF)=\lambda'\beta(\FF')+\lambda''\beta(\Hom(\FF'',S)).
 \]
 \end{cor}
-\begin{proof}
+
+\begin{proof}\david{proof needs to be rewritten, clarified.}
 Note that $\beta(\FF)$ is compatible with the codimension sequence $\cc'=(\dots,0,0,0^{\zp},n+1,\dots)$. We set $D'$ to be the diagram obtained from $\beta(\FF)$ as follows: decompose $\beta(\FF)$ according to the decomposition algorithm induced by the simplicial structure on $\BBQ^{\cc'}(S)$, and keep track of the partial sums along the way.  At a certain point in the algorithm we will have exhausted all of the codimension $1$ degree sequences.  We continue the algorithm, using codimension $0$ degree sequences compatible with $\cc'$, until the first moment that our partial sum $D'$ satisfies
 \[
 \sum_{i,j} (-1)^i\beta_{i,j}D'=\rank \cF.
@@ -1562,7 +1523,36 @@ and hence this reduces to considering the entries in column $0$.  Within a singl
 where the first equality is because $\FF$ is a monad for $\cF$; the second equality is by construction of $D'$; and the third equality follows from the fact $\sum_{i,j}(-1)^i\beta_{i,j}(D'')$ since $D''$ was written as a sum of pure Betti tables of strictly positive codimension.  It follows that we cannot have too few or too many syzygies in column $0$, completing the proof.
 \end{proof}
 
-
+\begin{example}[Free Monads]\label{ex:monads}
+In \cite[Example 8.2]{eis-floy-schrey}, it is shown that
+\[
+\widetilde{\FF}:=\left[0\gets \cO_{\PP^4}(-1)^2 \gets  \cO_{\PP^4}(-2)^{11}\gets \overset{\zp}{\cO_{\PP^4}(-3)^{20}}\gets \cO_{\PP^4}(-4)^{10}\gets 0 \right]
+\]
+is a free monad for the ideal sheaf of a certain rational surface in $\PP^4$.  This decomposes as
+\begin{align*}
+\beta(\FF)&=
+\begin{bmatrix}
+2&11&20^\zp&10
+\end{bmatrix}
+\\
+&=
+\begin{bmatrix}
+2&4&2^\zp&-
+\end{bmatrix}
++
+\begin{bmatrix}
+-&7&7^\zp&-
+\end{bmatrix}
++
+\begin{bmatrix}
+-&-&10^\zp&10
+\end{bmatrix}
++
+\begin{bmatrix}
+-&-&1^\zp&-
+\end{bmatrix}.
+\end{align*}
+\end{example}
 
 
 

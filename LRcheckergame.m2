@@ -24,9 +24,8 @@ export{
      NC,
      FFF,
      Board,
-     Parent,
+     Fathers,
      Children,
-     TypeOfMoveFromParent,
      printTree,
      makeLocalCoordinates,
      resolveNode,
@@ -291,11 +290,10 @@ playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
      playCheckers ([blackChkrs, redChkrs], "root", {})  -- returns the root of the tree
 )
 
-playCheckers (Array,Thing,List) := (board,parent,typeofmove) ->(
+playCheckers (Array,Thing,List) := (board,father,typeofmove) ->(
      self := new MutableHashTable from {
 	  Board => board, 
-	  Parent => parent,
-	  TypeOfMoveFromParent => typeofmove
+	  Fathers => {(father,typeofmove)},
 	  };
      (children,c) := moveCheckers board;
      self.CriticalRow = c;
@@ -397,41 +395,97 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      
      if node.Children == {} then node.Solutions = node.SolutionsSuperset;  -- should change!!! 
      
-     if node.Parent =!= "root" then (
-     	  r := node.Parent.CriticalRow; -- critical row: rows r and r+1 are the most important ones
+     scan(node.Fathers, father'movetype->(
+     
+     (father,movetype) := father'movetype; 
+     if father =!= "root" then (
+     	  r := father.CriticalRow; -- critical row: rows r and r+1 are the most important ones
 	  M := node.FlagM;
 	  M'':= M_{0..(r-1)} | M_{r} - M_{r+1} | M_{r}| M_{(r+2)..(n-1)};
-      	  node.Parent.FlagM = M'';
-	  parent'solutions :=  
+      	  father.FlagM = M'';
+	  parent'solutions :=  -- THIS IS WHERE THE MAIN ACTION HAPPENS
 	  if node.Solutions == {} then {} -- means: not implemented
-	  else if node.TypeOfMoveFromParent#1 == 2 then (-- case (_,2)
+	  else if movetype#1 == 2 then (-- case (_,2)
      	       apply(node.Solutions, X->(
 		    	 X'' := (X^{0..r-1}) || (-X^{r+1}) || (X^{r}+X^{r+1}) ||( X^{r+2..n-1});
-		    	 normalizeAndReduce(X'',node.Parent)
+			 j := position(sort delete(NC, father.Board#1), i-> i==r+1);-- the column we need to normalize
+		    	 redCheckersColumnReduce(normalizeColumn(X'',r,j+1),father)
 	       	    	 ))
 	       )
-	  else if member(node.TypeOfMoveFromParent,{{2,0,0},{2,1,0},{1,1,0}}) then (-- case "STAY"
+	  else ( -- cases STAY and SWAP require homotopy 
 	       R := ring coordX;
 	       t := symbol t;
 	       Rt := (coefficientRing R)[t,gens R]; -- homotopy ring
 	       mapRtoRt := map(Rt,R,drop(gens Rt,1));
 	       Xt := mapRtoRt coordX; --  "homotopy" X 
+	       local M'X'; -- homotopy in global coordinates (produced by each case)
 	       
-	       -- V(t) = M'(t) X'(t) .......... we write everything in terms of M
-	       VwrtM := map(Rt^n,Rt^0,{});
-	       scan(#red'sorted, j-> VwrtM = VwrtM |
-		    if isRedCheckerInRegionE(j,r,black) then (
-		    	 submatrix(Xt,{0..r-1},{j}) 
-		    	 || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
-		    	 || -t*submatrix(Xt,{r},{j})
-		    	 || submatrix(Xt, {r+2..n-1}, {j})
-			 ) else (
-		    	 submatrix(Xt,{0..r},{j}) 
-		    	 || submatrix(Xt,{r+1},{j})-t*submatrix(Xt,{r},{j})
-		    	 || submatrix(Xt, {r+2..n-1}, {j})	    
-			 )
-		    );
-	       M'X' := promote(M,Rt) * VwrtM;
+	       -- these are used only in SWAP cases
+	       s := position(red'sorted, i->i==r); -- number of the first moving red checker
+	       VwrtM := map(Rt^n,Rt^0,{}); -- an empty column vector
+
+	       if member(movetype,{{2,0,0},{2,1,0},{1,1,0}}) then (-- case "STAY"
+		    -- V(t) = M'(t) X'(t) .......... we write everything in terms of M
+		    scan(#red'sorted, j-> VwrtM = VwrtM |
+		    	 if isRedCheckerInRegionE(j,r,black) then (
+		    	      submatrix(Xt,{0..r-1},{j}) 
+		    	      || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
+		    	      || -t*submatrix(Xt,{r},{j})
+		    	      || submatrix(Xt, {r+2..n-1}, {j})
+			      ) else (
+		    	      submatrix(Xt,{0..r},{j}) 
+		    	      || submatrix(Xt,{r+1},{j})-t*submatrix(Xt,{r},{j})
+		    	      || submatrix(Xt, {r+2..n-1}, {j})	    
+			      )
+		    	 );
+	       	    M'X' = promote(M,Rt) * VwrtM;
+	       	    ) 
+	       else if true or member(movetype,{{1,0,0},{1,1,1}}) then (-- case SWAP(middle row)		    
+	       	    bigR := red'sorted#(s+1); -- row of the second moving red checker
+		    rightmost'col'B := position(black, j->j==r);
+		    leftmost'col'A := position(black, j->j==r+1)+1;
+ 		    
+		    -- check if the black checker in the i'th row is in region A
+		    isRegionA := i -> position(black, i'->i'==i) >= leftmost'col'A;	     
+		    -- check if the black checker in the i'th row is in region B
+		    isRegionB := i -> position(black, i'->i'==i) <= rightmost'col'B;
+		    	       	    
+		    -- V(t) = M'(t) X'(t) .......... we write everything in terms of M
+		    scan(#red'sorted, j-> VwrtM = VwrtM |
+		    	 if j == s then ( -- note: this part can be optimized for speed
+			      transpose matrix { apply(n,i->(
+					if i==r then Xt_(r+1,s+1)
+					else if i==r+1 then -t*Xt_(r+1,s+1)
+					else if isRegionA i then -t*Xt_(i,s+1)
+					else if isRegionB i then Xt_(r+1,s+1)*Xt_(i,s)
+					else 0
+					)) }
+			      )
+			 else if j == s+1 then (
+			      transpose matrix { apply(n,i->(
+					if i==bigR then 1
+					else if i==r+1 then Xt_(r+1,s+1)
+					else if i==r then 0
+					else Xt_(i,s+1)
+					)) }
+			      )
+			 else if isRedCheckerInRegionE(j,r,black) then (
+		    	      submatrix(Xt,{0..r-1},{j}) 
+		    	      || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
+		    	      || -t*submatrix(Xt,{r},{j})
+		    	      || submatrix(Xt, {r+2..n-1}, {j})
+			      ) 
+			 else (
+		    	      submatrix(Xt,{0..r},{j}) 
+		    	      || submatrix(Xt,{r+1},{j})-t*submatrix(Xt,{r},{j})
+		    	      || submatrix(Xt, {r+2..n-1}, {j})	    
+			      )
+		    	 );
+	       	    M'X' = promote(M,Rt) * VwrtM;         
+		    )
+--	       else if member(movetype,{{0,0,0},{0,1,0}}) then (-- case SWAP(top row)		    
+--		    )
+	       else error "an unaccounted case";
 	       
 	       polys := makePolynomials(M'X',remaining'conditions'and'flags);
 	       startSolutions := apply(node.Solutions, X->toRawSolutions(coordX,X));
@@ -440,25 +494,38 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	       scan(startSolutions, 
 		    s->assert(norm sub(polys,matrix{{0}|s}) < ERROR'TOLERANCE * norm matrix{s})); 
 	       targetSolutions := trackHomotopy(polys,startSolutions);
-	       apply(targetSolutions, s->( 
-		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix s)) M'X';
-      		    X'' := inverse M'' * M''X'';
-		    normalizeAndReduce(X'',node.Parent)
+	       apply(targetSolutions, sln->( 
+		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix sln)) M'X';
+		    X'' := inverse M'' * M''X'';
+		    if not member(movetype,{{2,0,0},{2,1,0},{1,1,0}}) -- SWAP CASE
+		    then (
+     			 k := numgens source X'';
+			 X'' = X''_{0..s}| X''_{s}+X''_{s+1}| X''_{s+2..k-1}; -- we substitute the s+1 column for the vector w_{s+1}
+		    	 normalizeColumn(X'',r,s)
+			 ) 
+		    else normalizeColumn(X'',r,s) -- !!!
 		    ))
-	       )
-     	  else {}; -- means: not implemented
-	  parentX := makeLocalCoordinates node.Parent.Board;
+	       );
+     	  -- else {}; -- means: not implemented
+	  
+	  -- verify solutions
+	  parentX := makeLocalCoordinates father.Board;
 	  parentXlist := flatten entries parentX;
-	  scan(parent'solutions, X''->( -- check that solutions fit the parent's pattern
+	  scan(parent'solutions, X''->( 
+		    -- check that solutions fit the parent's pattern
 		    a := flatten entries X'';
 		    scan(#a, i->assert(
 			      (abs a#i < ERROR'TOLERANCE and parentXlist#i == 0)
 			      or (abs(a#i-1) < ERROR'TOLERANCE and parentXlist#i == 1)
 			      or (parentXlist#i != 0 and parentXlist#i != 1)
-			      ))
+			      ));
 		    ));
-	  node.Parent.Solutions = node.Parent.Solutions | parent'solutions;
-	  );
+	  father.Solutions = father.Solutions | parent'solutions;
+	  )
+     ));
+     -- check against the blackbox solutions
+     scan(node.Solutions, X->
+	  assert(position(node.SolutionsSuperset, Y->norm(Y-X)<ERROR'TOLERANCE) =!= null)); 
      )
 
 toRawSolutions = method()
@@ -468,31 +535,47 @@ toRawSolutions(Matrix,Matrix) := (coordX,X) -> (
      delete(null, apply(#a, i->if a#i == 1 or a#i == 0 then null else b#i))
      )
 
-normalizeAndReduce = method()
-normalizeAndReduce(Matrix,MutableHashTable) := (X'', father) -> (  
-     k := numgens source X'';
-     n := numgens target X'';
-     r := father.CriticalRow;
-     j := position(sort delete(NC, father.Board#1), i-> i==r+1);
+------------------
+-- normalizeColumn
+------------------
+--  this function divide a specific column of a matrix
+--  by a specific value
+------------------
+-- Input:
+--     X'' - the matrix to be normalized
+--     r   - the row of the elt that becomes 1
+--     j - the column to be normalized
+-----------------
+normalizeColumn = method(TypicalValue => Matrix)
+normalizeColumn(Matrix,ZZ,ZZ) := (X,r,j) -> (  
+     k := numgens source X;
+--     j := position(sort delete(NC, father.Board#1), i-> i==r+1);
      if j=!=null then(
-	  X'' = mutableMatrix(X''_{0..j-1} | (1/X''_(r+1,j))*X''_{j}  | X''_{j+1..k-1}); -- X''_(r+1,j) = X_(r,j)+X_(r+1,j) = 1+X_(r+1,j), so is the first part of Ravi's mistake
+	  -- X''_(r+1,j) = X_(r,j)+X_(r+1,j) = 1+X_(r+1,j), so is the first part of Ravi's mistake
+	  X = X_{0..j-1} | (1/X_(r,j))*X_{j}  | X_{j+1..k-1}; 
 	  --X''_(r,j) =-1/(1+X_(r,j)); -- error in Ravi's notes: should be -X_(r+1,j)/(1+X_(r,j))
 	  --X''_(r+1,j) = 1; -- this is correct, but is also already taken care of 
-	  redCheckersColumnReduce(father.Board#1, (j, n, k), X'');
+	  );
+     matrix X
+     )
+
+redCheckersColumnReduce = method(TypicalValue => Matrix)
+redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
+     k := numgens source X'';
+     n := numgens target X'';
+     red := last father.Board;
+     redSorted := sort delete(NC,red);
+     r := father.CriticalRow;
+     j := position(redSorted, i-> i==r+1);
+     if j=!=null then(
+     	  X''  = mutableMatrix X'';
+     	  for jj from j+1 to k-1 do 
+     	  if position(red, jjj->redSorted#jj == jjj) > j then (
+	       c := X''_(r+1,jj)/X''_(r+1,j); 
+	       scan(n, i->X''_(i,jj) = X''_(i,jj) - c*X''_(i,j))
+	       )
 	  );
      matrix X''
-     )
-redCheckersColumnReduce = method()
-redCheckersColumnReduce(List,Sequence,MutableMatrix) := (red, jnk, X'') -> (
-     redSorted := sort delete(NC,red);
-     (j,n,k) := jnk; -- (moving red column, numrows X'', numcols X'')
-     -- if j == 0  then 1/0; --!!!!!!!!
-     for jj from j+1 to k-1 do 
-     if position(red, jjj->redSorted#jj == jjj) > j then (
-	  r := redSorted#j; -- crit.row + 1
-	  c := X''_(r,jj)/X''_(r,j); 
-	  scan(n, i->X''_(i,jj) = X''_(i,jj) - c*X''_(i,j))
-	  );
      )
 
 -----------------
@@ -547,9 +630,23 @@ trackHomotopy (Matrix,List) := (H,S) -> (
 --     j = number of a red checker
 --     r = critical row
 --     black = black checkers on the board
-isRedCheckerInRegionE = method()
-isRedCheckerInRegionE(ZZ,ZZ,List) := (j,r,black) -> (
+isRegionA = method()
+isRegionA(ZZ,ZZ,List) := (i,r,black) -> (
      e0 := position(black, b->b==r+1);
      e1 := position(black, b->b==r);
-     j < e1 and j >= e0
+     i < e1 and i >= e0
+     )
+
+isRegionB = method()
+isRegionB(ZZ,ZZ,List) := (i,r,black) -> (
+     e0 := position(black, b->b==r+1);
+     e1 := position(black, b->b==r);
+     i < e1 and i >= e0
+     )
+
+isRedCheckerInRegionE = method()
+isRedCheckerInRegionE(ZZ,ZZ,List) := (i,r,black) -> (
+     e0 := position(black, b->b==r+1);
+     e1 := position(black, b->b==r);
+     i < e1 and i >= e0
      )

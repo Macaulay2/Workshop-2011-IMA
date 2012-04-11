@@ -50,6 +50,7 @@ NC = infinity
 
 -- OUR FIELD
 FFF = QQ
+ERROR'TOLERANCE := 0.001
 
 -- ---------------------
 --	verifyLength	--
@@ -381,13 +382,18 @@ resolveNode = method()
 resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      n := #node.Board#0;
      node.Solutions = {};
+     coordX := makeLocalCoordinates node.Board; -- local coordinates X = (x_(i,j))
+     black := first node.Board;
+     red := last node.Board;     
+     red'sorted := sort delete(NC, red);
+          
      if node.Children == {} then node.FlagM = matrix mutableIdentity(FFF,n)
      else scan(node.Children, c->resolveNode(c,remaining'conditions'and'flags));
      
      -- temporary: creates a superset of solutions via a blackbox solver
-     X := makeLocalCoordinates node.Board;
-     node.Polynomials = makePolynomials(node.FlagM * X,remaining'conditions'and'flags);
-     node.SolutionsSuperset = apply(solveSystem flatten entries node.Polynomials, s-> (map(CC,ring X,matrix s)) X);
+     node.Polynomials = makePolynomials(node.FlagM * coordX,remaining'conditions'and'flags);
+     node.SolutionsSuperset = apply(solveSystem flatten entries node.Polynomials, 
+	  s-> (map(CC,ring coordX,matrix s)) coordX);
      
      if node.Children == {} then node.Solutions = node.SolutionsSuperset;  -- should change!!! 
      
@@ -396,7 +402,7 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	  M := node.FlagM;
 	  M'':= M_{0..(r-1)} | M_{r} - M_{r+1} | M_{r}| M_{(r+2)..(n-1)};
       	  node.Parent.FlagM = M'';
-	  node.Parent.Solutions = node.Parent.Solutions |  
+	  parent'solutions :=  
 	  if node.Solutions == {} then {} -- means: not implemented
 	  else if node.TypeOfMoveFromParent#1 == 2 then (-- case (_,2)
      	       apply(node.Solutions, X->(
@@ -405,25 +411,53 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	       	    	 ))
 	       )
 	  else if member(node.TypeOfMoveFromParent,{{2,0,0},{2,1,0},{1,1,0}}) then (-- case "STAY"
-	       coordX := makeLocalCoordinates node.Board; -- local coordinates X = (x_(i,j))
 	       R := ring coordX;
 	       t := symbol t;
 	       Rt := (coefficientRing R)[t,gens R]; -- homotopy ring
 	       mapRtoRt := map(Rt,R,drop(gens Rt,1));
 	       Xt := mapRtoRt coordX; --  "homotopy" X 
-	       M'X' := promote(M,Rt) * (Xt^{0..r-1} || Xt^{r} + Xt^{r+1} || -t*Xt^{r} || Xt^{r+2..n-1}); -- this is V(t) = M'(t) X'(t)
+	       
+	       -- V(t) = M'(t) X'(t) .......... we write everything in terms of M
+	       VwrtM := map(Rt^n,Rt^0,{});
+	       scan(#red'sorted, j-> VwrtM = VwrtM |
+		    if isRedCheckerInRegionE(j,r,black) then (
+		    	 submatrix(Xt,{0..r-1},{j}) 
+		    	 || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
+		    	 || -t*submatrix(Xt,{r},{j})
+		    	 || submatrix(Xt, {r+2..n-1}, {j})
+			 ) else (
+		    	 submatrix(Xt,{0..r},{j}) 
+		    	 || submatrix(Xt,{r+1},{j})-t*submatrix(Xt,{r},{j})
+		    	 || submatrix(Xt, {r+2..n-1}, {j})	    
+			 )
+		    );
+	       M'X' := promote(M,Rt) * VwrtM;
+	       
 	       polys := makePolynomials(M'X',remaining'conditions'and'flags);
 	       startSolutions := apply(node.Solutions, X->toRawSolutions(coordX,X));
 	       
 	       -- track homotopy and plug in the solution together with t=1 into Xt
+	       scan(startSolutions, 
+		    s->assert(norm sub(polys,matrix{{0}|s}) < ERROR'TOLERANCE * norm matrix{s})); 
 	       targetSolutions := trackHomotopy(polys,startSolutions);
 	       apply(targetSolutions, s->( 
-		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix s)) Xt;
-      		    X'' := inverse node.Parent.FlagM * M''X'';
+		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix s)) M'X';
+      		    X'' := inverse M'' * M''X'';
 		    normalizeAndReduce(X'',node.Parent)
 		    ))
 	       )
-     	  else {} -- means: not implemented
+     	  else {}; -- means: not implemented
+	  parentX := makeLocalCoordinates node.Parent.Board;
+	  parentXlist := flatten entries parentX;
+	  scan(parent'solutions, X''->( -- check that solutions fit the parent's pattern
+		    a := flatten entries X'';
+		    scan(#a, i->assert(
+			      (abs a#i < ERROR'TOLERANCE and parentXlist#i == 0)
+			      or (abs(a#i-1) < ERROR'TOLERANCE and parentXlist#i == 1)
+			      or (parentXlist#i != 0 and parentXlist#i != 1)
+			      ))
+		    ));
+	  node.Parent.Solutions = node.Parent.Solutions | parent'solutions;
 	  );
      )
 
@@ -507,4 +541,15 @@ trackHomotopy (Matrix,List) := (H,S) -> (
      map't'0 := map(R, Rt, matrix{{0}}|vars R);
      map't'1 := map(R, Rt, matrix{{1}}|vars R);
      track(first entries map't'0 H, first entries map't'1 H, S)
+     )
+
+-- Input: 
+--     j = number of a red checker
+--     r = critical row
+--     black = black checkers on the board
+isRedCheckerInRegionE = method()
+isRedCheckerInRegionE(ZZ,ZZ,List) := (j,r,black) -> (
+     e0 := position(black, b->b==r+1);
+     e1 := position(black, b->b==r);
+     j < e1 and j >= e0
      )

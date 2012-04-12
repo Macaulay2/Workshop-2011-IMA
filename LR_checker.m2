@@ -4,6 +4,16 @@
 -- This is a file where I implement Ravis LR-decomposition
 -- ---------------------
 
+restart
+debug needsPackage "LRcheckergame";
+root = playCheckers({1},{1},2,4)
+resolveNode(root, {({1},random(FFF^4,FFF^4)), ({1},random(FFF^4,FFF^4))})
+printTree root
+
+root = playCheckers({2,1,0},{2,1,0},3,6)
+resolveNode(root, {({2,1,0},random(FFF^6,FFF^6))})
+
+end
 moveCheckers({3,5,4,2,1,0},{3,99,99,5,99,1},6)
 restart
 needsPackage "LRcheckergame";

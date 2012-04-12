@@ -382,15 +382,13 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      node.Solutions = {};
      coordX := makeLocalCoordinates node.Board; -- local coordinates X = (x_(i,j))
      black := first node.Board;
-     red := last node.Board;     
-     red'sorted := sort delete(NC, red);
           
      if node.Children == {} then node.FlagM = matrix mutableIdentity(FFF,n)
      else scan(node.Children, c->resolveNode(c,remaining'conditions'and'flags));
      
      -- temporary: creates a superset of solutions via a blackbox solver
-     node.Polynomials = makePolynomials(node.FlagM * coordX,remaining'conditions'and'flags);
-     node.SolutionsSuperset = apply(solveSystem flatten entries node.Polynomials, 
+     polynomials := makePolynomials(numgens ring coordX, node.FlagM * coordX, remaining'conditions'and'flags);
+     node.SolutionsSuperset = apply(solveSystem flatten entries polynomials, 
 	  s-> (map(CC,ring coordX,matrix s)) coordX);
      
      if node.Children == {} then node.Solutions = node.SolutionsSuperset;  -- should change!!! 
@@ -400,16 +398,22 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      (father,movetype) := father'movetype; 
      if father =!= "root" then (
      	  r := father.CriticalRow; -- critical row: rows r and r+1 are the most important ones
+     	  red := last father.Board;     
+     	  red'sorted := sort delete(NC, red);
 	  M := node.FlagM;
 	  M'':= M_{0..(r-1)} | M_{r} - M_{r+1} | M_{r}| M_{(r+2)..(n-1)};
       	  father.FlagM = M'';
+	  
+--	  if movetype=={2,2,0} and r == 1 then 1/0;
+	  
 	  parent'solutions :=  -- THIS IS WHERE THE MAIN ACTION HAPPENS
 	  if node.Solutions == {} then {} -- means: not implemented
 	  else if movetype#1 == 2 then (-- case (_,2)
      	       apply(node.Solutions, X->(
 		    	 X'' := (X^{0..r-1}) || (-X^{r+1}) || (X^{r}+X^{r+1}) ||( X^{r+2..n-1});
-			 j := position(sort delete(NC, father.Board#1), i-> i==r+1);-- the column we need to normalize
-		    	 redCheckersColumnReduce(normalizeColumn(X'',r,j+1),father)
+			 j := position(red'sorted, i-> i==r+1);-- the column we need to normalize
+		    	 if j=!=null then redCheckersColumnReduce(normalizeColumn(X'',r+1,j),father)
+			 else X''
 	       	    	 ))
 	       )
 	  else ( -- cases STAY and SWAP require homotopy 
@@ -427,10 +431,13 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	       if member(movetype,{{2,0,0},{2,1,0},{1,1,0}}) then (-- case "STAY"
 		    -- V(t) = M'(t) X'(t) .......... we write everything in terms of M
 		    scan(#red'sorted, j-> VwrtM = VwrtM |
-		    	 if isRedCheckerInRegionE(j,r,black) then (
+		    	 if isRedCheckerInRegionE(
+			      position(red,i->i==red'sorted#j), -- column of the j-th red checker on the board
+			      father) 
+			 then (
 		    	      submatrix(Xt,{0..r-1},{j}) 
 		    	      || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
-		    	      || -t*submatrix(Xt,{r},{j})
+		    	      || matrix{{0}}
 		    	      || submatrix(Xt, {r+2..n-1}, {j})
 			      ) else (
 		    	      submatrix(Xt,{0..r},{j}) 
@@ -469,13 +476,16 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 					else Xt_(i,s+1)
 					)) }
 			      )
-			 else if isRedCheckerInRegionE(j,r,black) then (
+			 else if isRedCheckerInRegionE(
+			      position(red,i->i==red'sorted#j), -- column of the j-th red checker on the board
+			      father
+			      ) 
+			 then (
 		    	      submatrix(Xt,{0..r-1},{j}) 
 		    	      || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
-		    	      || -t*submatrix(Xt,{r},{j})
+		    	      || matrix{{0}}
 		    	      || submatrix(Xt, {r+2..n-1}, {j})
-			      ) 
-			 else (
+			      ) else (
 		    	      submatrix(Xt,{0..r},{j}) 
 		    	      || submatrix(Xt,{r+1},{j})-t*submatrix(Xt,{r},{j})
 		    	      || submatrix(Xt, {r+2..n-1}, {j})	    
@@ -483,16 +493,19 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 		    	 );
 	       	    M'X' = promote(M,Rt) * VwrtM;         
 		    )
+	       -- implementing this case separately gives lower degree polynomials
 --	       else if member(movetype,{{0,0,0},{0,1,0}}) then (-- case SWAP(top row)		    
 --		    )
 	       else error "an unaccounted case";
 	       
-	       polys := makePolynomials(M'X',remaining'conditions'and'flags);
+	       polys := makePolynomials(numgens R, M'X',remaining'conditions'and'flags);
 	       startSolutions := apply(node.Solutions, X->toRawSolutions(coordX,X));
 	       
 	       -- track homotopy and plug in the solution together with t=1 into Xt
 	       scan(startSolutions, 
-		    s->assert(norm sub(polys,matrix{{0}|s}) < ERROR'TOLERANCE * norm matrix{s})); 
+		    s->assert(norm sub(polys,matrix{{0}|s}) < ERROR'TOLERANCE * 
+			 norm matrix{s} * 
+			 norm sub(last coefficients polys,CC))); 
 	       targetSolutions := trackHomotopy(polys,startSolutions);
 	       apply(targetSolutions, sln->( 
 		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix sln)) M'X';
@@ -549,9 +562,7 @@ toRawSolutions(Matrix,Matrix) := (coordX,X) -> (
 normalizeColumn = method(TypicalValue => Matrix)
 normalizeColumn(Matrix,ZZ,ZZ) := (X,r,j) -> (  
      k := numgens source X;
---     j := position(sort delete(NC, father.Board#1), i-> i==r+1);
      if j=!=null then(
-	  -- X''_(r+1,j) = X_(r,j)+X_(r+1,j) = 1+X_(r+1,j), so is the first part of Ravi's mistake
 	  X = X_{0..j-1} | (1/X_(r,j))*X_{j}  | X_{j+1..k-1}; 
 	  --X''_(r,j) =-1/(1+X_(r,j)); -- error in Ravi's notes: should be -X_(r+1,j)/(1+X_(r,j))
 	  --X''_(r+1,j) = 1; -- this is correct, but is also already taken care of 
@@ -563,14 +574,16 @@ redCheckersColumnReduce = method(TypicalValue => Matrix)
 redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
      k := numgens source X'';
      n := numgens target X'';
-     red := last father.Board;
-     redSorted := sort delete(NC,red);
+     red := delete(NC,last father.Board);
+     redSorted := sort red;
      r := father.CriticalRow;
      j := position(redSorted, i-> i==r+1);
      if j=!=null then(
      	  X''  = mutableMatrix X'';
+	  crit'col := position(red, i->i==r+1);
      	  for jj from j+1 to k-1 do 
-     	  if position(red, jjj->redSorted#jj == jjj) > j then (
+	  -- reduce the columns for red checkers that have higher number and "see" the red checker in the row r+1
+     	  if position(red, i->red#jj == i) > crit'col then ( 
 	       c := X''_(r+1,jj)/X''_(r+1,j); 
 	       scan(n, i->X''_(i,jj) = X''_(i,jj) - c*X''_(i,j))
 	       )
@@ -581,12 +594,13 @@ redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
 -----------------
 -- makePolynomials
 --
--- creates a zero dimensional system
+-- creates a square zero dimensional system
 -- that corresponds to a localization pattern
 -- and the list of Schubert conditions
 -- together with specified flags.
 ----------------
 -- input:
+-- 	   m = number of polynomials
 --     	   MX = global coordinates for an open subset
 --     	        of a checkerboard variety (or MX' in the homotopy (in Ravi's notes))
 --
@@ -595,7 +609,7 @@ redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
 -- output:  a matrix of polynomials
 -----------------
 makePolynomials = method(TypicalValue => Matrix)
-makePolynomials(Matrix, List) := (MX,conds) ->(
+makePolynomials(ZZ, Matrix, List) := (m, MX,conds) ->(
      R := ring MX;
      k := numgens source MX;
      n := numgens target MX;
@@ -608,7 +622,7 @@ makePolynomials(Matrix, List) := (MX,conds) ->(
 			 minors(k+c-(r+1)+1, MXF_{0..k+c-1})
 			 ))
 	  ));
-     gens eqs
+     gens eqs * random(FFF^(numgens eqs), FFF^m)  -- m random linear combinations
 )
 
 -- Tracks a homotopy
@@ -630,22 +644,10 @@ trackHomotopy (Matrix,List) := (H,S) -> (
 --     j = number of a red checker
 --     r = critical row
 --     black = black checkers on the board
-isRegionA = method()
-isRegionA(ZZ,ZZ,List) := (i,r,black) -> (
-     e0 := position(black, b->b==r+1);
-     e1 := position(black, b->b==r);
-     i < e1 and i >= e0
-     )
-
-isRegionB = method()
-isRegionB(ZZ,ZZ,List) := (i,r,black) -> (
-     e0 := position(black, b->b==r+1);
-     e1 := position(black, b->b==r);
-     i < e1 and i >= e0
-     )
-
 isRedCheckerInRegionE = method()
-isRedCheckerInRegionE(ZZ,ZZ,List) := (i,r,black) -> (
+isRedCheckerInRegionE(ZZ,MutableHashTable) := (i,node) -> (
+     r := node.CriticalRow;
+     black := first node.Board;
      e0 := position(black, b->b==r+1);
      e1 := position(black, b->b==r);
      i < e1 and i >= e0

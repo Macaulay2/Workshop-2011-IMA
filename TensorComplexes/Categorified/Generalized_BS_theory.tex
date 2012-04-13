@@ -182,7 +182,7 @@ This new tool enables us to describe the cone of Betti tables of finite, minimal
 \section*{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \BS conjectures, proved by Eisenbud and Schreyer~\cite{eis-schrey1}, describe, up to scalar multiple, of the possible values of invariants coming from finite free resolutions over a polynomial ring. In this paper we present a more robust foundation for the duality that is at the heart of the Eisenbud-Schreyer proof. Using the new foundation we greatly extend the reach of the theory.
+The \BS conjectures, proved by Eisenbud and Schreyer~\cite{eis-schrey1}, describe, up to scalar multiple, the possible values of certain invariants coming from finite free resolutions over a polynomial ring. In this paper we present a more robust foundation for the duality between these invariants and the cohomology invariants of vector bundles that is at the heart of the Eisenbud-Schreyer proof. Using the new foundation we greatly extend the reach of the theory.
 %range of examples and situations to which the theory applies.
 
 Let $\kk$ be a field, and let $S=\kk[x_0, \dots, x_n]$ be the polynomial ring. Recall that if 
@@ -836,7 +836,10 @@ The line that snakes through
 the table indicates how $\chi_{i,j}$ separates a Betti into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix. The functionals $\langle , \cE \rangle_{\tau,\kappa}$ used previously in Boij-S\"oderberg theory, where $\cE$ is a supernatural sheaf, can be expressed in terms of the $\chi_{i,j}$. 
 This is the sense in which the complex of $A$-modules $\Phi(\FF,\cE)$ categorifies the functionals  $\langle -,-\rangle_{\tau,\kappa}$.
 
-
+\david{the indexing in the following is significantly off from that of \cite{eis-schrey1}: There the
+functionals are called $\langle -,-\rangle_{c,\tau}$ and $c\in \ZZ$ while $\tau \in [0,n]$---backwards
+from what's below. I think it's enough to reverse the $\tau$ and $\kappa$ below, but we
+ought to rename $\kappa$ as $c$ for consistency. I have NOT yet made this change.}
 \begin{prop}\label{thm:categorified:2}
 \david{check the number $f_{\tau}-1$. In the previous version the $f_{i}$ were sometimes
 increasing instead of decreasing, and $s$ was incorrectly given as the codim of $\cE$. The original version is commented out below.} Let $\cE$ be a supernatural sheaf of dimension $s$ on $\PP^n$ with root sequence $f$, and let $\FF$ be a bounded minimal free complex. If $1\leq \tau\leq s$, then
@@ -987,13 +990,12 @@ We say that $\dd$ is \defi{compatible} with $\cc$ if $c_{k}\leq \ell \leq c_{k+1
 
 For example, if the terms of $\cc$ are all equal to $k$, then the degree sequences
 compatible with $\cc$ are precisely those of codimension $k$.
-
-It follows from the main result of \cite{WMACE} that if a complex
+Also, it follows from the main result of \cite{WMACE} that if a complex
 $$
 \FF: F_{k}\leftarrow \cdots \leftarrow F_{k+\ell}\leftarrow 0,
 $$
-has $i$-th homology $\HH_{i}\FF$ of codimension $\geq\ell$ for $i>k$, then $\FF$ is actually a (shifted) resolution, and the module $\HH_{k}\FF$ that it resolves must have codimension $\leq \ell$. Thus if $\FF$ is compatible with a codimension sequence $\cc$
-and has  degree sequence $\dd$ that is compatible with $\cc$, then
+has $i$-th homology $\HH_{i}\FF$ of codimension $\geq\ell$ for $i>k$, then $\FF$ is actually a (shifted) resolution, and the module $\HH_{k}\FF$ that it resolves must have codimension $\leq \ell$. Thus if $\FF$ is a pure complex with degree sequence $\dd = (d_{k}, \dots,d_{k+\ell})$ (that is,   $F_{i}$ is generated in degree $d_{i}$ for each $i$) that is compatible with a codimension sequence $\cc$
+then
 $\FF$ is a homologically shifted resolution of a module whose projective dimension is $\ell$ and whose codimension is between
 $c_{k}$ and $\ell$. 
 
@@ -1026,9 +1028,8 @@ the Betti table of any shifted pure free resolution of type $\dd$ of a Cohen-Mac
 Here by the statement that $\BBQ^{\cc}(S)$ is locally a simplicial fan we mean that if we fix any finite dimensional subspace $\VV_{\text{fin}}\subseteq \VV$ defined by the vanishing of coordinate vectors, then the restricted cone $\VV_{\text{fin}}\cap \BBQ^{\cc}(S)$ is a simplicial fan (and, in particular,
 is polyhedral). 
 
-The proof of Theorem~\ref{thm:extremal rays refined} involves two essential steps.  First, in \S\ref{sec:A}, we provide a detailed description of cones of Betti tables on $A$.  Since $\DD^b(A)$ is the target of the pairing $\Phi$, these results will provide a base case for the theorem  Second, in \S\ref{sec:refined}, 
+The proof of Theorem~\ref{thm:extremal rays refined} involves two essential steps:  In \S\ref{sec:A}, we provide a detailed description of cones of Betti tables on $A$.  Since $\DD^b(A)$ is the target of the pairing $\Phi$, these results will provide a base case for the theorem  Then, in \S\ref{sec:refined proof}, 
 we use the nonnegative functionals obtained by combining  \S\ref{sec:A} with Theorem~\ref{thm:Phi} to complete the proof of Theorem~\ref{thm:extremal rays refined}. 
-We postpone the details to the next section.
 
 \begin{cor}\label{cor:decompose refined}
 If $\FF\in \DD^b(S)$ is compatible with a codimension sequence $\cc$,

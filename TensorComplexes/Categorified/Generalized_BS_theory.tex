@@ -769,40 +769,40 @@ the complex $R\pi_{2*}\GG$ on $\Spec A[t,t^{-1}]$ has no homology. By flat base 
 this is equal to the restriction of $\Phi(\FF,\cE)$ on the open set $t^{-1}$, and we see that the homology
 of $\Phi(\FF,\cE)$ is annihilated by a power of $t$, as required.
 \end{proof}
-
-\begin{example}\label{ex:sup1}
-On $\PP^2$, let $\cE$ be a supernatural bundle of type $(1,-3)$ and rank $2$.  The map $\beta(\FF)\mapsto \beta(\FF\cdot \cE)$ takes a Betti table on $S$ and produces a Betti table on $A$, and we may describe this map as follows.  Fix some $i,j\in \ZZ$ and let $\FF$ be the one-term complex $\FF=S^\alpha(-j)[i]$.  Since $\cE$ is supernatural, for any $j\in \ZZ\setminus \{3,-1\}$, there is a unique $\ell_j\in \{0,1,2\}$ such that $h^{\ell_j}(\cE(-j))\ne 0$.   Then $\FF\cdot \cE$ is the one-term complex with $\beta_{i-\ell_j,j}(\FF\cdot \cE)=\gamma_{\ell_j,j}\cdot \alpha.$
-
-We represent this map as matrix by writing $\gamma_{\ell_j,j}(\cE)[-\ell_j]$
-\david{should this be $\gamma_{\ell_j,j}(\cE[-\ell_j])$?? Clarify the notation.}
- in position $(i,j)$.  For instance, with $\cE$ as above, we have
-\[
-%\beta(-\cdot \cE)\Rightarrow
-\begin{pmatrix}
-&\vdots&\vdots&&\vdots&\\
-\dots&\gamma_{0,3}&\gamma_{0,2}&0&\dots\\
-\dots&\gamma_{0,2}&0&\gamma_{1,0}[-1]&\dots\\
-\dots&0&\gamma_{1,0}[-1]&\gamma_{1,-1}[-1]&\dots\\
-\dots&\gamma_{1,0}^\zp[-1]&\gamma_{1,-1}[-1]&\gamma_{1,-2}[-1]&\dots\\
-\dots&\gamma_{1,-1}[-1]&\gamma_{1,-2}[-1]&0&\dots\\
-\dots&\gamma_{1,-2}[-1]&0&\gamma_{2,-4}[-2]&\dots\\
-%\dots&0&5[-2]&12[-2]&\dots\\
-&\vdots&\vdots&&\vdots&\\
-\end{pmatrix}
-=
-\begin{pmatrix}
-&\vdots&\vdots&&\vdots&\\
-\dots&12&5&0&\dots\\
-\dots&5&0&3[-1]&\dots\\
-\dots&0&3[-1]&4[-1]&\dots\\
-\dots&3^\zp[-1]&4[-1]&3[-1]&\dots\\
-\dots&4[-1]&3[-1]&0&\dots\\
-\dots&3[-1]&0&5[-2]&\dots\\
-%\dots&0&5[-2]&12[-2]&\dots\\
-&\vdots&\vdots&&\vdots&\\
-\end{pmatrix}.
-\]
-\end{example}
+%
+%\begin{example}\label{ex:sup1}
+%On $\PP^2$, let $\cE$ be a supernatural bundle of type $(1,-3)$ and rank $2$.  The map $\beta(\FF)\mapsto \beta(\FF\cdot \cE)$ takes a Betti table on $S$ and produces a Betti table on $A$, and we may describe this map as follows.  Fix some $i,j\in \ZZ$ and let $\FF$ be the one-term complex $\FF=S^\alpha(-j)[i]$.  Since $\cE$ is supernatural, for any $j\in \ZZ\setminus \{3,-1\}$, there is a unique $\ell_j\in \{0,1,2\}$ such that $h^{\ell_j}(\cE(-j))\ne 0$.   Then $\FF\cdot \cE$ is the one-term complex with $\beta_{i-\ell_j,j}(\FF\cdot \cE)=\gamma_{\ell_j,j}\cdot \alpha.$
+%
+%We represent this map as matrix by writing $\left( \gamma_{\ell_j,j}\cE\right)[-\ell_j]$
+%\david{should this be $\gamma_{\ell_j,j}(\cE[-\ell_j])$?? Clarify the notation.}
+% in position $(i,j)$.  For instance, with $\cE$ as above, we have
+%\[
+%%\beta(-\cdot \cE)\Rightarrow
+%\begin{pmatrix}
+%&\vdots&\vdots&&\vdots&\\
+%\dots&\gamma_{0,3}&\gamma_{0,2}&0&\dots\\
+%\dots&\gamma_{0,2}&0&\gamma_{1,0}[-1]&\dots\\
+%\dots&0&\gamma_{1,0}[-1]&\gamma_{1,-1}[-1]&\dots\\
+%\dots&\gamma_{1,0}^\zp[-1]&\gamma_{1,-1}[-1]&\gamma_{1,-2}[-1]&\dots\\
+%\dots&\gamma_{1,-1}[-1]&\gamma_{1,-2}[-1]&0&\dots\\
+%\dots&\gamma_{1,-2}[-1]&0&\gamma_{2,-4}[-2]&\dots\\
+%%\dots&0&5[-2]&12[-2]&\dots\\
+%&\vdots&\vdots&&\vdots&\\
+%\end{pmatrix}
+%=
+%\begin{pmatrix}
+%&\vdots&\vdots&&\vdots&\\
+%\dots&12&5&0&\dots\\
+%\dots&5&0&3[-1]&\dots\\
+%\dots&0&3[-1]&4[-1]&\dots\\
+%\dots&3^\zp[-1]&4[-1]&3[-1]&\dots\\
+%\dots&4[-1]&3[-1]&0&\dots\\
+%\dots&3[-1]&0&5[-2]&\dots\\
+%%\dots&0&5[-2]&12[-2]&\dots\\
+%&\vdots&\vdots&&\vdots&\\
+%\end{pmatrix}.
+%\]
+%\end{example}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -813,6 +813,10 @@ We represent this map as matrix by writing $\gamma_{\ell_j,j}(\cE)[-\ell_j]$
 We now illustrate how the pairing $\Phi$ provides a unifying view on the Eisenbud--Schreyer functionals and  the corresponding positivity results, such as~\cite[Positivity 1 and 2]{eis-schrey-icm}.  The basic idea can be envisioned via Figure~\ref{fig:bracket} or equation \eqref{eqn:**}.  First, we use $\Phi$ to obtain a  bilinear pairing that takes a Betti table $\beta(\FF)$ and a cohomology table $\gamma(\cE)$ to a Betti table $\beta(\FF\cdot \cE)$ on $A$.  Second, we analyze the functionals on $\DD^b(A)$ which are nonnegative when evaluated on complexes with finite length homology.  
 This recipe provides lots of functionals that are nonnegative on Betti tables, including all of the Eisenbud--Schreyer functionals $\langle -, -\rangle_{\tau,\kappa}$ (see ~\cite{eis-schrey-icm} for the definition, and for results about these functionals.)
 
+
+\begin{remark}
+We refer throughout to the definition of $\langle -, -\rangle_{\tau,\kappa}$ given in \cite{eis-schrey-icm}, which is slightly different than the definition from \cite{eis-schrey1}.
+\end{remark}
 
 \begin{defn}\label{defn:chi}
 Given $\Gbull\in \DD^b(A)$, we define $\chi_{i,j}(\Gbull)=\chi_{i,j}(\beta(\Gbull))$ to be the dot product of the Betti table $\beta(\Gbull)$ with
@@ -833,43 +837,51 @@ Given $\Gbull\in \DD^b(A)$, we define $\chi_{i,j}(\Gbull)=\chi_{i,j}(\beta(\Gbul
 where the boldface $1$ corresponds to $\beta_{i,j}$; that is, the boldface $1$ is in column $i$ and row $i-j$. 
 \end{defn}
 The line that snakes through
-the table indicates how $\chi_{i,j}$ separates a Betti into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix. The functionals $\langle , \cE \rangle_{\tau,\kappa}$ used previously in Boij-S\"oderberg theory, where $\cE$ is a supernatural sheaf, can be expressed in terms of the $\chi_{i,j}$. 
-This is the sense in which the complex of $A$-modules $\Phi(\FF,\cE)$ categorifies the functionals  $\langle -,-\rangle_{\tau,\kappa}$.
+the table indicates how $\chi_{i,j}$ separates a Betti into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix. The functionals $\langle - , \cE \rangle_{\tau,\kappa}$ used previously in Boij-S\"oderberg theory, where $\cE$ is a supernatural sheaf, can be expressed in terms of the $\chi_{i,j}$. 
+This is the sense in which the complex of $A$-modules $\Phi(\FF,\cE)$ categorifies the Eisenbud--Schreyer functionals.
 
 \david{the indexing in the following is significantly off from that of \cite{eis-schrey1}: There the
 functionals are called $\langle -,-\rangle_{c,\tau}$ and $c\in \ZZ$ while $\tau \in [0,n]$---backwards
 from what's below. I think it's enough to reverse the $\tau$ and $\kappa$ below, but we
 ought to rename $\kappa$ as $c$ for consistency. I have NOT yet made this change.}
 \begin{prop}\label{thm:categorified:2}
-\david{check the number $f_{\tau}-1$. In the previous version the $f_{i}$ were sometimes
-increasing instead of decreasing, and $s$ was incorrectly given as the codim of $\cE$. The original version is commented out below.} Let $\cE$ be a supernatural sheaf of dimension $s$ on $\PP^n$ with root sequence $f$, and let $\FF$ be a bounded minimal free complex. If $1\leq \tau\leq s$, then
+Let $\cE$ be a supernatural sheaf of dimension $s$ on $\PP^n$ with root sequence $f$, and let $\FF$ be a bounded minimal free complex. Fix any $1\leq \tau\leq s$ and $\kappa\in \ZZ$.  There exists $\nu\in \ZZ$ such that
 \[
 \langle \FF, \cE\rangle_{\tau,\kappa}= 
- \chi_{0, \min\{\kappa,\; f_{\tau}-1\}}(\FF\cdot \cE).
+ \chi_{0, \nu}(\FF\cdot \cE).
 \]
 \end{prop}
 
 \begin{proof} 
-it suffices to verify the claim for one-term complexes of the form $\FF=S^1(-u)[v]$, with $u$ and $v$ arbitrary.  
-%Without loss of generality, we may also assume that $\kappa=0$.  
-If we set $f_0=\infty$ and $f_{s+1}=-\infty$, then there exists a unique $j$ such that $f_j\geq -u>f_{j+1}$, and thus  $\beta_{v-j,u}(\FF\cdot \cE)=\gamma_{j,-u}(\cE)$ while all other Betti numbers  of $\FF\cdot \cE$ are equal to $0$.  
+We set $\nu:=\min\{\max\{\kappa, -f_{\tau}-1\},-f_{\tau+1}-1\}$.  It suffices to verify the claim for one-term complexes of the form $\FF=S^1(-u)[v]$, with $u$ and $v$ arbitrary.  
+If we set $f_0=\infty$ and $f_{s+1}=-\infty$, then there exists a unique $p$ such that $f_p\geq -u>f_{p+1}$, and thus  $\beta_{v-p,u}(\FF\cdot \cE)=\gamma_{p,-u}(\cE)$ while all other Betti numbers  of $\FF\cdot \cE$ are equal to $0$.  (If $-u$ is a root of $f$, then both functionals are trivially zero, and we henceforth assuem that $-u$ is not a root of $f$.)
 
-We compute:
-\[
-\chi_{0,\nu}(\FF\cdot \cE)=
-\begin{cases}
-(-1)^{v-j}\gamma_{j,-u}(\cE)&\text{ if } v-j>\nu+1, \text{ or if } \\
-&v-j=0 \text{ and }  u\leq \nu, \text{ or if}\\
-&v-j=1 \text{ and }  u\leq \nu+1,\\
-0 & \text{ else}.
-\end{cases}
-\]
-To evaluate the other function, we determine whether $(-1)^{v-j}\beta_{v,u} \gamma_{j,-u}$ arises as a term in the formula for $\langle \beta,\gamma\rangle_{\tau,0}$ in \cite[\S3]{eis-schrey-icm}.
-\david{we seem suddenly to be in the case $\kappa=0$. Say why.}   There are two cases to consider, depending on whether $\kappa\leq f_{\tau-1}$ or vice versa.  In either case, the term arises  $(-1)^{v-j}\beta_{v,u} \gamma_{j,-u}$ in the sum precisely under the conditions spelled out above.
+
+Hence $\chi_{0, \nu}(\FF\cdot \cE)$ is either $(-1)^{v-p}\gamma_{p,-u}(\cE)$ or $0$, depending on whether or not the $1$-term complex of $\FF\cdot \cE$ lies in the ``upper'' or ``lower'' region of $\chi_{0,\nu}$.  Similarly, one may check from the definition in \cite{eis-schrey-icm} that $\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}$ is either $(-1)^{v-p}\gamma_{p,-u}(\cE)$ or $0$.  
+It thus suffices to confirm that our two functionals are nonzero in precisely the same situations.  We first consider the case when $v-p<0$.  Then $\FF\cdot \cE$ is supported in homological degrees $<0$, and hence $\chi_{0, \min\{\kappa,\; -f_{\tau}-1\}}(\FF\cdot \cE)$ is automatically $0$. Similarly, since $v<p$ there no terms in the definition of $\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}$ of the form $\beta_{v,u}\gamma_{p,-u}$, and hence this functional is also zero.  
+
+It is similarly routine to check that, if $v-p>1$, then both functionals are nonzero.  We are then left with the cases $v-p=0$ and $v-p=1$.  For $v-p=0$, we have:
+\begin{equation}\label{eqn:cond1}
+\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}=0 \iff p> \tau \text{ or } p=\tau \text{ and } u>\kappa.
+\end{equation}
+We also have
+\begin{equation}\label{eqn:cond2}
+\chi_{0,\nu}(\FF\cdot \cE)=0 \iff u> \nu=\min\{\max\{\kappa, -f_{\tau}-1\},-f_{\tau+1}-1\}.
+\end{equation}
+We observe that the conditions in \eqref{eqn:cond1} and \eqref{eqn:cond2} are equivalent.  Namely, the second condition yields that either: $f_{\tau+1}\geq-u$ (which is equivalent to $p>\tau$); or $u>\kappa$ and $f_{\tau}\geq -u$ (which is equivalent to $p\geq \tau$ and $u>\kappa$). 
+
+We now check the case $v-p=1$.  Here we have:
+\begin{equation}\label{eqn:cond3}
+\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}=0 \iff p> \tau \text{ or } p=\tau \text{ and } u>\kappa+1.
+\end{equation}
+We also have
+\begin{equation}\label{eqn:cond4}
+\chi_{0,\nu}(\FF\cdot \cE)=0 \iff u> \nu+1=\min\{\max\{\kappa+1, -f_{\tau}\},-f_{\tau+1}\}.
+\end{equation}
+Again, these conditions are equivalent: $f_{\tau+1}>-u$ (which, given that $-u$ is not a root of $\cE$, is equivalent to $p>\tau$); or $u>\kappa+1$ and $f_{\tau}>-u$ (which, given that $-u$ is not a root of $\cE$, is equivalent to $p\geq \tau$ and $u>\kappa$). 
 \end{proof}
 
-
-
+We define $\DD^b(A)_{\text{tor}}$ as the subcategory of $\DD^b(A)$ consisting of complexes whose homology is torsion.
 The usefulness of the functionals $\chi_{i,j}$ comes from a positivity result generalizing that of \cite{eis-schrey1}:
 
 \begin{thm}\label{thm:categorified}\label{thm:categorified:1}  Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$. If  $\codim(\FF)+\codim(\cE)\geq n+1$, then
@@ -919,7 +931,8 @@ depending on the values of $i,j,p,q$.
 
 
 \begin{example}\label{ex:sup2}
-Continuing with the notation from Example~\ref{ex:sup1}, we now consider the functional $\beta(\FF)\mapsto \chi_{0,0}(\FF\cdot \cE)$.  This functional is given by the dot product of $\beta(\FF)$ with
+On $\PP^2$, let $\cE$ be a supernatural bundle of type $(1,-3)$ and rank $2$.  
+We consider the functional $\beta(\FF)\mapsto \chi_{0,0}(\FF\cdot \cE)$.  This functional is given by the dot product of $\beta(\FF)$ with
 \[
 \chi_{0,0}(-\cdot \cE)=
 \left|
@@ -992,7 +1005,7 @@ For example, if the terms of $\cc$ are all equal to $k$, then the degree sequenc
 compatible with $\cc$ are precisely those of codimension $k$.
 Also, it follows from the main result of \cite{WMACE} that if a complex
 $$
-\FF: F_{k}\leftarrow \cdots \leftarrow F_{k+\ell}\leftarrow 0,
+\FF= [\FF_{k}\leftarrow \cdots \leftarrow \FF_{k+\ell}\leftarrow 0],
 $$
 has $i$-th homology $\HH_{i}\FF$ of codimension $\geq\ell$ for $i>k$, then $\FF$ is actually a (shifted) resolution, and the module $\HH_{k}\FF$ that it resolves must have codimension $\leq \ell$. Thus if $\FF$ is a pure complex with degree sequence $\dd = (d_{k}, \dots,d_{k+\ell})$ (that is,   $F_{i}$ is generated in degree $d_{i}$ for each $i$) that is compatible with a codimension sequence $\cc$
 then
@@ -1039,7 +1052,79 @@ then there exist Cohen-Macaulay graded $S$-modules $M^k$ of codimension $\geq \c
 \]
 \end{cor}
 
-\david{add an example showing how the decomposition proceeds, from higher to lower codim and from right to left.}
+\begin{example}
+Let $S=\kk[x,y,z]$ and let $I=(x^2,xy,y^2,xz)$ and $J=(xy)$.  Let $\FF'$ be the minimal free resolution of $S/I$ and let $\FF''$ be the minimal free resolution of $S/J$.  We then consider the complex $\FF=\FF'\otimes \FF''$.  We note that $\HH_i\FF=\Tor_i(S/I,S/J)$, and hence we see that $\FF$ is compatible with the codimension sequence $\cc=(\emptyset, 2^\zp,2,\infty,\dots)$.    We seek to decompose $\beta(\FF)$ using the algorithm induced by the simplicial structure of $\BBQ^{\cc}(S)$.
+
+We begin with
+\[
+\beta(\FF)=
+\begin{bmatrix}
+1&-&-&-&-\\
+-&\mathbf{5}&\mathbf{4}&\mathbf{1}&-\\
+-&-&4&4&\mathbf{1}
+\end{bmatrix},
+\]
+where the boldfaced entries indicate the shape of minimal pure diagram that is compatible with $\cc$ and that could contribute to $\beta(\FF)$.  The corresponding degree sequence is $(\dots,\emptyset^\zp,2,3,4,6,\infty,\dots)$.  We apply a greedy algorithm, subtracting as much of the corresponding pure diagram from $\beta(\FF)$ as possible, without making any entry negative.  This yields:
+\[
+\begin{bmatrix}
+1&-&-&-&-\\
+-&\mathbf{5}&\mathbf{4}&\mathbf{1}&-\\
+-&-&4&4&\mathbf{1}
+\end{bmatrix}
+-
+\begin{bmatrix}
+-&-&-&-&-\\
+-&\frac{1}{2}&\frac{4}{3}&1&-\\
+-&-&-&-&\frac{1}{6}
+\end{bmatrix}
+=
+\begin{bmatrix}
+1&-&-&-&-\\
+-&\frac{9}{2}&\frac{8}{3}&-&-\\
+-&-&4&4&\frac{5}{6}
+\end{bmatrix}.
+\]
+We continue in this way, working from right to left and from high codimension to lower codimension, and we obtain the decomposition:
+\begin{align*}
+\beta(\FF)=&
+\begin{bmatrix}
+-&-&-&-&-\\
+-&\frac{1}{2}&\frac{4}{3}&1&-\\
+-&-&-&-&\frac{1}{6}
+\end{bmatrix}
++
+\begin{bmatrix}
+-&-&-&-&-\\
+-&\frac{5}{6}&\frac{5}{3}&-&-\\
+-&-&-&\frac{5}{3}&\frac{5}{6}
+\end{bmatrix}
++
+\begin{bmatrix}
+-&-&-&-&-\\
+-&\frac{2}{3}&1&-&-\\
+-&-&-&\frac{1}{3}&-
+\end{bmatrix}\\
+&
++
+\begin{bmatrix}
+-&-&-&-&-\\
+-&1&-&-&-\\
+-&-&3&2&-
+\end{bmatrix}
++
+\begin{bmatrix}
+1&-&-&-&-\\
+-&2&-&-&-\\
+-&-&1&-&-
+\end{bmatrix}.
+\end{align*}
+The corresponding chain of degree sequences is
+\begin{align*}
+(\dots,\emptyset^\zp,2,3,4,6,\infty,\dots)<(\dots,\emptyset^\zp,2,3,5,6,\infty,\dots)<(\dots,\emptyset^\zp,2,3,5,\infty\dots)
+\\
+<(\dots,\emptyset^\zp,2,4,5,\infty,\dots)<(\dots,0^\zp,2,4,\infty,\dots).
+\end{align*}
+\end{example}
 
 \begin{example}\label{example:many decompositions}
 For any complex $\FF\in \DD^b(S)$, there exist many different values of $\cc$ that are compatible with $\FF$, and the decomposition of $\beta(\FF)$ induced by Theorem~\ref{thm:extremal rays refined} may depend on the choice of $\cc$.   For instance, let $S=\kk[x,y,z]$, $I=(x^2,xy,y^2,xz)$, and let $\FF$ be the minimal free resolution of $S/I$.  Since $\FF$ is a resolution, we may choose $\cc=(\dots, \nothing, 2^\zp, \infty, \dots)$ and then we decompose

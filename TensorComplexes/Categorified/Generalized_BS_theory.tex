@@ -1775,12 +1775,12 @@ If $\cc$ is a codimension sequence, then we define $\BBQ^{\cc}(R)$ in parallel w
 %The main result in this section relates cones of Betti tables of $R$ to cones of Betti tables over $S$ when $X$ admits an Ulrich sheaf.  
 %This implies Corollary~\ref{cor:isom cones}.
 
-%\begin{cor}\label{cor:new graded rings}
-%Let $R$ be a finite, graded extension of $S$ such that $\Proj(R)$ admits an Ulrich sheaf.  For any codimension sequence $\cc$, we have  a natural isomorphism
-%$
-%\BBQ^{\cc}(S)\overset{\cong}{\to} \BBQ^{\cc}(R).
-%$
-%\end{cor}
+\begin{thm}\label{cor:new graded rings}
+Let $R$ be a finite, graded extension of $S$ such that $\Proj(R)$ admits an Ulrich sheaf.  For any codimension sequence $\cc$, we have  a natural isomorphism
+$
+\BBQ^{\cc}(S)\overset{\cong}{\to} \BBQ^{\cc}(R).
+$
+\end{thm}
 
 We next define a pairing $\Phi_{R}$:
 \[
@@ -1883,7 +1883,8 @@ problem to the case of transcendence degree 1.
 
 Let $\FF\in \DD^b(R\otimes_{\kk}\kk(z))$ be a free complex that is compatible with $\cc$.  Clearing denominators, we may extend $\FF$ to a complex over $\kk[z][x_0,\dots,x_n]$.  The locus of $\Spec(\kk[z])$ where the specialization of $\FF$ fails to be compatible with $\cc$ is  closed.  Since $\FF$ is compatible with $\cc$ over the generic point, it follows that follows that there is a closed point $P\in \Spec(\kk[z])$ such that the restriction of $\FF$ to $P$ is still compatible with $\cc$.  Since the residue field of $P$ is finite over $\kk$, we are again reduced to the case of a finite extension.\end{proof}
 
-The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_{R}$ interact with the map $f$.
+The final ingredient for our proof of Theorem~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_{R}$ interact with the map $f$.
+
 
 \begin{lemma}\label{lem:general pairing}
 Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\PP^n)$.  Then
@@ -1895,9 +1896,10 @@ Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\
 We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and, since $f$ is finite, $\gamma(\cE)$ equals $\gamma(f_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,f_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(f_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_{R}(Lf^*\FF,\cE)$ with  $\beta(Lf^*\FF)$ and $\gamma(\cE)$.
 \end{proof}
 
-\begin{proof}[Proof of Corollary~\ref{cor:new graded rings}]
+\david{done to here}
+\begin{proof}[Proof of Theorem~\ref{cor:new graded rings}]
 By Lemma~\ref{lem:ground field}, we may assume that $\kk$ is infinite.
-We then claim that there exists a map of cones $Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ defined by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  We fix some $\beta(\FF)\in \BBQ^{\cc}(S)$.  Since $R$ is a finite $S$-module, and since $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  Lemma~\ref{lem:pushpull} then implies that $Lf^*(\FF)$ is compatible with $c$, and hence $\beta(Lf^*(\FF))$ lies in $\BBQ^{\cc}(R)$.
+We then claim that there exists a map of cones $Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ that is defined by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  We fix some $\beta(\FF)\in \BBQ^{\cc}(S)$.  Since $R$ is a finite $S$-module, and since $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  Lemma~\ref{lem:pushpull} then implies that $Lf^*(\FF)$ is compatible with $c$, and hence $\beta(Lf^*(\FF))$ lies in $\BBQ^{\cc}(R)$.
 
 Note that, as a map of vector spaces, $Lf^*\colon \VV\to \VV$ 
 is simply the identity map, yielding the inclusion
@@ -1955,7 +1957,7 @@ Eisenbud and Scheyer have conjectured that, when $L$ is very ample, every projec
 As an application of our results from \S\ref{sec:functor}, we now show that the Betti tables of certain infinite free resolutions decompose as infinite sums of Betti tables of shifted resolutions of finite projective dimension.
 
 \begin{cor}\label{cor:decomp infinite}
-Let $R$ satisfy the hypotheses of Corollary~\ref{cor:new graded rings} and let $\FF$ be a (possibly infinite) minimal free resolution of a finite length, graded $R$-module.  Then we may write the Betti table of $\FF$ as a positive, rational sum of (possibly infinitely many) shifted resolutions of finite length modules with finite projective dimension.  I.e., we may write:
+Let $R$ satisfy the hypotheses of Theorem~\ref{cor:new graded rings} and let $\FF$ be a (possibly infinite) minimal free resolution of a finite length, graded $R$-module.  Then we may write the Betti table of $\FF$ as a positive, rational sum of (possibly infinitely many) shifted resolutions of finite length modules with finite projective dimension.  I.e., we may write:
 \[
 \beta(\FF)=\sum_{k=0}^\infty a_k\beta(M_k)[k],
 \]
@@ -1966,7 +1968,7 @@ Let $n=\dim(R)-1$.  For some $e\in \ZZ$, we use the notation $\FF_{\leq e}$ to d
 \[
 \FF_{\leq e}=[\dots \gets \FF_{e-1}\gets \FF_e \gets 0 \gets \dots].
 \]
-Since $\FF$ resolves a finite length module, it follows that $\Hom(\FF_{\leq e},R)$ is compatible with the codimension sequence $\cc=(\dots,0,0,0^*,n+1,\dots, n+1^\zp, n+1,\dots)$, where the $0^*$ lies in homological degree $-e$.  By Corollary~\ref{cor:new graded rings}, we can decompose $\beta(\Hom(\FF_{\leq e},R))$ with pure Betti tables whose degree sequences are compatible with $\cc$ and we can thus write:
+Since $\FF$ resolves a finite length module, it follows that $\Hom(\FF_{\leq e},R)$ is compatible with the codimension sequence $\cc=(\dots,0,0,0^*,n+1,\dots, n+1^\zp, n+1,\dots)$, where the $0^*$ lies in homological degree $-e$.  By Theorem~\ref{cor:new graded rings}, we can decompose $\beta(\Hom(\FF_{\leq e},R))$ with pure Betti tables whose degree sequences are compatible with $\cc$ and we can thus write:
 \[
 \beta(\Hom(\FF_{\leq e},R))=\left(\sum_{k=-e+1}^{-n-1} a_k\beta(N_k)[k]\right)+\beta(N')[-e],
 \]

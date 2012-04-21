@@ -1896,39 +1896,47 @@ Let $\FF\in \DD^b(S)$ be homologically transverse to $R$ and let $\cE\in \DD^b(\
 We first note that $\beta(Lf^*\FF)$ equals $\beta(\FF)$ and, since $f$ is finite, $\gamma(\cE)$ equals $\gamma(f_*(\cE))$.  Theorem~\ref{thm:betti numbers of pairing} then provides a closed formula for the Betti numbers of $\Phi(\FF,f_*\cE)$ in terms of $\beta(\FF)$ and $\gamma(f_*(\cE))$.  As noted in the proof of Theorem~\ref{thm:PhiX}\eqref{thm:PhiX:1}, the same formula relates the Betti numbers of $\Phi_{R}(Lf^*\FF,\cE)$ with  $\beta(Lf^*\FF)$ and $\gamma(\cE)$.
 \end{proof}
 
-\david{done to here}
 \begin{proof}[Proof of Theorem~\ref{cor:new graded rings}]
-By Lemma~\ref{lem:ground field}, we may assume that $\kk$ is infinite.
-We then claim that there exists a map of cones $Lf^*\colon \BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$ that is defined by $\beta(\FF)\mapsto \beta(Lf^*\FF)$ whenever $\FF$ is homologically transverse to $R$.  We fix some $\beta(\FF)\in \BBQ^{\cc}(S)$.  Since $R$ is a finite $S$-module, and since $\FF$ is bounded, we may apply \cite[Theorem, p.\ 335]{miller-speyer} and replace $\FF$ by a general translate such that $\FF$ is homologically transverse to $R$.  Lemma~\ref{lem:pushpull} then implies that $Lf^*(\FF)$ is compatible with $c$, and hence $\beta(Lf^*(\FF))$ lies in $\BBQ^{\cc}(R)$.
+The central argument in~\cite[Proof of Theorem 5]{eis-schrey-abel} shows that the cones
+$\CQ^0(X,L)$ and $\CQ^{0}(\PP^n)$ are the same;
+ although $L$ was assumed to be very ample in that proof, the  argument works perfectly just assuming
+ that $f$ is finite.
+ 
+ Next we wish to apply duality. The proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\cc}(S)$ holds for $\BBQ^{\cc}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\cc$, and these arguments go through unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof of Lemma~\ref{lem:refined positivity} to obtain an analogue for $R$-complexes that are compatible with $\cc$.  
 
-Note that, as a map of vector spaces, $Lf^*\colon \VV\to \VV$ 
-is simply the identity map, yielding the inclusion
-$
-Lf^*\colon \BBQ^{\cc}(S)\subseteq \BBQ^{\cc}(R).
-$
-Further, since $f$ is finite, we also obtain an inclusion $\CQ^k(X,L)\subseteq \CQ^{k-d}(\PP^n)$ given by $\gamma(\cE)\mapsto \gamma(f_*\cE)$.  
+Putting these two results together, we see that $\BBQ^{\cc}(S)=\BBQ^{\cc}(R)$ as required. \end{proof}
 
-In fact, $f_*\colon \CQ^0(X,L)\to \CQ^{0}(\PP^n)$  is an isomorphism.  This follows from the central argument in
-\cite[Proof of Theorem 5]{eis-schrey-abel}: although $L$ was assumed to be very ample in that proof, the same argument holds in this context.
-
-To prove that $\BBQ^{\cc}(S)$ is actually isomorphic to $\BBQ^{\cc}(R)$, we claim that the proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\cc}(S)$ holds for $\BBQ^{\cc}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\cc$, and these arguments go through unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof of Lemma~\ref{lem:refined positivity} to obtain an analogue for $R$-complexes that are compatible with $\cc$.  
-\end{proof}
-
-
-These results enable us to compute many new examples of cones of Betti tables.
-
+\david{a version of the old proof is commented out below. It seems to me repetitious. Am I missing something?}
+%By Lemma~\ref{lem:ground field}, we may assume that $\kk$ is infinite. Suppose that $\FF$ is a bounded
+%free complex such that $\beta(\FF)\in \BBQ^{\cc}(S)$.
+%By \cite[Theorem, p.\ 335]{miller-speyer}, the general translate of $\FF$ is homologically transverse to $R$,
+%so $\beta(f^{*}\FF) = \beta(\Lf^{*}(\FF))\in \BBQ^{\cc}(R)$ by Lemma~\ref{lem:general pairing}. Thus
+%$Lf^{*}$ induces a map of cones $\BBQ^{\cc}(S)\to \BBQ^{\cc}(R)$.
+%As a map of vector spaces, $Lf^*\colon \VV\to \VV$ 
+%is the identity map, and thus 
+%$
+%Lf^*\colon \BBQ^{\cc}(S)\subseteq \BBQ^{\cc}(R).
+%$
+%
+%On the other hand, if $\cE$ is a bounded complex of sheaves on $X$ then since $f$ is finite, $f_{*}$ commutes
+%with cohomology, so $\CQ^k(X,L)\subseteq \CQ^{k-d}(\PP^n)$. 
+%In fact, because of the existence of an Ulrich sheaf for $f$, the map $f_*\colon \CQ^0(X,L)\to \CQ^{0}(\PP^n)$  is an isomorphism.  This follows from the central argument in
+%\cite[Proof of Theorem 5]{eis-schrey-abel}: although $L$ was assumed to be very ample in that proof, the same argument holds in this context.
+%
+%To prove that $\BBQ^{\cc}(S)$ is actually isomorphic to $\BBQ^{\cc}(R)$, we claim that the proof of Theorem~\ref{thm:extremal rays refined} in the case of $\BBQ^{\cc}(S)$ holds for $\BBQ^{\cc}(R)$ as well.  We provide a sketch of this argument.  Much of the proof of Theorem~\ref{thm:extremal rays refined} boils down to an analysis of degree sequences and pure Betti tables that are compatible with $\cc$, and these arguments go through unchanged.  The other key inputs for the proof of Theorem~\ref{thm:extremal rays refined} are the positivity results derived from Theorem~\ref{thm:Phi} and Lemma~\ref{lem:refined positivity}.  Theorem~\ref{thm:PhiX} plays the role of Theorem~\ref{thm:Phi}, and we can mimic the proof of Lemma~\ref{lem:refined positivity} to obtain an analogue for $R$-complexes that are compatible with $\cc$.  
+%\end{proof}
 
 %\david{We can do ANY curve with a nonconstant map to $\P^{1}$: I now see (and it's very easy)
 %that a given any effective divisor $D$, a general line bundle of degree genus$(C)-1$ is an ulrich sheaf for $\cO(D)$.}
- 
-\begin{example}[Embedded Curves]\label{ex:res over section ring of ell curve}
-Let $C$ be any smooth curve of genus $g$ and let $f\colon C\to \PP^n$ be any embedding of $C$.  Then $C$ admits an Ulrich sheaf by~\cite[Corollary~4.5]{eis-schrey-chow}.  (If $\kk$ is an algebraically closed field, then the rank $1$ Ulrich sheaves correspond to line bundles of degree $g-1$ with no sections.)  Set $R$ to be the homogeneous coordinate ring of $C$ in $\PP^n$.  Then $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.
 
-For instance, let $C$ be the rational quartic curve $f\colon C\to \PP^3$ given by the linear series $\langle x_0^4,x_0^3x_1,x_0x_1^3,x_4^4\rangle$.  In this case, $R=\kk[x_0^4,x_0^3x_1,x_0x_1^3,x_1^4]$, with all generators having degree $1$.  Since $\cO_{\PP^1}(3)$ is an Ulrich sheaf for $f$, we thus have $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.  
-\end{example}
-
-\begin{example}[$d$-gonal Curves]
-Over an algebraically closed field $\kk$, let $C$ be a smooth curve of genus $g$ and let $f\colon C\to \PP^1$ be a finite map.  Then a general line bundle of degree $g-1$ is an Ulrich sheaf of $f$.  If $L=f^*\cO(1)$ and $R$ is the section ring $R=\oplus_{e\in \mathbb N} H^0(C,\cO_C(eL))$, then $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$.  Note that $R$ is generally a nonstandard graded ring in this case.
+\begin{example}[Curves] Let $C$ be a projective curve, and let $L$ be any line bundle on $C$ that is generated by global sections.
+Let $R$ be any homogeneous subring of $R' := \oplus_{i}H^{0}(L^{\otimes i}$ such that $R$ 
+contains sections of $L$ that generate $L$. We claim that $\BBQ^2(R)=\BBQ^2(\kk[x_0,x_1])$. To see this note first
+that by Lemma~\ref{lem:ground field} we may assume that the ground field is infinite. It follows that there are
+two sections $x_{0},x_{1}$ of degree 1 in $R$ that generate $L$, so $R$ is a finite module over $S = \kk[x_{0},x_{1}].$
+By~\cite[Corollary~4.5]{eis-schrey-chow} the finite map $f: C\to \PP^{1}$ induced by $x_{0}, x_{1}$ admits
+an Ulrich scheaf (one can take a general line bunde of degree genus$(C_{1})-1$ on a reduced component $C_{1}$ of $C$)
+so we may apply Theorem~\ref{cor:new graded rings}.
 \end{example}
 
 
@@ -1946,6 +1954,7 @@ Since $X$ is a complete intersection, it admits an Ulrich bundle, and thus $\BBQ
 Eisenbud and Scheyer have conjectured that, when $L$ is very ample, every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides a method for producing a counterexample.  Namely, imagine that for some $f\colon X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{n+1}(R)$ but where $\beta(\FF)$ does not decompose as a sum of shifted pure tables of codimension $n+1$.  This would imply that $\BBQ^{n+1}(R)\supsetneq \BBQ^{n+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
 %\end{remark}
 
+\david{done to here}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -193,9 +193,9 @@ Using this duality they proved the conjectures of \BS~\cite{boij-sod1}. The theo
 
 It has also been difficult to extend the theory to resolutions over other rings.  For graded rings, the only known extensions are those in~\cite{bbeg}; and although it seems natural to consider the multi-graded case through toric varieties, there has been only a little progress in this direction~\cites{boij-floystad,floystad-multigraded}.
 
-In this paper, we introduce a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable.  This idea gives a new foundation for \BS theory, and occupies Part I (\S\ref{sec:notation}--\ref{sec:functionals}) of this paper. 
+In this paper, we construct a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable.  This construction gives a new foundation for \BS theory, and occupies Part I (\S\ref{sec:notation}--\ref{sec:functionals}) of this paper. 
 
-In Part II of the paper, we use this categorification to extend the theory from the consideration of free resolutions to the consideration of more general complexes. We treat the Betti numbers of finite free complexes with prescribed homology  (\S\ref{sec:refined}--\S\ref{sec:refined proof}), and we clarify the Eisenbud--Schreyer duality results (\S\ref{sec:duality}).  
+In Part II of the paper, we use the pairing to extend the theory from the consideration of free resolutions to the consideration of more general complexes. We treat the Betti numbers of finite free complexes with prescribed homology  (\S\ref{sec:refined}--\S\ref{sec:refined proof}), and we clarify the Eisenbud--Schreyer duality results (\S\ref{sec:duality}).  
 
 In Part III, we extend the theory to a much wider class of graded rings (\S\ref{sec:functor}), and we discuss some applications to the study of infinite resolutions (\S\ref{sec:infinite}).  Lastly, we explain a natural generalization to the multigraded case (\S\ref{sec:toric}).
 
@@ -221,9 +221,6 @@ with the following properties:
 	\item\label{thm:Phi:2}  If $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi(\FF,\cE)$ has finite length homology.  
 \end{enumerate}
 \end{theorem}
-
-Part of the power of this result comes from a homological transversality argument implying that, if
-$\codim(\FF)+\codim(\cE)\geq n+1$, then $\Phi(\FF,\cE)$ always has the Betti table of a complex with finite length homology. (As usual, the codimension of an object in the derived category is defined to be the codimension of the support of its homology.) This follows by combining part (2) of the theorem with a result of Miller and Speyer~\cite[Theorem, p.\ 335]{miller-speyer}. 
 
  For example, in the case of complexes with homology of finite length, we obtain a pairing
  \begin{equation}%\tag{**}
@@ -252,11 +249,7 @@ $\left\{\begin{matrix}
 \end{equation}
 where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  Extending this pairing linearly yields a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**} as illustrated in Figure~\ref{fig:bracket}. 
 
-The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
-By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Allowing complexes with homology is essential, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Since the results on resolutions follow easily from our results on complexes (possibly) with homology, nothing is lost.
-
-The pairing in \eqref{eqn:**} is a \emph{duality pairing} of cones in the following sense:
- 
+We will show that this pairing gives a duality. More generally: 
 \begin{thm}\label{thm:duality}
 Fix a point $v\in \VV$.   The following are equivalent:
 \begin{enumerate}
@@ -264,7 +257,10 @@ Fix a point $v\in \VV$.   The following are equivalent:
 	\item  Given any sheaf $\cE$ of codimension $n+1-k$, $v$ pairs with $\gamma(\cE)$ to give an element of the cone of Betti tables of $A$-complexes with finite length homology.
 \end{enumerate}
 \end{thm}
-One of the main results of~\cite{eis-schrey1} is a similar statement for free resolutions. Given our construction of $\Phi$, the introduction of $D^{b}(A)$ both simplifies the statement and enables us to extend their arguments to  more general cases.  See \S\ref{sec:duality} for results with less restrictions on the codimension of the complex $\FF$.
+
+The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
+By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Allowing complexes with homology is essential, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Moreover, the results on resolutions follow easily from these more general results on complexes.
+
 
 \begin{figure}
 \begin{tikzpicture}[scale=1.2]
@@ -302,19 +298,35 @@ One of the main results of~\cite{eis-schrey1} is a similar statement for free re
 \label{fig:bracket}
 \end{figure}
 
-
-
-
-
+\david{I commented out the homological transversality remark below as unnecessary here. Daniel, do you agree?}
+%Part of the power of Theorem~\ref{thm:Phi} 
+%comes from a homological transversality argument implying that, if
+%$\codim(\FF)+\codim(\cE)\geq n+1$, then $\Phi(\FF,\cE)$ always has the Betti table of a complex with finite length homology. (As usual, the codimension of an object in the derived category is defined to be the codimension of the support of its homology.) This follows by combining part (2) of the theorem with a result of Miller and Speyer~\cite[Theorem, p.\ 335]{miller-speyer}. 
+%
 \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
-\subsection*{Comparing complexes and resolutions}
+\subsection*{Decomposing the Betti tables of complexes}
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
-% \subsecNTOC{Comparing Complexes and Resolutions}
-Here is a consequence of the analysis of Betti tables allowed by this categorification. If every complex were quasi-isomorphic to its homology---which is not the case except when $n=0$---then the Betti table of a complex would be the sum of the Betti tables of the resolutions of its homology.  We prove that similar decompositions happen much more generally, but they require rational coefficients, not only integral ones, and the resolutions are generally not of the original homology modules. 
-%The denominators of the coefficients involved in the decomposition of $\beta(\FF)$ may be seen as a measure of the extent to which $\FF$ is not quasi-isomorphic to its homology. 
 
-Theorem~\ref{thm:extremal rays refined} provides the full statement and proof, and implies the known results about decompositions of Betti tables
-of resolutions from \cites{eis-schrey1,boij-sod2}.  Here is the special case of this result when the homology has finite length. By a (homologically) shifted resolution, we mean a complex of
+%One of the central results of \BS theory is that the Betti tables of pure resolutions of Cohen--Macaulay modules define the the extremal rays of the cone of Betti tables of minimal free resolutions.  In other words, if $\FF$ is a minimal free resolution, then $\beta(\FF)$ may be written as a positive rational combination of the Betti tables of pure resolutions.    
+
+One of the most important consequences of the duality theory of~\cites{eis-schrey1,boij-sod2} is that the Betti table of any minimal free resolution over $S$ decomposes in a nice way as a positive rational linear combination of pure resolutions: that is, resolutions of Cohen-Macaulay modules with the property that for each $i$ at most one $\beta_{i,j}$ is nonzero. (See~\cites{eis-schrey-icm,floystad-expository} for expository introductions to \BS theory.)
+
+A consequence of the categorified theory is that these same building blocks suffice for the decomposition of the Betti table of much more general complexes.
+Theorem~\ref{thm:extremal rays refined} provides the full statement and proof, and implies the previously known results.
+% about decompositions of Betti tables
+%of resolutions from \cites{eis-schrey1,boij-sod2}.
+
+%\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
+%\subsection*{Comparing complexes and resolutions}
+%\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+%% \subsecNTOC{Comparing Complexes and Resolutions}
+%Here is a consequence of the analysis of Betti tables allowed by this categorification. If every complex were quasi-isomorphic to its homology---which is not the case except when $n=0$---then the Betti table of a complex would be the sum of the Betti tables of the resolutions of its homology.  We prove that similar decompositions happen much more generally, but they require rational coefficients, not only integral ones, and the resolutions are generally not of the original homology modules. 
+%%The denominators of the coefficients involved in the decomposition of $\beta(\FF)$ may be seen as a measure of the extent to which $\FF$ is not quasi-isomorphic to its homology. 
+%
+%Theorem~\ref{thm:extremal rays refined} provides the full statement and proof, and implies the known results about decompositions of Betti tables
+%of resolutions from \cites{eis-schrey1,boij-sod2}. 
+
+ Here is the special case of this result when the homology has finite length. By a (homologically) shifted resolution, we mean a complex of
 finitely generated graded free modules the form
 $$
 \FF= [\FF_{k}\leftarrow\cdots \FF_{k+\ell}\leftarrow 0]
@@ -423,7 +435,7 @@ of bounded free complexes with finite length homology over  $R$ is the same
 as the cone of complexes with finite length homology on $S$. 
 \end{cor}
 
-One direction of the proof is easy, as the pullback of an $S$-complex with finite length homology is an $R$-complex with finite length homology.  For the other direction we will use the duality statement of Theorem~\ref{thm:duality}.
+One direction of the proof is easy, as the pullback of an $S$-complex with finite length homology is an $R$-complex with finite length homology.  For the other direction we will use the duality statement of Theorem~\ref{thm:duality}. The proof is given in Section~\ref{sec:functor}.
 
 \begin{example}\label{ex:elliptic}
 Let $E$ be an elliptic curve and let $L=2P$, where $P$ is any point of $E$.  The map $f$ corresponding to the complete
@@ -450,14 +462,21 @@ For all of the new graded rings $R$ covered by Corollary~\ref{cor:isom cones}, t
 \subsection*{The Multigraded Case}
 Our construction of $\Phi$ naturally generalizes to the multigraded case, offering the possibility of extending \BS theory to toric varieties.  Let $X$ be any projective toric variety and let $R$ be the Cox Ring of $X$ with the natural $\Pic(X)$ grading.
 
-In place of the ring $A=\kk[t]$, we define $C$ as the semigroup ring $C=\kk[\NE(X)]$, where $\NE(X)\subseteq \Pic(X)$ is the subsemigroup of effective divisors.  %Given $\alpha \in \Pic(X)$ we write $t^\alpha$ for the corresponding element of $C$.  
-The ring $C$ is also naturally $\Pic(X)$ graded.
+In place of the ring $A=\kk[t]$, we take the semigroup ring $C=\kk[\NE(X)]$, where $\NE(X)\subseteq \Pic(X)$ is the subsemigroup of effective divisors.  %Given $\alpha \in \Pic(X)$ we write $t^\alpha$ for the corresponding element of $C$.  
+The ring $C$ is graded by the group $\Pic(X)$.
 
-Let $\DD^b(R)$ and $\DD^b(C)$ denote the bounded derived categories of finitely generated, multigraded $R$-modules and $C$-modules, respectively.   For $\FF\in \DD^b(R)$ or in $\DD^b(C)$, $i\in \ZZ$, and $\alpha\in \Pic(X)$, we define the multigraded Betti numbers by the formula $\beta_{i,\alpha} \FF:=\dim \Tor_i(\FF,\kk)_{\alpha}$.  Similarly, for $\cE\in \DD^b(X), i\in \ZZ$ and $\alpha\in \Pic(X)$, we define multigraded cohomology numbers by the formula $\gamma_{i,\alpha} \cE:=\dim H^i(X, \cE(\alpha))$.  Given $\FF\in \DD^b(R)$, we use $\widetilde{\FF}$ to denote the corresponding complex of coherent sheaves in $\DD^b(X)$.  
+\david{I removed the definition of multigraded betti and cohomology---seemed too obvious.}
 
-The Cox ring $R$ of $X$ comes equipped with a natural irrelevant ideal, and we say that a complex $\FF$ over $R$ or $C$ has \defi{irrelevant homology} if its homology is supported on the irrelevant ideal.  (See Definition~\ref{defn:irrC} for the irrelevant ideal of $C$).
+%For
+%$i\in \ZZ$, and $\alpha\in \Pic(X)$
+%we define the multigraded Betti numbers to be 
+%$\beta_{i,\alpha} \FF:=\dim \Tor_i(\FF,\kk)_{\alpha}$ and we define the multigraded cohomology numbers to be $\gamma_{i,\alpha} \cE:=\dim H^i(X, \cE(\alpha))$.
+Let $\DD^b(R)$ and $\DD^b(C)$ denote the bounded derived categories of finitely generated, multigraded $R$-modules and $C$-modules, respectively.   
+If $\FF\in \DD^b(R)$ then $\widetilde{\FF}$  denotes the corresponding complex of coherent sheaves in $\DD^b(X)$.  
 
-We construct a functor
+The Cox ring $R$ of $X$ comes equipped with a natural irrelevant ideal. We say that a complex $\FF$ over $R$ or $C$ has \defi{irrelevant homology} if its homology is supported on the irrelevant ideal.  (See Definition~\ref{defn:irrC} for the irrelevant ideal of $C$).
+
+Generalizing the construction above, we construct a functor
 \[
 \Phi_{X}: \DD^b(R)\times \DD^b(X)\to \DD^b(C)
 \]
@@ -514,26 +533,28 @@ algebra system \texttt{Macaulay2} \cite{M2} provided valuable assistance through
 \section*{\underline{{Part I: Categorifying the Duality in \BS Theory}}}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background and notation}\label{sec:notation}
+\section{Notation}\label{sec:notation}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-We gather some notation and definitions that we will use throughout.  We set $\mathfrak m=(x_0, \dots, x_n)$ to be the homogeneous maximal ideal on $S$.
+We gather some notation and definitions that we will use throughout.  We denote by  $\mathfrak m=(x_0, \dots, x_n)$ the homogeneous maximal ideal on $S$.
 \begin{defn}
 If $\FF\in \DD^b(S)$ is a free complex, then we say that $\FF$ is \defi{minimal} if each differential $\partial: \FF_i\to \FF_{i-1}$ satisfies $\partial(\FF_i)\subseteq \mathfrak m\FF_{i-1}$.
 \end{defn}
-We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.  If $\FF$ is quasi-isomorphic to a complex with only one nonzero term, then we say that $\FF$ is a \defi{shifted resolution}.  We use the notation $\HH_r\FF$ to denote the $r$th homology module of $\FF$.
+We may represent any $\FF\in \DD^b(S)$ by a minimal, free complex.  Under this assumption, we may write $\FF_i$ as the direct sum $\FF_i=\oplus_{j\in \ZZ} S(-j)^{\beta_{i,j}\FF}$.  If $\FF$ is quasi-isomorphic to a complex with only one nonzero term, then we say that $\FF$ is a \defi{shifted resolution}.  We denote the $r$th homology module of $\FF$ by $\HH_r\FF$.
 
 \begin{defn}\label{def:deg seq}
-A \defi{ degree sequence of codimension $\ell$} is a sequence
+A \defi{ degree sequence of codimension $\ell$} is a strictly increasing indexed sequence of $\ell+1$ 
+integers, padded by  infinite strings of $\-infty$ on the left and of $\infty$ on the right. More formally,
+it is a sequence of the form
 \[{\dd}=(\dots, d_i, d_{i+1}, \dots)
 \]
 with  $d_{i} \in \{-\infty\}\cup \ZZ\cup \{\infty\}$ and $d_i \leq d_{i+1}-1$ and 
-where there are precisely $\ell+1$ entries of $\dd$ lying in $\ZZ$. 
-We define a partial order on shifted degree sequences by the termwise partial order, so $d\leq d'$ if $d_i\leq d_i'$ for all $i$.
+where  $\ell+1$ entries of $\dd$ lie in $\ZZ$. 
+We partially order the degree sequences  termwise: $d\leq d'$ if and only if $d_i\leq d_i'$ for all $i$.
 \end{defn}
-Note that this usage is slightly more general than that of \cite{eis-schrey1} or \cite{boij-sod2}, where degree
+(This usage is slightly more general than that of \cite{eis-schrey1} or \cite{boij-sod2}, where degree
 sequences were taken to be what would be written here as
-$(\dots,-\infty,d_{0}^{\zp},\dots,d_{\ell}, \infty,\dots)$.
+$(\dots,-\infty,d_{0}^{\zp},\dots,d_{\ell}, \infty,\dots)$.)
 
 As with Betti tables, we use a $\zp$ to indicate homological position zero when writing a degree sequence. 
 Thus for example
@@ -542,10 +563,9 @@ $$
 $$
 are  degree sequences of codimension 2.
 
-Given any degree sequence $\dd$, we say that a complex $\FF$ is \defi{pure of type $\dd$} if, for all $i$ such that $d_i\in \ZZ$, the free module $\FF_i$ is generated entirely in degree $d_i$.   The existence of pure resolutions (see~\cite{efw} or \cite[\S5]{eis-schrey1}) shows that, for any  degree sequence $\dd$ of codimension $\ell\leq n+1$, there exists a shifted resolution of a Cohen-Macaulay module over $S$ that is a pure complex of type $\dd$.  One of the central results of \BS theory is that the Betti tables of pure resolutions of Cohen--Macaulay modules correspond bijectively with the extremal rays of the cone of Betti tables of minimal free resolutions.  In other words, if $\FF$ is a minimal free resolution, then $\beta(\FF)$ may be written as a positive rational combination of the Betti tables of pure resolutions.  See~\cites{eis-schrey-icm,floystad-expository} for expository introductions to \BS theory.  We remark that, in \S\ref{sec:refined}, we introduce new notation for discussing many different cones of Betti tables.
+Given any degree sequence $\dd$, we say that a complex $\FF$ is \defi{pure of type $\dd$} if, for all $i$ such that $d_i\in \ZZ$, the free module $\FF_i$ is generated entirely in degree $d_i$.   The existence of pure resolutions (see~\cite{efw} or \cite[\S5]{eis-schrey1}) shows that, for any  degree sequence $\dd$ of codimension $\ell\leq n+1$, there exists a shifted resolution of a Cohen-Macaulay module over $S$ that is a pure complex of type $\dd$.  
 
-
-If $P$ is some property that may be applied to a graded $S$-module, we extend the definition to the derived category by saying that $\FF \in \DD^b(S)$ has property $P$ if the direct sum of the homology modules of $\FF$ has this property. We similarly extend the definition of any property of coherent sheaves to elements $\cE\in \DD^b(\PP^n)$.  
+If $P$ is some property of graded $S$-modules, we say that a complex $\FF \in \DD^b(S)$ has property $P$ if the direct sum of the homology modules of $\FF$ has property $P$. We extend the definition of  properties of coherent sheaves to $\DD^b(\PP^n)$ similarly.  
 
 A \defi{root sequence $f$ of dimension $s$} is a strictly decreasing sequence
 of $s$ integers, $f=(f_1>\cdots>f_s)$.  
@@ -563,20 +583,22 @@ Moreover, the cohomology table of any coherent sheaf
 can be written as a positive real combination of cohomology tables 
 of supernatural sheaves~\cite[Theorem~0.1]{eis-schrey1}.  
 
-One of the main results of \cite{eis-schrey1} indicates a duality between the cone of Betti tables of free resolutions of finite length graded $S$-modules and the cone of cohomology tables of vector bundles on $\PP^n$.  We provide a new perspective on this duality in \S\ref{sec:duality}. 
+%One of the main results of \cite{eis-schrey1} indicates a duality between the cone of Betti tables of free resolutions of finite length graded $S$-modules and the cone of cohomology tables of vector bundles on $\PP^n$.  We provide a new perspective on this duality in \S\ref{sec:duality}. 
 
 
 \begin{defn}
 We index complexes in $\DD^b(S)$ homologically as in $\FF=[\dots \gets \FF_0\gets \FF_1\gets \dots]$.  For any $k\in \ZZ$, we define a \defi{shift} of $\FF$, denoted $\FF[k]$, as the complex obtained by shifting the indices in the following way:  $(\FF[k])_i=\FF_{i-k}$.
 \end{defn}
 
+Notation for various cones of Betti tables is introduced in \S\ref{sec:refined}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-\section{A duality pairing for \BS Theory}\label{sec:duality pairing}
+\section{The categorical duality}\label{sec:duality pairing}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-In this section we define the functor $\Phi$ and we prove Theorem~\ref{thm:Phi} describing its main properties.  As before, set $A= \kk[t]$. Let 
+In this section we define the functor $\Phi$ and derive strengthened versions of its properties given in Theorem~\ref{thm:Phi}. %As before, set $A= \kk[t]$.
+ Let 
 $\sigma\colon S\to S\otimes A = S[t]$
 be the homomorphism defined by $\sigma(x_{i})=x_{i}t$. 
 We write $-\otimes_\sigma S[t]$ to denote tensoring over $S$ with $S[t]$ using the structure
@@ -586,13 +608,25 @@ If $F$ is a graded  $S$-module, then
 $$
 F\otimes_{\sigma} S[t]
 $$
-is a bigraded $S[t]$ module.
-Thus we may define a functor $\tau$ on derived
-categories that takes a graded complex of free $S$-modules $\FF$ to
+is a bigraded $S[t]$ module that defines a graded sheaf 
+$$
+\tau(F) := \widetilde{F\otimes_{\sigma} S[t]}
+$$
+on $\PP^{n}_{A} = \PP^{n}\times \AA^{1}$, where the grading comes from the grading of $A = \kk[t]$.
+This functor extends to a functor $\tau$ on derived
+categories
+taking a graded complex of free $S$-modules $\FF$ to
 $$
 \tau(\FF): =\widetilde \FF \otimes_{\sigma}\cO_{\PP^{n}\times \AA^{1}},
 $$
-a complex of graded sheaves on $\PP^{n}\times \AA^{1}$, with the grading coming from degree in $t$, the coordinate on $\AA^{1}$. For example, if 
+a complex of graded sheaves on $\PP^{n}\times \AA^{1}$.
+This description of $\tau$ could 
+be extended to graded complexes of arbitrary finitely generated graded modules
+at the expense of replacing the tensor product with a derived tensor product, but we
+will never need this.
+
+%, with the grading coming from degree in $t$, the coordinate on $\AA^{1}$. 
+For example, if 
 $$
 \FF= [\xymatrix{0&S\ar[l]&S(-e)\ar[l]_f& 0\ar[l]}]
 $$
@@ -601,10 +635,7 @@ $$
 \tau(\FF)= [\xymatrix{0&\cO_{\PP^{n}}\boxtimes A\ar[l]&\cO_{\PP^{n}}(-e)\boxtimes A(-e)\ar[l]_-{t^ef}& 0\ar[l]}]
 $$
 where $P\boxtimes Q$ denotes the tensor product of the pullbacks of $P$ and $Q$ from
-$\PP^{n}$ and $\AA^{1}$, respectively. This description of $\tau$ could 
-be extended to graded complexes of arbitrary finitely generated graded modules
-at the expense of replacing the tensor product with a derived tensor product, but we
-will never need this.
+$\PP^{n}$ and $\AA^{1}$, respectively. 
 
 %\begin{defn} The functor $\Phi: D^{b}(\P^{n}) \times D^{b}(S) \to D^{b}(A)$ is given by:
 %$$
@@ -613,12 +644,11 @@ will never need this.
 %where $\pi: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection.
 %\end{defn}
 
-\begin{defn} \label{defn:product} The functor $\Phi: \DD^{b}(S)\times \DD^b(\PP^n) \to \DD^{b}(A)$ is given by:
+\begin{defn} \label{defn:product} The functor $\Phi: \DD^{b}(S)\times \DD^b(\PP^n) \to \DD^{b}(A)$ is the composition of $\tau$ with the projection $Rp_{2}$ to the derived category of graded $A$-modules; that is,
 $$
 \Phi(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{\P^{n}\times\AA^{1}} (\cE\boxtimes \cO_{\AA^{1}}) \bigr)
 $$
-where $\FF$ denotes a graded  complex of finitely generated free $S$-modules and
-$p_2: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection. We  often write
+where $\FF$ denotes a graded  complex of finitely generated free $S$-modules. We  often write
 $\FF\cdot \cE$ for $\Phi(\FF,\cE)$.
 \end{defn}
 We will only need to use the definition of $\Phi$ in the special case where $\FF$ is a free complex and where $\cE$ is (the extension by zero of) a vector bundle on a linear subspace of $\PP^n$.
@@ -688,7 +718,7 @@ for some $u\in \kk$. But the complex $\FF$ has homology of finite length, so the
 %\section{The Betti table of $\Phi(\FF,\cE)$}\label{sec:Betti of Phi}
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-The following result is a strengthened version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}.
+ Here is a more precise version of Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}.
 \begin{theorem}\label{thm:betti numbers of pairing}
 The Betti numbers of $\FF\cdot \cE = \Phi(\FF,\cE)$ are given by the formula:
 \[
@@ -699,8 +729,8 @@ In particular, the Betti table of $\FF\cdot \cE$ only depends on $\beta(\FF)$ an
 
 
 \begin{proof}
-Without loss of generality, we assume that $\FF$ is a minimal free complex supported entirely in nonnegative homological degrees, so that $\FF=[\FF_0\gets \dots \gets \FF_p]$.  
-We may compute $\FF\cdot \cE$ explicitly in terms of a certain spectral sequence for computing $Rp_{2*}$.  First, we consider the double complex $C_{\bullet, \bullet}$ where $C_{i,\bullet}$ is the Cech resolution of $\left( \tau(\FF_i)\otimes_{\PP^n_A} (\cE\boxtimes \cO_{\AA^1})\right)$ on $\PP^n_A$ with respect to the standard Cech cover of $\mathbb P^n$.  If we represent all of the maps in $C_{\bullet, \bullet}$ with matrices, then all of the vertical maps (which are induced by the Cech resolutions) will involve bidegree $(0,0)$ elements, and all of the horizontal maps (which are induced by the maps in $\tau(\FF)$) will involve bihomogeneous elements that are strictly positive in both bidegrees.
+Since $\Phi$ commutes with homological shifting, we may assume that $\FF$ is a minimal free complex supported entirely in nonnegative homological degrees, say $\FF=[\FF_0\gets \dots \gets \FF_p]$.  
+We  compute $\FF\cdot \cE$ via a  spectral sequence.  First, we consider the double complex $C_{\bullet, \bullet}$ where $C_{i,\bullet}$ is the Cech resolution of $\left( \tau(\FF_i)\otimes_{\PP^n_A} (\cE\boxtimes \cO_{\AA^1})\right)$ on $\PP^n_A$ with respect to the standard Cech cover of $\mathbb P^n$.  If we represent all of the maps in $C_{\bullet, \bullet}$ with matrices, then all of the vertical maps (which are induced by the Cech resolutions) will involve bidegree $(0,0)$ elements, and all of the horizontal maps (which are induced by the maps in $\tau(\FF)$) will involve bihomogeneous elements that are strictly positive in both bidegrees.
 
 Since $\Tot(C_{\bullet, \bullet})$ is a complex of flat $A$-modules that is quasi-isomorphic to $\FF\cdot \cE$, we can obtain the Betti numbers by computing $\Tor(\Tot(C_{\bullet, \bullet}), A/(t))$.  When we tensor by $A/(t)$, the vertical maps of $C_{\bullet, \bullet}$ are unchanged, but the horizontal maps all go to $0$.  
 Hence, one spectral sequence degenerates, so the $i$th homology of $\Tot(C_{\bullet,\bullet})/(t)$ equals the sum 
@@ -736,19 +766,22 @@ Let $S=\kk[x,y,z]$ and let
 \beta(\FF)=\begin{bmatrix} 1&-&-&-\\ -&-&-&-\\-&4&4&-\\-&4&4&-\\-&-&-&-\\-&-&-&1 \end{bmatrix}.
 \end{equation}
 
-No multiple of the Betti table $\beta(\FF)$ can equal the Betti table of a minimal, free complex with finite length homology. Indeed, such a complex would be a resolution,  so this case is covered by the theory of \cite{eis-schrey1}. But it is instructive to see how this follows directly from Theorem~\ref{thm:Phi}.
+No multiple of the Betti table $\beta(\FF)$ can equal the Betti table of a minimal, free complex with finite length homology. Indeed, such a complex would be a resolution,  so this case is covered by the theory of \cite{eis-schrey1}. But we can also see this directly from the Betti number formula of Theorem~\ref{thm:betti numbers of pairing}:
 
 If $\cE$ is a rank $8$ supernatural bundle of type $(0,-8)$ then 
 $\FF\cdot \cE$ would be a minimal complex of the form
 \[
 \FF\cdot \cE=\left[ \begin{matrix}A(-3)^{240}\\ \oplus \\A(-4)^{256}\end{matrix} \longleftarrow \begin{matrix}A(-4)^{256}\\\oplus \\ A(-5)^{240}\end{matrix}\right].
 \]
-Since the complex is minimal, the kernel of the map will contain a subsheaf of $A(-4)^{256}$ of rank at least $256-240=16$, and hence $\FF\cdot \cE$ cannot have finite length homology.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:2} it follows that no multiple of $\beta(\FF)$ can be the Betti table of a complex with finite length homology. However, we shall see in Example~\ref{ex:1441bis} that 
+Since the complex is minimal, the kernel of the map will contain a subsheaf of $A(-4)^{256}$ of rank at least $256-240=16$, and hence $\FF\cdot \cE$ cannot have finite length homology.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:2} it follows that no multiple of $\beta(\FF)$ can be the Betti table of a complex with finite length homology. 
+
+We shall see in Example~\ref{ex:1441bis} that 
  $10\beta(\FF)$ is the Betti table of a complex with 1-dimensional homology.
 \end{example}
 
-As a Corollary of Theorem~\ref{thm:betti numbers of pairing}, we can use $\Phi$ to recover the Betti numbers of $\FF$  or the cohomology
-table of $\cE$:
+ Theorem~\ref{thm:betti numbers of pairing} implies that the values of $\Phi$ contain enough
+ information to compute the Betti numbers of a complex $\FF$ and the cohomology
+table of a sheaf $\cE$:
 \begin{cor} Let $\FF\in \DD^b(S)$ and let $\cE\in \DD^b(\PP^n)$.
 \begin{enumerate}
 \item 
@@ -758,7 +791,7 @@ table of $\cE$:
 %\qed
 \end{cor}
 
-
+The following condition for $\FF\cdot \cE$ to have finite length homology will play a central role in our theory: 
 
 \begin{prop}\label{prop:exact}
 Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$.  If $\widetilde \FF\otimes \cE$ is exact, then the homology of the complex $\Phi(\FF,\cE)$ has finite length.
@@ -813,150 +846,6 @@ of $\Phi(\FF,\cE)$ is annihilated by a power of $t$, as required.
 %\end{example}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Categorified Eisenbud--Schreyer functionals}\label{sec:functionals}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We now illustrate how the pairing $\Phi$ provides a unifying view on the Eisenbud--Schreyer functionals and  the corresponding positivity results, such as~\cite[Positivity 1 and 2]{eis-schrey-icm}.  The basic idea can be envisioned via Figure~\ref{fig:bracket} or equation \eqref{eqn:**}.  First, we use $\Phi$ to obtain a  bilinear pairing that takes a Betti table $\beta(\FF)$ and a cohomology table $\gamma(\cE)$ to a Betti table $\beta(\FF\cdot \cE)$ on $A$.  Second, we analyze the functionals on $\DD^b(A)$ which are nonnegative when evaluated on complexes with finite length homology.  
-This recipe provides lots of functionals that are nonnegative on Betti tables, including all of the Eisenbud--Schreyer functionals $\langle -, -\rangle_{\tau,\kappa}$ (see ~\cite{eis-schrey-icm} for the definition, and for results about these functionals.)
-
-
-\begin{remark}
-We refer throughout to the definition of $\langle -, -\rangle_{\tau,\kappa}$ given in \cite{eis-schrey-icm}.  Though the same functionals appear in \cite{eis-schrey1}, they are indexed differently.
-\end{remark}
-
-\begin{defn}\label{defn:chi}
-Given $\Gbull\in \DD^b(A)$, we define $\chi_{i,j}(\Gbull)=\chi_{i,j}(\beta(\Gbull))$ to be the dot product of the Betti table $\beta(\Gbull)$ with
-\begin{equation}\label{eqn:chi}
-\chi_{i,j}:=
-\left|
-\begin{array}{cccccccc}
- & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
-\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
-\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
-\dots&0&0&\multicolumn{1}{|c}{\mathbf{1}}&-1&1&-1&\dots\\ \cline{4-5}
-\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
-\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
-& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
-\end{array}
-\right|
-\end{equation}
-where the boldface $1$ corresponds to $\beta_{i,j}$; that is, the boldface $1$ is in column $i$ and row $i-j$. 
-\end{defn}
-The line that snakes through
-the table indicates how $\chi_{i,j}$ separates a Betti table into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix. The functionals $\langle - , \cE \rangle_{\tau,\kappa}$ used previously in Boij-S\"oderberg theory can be expressed in terms of the $\chi_{i,j}$.   (Although the following proposition only treats
-the case when $\cE$ is supernatural, we may use \cite[Theorem~0.1]{eis-schrey2} to extend this linearly to the case of an arbitrary $\cE$.)
-This is the sense in which the complex of $A$-modules $\Phi(\FF,\cE)$ categorifies the Eisenbud--Schreyer functionals.
-
-\begin{prop}\label{thm:categorified:2}
-Let $\cE$ be a supernatural sheaf of dimension $s$ on $\PP^n$ with root sequence $f$, and let $\FF$ be a bounded minimal free complex. Fix any $1\leq \tau\leq s$ and $\kappa\in \ZZ$.  There exists $\nu\in \ZZ$ such that
-\[
-\langle \FF, \cE\rangle_{\tau,\kappa}= 
- \chi_{0, \nu}(\FF\cdot \cE).
-\]
-\end{prop}
-
-\begin{proof} 
-We set $\nu:=\min\{\max\{\kappa, -f_{\tau}-1\},-f_{\tau+1}-1\}$.  It suffices to verify the claim for one-term complexes of the form $\FF=S^1(-u)[v]$, with $u$ and $v$ arbitrary.  
-If we set $f_0=\infty$ and $f_{s+1}=-\infty$, then there exists a unique $p$ such that $f_p\geq -u>f_{p+1}$, and thus  $\beta_{v-p,u}(\FF\cdot \cE)=\gamma_{p,-u}(\cE)$ while all other Betti numbers  of $\FF\cdot \cE$ are equal to $0$.  (If $-u$ is a root of $f$, then both functionals are trivially zero, and we henceforth assume that $-u$ is not a root of $f$.)
-
-
-Hence $\chi_{0, \nu}(\FF\cdot \cE)$ is either $(-1)^{v-p}\gamma_{p,-u}(\cE)$ or $0$, depending on whether or not the $1$-term complex $\FF\cdot \cE$ lies in the ``upper'' or ``lower'' region of $\chi_{0,\nu}$.  Similarly, one may check from the definition in \cite{eis-schrey-icm} that $\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}$ is either $(-1)^{v-p}\gamma_{p,-u}(\cE)$ or $0$.  
-It thus suffices to confirm that our two functionals are nonzero in precisely the same situations.  We first consider the case when $v-p<0$.  Then $\FF\cdot \cE$ is supported in homological degrees $<0$, and hence $\chi_{0, \nu}(\FF\cdot \cE)$ is automatically $0$. Similarly, since $v<p$ there no terms in the definition of $\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}$ of the form $\beta_{v,u}\gamma_{p,-u}$, and hence this functional is also zero.  
-
-It is similarly routine to check that, if $v-p>1$, then both functionals are nonzero.  We are then left with the cases $v-p=0$ and $v-p=1$.  For $v-p=0$, we have:
-\begin{equation}\label{eqn:cond1}
-\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}=0 \iff p> \tau \text{ or } p=\tau \text{ and } u>\kappa.
-\end{equation}
-We also have
-\begin{equation}\label{eqn:cond2}
-\chi_{0,\nu}(\FF\cdot \cE)=0 \iff u> \nu=\min\{\max\{\kappa, -f_{\tau}-1\},-f_{\tau+1}-1\}.
-\end{equation}
-We observe that the conditions in \eqref{eqn:cond1} and \eqref{eqn:cond2} are equivalent.  Namely, the second condition yields that either: $f_{\tau+1}\geq-u$ (which is equivalent to $p>\tau$); or $u>\kappa$ and $f_{\tau}\geq -u$ (which is equivalent to $u>\kappa$ and $p\geq \tau$). 
-
-We now check the case $v-p=1$.  Here we have:
-\begin{equation}\label{eqn:cond3}
-\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}=0 \iff p> \tau \text{ or } p=\tau \text{ and } u>\kappa+1.
-\end{equation}
-We also have
-\begin{equation}\label{eqn:cond4}
-\chi_{0,\nu}(\FF\cdot \cE)=0 \iff u> \nu+1=\min\{\max\{\kappa+1, -f_{\tau}\},-f_{\tau+1}\}.
-\end{equation}
-Again, these conditions are equivalent: either $f_{\tau+1}>-u$ (which, given that $-u$ is not a root of $\cE$, is equivalent to $p>\tau$); or $u>\kappa+1$ and $f_{\tau}>-u$ (which, given that $-u$ is not a root of $\cE$, is equivalent to $u>\kappa+1$ and $p\geq \tau$). 
-\end{proof}
-
-We define $\DD^b(A)_{\text{tor}}$ as the subcategory of $\DD^b(A)$ consisting of complexes whose homology is torsion.
-The usefulness of the functionals $\chi_{i,j}$ comes from a positivity result generalizing that of \cite{eis-schrey1}:
-
-\begin{thm}\label{thm:categorified}\label{thm:categorified:1}  Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$. If  $\codim(\FF)+\codim(\cE)\geq n+1$, then
-\[
-\chi_{i,j}(\FF\cdot \cE)\geq 0
-\]
-\end{thm}
-
-%\begin{thm}\label{thm:categorified}\david{the two parts really don't belong together; make into two results}
-%\begin{enumerate}
-%	\item\label{thm:categorified:1}  Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$ with $\codim(\FF)+\codim(\cE)\geq n+1$.  Then
-%\[
-%\chi_{i,j}(\FF\cdot \cE)\geq 0
-%\]
-%	\item\label{thm:categorified:2}  \david{this needs fixing: a sheaf of codim $s$ would have
-%	root sequence with $n-s$ terms.} Let $\cE$ be a supernatural sheaf of codimension $s$ on $\PP^n$ with root sequence $f$.  Fix $1\leq \tau \leq s$ and $\kappa\in \ZZ$.  If we set $\nu:=\min\{\kappa, f_{\tau}-1\}$,
-%	%there exists $\nu \in \ZZ$ such that 
-%	then we have an equality of functions:
-%\[
-%\bigg( \beta(\FF)\mapsto \chi_{0,\nu}(\FF\cdot \cE_f)\bigg) =\bigg( \beta(\FF)\mapsto \langle \FF, \cE_f\rangle_{\tau,\kappa} \bigg).
-%\]
-%%from $\VV \to \QQ$, where $\langle -, \cE_{f}\rangle_{\tau,\kappa}$ is the functional defined in \cite{eis-schrey-icm}, extended in the natural way to all of $\VV$.
-%\end{enumerate}
-%\end{thm}
-
-
-\begin{proof}
-The number $\chi_{i,j}(\FF\cdot \cE)$ only depends on the Betti table of $\FF\cdot \cE$, which by Theorem~\ref{thm:Phi}\eqref{thm:Phi:1} only depends on $\beta(\FF)$ and $\gamma(\cE)$.  We may thus assume that $\kk$ is an infinite field, and we may replace $\cE$ by a general $\GL_{n+1}$ translate, since this does not affect the cohomology table of $\cE$.  By~\cite[Theorem, p.\ 335]{miller-speyer}, we  conclude $\widetilde{\FF}\otimes \cE$ is exact.  Hence, by Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, it follows that $\FF\cdot \cE$ lies in $\DD^b(A)_{\text{tor}}$.  Thus Lemma~\ref{lem:chi nonneg} yields the desired nonnegativity.
-\end{proof}
-
-\begin{lemma}\label{lem:chi nonneg}
-If $\Gbull \in \DD^b(A)_{\text{tor}}$, then $\chi_{i,j}(\Gbull)\geq 0$.
-\end{lemma}
-
-\begin{proof} Because $A$ has global dimension 1, every minimal free complex
-over $A$ is isomorphic to the direct sum of the resolutions of its homology modules, 
-and any torsion $A$-module is a direct sum of modules of the form
- $A(-p)/t^q$. Thus it suffices to compute $\chi_{i,j}\Gbull$, where
-$
-\Gbull
-$
-is, up to a homological shift, the two term complex
-$A(-p)\leftarrow A(-p-q)$.  It is obvious that $\chi_{i,j}\Gbull$ is 0 or 1,
-depending on the values of $i,j,p,q$.
-\end{proof}
-
-
-
-\begin{example}\label{ex:sup2}
-On $\PP^2$, let $\cE$ be a supernatural bundle of type $(1,-3)$ and rank $2$.  
-We consider the functional $\beta(\FF)\mapsto \chi_{0,0}(\FF\cdot \cE)$.  This functional is given by the dot product of $\beta(\FF)$ with
-\[
-\chi_{0,0}(-\cdot \cE)=
-\left|
-\begin{array}{ccccccc}
-&\multicolumn{1}{|c}{\vdots}&\vdots&\vdots&\vdots&&\\
-\dots&\multicolumn{1}{|c}{12}&-5&0&3&\dots\\
-\dots&\multicolumn{1}{|c}{5}&0&-3&4&\dots\\ \cline{2-2}
-\dots&{0}&\multicolumn{1}{|c}{3}&-4&3&\dots\\ \cline{3-5}
-\dots&0^\zp&0&0&{0}&\multicolumn{1}{|c}{\dots}\\
-\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
-\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
-\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
-&\vdots&\vdots&\vdots&\vdots&\multicolumn{1}{|c}{}&\\
-\end{array}
-\right|
-\]
-The line that snakes through the table corresponds to the dividing line in the definition of $\chi_{0,0}$. The shape of the line has changed, due to the homological shifts introduced by the cohomology table of $\cE$.  Note that this equals the facet equation $\delta$ from~\cite[\S3]{eis-schrey-icm}.
-\end{example}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{\underline{{Part II: Free Complexes with Homology}}}
@@ -969,16 +858,20 @@ The main result of this section and the next two is Theorem~\ref{thm:extremal ra
 which extends the main decomposition results in \BS theory from \cites{eis-schrey1,boij-sod2}
 to describe the cones of Betti tables of free complexes with  homology of at least a given codimension. More generally, we can treat certain cases where the homology modules have distinct codimensions. For this we make use of the following definitions.
 
-\begin{defn} A \defi{codimension sequence} is a nondecreasing
+\david{Why should these definitions be numbered? I would like to get rid of the definition
+environment, which seems a bit arbitrary unless theres a reference to it.}
+
+\begin{defn} A \defi{codimension sequence} is an indexed, nondecreasing,
 doubly infinite sequence
 $$
-\cc=(\dots, c_{-1}, c_{0}^{\circ}, c_{1}, \dots )
+\cc=(\dots, c_{-1}, c_{0}, c_{1}, \dots )
 $$
 where  
 $$
 c_{i}\in \{\nothing\} \cup \{0,1,\dots,n+1\}\cup \{\infty\},
 $$
-for each $i$ and where we take the convention $\nothing<0$.  
+for each $i$ and where we take the convention $\nothing<0$. As with degree sequences,
+we will sometimes indicate the position of $c_{0}$ with $^{\circ}$.
 
 We say that a
 minimal graded free complex $\FF$ over $S$ (or the element of $\DD^{b}(S)$ that it represents) is \defi{compatible with $\cc$} if 
@@ -1008,7 +901,9 @@ We say that $\dd$ is \defi{compatible} with $\cc$ if $c_{k}\leq \ell \leq c_{k+1
 
 For example, if the terms of $\cc$ are all equal to $k$, then the degree sequences
 compatible with $\cc$ are precisely those of codimension $k$.
-Also, it follows from the main result of \cite{WMACE}\daniel{what citation?} that if a complex
+Also, it follows from the ``Lemme d'acyclicit\'e'' of Peskine and Szpiro~\cite{MR0374130}
+%main result of \cite{WMACE}\daniel{what citation?} 
+that if a complex
 $$
 \FF= [\FF_{k}\leftarrow \cdots \leftarrow \FF_{k+\ell}\leftarrow 0],
 $$
@@ -1240,7 +1135,89 @@ We may interpret this decomposition as follows.  Let $M$ be an $S=\kk[x,y,z]$-mo
 We first prove Theorem~\ref{thm:extremal rays refined} for cones of the form $\BBQ^{\cc}(A)$ (which is the $n=0$ case of the theorem).
 Since the output of $\Phi$ is a complex on $A$, this provides a base case for the theorem.  In addition, we provide a halfspace description of each such cone.
 
-Recall that $\UU= \oplus_{i\in \ZZ} \oplus_{j\in \ZZ}\QQ$  denotes the vector space containing the cones $\BBQ^{\cc}(A)$. We will use the truncated Euler characteristic functionals $\chi_{i,j}$ from Definition~\ref{defn:chi} and the total Euler characteristic functional $\chi(\FF):=(\FF\mapsto \sum_{i,j}(-1)^i \beta_{i,j}(\FF))$.  
+Recall that $\UU= \oplus_{i\in \ZZ} \oplus_{j\in \ZZ}\QQ$  denotes the vector space containing the cones $\BBQ^{\cc}(A)$. 
+
+\begin{defn}\label{defn:chi}
+Given $\Gbull\in \DD^b(A)$, we define $\chi_{i,j}(\Gbull)=\chi_{i,j}(\beta(\Gbull))$ to be the dot product of the Betti table $\beta(\Gbull)$ with
+\begin{equation}\label{eqn:chi}
+\chi_{i,j}:=
+\left|
+\begin{array}{cccccccc}
+ & \vdots& &\multicolumn{1}{|c}{\vdots}&& \vdots&&\\
+\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+\dots&0&0&\multicolumn{1}{|c}{1}&-1&1&-1&\dots\\
+\dots&0&0&\multicolumn{1}{|c}{\mathbf{1}}&-1&1&-1&\dots\\ \cline{4-5}
+\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{1}&-1&\dots\\
+& \vdots&&\vdots&& \multicolumn{1}{|c}{\vdots}&&\\
+\end{array}
+\right|
+\end{equation}
+where the boldface $1$ corresponds to $\beta_{i,j}$; that is, the boldface $1$ is in column $i$ and row $i-j$. 
+\end{defn}
+The line that snakes through
+the table indicates how $\chi_{i,j}$ separates a Betti table into two regions.  In the upper region, this is simply computing an Euler characteristic, and in the lower region, it is dot product with the zero matrix. 
+
+We define $\DD^b(A)_{\text{tor}}$ as the subcategory of $\DD^b(A)$ consisting of complexes whose homology is torsion.
+The usefulness of the functionals $\chi_{i,j}$ comes from a positivity result generalizing that of \cite{eis-schrey1}:
+
+\begin{prop}\label{lem:chi nonneg}
+If $\Gbull \in \DD^b(A)_{\text{tor}}$, then $\chi_{i,j}(\Gbull)\geq 0$.
+\end{prop}
+
+\begin{proof} Because $A$ has global dimension 1, every minimal free complex
+over $A$ is isomorphic to the direct sum of the resolutions of its homology modules, 
+and any torsion $A$-module is a direct sum of modules of the form
+ $A(-p)/t^q$. Thus it suffices to compute $\chi_{i,j}\Gbull$, where
+$
+\Gbull
+$
+is, up to a homological shift, the two term complex
+$A(-p)\leftarrow A(-p-q)$.  It is obvious that $\chi_{i,j}\Gbull$ is 0 or 1,
+depending on the values of $i,j,p,q$.
+\end{proof}
+
+We will obtain information on complexes over $S$ by composing the $\chi_{i,j}$ with $\Phi$:
+
+\begin{cor}\label{thm:categorified}\label{thm:categorified:1}  Let $\FF\in \DD^b(S)$ and $\cE\in \DD^b(\PP^n)$. If  $\codim(\FF)+\codim(\cE)\geq n+1$, then
+\[
+\chi_{i,j}(\FF\cdot \cE)\geq 0
+\]
+\end{cor}
+
+\begin{proof}
+The number $\chi_{i,j}(\FF\cdot \cE)$ only depends on the Betti table of $\FF\cdot \cE$, which by Theorem~\ref{thm:Phi}\eqref{thm:Phi:1} only depends on $\beta(\FF)$ and $\gamma(\cE)$.  We may thus assume that $\kk$ is an infinite field, and we may replace $\cE$ by a general $\GL_{n+1}$ translate, since this does not affect the cohomology table of $\cE$.  By~\cite[Theorem, p.\ 335]{miller-speyer}, we  conclude $\widetilde{\FF}\otimes \cE$ is exact.  Hence, by Theorem~\ref{thm:Phi}\eqref{thm:Phi:2}, it follows that $\FF\cdot \cE$ lies in $\DD^b(A)_{\text{tor}}$.  Thus Proposition~\ref{lem:chi nonneg} yields the desired nonnegativity.
+\end{proof}
+
+
+\begin{example}\label{ex:sup2}
+On $\PP^2$, let $\cE$ be a supernatural bundle of type $(1,-3)$ and rank $2$.  
+We consider the functional $\beta(\FF)\mapsto \chi_{0,0}(\FF\cdot \cE)$.  This functional is given by the dot product of $\beta(\FF)$ with
+\[
+\chi_{0,0}(-\cdot \cE)=
+\left|
+\begin{array}{ccccccc}
+&\multicolumn{1}{|c}{\vdots}&\vdots&\vdots&\vdots&&\\
+\dots&\multicolumn{1}{|c}{12}&-5&0&3&\dots\\
+\dots&\multicolumn{1}{|c}{5}&0&-3&4&\dots\\ \cline{2-2}
+\dots&{0}&\multicolumn{1}{|c}{3}&-4&3&\dots\\ \cline{3-5}
+\dots&0^\zp&0&0&{0}&\multicolumn{1}{|c}{\dots}\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
+\dots&0&0&0&0&\multicolumn{1}{|c}{\dots}\\
+&\vdots&\vdots&\vdots&\vdots&\multicolumn{1}{|c}{}&\\
+\end{array}
+\right|
+\]
+The line that snakes through the table corresponds to the dividing line in the definition of $\chi_{0,0}$. The shape of the line has changed, due to the homological shifts introduced by the cohomology table of $\cE$.  Note that this equals the facet equation $\delta$ from~\cite[\S3]{eis-schrey-icm}.
+\end{example}
+
+
+
+
+We will 
+%use the truncated Euler characteristic functionals $\chi_{i,j}$ from Definition~\ref{defn:chi} and the 
+also use the total Euler characteristic functional $\chi(\FF):=(\FF\mapsto \sum_{i,j}(-1)^i \beta_{i,j}(\FF))$.  
 
 \begin{cor}\label{cor:dualconeA refined}
 Let $\cc = (\dots,c_{i},\dots) = (\dots,\nothing,0\dots,0,1\dots,1,\infty, \dots)$ be a codimension sequence for $A$ and let $u\in \UU$.
@@ -1258,7 +1235,7 @@ Since $A$ has global dimension $1$, any complex $\Gbull\in \DD^b(A)$ is quasi-is
 
 We next check that each functional in (1) and (4) vanishes on $\BBQ^{\cc}(A)$.  For (1), if $c_i=\nothing$ this simply follows from the fact that $\Gbull$ is compatible with $\cc$.  For (4), if there does not exist $i$ such that $c_i=0$, then $\Gbull$ is compatible with $\cc$ only if $\Gbull$ has finite length homology, and hence $\chi(\Gbull)=0$.  
 
-We now claim that the other functionals in Corollary~\ref{cor:dualconeA refined} are nonnegative.  The functionals from (2) are obviously nonnegative, so it suffices to check that $\chi_{i,j}(\Gbull)\geq 0$ when $\Gbull$ is compatible with $\cc$ and $c_i\geq 1$.  By the extremal ray description, it suffices to consider the case when $\Gbull$ is a pure resolution.  If $\Gbull$ resolves a finite length module, then Lemma~\ref{lem:chi nonneg} implies that $\chi_{i,j}(\Gbull)\geq 0$.  On the other hand, if $\Gbull$ resolves a free $A$-module then, since $c_i=1$, the homology of $\Gbull$ must lie entirely in homological degree $<i$, and hence $\chi_{i,j}(\Gbull)=0$.
+We now claim that the other functionals in Corollary~\ref{cor:dualconeA refined} are nonnegative.  The functionals from (2) are obviously nonnegative, so it suffices to check that $\chi_{i,j}(\Gbull)\geq 0$ when $\Gbull$ is compatible with $\cc$ and $c_i\geq 1$.  By the extremal ray description, it suffices to consider the case when $\Gbull$ is a pure resolution.  If $\Gbull$ resolves a finite length module, then Proposition~\ref{lem:chi nonneg} implies that $\chi_{i,j}(\Gbull)\geq 0$.  On the other hand, if $\Gbull$ resolves a free $A$-module then, since $c_i=1$, the homology of $\Gbull$ must lie entirely in homological degree $<i$, and hence $\chi_{i,j}(\Gbull)=0$.
 
 To obtain the results about the simplicial structure of $\BBQ^{\cc}(A)$, we must show that if a point $u\in \UU$ satisfies the inequalities in Corollary~\ref{cor:dualconeA refined}, then we may write $u$ uniquely as a sum of pure tables whose degree sequences form a chain.  It suffices to consider points $u\in \UU$ whose entries are all integral.  Since the entries of $u$ must be nonnegative, we may induct on the sum of all of the entries of $u$.  When all entries of $u$ are zero, then $u$ is the empty sum of pure diagrams, and this provides our base case.
 
@@ -1557,11 +1534,12 @@ where: $\FF'=[\FF'_0\gets \FF'_1\gets \dots]$ is a free complex that resolves a 
 \begin{proof}
 Throughout this proof, we take the convention that, for any degree sequence $\dd$, $F_{\dd}$ denotes some pure complex of type $d$.
 
-Note that $\beta(\FF)$ is compatible with the codimension sequence $\cc'=(\dots,0,0,0^{\zp},n+1,\dots)$. We may thus decompose $\beta(\FF)$ according the decomposition algorithm induced by the simplicial structure on $\BBQ^{\cc'}(S)$.  There then exists a collection of nonnegative $a_i\in \QQ_{\geq 0}$ and a chain of degree sequences $\dd^0<\dd^1<\dots <\dd^s$, such that each $\dd^i$ is compatible with $\cc'$ and such that
+The complex $\FF$ is compatible with the codimension sequence $\cc'=(\dots,0,0,0^{\zp},n+1,\dots)$. We may thus decompose $\beta(\FF)$ according the decomposition algorithm induced by the simplicial structure on $\BBQ^{\cc'}(S)$.  There then exists a collection of numbers $a_i\in \QQ_{\geq 0}$ and a chain of degree sequences $\dd^0<\dd^1<\dots <\dd^s$, such that each $\dd^i$ is compatible with $\cc'$ and such that
 \[
 \beta(\FF)=\sum_{i=0}^s a_i\beta(\FF_{\dd^i}).
 \]
-Since the $\dd^i$ form a chain, there is some maximal $r$ such that the degree sequence $\dd^r$ has codimension $>0$.  We define $D':=\sum_{i=0}^r a_i\beta(\FF_{\dd^i})$.  For $i\ne 0$, we can describe the Betti numbers $\beta_{i,j}D'$ explicitly:
+Since the $\dd^i$ form a chain, there is some maximal $r$ such that the degree sequence $\dd^r$ has codimension $>0$.  For $i=0\dots,r$, the entries of $\dd^{i}$ that are $>-\infty$ have strictly positive index, so a complex $\FF_{\\d^{i}}$ will be concentrated in non-negative 
+homological degree. Thus if we set $D':=\sum_{i=0}^r a_i\beta(\FF_{\dd^i})$, then 
 \[
 \beta_{i,j}D'=\begin{cases}
 \beta_{i,j}\FF &\text{ if } i>0\\
@@ -1570,7 +1548,7 @@ Since the $\dd^i$ form a chain, there is some maximal $r$ such that the degree s
 \]
 
 We next consider the dual Betti table $\beta(\Hom(\FF,S))$.  Note first that $\Hom(\FF,S)$ is compatible with the codimension sequence $\cc''=(\dots,0,0,0^{\zp},n+1,n+1\dots)$.  As above, we obtain a decomposition $\beta(\Hom(\FF,S))=\sum_{i=0}^{s'} b_i\beta(\FF_{\ee^i})$ according to the decomposition algorithm induced by $\BBQ^{\cc''}(S)$.  We define $D''$ to be the sum $D''=\sum_{i=0}^{t} b_i\beta(\FF_{\ee^i})$ where $t$ is the maximal value such that the degree sequence $\ee^t$ has codimension $>0$.  
-As above, we can describe the Betti numbers $\beta_{i,j}D''$ explicitly:
+As above, 
 \[
 \beta_{i,j}D''=\begin{cases}
 \beta_{-i,j}\FF &\text{ if } i>0\\
@@ -1589,7 +1567,7 @@ We first note that the sum of the entries of $E$ is precisely $\rank \cF$.  This
 \sum_j \beta_{0,j} E= \sum_{i,j} (-1)^i\beta_{i,j}(\FF)=\rank \cF.
 \]
 
-We next claim that all entries of $E$ are nonnegative.  This follows from the method by which the decomposition algorithm proceed.  Within a single column, the decomposition algorithm works from top to bottom.  So $D'$ consists of the lowest degree syzygies from column $0$.  Since dualizing inverts degrees, $(D'')\vee$ consists the highest degree syzygies from column $0$.  Thus, the only possible problem would be if $D'$ and $(D'')^\vee$ overlapped in column $0$, and in this case, all entries of $E$ would be strictly negative.  This would contradict the computation in the previous paragraph.
+We next claim that all entries of $E$ are nonnegative.  This follows from the form of the decomposition algorithm.  Within a single column, the decomposition algorithm works from top to bottom.  So $D'$ consists of the lowest degree syzygies from column $0$.  Since dualizing inverts degrees, $(D'')\vee$ consists the highest degree syzygies from column $0$.  Thus, the only possible problem would be if $D'$ and $(D'')^\vee$ overlapped in column $0$, and in this case, all entries of $E$ would be strictly negative.  This would contradict the computation in the previous paragraph.
 
 We now conclude the proof.  By construction, we may choose a scalar $\lambda'$ and a free complex $\FF'$ that is compatible with $\cc'$, such that $\lambda'\beta(\FF')=D'+E$.  Since $\FF'=[\FF'_0\gets \dots]$ and is compatible with $\cc'$, it follows that $\widetilde{\FF}'$ resolves a coherent sheaf $\cF'$ on $\PP^n$.  Further the rank of $\cF'$ equals $\sum_{j} \beta_{0,j} E$ which equals the rank of $\cF$.  Next, we may choose a scalar $\lambda''$ and a free complex $\FF''=[\FF''_0\gets \dots]$ that is compatible with $\cc''$, such that $\lambda''\beta(\FF'')=D''$.  It also follows that $\widetilde{\FF}''$ resolves a rank $0$ sheaf $\cF''$.
 \end{proof}
@@ -1642,6 +1620,57 @@ is a free monad for the ideal sheaf of a certain rational surface in $\PP^4$.  T
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Categorified Eisenbud--Schreyer functionals}\label{sec:functionals}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We now show explicitly how the functionals $\langle -, -\rangle_{\tau,\kappa}$
+introduced by Eisenbud and Schreyer in~\cite{eis-schrey1}
+arise from the
+categorical pairing $\Phi$. We will use the notation and definition of these
+functionals from~\cite{eis-schrey-icm}. (They are the same as the ones in~\cite{eis-schrey1} but are indexed differently.)
+Although the following proposition only treats
+the case when $\cE$ is supernatural, we may use \cite[Theorem~0.1]{eis-schrey2} to extend this linearly to the case of an arbitrary $\cE$.
+
+\begin{prop}\label{thm:categorified:2}
+Let $\cE$ be a supernatural sheaf of dimension $s$ on $\PP^n$ with root sequence $f$, and let $\FF$ be a bounded minimal free complex. Fix any $1\leq \tau\leq s$ and $\kappa\in \ZZ$.  There exists $\nu\in \ZZ$ such that
+\[
+\langle \FF, \cE\rangle_{\tau,\kappa}= 
+ \chi_{0, \nu}(\FF\cdot \cE).
+\]
+\end{prop}
+
+\begin{proof} 
+We set $\nu:=\min\{\max\{\kappa, -f_{\tau}-1\},-f_{\tau+1}-1\}$.  It suffices to verify the claim for one-term complexes of the form $\FF=S^1(-u)[v]$, with $u$ and $v$ arbitrary.  
+If we set $f_0=\infty$ and $f_{s+1}=-\infty$, then there exists a unique $p$ such that $f_p\geq -u>f_{p+1}$, and thus  $\beta_{v-p,u}(\FF\cdot \cE)=\gamma_{p,-u}(\cE)$ while all other Betti numbers  of $\FF\cdot \cE$ are equal to $0$.  (If $-u$ is a root of $f$, then both functionals are trivially zero, and we henceforth assume that $-u$ is not a root of $f$.)
+
+
+Hence $\chi_{0, \nu}(\FF\cdot \cE)$ is either $(-1)^{v-p}\gamma_{p,-u}(\cE)$ or $0$, depending on whether or not the $1$-term complex $\FF\cdot \cE$ lies in the ``upper'' or ``lower'' region of $\chi_{0,\nu}$.  Similarly, one may check from the definition in \cite{eis-schrey-icm} that $\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}$ is either $(-1)^{v-p}\gamma_{p,-u}(\cE)$ or $0$.  
+It thus suffices to confirm that our two functionals are nonzero in precisely the same situations.  We first consider the case when $v-p<0$.  Then $\FF\cdot \cE$ is supported in homological degrees $<0$, and hence $\chi_{0, \nu}(\FF\cdot \cE)$ is automatically $0$. Similarly, since $v<p$ there no terms in the definition of $\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}$ of the form $\beta_{v,u}\gamma_{p,-u}$, and hence this functional is also zero.  
+
+It is similarly routine to check that, if $v-p>1$, then both functionals are nonzero.  We are then left with the cases $v-p=0$ and $v-p=1$.  For $v-p=0$, we have:
+\begin{equation}\label{eqn:cond1}
+\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}=0 \iff p> \tau \text{ or } p=\tau \text{ and } u>\kappa.
+\end{equation}
+We also have
+\begin{equation}\label{eqn:cond2}
+\chi_{0,\nu}(\FF\cdot \cE)=0 \iff u> \nu=\min\{\max\{\kappa, -f_{\tau}-1\},-f_{\tau+1}-1\}.
+\end{equation}
+We observe that the conditions in \eqref{eqn:cond1} and \eqref{eqn:cond2} are equivalent.  Namely, the second condition yields that either: $f_{\tau+1}\geq-u$ (which is equivalent to $p>\tau$); or $u>\kappa$ and $f_{\tau}\geq -u$ (which is equivalent to $u>\kappa$ and $p\geq \tau$). 
+
+We now check the case $v-p=1$.  Here we have:
+\begin{equation}\label{eqn:cond3}
+\langle \beta(\FF),\gamma(\cE)\rangle_{\tau,\kappa}=0 \iff p> \tau \text{ or } p=\tau \text{ and } u>\kappa+1.
+\end{equation}
+We also have
+\begin{equation}\label{eqn:cond4}
+\chi_{0,\nu}(\FF\cdot \cE)=0 \iff u> \nu+1=\min\{\max\{\kappa+1, -f_{\tau}\},-f_{\tau+1}\}.
+\end{equation}
+Again, these conditions are equivalent: either $f_{\tau+1}>-u$ (which, given that $-u$ is not a root of $\cE$, is equivalent to $p>\tau$); or $u>\kappa+1$ and $f_{\tau}>-u$ (which, given that $-u$ is not a root of $\cE$, is equivalent to $u>\kappa+1$ and $p\geq \tau$). 
+\end{proof}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1649,8 +1678,14 @@ is a free monad for the ideal sheaf of a certain rational surface in $\PP^4$.  T
 \section{Revisiting the Betti table/Cohomology table duality}\label{sec:duality}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-A duality between Betti tables and cohomology tables first appeared in \cite{eis-schrey1}, and aspects of this duality
-can now be clarified. By Theorem~\ref{thm:betti numbers of pairing}, the pairing $\Phi$ induces a bilinear map:
+%In this section we will sketch the proof of Theorem~\ref{thm:duality}, making precise the sense in which the pairing of cones in the display~\ref{eqn:1} of the introduction is a duality.
+%The fact that the target is itself a cone is the reason why so many functionals were needed
+%in~\cite{eis-schrey1}.
+
+%A duality between Betti tables and cohomology tables first appeared in \cite{eis-schrey1}, and aspects of this duality
+%can now be clarified. 
+
+By Theorem~\ref{thm:betti numbers of pairing}, the pairing $\Phi$ induces a bilinear map:
 \begin{align*}
 \VV\times \WW & \to \UU\\
 (\beta(\FF),\gamma(\cE))&\mapsto \beta(\FF\cdot \cE).
@@ -1658,14 +1693,14 @@ can now be clarified. By Theorem~\ref{thm:betti numbers of pairing}, the pairing
 %This induces a map between three cones of interest, as illustrated in Figure~\ref{fig:bracket}.  
 
 
-For any $k=1, \dots, n+1$, Theorem~\ref{thm:Phi} then implies that the bilinear pairing above restricts to a map between the three cones:
+For any $k=1, \dots, n+1$, Theorem~\ref{thm:Phi}  implies that this pairing  restricts to a map of cones:
 \begin{equation}\label{eqn:3cones}
 \BBQ^{k}(S)\times \CQ^{n+1-k}(\PP^n)\to \BBQ^1(A),
 \end{equation}
 where we recall that $\BBQ^k(S)$ is the cone of Betti tables corresponding to the codimension sequence $\cc=(\dots,k,k,\dots,)$.
 Namely, since $\codim(\widetilde{\FF})+\codim(\cE)\geq n+1$, we may (after translating $\cE$ by an element of $\GL_{n+1}$) assume by~\cite[Theorem, p. 335]{miller-speyer} that $\widetilde{\FF}\otimes \cE$ is exact and thus that $\beta(\FF\cdot \cE)$ has finite length homology.
 
-We use this idea to sketch a proof of Theorem~\ref{thm:duality}.  The 
+The 
  appearance of $\BBQ^1(A)$ explains the need for the full family of Eisenbud--Schreyer functionals used in \cite{eis-schrey1}.
 \begin{proof}[Sketch of proof of Theorem~\ref{thm:duality}]
 The direction (1) implies (2) follows from the map in equation \eqref{eqn:3cones}. For the other direction, we revisit the proof of Theorem~\ref{thm:extremal rays refined} in the case $\cc=(\dots, k,k,\dots)$.  In this case, all boundary facets used in the proof have one of two forms:
@@ -1675,7 +1710,8 @@ The direction (1) implies (2) follows from the map in equation \eqref{eqn:3cones
 where $\cE$ is a supernatural sheaf of dimension $n+1-k$.  Since $\beta_{i,j}$ and $\chi_{i,j}$ are nonnegative on $\BBQ^1(A)$, we see that hypothesis (2) implies that all boundary functionals of $\BBQ^k(S)$ are nonnegative on $v$, and hence $v$ lies in $\BBQ^k(S)$.
 \end{proof}
 %
-Theorem~\ref{thm:duality} also admits the following dual statement about cohomology tables.  For any $k\leq  n$, we fix a linear subspace $\PP^{k-1}\subseteq \PP^n$ and we define $\CvbQ(\PP^{k-1})$ as the subcone of $\WW$ generated by cohomology tables of vector bundles on $\PP^{k-1}$.
+
+Theorem~\ref{thm:duality}  admits a dual statement about cohomology tables.  For any $k\leq  n$, we fix a linear subspace $\PP^{k-1}\subseteq \PP^n$ and we define $\CvbQ(\PP^{k-1})$ as the subcone of $\WW$ generated by cohomology tables of vector bundles on $\PP^{k-1}$.
 \begin{prop}\label{prop:other}
 Fix an integer $1\leq k\leq n+1$ and a point $w$ in the vector space span of $\CvbQ(\PP^{k-1})$.   The following are equivalent:
 \begin{enumerate}
@@ -1692,7 +1728,7 @@ where $\FF_d$ is a shifted pure resolution of codimension $k$.  Since $\beta_{i,
 \end{proof}
 
 
-\begin{remark}\label{rmk:issues}
+\begin{example}\label{rmk:issues}
 The above proposition fails if we replace $\CvbQ(\PP^{k-1})$ by $\CQ^{n+1-k}(\PP^n)$.  
 Let $n=1$ and consider the point $w:=\sum_{i=0}^\infty \frac{1}{2^i} \gamma(\cO_{\PP^1}(-i))$.  
 This infinite sum converges, and thus $w\in \WW$.  Further, equation \eqref{eqn:3cones} implies that the functional
@@ -1704,20 +1740,31 @@ induces a map $\BBQ^{2}(S)\to \BBQ^1(A)$.  However, a direct computation shows t
 \gamma_{1,j}(w)=\frac{1}{2^{j}}.
 \]
 Hence, no scalar multiple of $w$ can equal the cohomology table of a sheaf on $\PP^n$, since there is no scalar multiple of $w$ such that all of the entries of $w$ are integers.  Thus $w\notin \CQ^0(\PP^n)$.
-\end{remark}
+\end{example}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{\underline{{Part III: Beyond polynomial rings}}}
-\section{Graded rings}\label{sec:functor}
+\section{Other $\NN$-graded rings}\label{sec:functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-By a \defi{graded ring} we will mean a finitely generated $\NN$-graded $k$-algebra (not necessarily generated in degree 1).  In this section, $R$ will denote a graded ring that is a finite extension of $S=\kk[x_0,\dots,x_n]$.  In other terms, $R$ may be any graded ring that admits a linear Noether normalization.  The inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$ of $n$-dimensional projective schemes. Set $L:=f^*\cO(1)$. We will use the functor $\Phi$ to analyze the structure of bounded free complexes over $R$.  For example, we might take
+ In this section, $R$ will denote an $\NN$-graded $\kk$-algebra, not necessarily generated in degree 1, that is a finite extension of $S=\kk[x_0,\dots,x_n]$, with the variables $x_{i}$ having degree 1.  In other terms, $R$ may be any graded ring that admits a linear Noether normalization. 
+ 
+ We will 
+ show that various cones of Betti tables of
+ bounded free complexex with finite length homology over $R$ are the same as the
+ corresponding cones over $S$ in certain cases, generalizing Corollary~\ref{cor:isom cones}, 
+ 
+An example of an algebra $R$ satisfying the conditions above may be constructed from any projective scheme $X$ and a finite morphism $f:X\to \PP^{n}$ by taking $R = \oplus_{i}H^{0}(f^{*}\cO(i))$. For instance, we might take
 $R = \kk[s^{4}, s^{3}t, st^{3}, t^{4}]$, the homogeneous coordinate ring of the smooth rational
-quartic in $\P^{3}$; or $R = \kk[x_{0}, x_{1}, y]/(y^{2m}-g(x_{0}, x_{1}))$ where $x_{0},x_{1}$ have
-degree 1 and the degree of $g$ is $4m$.
+quartic in $\P^{3}$; or $R = \kk[x_{0}, x_{1}, y]/(y^{m}-g(x_{0}, x_{1}))$ where $x_{0},x_{1}$ have
+degree 1, $y$ has degree 2, and the degree of $g$ is $2m$, which may be thought of as 
+coming from an $m$-fold covering of the projective line.
+ More generally, the inclusion $S\subseteq R$ induces a finite map $f\colon X=\Proj(R)\to \PP^n$. We set $L:=f^*\cO(1)$. 
 
+%We will use the functor $\Phi$ to analyze the structure of bounded free complexes over $R$
+%in certain cases.  
 We define cohomology tables and Betti tables for $R$ as follows. If $\cE\in \DD^b(X)$ then $\gamma(\cE)\in \WW$ is the table with entries $\gamma_{i,j}(\cE)=h^i(X,\cE\otimes L^{\otimes j})$.  For any $0\leq k \leq d$, we set $\CQ^{k}(X,L)$ to be the cone spanned by of cohomology tables $\gamma(\cE)$ with $\codim(\cE)\geq k$.  For a bounded free complex $\FF$ of graded $R$-modules, we define the Betti table $\beta(\FF)$ by the formulas $\beta_{i,j}(\FF)=\dim \Tor_i(\FF,\kk)_j$.  
 We are interested in bounded free complexes, but since $R$ will generally fail to be a regular ring, it is no longer the case that arbitrary elements of the derived category 
 $\DD^b(R)$ may be represented by a bounded free complex.  
@@ -1725,16 +1772,17 @@ We thus restrict attention to the subcategory $\DD^{\text{perf}}(R)\subseteq \DD
 represented by a  bounded free complex.
 If $\cc$ is a codimension sequence, then we define $\BBQ^{\cc}(R)$ in parallel with the definitions from \S\ref{sec:refined}.  
 
-The main result in this section is a proof relating cones of Betti tables of $R$ to cones of Betti tables over $S$, at least when $X$ contains an Ulrich sheaf.  This implies Corollary~\ref{cor:isom cones}.
+%The main result in this section relates cones of Betti tables of $R$ to cones of Betti tables over $S$ when $X$ admits an Ulrich sheaf.  
+%This implies Corollary~\ref{cor:isom cones}.
 
-\begin{cor}\label{cor:new graded rings}
-Let $R$ be a finite, graded extension of $S$ such that $\Proj(R)$ admits an Ulrich sheaf.  For any codimension sequence $\cc$, we have  a natural isomorphism
-$
-\BBQ^{\cc}(S)\overset{\cong}{\to} \BBQ^{\cc}(R).
-$
-\end{cor}
+%\begin{cor}\label{cor:new graded rings}
+%Let $R$ be a finite, graded extension of $S$ such that $\Proj(R)$ admits an Ulrich sheaf.  For any codimension sequence $\cc$, we have  a natural isomorphism
+%$
+%\BBQ^{\cc}(S)\overset{\cong}{\to} \BBQ^{\cc}(R).
+%$
+%\end{cor}
 
-To prove this corollary, we will pull back complexes from $S$ and then use a variant of the pairing $\Phi$.  We begin by defining the pairing $\Phi_{R}$:
+We next define a pairing $\Phi_{R}$:
 \[
 \xymatrix{\DD^{\text{perf}}(R)\times \DD^{b}(X)  \ar[r]^-{\Phi_{R}}&\DD^{b}(A).}
 \]
@@ -1761,7 +1809,7 @@ Given $\FF\in \DD^{\text{perf}}(R)$ and $\cE\in \DD^b(X)$ we define
 \Phi_{R}(\FF,\cE):=Rp_{2*}\left( \tau(\FF)\otimes _{X\times \AA^1}\left( \cE\boxtimes \cO_{\AA^1}\right)\right).
 \]
 \end{defn}
-As above, we often omit $\Phi_{R}$ from the notation and simply write $\FF\cdot \cE$ for $\Phi_{R}(\FF,\cE)$.  We immediately obtain an analogue of Theorem~\ref{thm:Phi} for the functor $\Phi_{R}$.
+As above, we often omit $\Phi_{R}$ from the notation and  write $\FF\cdot \cE$ for $\Phi_{R}(\FF,\cE)$.  We immediately obtain an analogue of Theorem~\ref{thm:Phi} for the functor $\Phi_{R}$.
 \begin{theorem}\label{thm:PhiX}
 If $\FF$ is a bounded complex of free graded $R$-modules and $\cE$ is a bounded complex of coherent sheaves on $X$ then:
 \begin{enumerate}
@@ -1788,11 +1836,11 @@ We say that $\FF\in \DD^b(S)$ \defi{ is homologically transverse to $R$} if we h
 
 
  \begin{lemma}\label{lem:pushpull}
-Fix a codimension sequence $\cc$, and let $\FF\in \DD^b(S)$ be compatible with $\cc$.  If $\FF$ is homologically transverse to $R$, then $Lf^*(\FF)$ is compatible with $\cc$.
+Fix a codimension sequence $\cc$, and let $\FF\in \DD^b(S)$ be compatible with $\cc$.  If $\FF$ is homologically transverse to $R$, then $f^*(\FF)$ is compatible with $\cc$.
 \end{lemma}
 \begin{proof}
 Let $\FF\in \DD^b(S)$ be a free complex that is compatible with $\cc$.  
-Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We then consider the spectral sequence:
+Since $\FF$ is a free complex, we have $Lf^*\FF=f^*\FF=\FF\otimes_S R$.   We  consider the spectral sequence:
 \[
 E^{r,q}_2=\Tor^S_{q}(\HH_r(\FF),R)\Rightarrow \HH_{q+r}(\FF\otimes_S R).
 \]
@@ -1802,18 +1850,38 @@ Since $c_i\leq d+1$ for all $i$, and since $E^{r,q}_2$ has finite length for all
 &\geq \min\{d+1, \codim_S \HH_r(\FF)\}\\
 & \geq c_r.
 \end{align*}
-Thus, $Lf^*\FF$ is compatible with $\cc$, as claimed.
+Thus, $f^*\FF$ is compatible with $\cc$, as claimed.
 \end{proof}
 
+For homological transversality arguments we need an infinite field. The next result shows that
+field extensions do not change the cones of rational Betti tables (we do not know whether they change the semigroups of Betti tables themselves.) \david{Is this remark ok with you, Daniel?}
 
 \begin{lemma}\label{lem:ground field}
 Let $\cc$ be any codimension sequence for $R$ and let $K$ be a field extension of $\kk$.  Then there is a natural isomorphism $\BBQ^{\cc}(R)\cong\BBQ^{\cc}(R\otimes_{\kk}K)$.
 \end{lemma}
 \begin{proof}
-Since $\kk\subseteq K$ is flat, we have an obvious inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk}K)$ induced by $\beta(\FF)\mapsto \beta(\FF\otimes_{\kk} K)$.  We seek to show the opposite inclusion.  We first deal with an algebraic extension and in this case it suffices to set $K=\overline{\kk}$, the algebraic closure.    Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We claim that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ of $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a bounded free complex $\FF'$ of $R'$-modules with $\beta(\FF')=\beta(\FF)$.  Since the extension $R\subseteq R'$ is finite and free of rank $[\kk':\kk]$, it follows that if $\FF''$ is the complex $\FF'$ viewed as an $R$-module, then $\beta^R(\FF'')=[\kk':\kk]\cdot \beta^{R'}(\FF')$.
+Since $\kk\subseteq K$ is flat, we have an inclusion $\BBQ^{\cc}(R)\subseteq\BBQ^{\cc}(R\otimes_{\kk}K)$ induced by $\beta(\FF)\mapsto \beta(\FF\otimes_{\kk} K)$. Thus it suffices to
+show that if $\FF$ is a bounded free complex over $R\otimes_{\kk}K$ compatible with $\cc$,
+ then there is bounded free complex over $R$ that is compatible with $\cc$ and whose
+ Betti table is a multiple of $\beta(\FF)$.
+ 
+If $K$ is a finite extension of $\kk$, then since $R\otimes_{\kk}K$ is a finitely generated 
+free module over $R$, the complex $\FF$, regarded as a complex of $R$-modules,
+has Betti table a multiple of that of $R$, and since the extension is finite the codimension
 
-It now suffices to handle the case of the purely transcendental extension $K=\kk(z)$.  Let $\FF\in \DD^b(R\otimes_{\kk}\kk(z))$ be a free complex that is compatible with $\cc$.  By clearing denominators, we may extend $\FF$ to a complex over $\kk[z][x_0,\dots,x_n]$.  The locus of $\Spec(\kk[z])$ where the specialization of $\FF$ fails to be compatible with $\cc$ is a closed subset of $\Spec(\kk[z])$.  Since $\FF$ is compatible with $\cc$ over the generic point, it follows that follows that we can choose a closed point $P\in \Spec(\kk[z])$ such that the restriction of $\FF$ to $P$ is still compatible with $\cc$.  Since the residue field of $P$ is finite over $\kk$, we are reduced to the case of a finite extension, and it follows from the above argument that $\beta(\FF)$ lies in  $\BBQ^{\cc}(R)$.
-\end{proof}
+If $K$ is algebraic over $R$, then since the maps of $\FF$ can be written in terms of finitely
+many matrices of finite size, $\FF$ is actually defined over a finite extension of $\kk$, so we
+are reduced to the case of a finite extension above.
+
+It now suffices to treat the case of a transcendental extension, and by the same argument as
+above, we may assume that the transcendence degree is finite. Induction then reduces the
+problem to the case of transcendence degree 1.
+
+%To show the opposite inclusion.  We first deal with an algebraic extension and in this case it suffices to set $K=\overline{\kk}$, the algebraic closure.    Let $\FF\in \DD^b(R\otimes_{\kk}\overline{\kk})$ be a free complex that is compatible with $\cc$.  We claim that some scalar multiple of $\beta(\FF)$ lies in $\BBQ^{\cc}(R)$.  Note that $\FF$ is definable over a finite extension $\kk'$ of $\kk$.  Hence, if we set $R'=R\otimes_{\kk}\kk'$, then there is a bounded free complex $\FF'$ of $R'$-modules with $\beta(\FF')=\beta(\FF)$.  Since the extension $R\subseteq R'$ is finite and free of rank $[\kk':\kk]$, it follows that if $\FF''$ is the complex $\FF'$ viewed as an $R$-module, then $\beta^R(\FF'')=[\kk':\kk]\cdot \beta^{R'}(\FF')$.
+
+%It now suffices to handle the case of the purely transcendental extension $K=\kk(z)$.  
+
+Let $\FF\in \DD^b(R\otimes_{\kk}\kk(z))$ be a free complex that is compatible with $\cc$.  Clearing denominators, we may extend $\FF$ to a complex over $\kk[z][x_0,\dots,x_n]$.  The locus of $\Spec(\kk[z])$ where the specialization of $\FF$ fails to be compatible with $\cc$ is  closed.  Since $\FF$ is compatible with $\cc$ over the generic point, it follows that follows that there is a closed point $P\in \Spec(\kk[z])$ such that the restriction of $\FF$ to $P$ is still compatible with $\cc$.  Since the residue field of $P$ is finite over $\kk$, we are again reduced to the case of a finite extension.\end{proof}
 
 The final ingredient for our proof of Corollary~\ref{cor:new graded rings} is the following lemma, which shows how the functors $\Phi$ and $\Phi_{R}$ interact with the map $f$.
 
@@ -1872,9 +1940,9 @@ Since $X$ is a complete intersection, it admits an Ulrich bundle, and thus $\BBQ
 
 
 
-\begin{remark}
+%\begin{remark}
 Eisenbud and Scheyer have conjectured that, when $L$ is very ample, every projective scheme admits an Ulrich sheaf~\cite[p. 543]{eis-schrey-chow}.  Corollary~\ref{cor:isom cones} provides a method for producing a counterexample.  Namely, imagine that for some $f\colon X\to \PP^n$ finite, we can produce a free complex $\FF$ of $R=R(X,L)$ modules such that $\beta(\FF)\in \BBQ^{n+1}(R)$ but where $\beta(\FF)$ does not decompose as a sum of shifted pure tables of codimension $n+1$.  This would imply that $\BBQ^{n+1}(R)\supsetneq \BBQ^{n+1}(S)$ and hence, by the contrapositive of Corollary~\ref{cor:isom cones}, this would imply that $X$ does not admit an Ulrich sheaf.
-\end{remark}
+%\end{remark}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2424,6 +2492,20 @@ YEAR = {2011},
 %   issn={0073-8301},
 %   review={\MR{0374130 (51 \#10330)}},
 %}
+\bib{MR0374130}{article}{
+   author={Peskine, C.},
+   author={Szpiro, L.},
+   title={Dimension projective finie et cohomologie locale. Applications \`a
+   la d\'emonstration de conjectures de M. Auslander, H. Bass et A.
+   Grothendieck},
+   language={French},
+   journal={Inst. Hautes \'Etudes Sci. Publ. Math.},
+   number={42},
+   date={1973},
+   pages={47--119},
+   issn={0073-8301},
+   review={\MR{0374130 (51 \#10330)}},
+}
 
 \bib{stacks-project}{misc}{
         AUTHOR	= {The Stacks Project Authors},

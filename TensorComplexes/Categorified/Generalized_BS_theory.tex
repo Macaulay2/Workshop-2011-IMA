@@ -2041,41 +2041,40 @@ Let $R=\kk[x,y,z,w]/(xz,xw,yz,yw)$ and let $\FF$ be the minimal free resolution 
 \section{Toric/Multigraded generalizations}\label{sec:toric}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In this section, we extend the pairing $\Phi$ to a toric variety and prove Theorem~\ref{thm:Phimulti}.  We use this pairing to construct multigraded analogues of the Eisenbud--Schreyer functionals.  With $\chi_{i,\alpha}$ and $\Phi_X$ as defined below, we will prove the following nonnegativity result:
+Throughout this section $X$ will denote a projective toric variety
+with $Pic(X)$-graded Cox ring $R$ with irrelevant ideal $\irr(R)$. We write $\NE(X)\subseteq \Pic(X)$ for the subsemigroup of effective divisors, and write $C$ for the $Pic(X)$-graded semigroup ring $\kk[\NE(X)]$. When $\alpha\in \NE(X)$ we write $t^{a}$ for the corresponding element of $C$.
+
+We will define a pairing $\Phi_{X}: D^{b}(R) \times D^{b}(X) \to D^{b}(C)$ that is analogous to
+$\Phi$, and we will define functionals $\chi_{i,\alpha}$ on $D^{b}(C)$ that are analogous to the 
+$\chi_{i,j}$ and we will prove Theorem~\ref{thm:Phimulti} and the following Corollary:
 
 \begin{cor}\label{cor:chiialpha}
-Let $X$ be a projective variety, $\cE$ be a vector bundle on $X$, and $\FF$ be a complex of free $\Cox(X)$-modules that is multigraded with respect to the $\Pic(X)$-grading and that has irrelevant homology.  Then, for any $i\in \ZZ$ and any $\alpha\in \Pic(X)$, we have
+Let $X$ be a projective variety, $\cE$ be a vector bundle on $X$. If $\FF$ is a complex of free
+$\Pic(X)$-graded 
+$R$-modules that has irrelevant homology, then for any $i\in \ZZ$ and any $\alpha\in \Pic(X)$ we have
 \[
 \chi_{i,\alpha}( \Phi_X(\FF, \cE))\geq 0.
 \]
 \end{cor}
 
-We recall some notation from the introduction: $X$ is a projective toric variety and $R=\Cox(X)$ with the natural $\Pic(X)$ multigrading.
-We define $C$ as the semigroup ring $C=\kk[\NE(X)]$, where $\NE(X)\subseteq \Pic(X)$ is the subsemigroup of effective divisors.  Given $\alpha \in \Pic(X)$ we write $t^\alpha$ for the corresponding element of $C$.  The ring $C$ is also naturally $\Pic(X)$ graded.  The ring $R$ comes equipped with a natural irrelevant ideal which we denote $\irr(R)$.
+%Throughout this section $X$ is a projective toric variety and $R=\Cox(X)$ with the natural $\Pic(X)$ multigrading.
+%We define $C$ as the semigroup ring $C=\kk[\NE(X)]$, where $\NE(X)\subseteq \Pic(X)$ is the subsemigroup of effective divisors.  Given $\alpha \in \Pic(X)$ we write $t^\alpha$ for the corresponding element of $C$.  The ring $C$ is also naturally $\Pic(X)$ graded.  The ring $R$ comes equipped with a natural irrelevant ideal which we denote $\irr(R)$.
 
-\begin{defn}\label{defn:irrC}
-Let $G$ be a minimal set of generators for the semigroup $\NE(X)$.  We define the \defi{irrelevant ideal of $C$}, denoted $\irr(C)$ as
-$
-\irr(C)=\cap_{g\in G} (t^g).
-$
-\end{defn}
-
-We  now define our pairing $\Phi_X$.  Set
+To define $\Phi_X$, let
 $
 \sigma: R\to R\otimes C
 $
-as the ring homomorphism given by $\sigma(f)=t^{\deg(f)}f$. 
-We write $-\otimes_\sigma (R\otimes C)$ to denote tensoring over $R$ with $R\otimes C$
+be the ring homomorphism $\sigma(f)=t^{\deg(f)}f$. 
+Write $-\otimes_\sigma (R\otimes C)$ to denote the tensor product over $R$ with $R\otimes C$
  using the structure given by $\sigma$.
-
 If $F$ is a $\Pic(X)$-graded  $R$-module, then 
 \[
 F\otimes_{\sigma} (R\otimes C)\]
 is a $\Pic(X)\times \Pic(X)$-graded $R\otimes C$-module.
-Thus we may define a functor $\tau$ on derived
-categories that takes a graded complex of free $R$-modules $\FF$ to
+Thus we may define a functor $\tau_{X}$ on derived
+categories that takes a  complex of graded free $R$-modules $\FF$ to
 $$
-\tau(\FF): =\widetilde \FF \otimes_{\sigma}\cO_{X\times \AA^{m}},
+\tau_{X}(\FF): =\widetilde \FF \otimes_{\sigma}\cO_{X\times \AA^{m}},
 $$
 a complex of graded sheaves on $X\times \AA^m$, with the grading coming from degrees in the coordinates on $\Spec(C)=\AA^{m}$. 
 %For example, if 
@@ -2100,29 +2099,33 @@ a complex of graded sheaves on $X\times \AA^m$, with the grading coming from deg
 %where $\pi: \PP^{n}\times \AA^{1}\to \AA^{1}$ is the projection.
 %\end{defn}
 
-\begin{defn} \label{defn:product1} The functor $\Phi_{X}: \DD^{b}(R)\times \DD^b(X) \to \DD^{b}(C)$ is given by:
+We now define $\Phi_{X}: \DD^{b}(R)\times \DD^b(X) \to \DD^{b}(C)$ to be
 $$
-\Phi_{X}(\FF,\cE) = Rp_{2*} \bigl(\tau(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
+\Phi_{X}(\FF,\cE) = Rp_{2*} \bigl(\tau_{X}(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
 $$
-where $\FF\in \DD^{b}(R) , \cE\in \DD^b(X)$ and where $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. We also write
+where $\FF\in \DD^{b}(R) , \cE\in \DD^b(X)$ and  $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. We sometimes write
 $\FF\cdot \cE$ for $\Phi_{X}(\FF,\cE)$.
-\end{defn}
 
-The grading group $\Pic(X)$ admits a natural partial order where $\alpha \geq \alpha'$ whenver $\alpha-\alpha'\geq \in \NE(X)$.  If we fix any total order $\preceq$ that refines this partial order, then we may define multigraded analogues of the $\chi_{i,j}$ functionals.
-
-\begin{defn}
-Let $i\in \ZZ$ and $\alpha\in \Pic(X)$.  We define $\chi_{i,\alpha}: \DD^b(C)\to \QQ$ by the formula
+We next turn to the functionals $\chi_{i,\alpha}$. The  group $\Pic(X)$ admits a natural partial order where $\alpha \geq \alpha'$ whenver $\alpha-\alpha'\geq \in \NE(X)$.  We fix a total order $\preceq$ that refines this partial order. For $i\in \ZZ$ and $\alpha\in \Pic(X)$,
+we define $\chi_{i,\alpha}: \DD^b(C)\to \QQ$ to be
 \[
 \chi_{i,\alpha}(\FF)= \left(\sum_{\gamma\prec \alpha} \beta_{i,\gamma}(\FF) \right) +\left(\sum_{\gamma\preceq \alpha} (-1)\beta_{i+1,\gamma}(\FF)\right) + \left(\sum_{\substack{\ell > i+1\\ \gamma\in \ZZ^m}} (-1)^\ell\beta_{\ell,\gamma}(\FF) \right).
 \]
-\end{defn}
+%\end{defn}
 
-
+\david{got to here}
 We are now prepared to prove Theorem~\ref{thm:Phimulti}.
 \begin{proof}[Proof of Theorem~\ref{thm:Phimulti}]
 Statement \eqref{thm:Phi:1} follows by applying essentially the same proof as used for Theorem~\ref{thm:betti numbers of pairing} above.  
 
-We now consider statement \eqref{thm:Phi:2}. We claim first that if a multigraded complex $\Gbull$ on $C$ is exact over the generic point of $\AA^m$, then $\Gbull$ has irrelevant homology.  This follows from our definition of $\irr(C)$.  Namely, if $\Gbull$ is exact over the generic point of $\AA^m$, then, since $\dim(C)=\rank \Pic(X)$, the homology of $\Gbull$ is supported on the vanishing of $t^\alpha$ for some $\alpha\in \Pic(X)$.  However, any such $t^\alpha$ lies in $\irr(C)$ by construction.
+
+We now consider statement \eqref{thm:Phi:2}. 
+Let $G$ be a minimal set of generators for the semigroup $\NE(X)$.  We define the \defi{irrelevant ideal of $C$}, denoted $\irr(C)$ as
+$
+\irr(C)=\cap_{g\in G} (t^g).
+$
+
+We claim that if a multigraded complex $\Gbull$ on $C$ is exact over the generic point of $\AA^m$, then $\Gbull$ has irrelevant homology.  This follows from our definition of $\irr(C)$.  Namely, if $\Gbull$ is exact over the generic point of $\AA^m$, then, since $\dim(C)=\rank \Pic(X)$, the homology of $\Gbull$ is supported on the vanishing of $t^\alpha$ for some $\alpha\in \Pic(X)$.  However, any such $t^\alpha$ lies in $\irr(C)$ by construction.
 
 It thus suffices to show that, if $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_X(\FF,\cE)$ is exact over the generic point of $\AA^m$.  Let $Q(C)$ be the fraction field point of $C$.  Then, the map $\sigma$ becomes the usual inclusion $R\subset R\otimes Q(C)$.
 

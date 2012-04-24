@@ -125,8 +125,8 @@
 \newcommand{\CQ}{\mathrm{C}}
 \newcommand{\CvbQ}{\mathrm{C}_{\text{vb}}}
 \newcommand{\BBQ}{\mathrm{B}}
-\newcommand{\BBirr}{\underline{\mathrm{B}}^{\text{irr}}}
-\newcommand{\CCQ}{\underline{\mathrm{C}}}
+\newcommand{\BBirr}{{\mathrm{B}}^{\text{irr}}}
+\newcommand{\CCQ}{{\mathrm{C}}}
 \newcommand{\Bmod}{\ensuremath{B_\text{mod}}}
 \newcommand{\Bint}{\ensuremath{B_\text{int}}}
 \newcommand{\Lotimes}{\overset{\mathrm{L}}{\otimes}}
@@ -193,9 +193,9 @@ Using this duality they proved the conjectures of \BS~\cite{boij-sod1}. The theo
 
 It has also been difficult to extend the theory to resolutions over other rings.  For graded rings, the only known extensions are those in~\cite{bbeg}; and although it seems natural to consider the multi-graded case through toric varieties, there has been only a little progress in this direction~\cites{boij-floystad,floystad-multigraded}.
 
-In this paper, we construct a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable.  This construction gives a new foundation for \BS theory, and occupies Part I (\S\ref{sec:notation}--\ref{sec:functionals}) of this paper. 
+In this paper, we construct a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable.  This construction gives a new foundation for \BS theory, and occupies Part I (\S\ref{sec:notation}--\ref{sec:duality pairing}) of this paper. 
 
-In Part II of the paper, we use the pairing to extend the theory from the consideration of free resolutions to the consideration of more general complexes. We treat the Betti numbers of finite free complexes with prescribed homology  (\S\ref{sec:refined}--\S\ref{sec:refined proof}), and we clarify the Eisenbud--Schreyer duality results (\S\ref{sec:duality}).  
+In Part II of the paper, we use the pairing to extend the theory from the consideration of free resolutions to the consideration of more general complexes. We treat the Betti numbers of finite free complexes with prescribed homology  (\S\ref{sec:refined}--\S\ref{sec:monads}), and we clarify the Eisenbud--Schreyer duality results (\S\ref{sec:functionals}--\ref{sec:duality}).  
 
 In Part III, we extend the theory to a much wider class of graded rings (\S\ref{sec:functor}), and we discuss some applications to the study of infinite resolutions (\S\ref{sec:infinite}).  Lastly, we explain a natural generalization to the multigraded case (\S\ref{sec:toric}).
 
@@ -524,7 +524,7 @@ As we discuss in \S\ref{sec:toric}, the target of this pairing, that is, the con
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-We thank Christine Berkesch, Bhargav Bhatt, Rob Lazarsfeld, Ezra Miller, and Ravi Vakil for conversations and suggestions that improved this paper.
+We thank Christine Berkesch, Bhargav Bhatt, A.J.\ de Jong, Rob Lazarsfeld, Ezra Miller, Gregory G.\ Smith, and Ravi Vakil for conversations and suggestions that improved this paper.  We also thank Frank-Olaf Schreyer for many insights.
 Some of this work was completed during the first author's visit to the University of Michigan, and we are grateful for their hospitality.  The computer
 algebra system \texttt{Macaulay2} \cite{M2} provided valuable assistance throughout our work.
 %Courtney Gibbons?  Jesse Burke?
@@ -1509,7 +1509,7 @@ and this implies the theorem.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Monads}\label{sec:examples}
+\section{Monads}\label{sec:monads}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1531,7 +1531,7 @@ where: $\FF'=[\FF'_0\gets \FF'_1\gets \dots]$ is a free complex that resolves a 
 \end{cor}
 
 \begin{proof}
-Throughout this proof, we take the convention that, for any degree sequence $\dd$, $F_{\dd}$ denotes some pure complex of type $d$.
+Throughout this proof, we take the convention that, for any degree sequence $\dd$, $\FF_{\dd}$ denotes some pure complex of type $d$ and with same codimension as $\dd$.
 
 The complex $\FF$ is compatible with the codimension sequence $\cc'=(\dots,0,0,0^{\zp},n+1,\dots)$. We may thus decompose $\beta(\FF)$ according the decomposition algorithm induced by the simplicial structure on $\BBQ^{\cc'}(S)$.  There then exists a collection of numbers $a_i\in \QQ_{\geq 0}$ and a chain of degree sequences $\dd^0<\dd^1<\dots <\dd^s$, such that each $\dd^i$ is compatible with $\cc'$ and such that
 \[
@@ -1970,37 +1970,34 @@ Eisenbud and Scheyer have conjectured that, when $L$ is very ample, every projec
 \section{Infinite resolutions}\label{sec:infinite}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%With notation as in \S\ref{sec:functor}, let $R=R(X,L)$ satisfy the hypotheses of Corollary~\ref{cor:new graded rings}.  
-%For rings $R$ like those considered \S\ref{sec:functor}, 
 As an application of our results from \S\ref{sec:functor}, we will show that the Betti tables of certain infinite free resolutions decompose as infinite sums of Betti tables of shifted resolutions of finite projective dimension.
 
 \begin{cor}\label{cor:decomp infinite}
-Suppose that $R$ satisfies the hypotheses of Theorem~\ref{cor:new graded rings}. If $\FF$ is a (possibly infinite) minimal free resolution of a finite length, graded $R$-module, then  
-\[
-\beta(\FF)=\sum_{k=0}^\infty a_k\beta(M_k)[k],
-\]
-with $a_k\in \QQ_{\geq 0}$, where each $M_k$ is an $R$-module of finite length and finite projective dimension.
+Suppose that $R$ satisfies the hypotheses of Theorem~\ref{cor:new graded rings}. If $\FF$ is a (possibly infinite) minimal free resolution of a finite length, graded $R$-module, then $\beta(\FF)$ decomposes as a nonnegative, rational, possibly infinite sum of the Betti tables of pure complexes with finite length homology whose degree sequences form a chain.
 \end{cor}
 \begin{proof}
-Let $n=\dim(R)-1$.  For $e\in \ZZ$, we set
+Throughout this proof, we take the convention that, for any degree sequence $\dd$, $\mathbf{G}_{\dd}$ denotes some pure complex of type $d$ and with same codimension as $\dd$.  Let $n=\dim(R)-1$.  For $e> n+1$, we set
 \[
 \FF_{\leq e}=[\dots \gets \FF_{e-1}\gets \FF_e \gets 0 \gets \dots].
 \]
 Since $\FF$ resolves a finite length module, $\Hom(\FF_{\leq e},R)$ is compatible with the codimension sequence $\cc=(\dots,0,0,0^*,n+1,\dots, n+1^\zp, n+1,\dots)$, where the $0^*$ lies in homological degree $-e$.  By Theorem~\ref{cor:new graded rings}, and the simplicial structure of
 $\BBQ^{\cc}(R)$ we can use the greedy algorithm (as in Example~\ref{example:greedy decomposition}) to decompose 
-$\beta(\Hom(\FF_{\leq e},R))$ as a positive rational linear combination of pure Betti tables whose degree sequences are compatible with $\cc$, say
+$\beta(\Hom(\FF_{\leq e},R))$ as a positive rational linear combination of pure Betti tables whose degree sequences $\dd^0<\dots <\dd^{s_e}$ are compatible with $\cc$:
 \[
-\beta(\Hom(\FF_{\leq e},R))=\left(\sum_{k=-e+1}^{-n-1} a_k\beta(N_k)[k]\right)+\beta(N')[-e],
+\beta(\Hom(\FF_{\leq e},R))=\sum_{i=0}^{s_e} a_{i}\beta(\mathbf{G}_{\dd^i}).
 \]
-with $a_k\in \QQ_{\geq 0}$, where each $N_k$ is a finite length module of finite projective dimension, and  $N'$ has finite projective dimension.  It follows from the form of the algorithm that, as long as $k>-e$, the $a_k$ and  $\beta(N_k)$ do not depend on $e$.  Thus, as $e\to \infty$,  the decomposition  stabilizes to an infinite sum
+%
+%, say
+%\[
+%\beta(\Hom(\FF_{\leq e},R))=\left(\sum_{k=-e+1}^{-n-1} a_k\beta(N_k)[k]\right)+\beta(N')[-e],
+%\]
+%with $a_k\in \QQ_{\geq 0}$, where each $N_k$ is a finite length module of finite projective dimension, and  $N'$ has finite projective dimension.  
+Since the decomposition algorithm proceeds from the right to left, the beginning of the decomposition will not depend on the value of $e$.  More specifically, if
+$k$ is the minimal value such that $\dd^k_{-e}\ne -\infty$, then for all $i=0, \dots, k-1$, the value of $a_i$ will not depend on $e$.   Thus, as $e\to \infty$, the decomposition stabilizes to an infinite sum
 \[
-\beta(\Hom(\FF),R)=\sum_{k=-\infty}^{-n-1} a_k\beta(N_k)[k],
+\beta(\Hom(\FF,R))=\sum_{i=0}^\infty a_i\beta(\mathbf{G}_{\dd^i}).
 \]
-where each $N_k$ a finite length module.  By Peskine and 
-Szpiro's ``Lemme d'Acyclicit\'e'' \cite{}, the duals of the resolutions of the $N_{k}$
-are finite resolutions of the modules $M_{k}:=\Ext_{R}^{\text{depth }R}(N_{k}, R)$ so we can use them to get the desired decomposition.
-\david{I changed this from the resolutions of $Hom_{\kk}(M_{k}, \kk)$, which is different
-unless $R$ is Gorenstein and you put in a twist.} 
+Note that $\Hom(\mathbf{G}_{\dd^i},R)$ is a pure complex with finite length homology.  We may thus dualize to obtain the desired decomposition of $\FF$.
 \end{proof}
 %
 %\begin{example}
@@ -2034,6 +2031,7 @@ Let $R=\kk[x,y,z,w]/(xz,xw,yz,yw)$ and let $\FF$ be the minimal free resolution 
 +
 \cdots
 \end{align*}
+The chain of degree sequences used in this decomposition has a maximal element, but it does not have a minimal element.
 \end{example}
 
 
@@ -2043,19 +2041,13 @@ Let $R=\kk[x,y,z,w]/(xz,xw,yz,yw)$ and let $\FF$ be the minimal free resolution 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Throughout this section $X$ will denote a projective toric variety, and $R$ will denote its
- $Pic(X)$-graded Cox ring. We denote by $C$  the $Pic(X)$-graded ring $\kk[\NE(X)]$,
+ $\Pic(X)$-graded Cox ring. We denote by $C$  the $\Pic(X)$-graded ring $\kk[\NE(X)]$,
  where $\NE(X)$ is the semigroup of numerically effective divisors. 
- 
-When $\alpha\in \NE(X)$ we write $t^{a}$ for the corresponding element of $C$.
-Let $G$ be a minimal set of generators for the semigroup
-$\NE(X)$.  The \defi{irrelevant ideal of $C$}, denoted $\irr(C)$ is by definition the ideal
-$
-\irr(C)=\cap_{g\in G} (t^g).
-$
+ When $\alpha\in \NE(X)$ we write $t^{a}$ for the corresponding element of $C$.
 
-We next define a pairing $\Phi_{X}: D^{b}(R) \times D^{b}(X) \to D^{b}(C)$ that is analogous to
-$\Phi$. and we will define functionals $\chi_{i,\alpha}$ on $D^{b}(C)$ that are analogous to the 
-$\chi_{i,j}$. In this section we will prove Theorem~\ref{thm:Phimulti} and a positivity result for the functionals $\chi_{i,\alpha}$.
+In this section, we will define a pairing $\Phi_{X}: D^{b}(R) \times D^{b}(X) \to D^{b}(C)$ that is analogous to
+$\Phi$ and we will define functionals $\chi_{i,\alpha}$ on $D^{b}(C)$ that are analogous to the 
+$\chi_{i,j}$.  We will then prove Theorem~\ref{thm:Phimulti} and a positivity result for the functionals $\chi_{i,\alpha}$.
 
 
 %Throughout this section $X$ is a projective toric variety and $R=\Cox(X)$ with the natural $\Pic(X)$ multigrading.
@@ -2105,24 +2097,13 @@ $$
 \Phi_{X}(\FF,\cE) = Rp_{2*} \bigl(\tau_{X}(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)
 $$
 where $\FF\in \DD^{b}(R) , \cE\in \DD^b(X)$ and  $p_2: X\times \AA^{m}\to \AA^{m}$ is the projection. 
-%We sometimes write
-%$\FF\cdot \cE$ for $\Phi_{X}(\FF,\cE)$.
 
-
-\david{got to here}
 We are now prepared to prove Theorem~\ref{thm:Phimulti}.
 \begin{proof}[Proof of Theorem~\ref{thm:Phimulti}]
 Statement \eqref{thm:Phi:1} follows by applying essentially the same proof as used for Theorem~\ref{thm:betti numbers of pairing} above.  
 
 
-We now consider statement \eqref{thm:Phi:2}. 
-Let $G$ be a minimal set of generators for the semigroup $\NE(X)$.  
-
-We claim that if a multigraded complex $\Gbull$ on $C$ is exact over the generic point of $\AA^m$, then $\Gbull$ has irrelevant homology.  Indeed, if $\Gbull$ is exact over the generic point of $\AA^m$, then, since $\dim(C)=\rank \Pic(X)$, the homology of $\Gbull$ is supported on the vanishing of $t^\alpha$ for some $\alpha\in \Pic(X)$.  However, any such $t^\alpha$ lies in $\irr(C)$ by construction.
-
-It thus suffices to show that, if $\widetilde{\FF}\otimes \cE$ is exact, then $\Phi_X(\FF,\cE)$ is exact over the generic point of $\AA^m$.  Let $Q(C)$ be the fraction field point of $C$.  Then, the map $\sigma$ becomes the usual inclusion $R\subset R\otimes Q(C)$.
-
-It follows that
+We now consider statement \eqref{thm:Phi:2}. Fix $\FF\in \DD^b(R)$ and $\cE\in \DD^b(X)$ such that $\widetilde{\FF}\otimes \cE$ is exact.  We claim that $\Phi_X(\FF,\cE)$ is exact over the generic point of $\AA^m$.  Let $Q(C)$ be the fraction field point of $C$.  After tensoring by $Q(C)$, the map $\sigma$ becomes the usual inclusion $R\subset R\otimes Q(C)$ followed by the invertible change of variables $f\mapsto t^{\deg(f)}f$.  It follows that
 \[
 \FF':= \bigl(\tau(\FF)\otimes_{X\times\AA^{m}} (\cE\boxtimes \cO_{\AA^{m}}) \bigr)\otimes_{\cO_{\AA^m}} \cO_{\Spec(Q(C))}
  \cong
@@ -2134,9 +2115,12 @@ has no homology, since $\widetilde{\FF}\otimes \cE$ is exact.
 Using $p_2$ to denote the restriction of $p_2$ to $X\times \Spec(Q(C))$, it follows by a spectral sequence computation that the complex $Rp_{2*}\FF'$ has no homology.  By flat base change, this is equal to the restriction of $\Phi_{X}(\FF,\cE)$ to the generic point $\Spec(Q(C))$ of $\AA^m$.
 \end{proof}
 
-We define $\BBirr(R)$ as the cone of multigraded Betti tables of complexes with irrelevant homology, and similarly for $\BBirr(C)$.  We also define $\CQ^0(X)$ as the cone of multigraded cohomology tables on $X$.  By Theorem~\ref{thm:Phimulti}, the functor $\Phi_{X}$ induces a bilinear pairing:
+We define $\BBirr(R)$ as the cone of multigraded Betti tables of complexes with irrelevant homology.  
+We also define $\CQ^0(X)$ as the cone of multigraded cohomology tables on $X$ and $\BBQ^1(C)$ as the cone of Betti tables of free $C$-complexes
+which are generically exact.
+By Theorem~\ref{thm:Phimulti}, the functor $\Phi_{X}$ induces a bilinear pairing:
 \[
-\BBirr(R)\times \CQ^0(X)\to \BBirr(C),
+\BBirr(R)\times \CQ^0(X)\to \BBQ^1(C),
 \]
 similar to the pairing of cones in Figure~\ref{fig:bracket}.  
 
@@ -2150,7 +2134,7 @@ we define $\chi_{i,\alpha}: \DD^b(C)\to \QQ$ to be
 We will prove:
 \begin{cor}\label{cor:chiialpha}
 Let $X$ be a projective toric variety. The functionals $\chi_{i,\alpha}$ are non-negative
-on the cone $\BBirr(C)$. Thus if $\cE$ is a vector bundle on $X$ and $\FF$ is a complex of free
+on the cone $\BBQ^1(C)$. Thus if $\cE$ is a vector bundle on $X$ and $\FF$ is a complex of free
 $\Pic(X)$-graded 
 $R$-modules that has irrelevant homology, then
 \[
@@ -2165,7 +2149,9 @@ By Theorem~\ref{thm:Phimulti}, $\Phi_X(\FF,\cE)$ has irrelevant homology.  So it
 Note that Euler characteristic of $\Gbull'$ equals $\chi_{i,\alpha}(\Gbull)$.  So it suffices to consider where the homology of $\Gbull'$ can have positive rank.  By construction, the homology of $\Gbull'$ can only have finite rank at $\Gbull_0$ or at $\Gbull_2$, and hence the Euler characteristic will be nonnegative.
 \end{proof}
 
-This opens up new possibilities in the study of Betti tables over $R$ and, dually, in the study of cohomology tables on $X$.
+The construction of $\Phi_X$ opens up new possibilities in the study of Betti tables over $R$ and, dually, in the study of cohomology tables on $X$.  
+It is natural to ask whether
+the map of cones satisfies duality properties similar to the duality discussed in \S\ref{sec:duality}.  This is an open question, even for $\PP^1\times \PP^1$.
 
 \begin{example}
 Let $R=\kk[x_0,x_1,y_0,y_1]$ be the Cox ring of $\PP^1\times \PP^1$, with the bigrading $\deg(x_i)=(1,0)$ and $\deg(y_i)=(0,1)$.  The irrelevant ideal of $R$ is $(x_0,x_1)\cap (y_0,y_1)$.  
@@ -2228,6 +2214,8 @@ This follows by computing $\Phi_X(\FF, \cE)$ and then applying the same argument
 %\]
 \end{example}
 
+
+
 %
 %
 %
@@ -2269,6 +2257,7 @@ This follows by computing $\Phi_X(\FF, \cE)$ and then applying the same argument
       author={Gibbons, Courtney},
       title={The cone of Betti diagrams over a hypersurface ring of low embedding dimension },
       note={arXiv: 1109.5198},
+      journal={J. Pure Appl. Algebra (to appear)},
       date={2011},
 }
 
@@ -2380,14 +2369,18 @@ YEAR = {2008},
 
 
 \bib{eis-schrey2}{article}{
-AUTHOR = {Eisenbud, David},
-AUTHOR = {Schreyer, Frank-Olaf},
-TITLE = {Cohomology of Coherent Sheaves and Series of Supernatural Bundles},
-JOURNAL = {arXiv},
-NUMBER = {0902.1594},
-YEAR = {2009},
+   author={Eisenbud, David},
+   author={Schreyer, Frank-Olaf},
+   title={Cohomology of coherent sheaves and series of supernatural bundles},
+   journal={J. Eur. Math. Soc. (JEMS)},
+   volume={12},
+   date={2010},
+   number={3},
+   pages={703--722},
+   issn={1435-9855},
+   review={\MR{2639316 (2011e:14036)}},
+   doi={10.4171/JEMS/212},
 }
-
 
 
 \bib{eis-schrey-icm}{inproceedings}{

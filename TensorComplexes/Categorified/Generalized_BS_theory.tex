@@ -376,29 +376,6 @@ and we thus have the decomposition:
 \]
 
 
-%To decompose the Betti table of $\FF$, we consider the
-%complex 
-%is
-%\[
-%\bG := 
-%\left[S^1\overset{\left(\begin{smallmatrix}x^{2}&xy&y^{2}\end{smallmatrix}\right)}
-%{\xlongleftarrow{\hspace*{1.1cm}}} 
-%S^3(-2)\overset{\left(\begin{smallmatrix}y&0\\-x&y\\0&-x\end{smallmatrix}\right)}{\xlongleftarrow{\hspace*{1.1cm}}} S^2(-3)\right].
-%\]
-%The complex $\bG$ is the minimal free resolution of $S/(x,y)^{2}$, 
-%Its dual $\bG^{*}$ is also a resolution, with Betti table
-%$$
-%\beta(\bG^{*}) = \begin{bmatrix} 2^\circ&3&-\\-&-&1\end{bmatrix}.
-%$$
-%\david{Really this is $\beta(\bG^{*}[-2]$. Do we care?}
-%Thus
-%\[
-%\beta(\FF)=
-%\frac{1}{2}\beta(\bG(1)[1])
-%+
-%\frac{1}{2}\beta(\bG^{*}).
-%\]
-
 We note that $\beta(\FF)$ can \emph{not} be written as a positive \emph{integral} combination of Betti tables of minimal resolutions of modules of finite length: First, $\beta(\FF)$ is not itself a resolution, since it has length 3 and $S$ has dimension only 2. 
 Further,  the sum of the Betti numbers of any resolution of a nonzero $S$-module of finite length is at least 4, while the sum of the Betti numbers of $\FF$ is $6<2\cdot 4$.
 \end{example}
@@ -465,8 +442,6 @@ Our construction of $\Phi$ naturally generalizes to the multigraded case, offeri
 
 In place of the ring $A=\kk[t]$, we take the semigroup ring $C=\kk[\NE(X)]$, where $\NE(X)\subseteq \Pic(X)$ is the subsemigroup of effective divisors.  %Given $\alpha \in \Pic(X)$ we write $t^\alpha$ for the corresponding element of $C$.  
 The ring $C$ is graded by the group $\Pic(X)$.
-
-%\david{I removed the definition of multigraded betti and cohomology---seemed too obvious.}
 
 %For
 %$i\in \ZZ$, and $\alpha\in \Pic(X)$
@@ -811,40 +786,6 @@ the complex $R\pi_{2*}\GG$ on $\Spec A[t,t^{-1}]$ has no homology. By flat base 
 this is equal to the restriction of $\Phi(\FF,\cE)$ on the open set $t^{-1}$, and we see that the homology
 of $\Phi(\FF,\cE)$ is annihilated by a power of $t$, as required.
 \end{proof}
-%
-%\begin{example}\label{ex:sup1}
-%On $\PP^2$, let $\cE$ be a supernatural bundle of type $(1,-3)$ and rank $2$.  The map $\beta(\FF)\mapsto \beta(\FF\cdot \cE)$ takes a Betti table on $S$ and produces a Betti table on $A$, and we may describe this map as follows.  Fix some $i,j\in \ZZ$ and let $\FF$ be the one-term complex $\FF=S^\alpha(-j)[i]$.  Since $\cE$ is supernatural, for any $j\in \ZZ\setminus \{3,-1\}$, there is a unique $\ell_j\in \{0,1,2\}$ such that $h^{\ell_j}(\cE(-j))\ne 0$.   Then $\FF\cdot \cE$ is the one-term complex with $\beta_{i-\ell_j,j}(\FF\cdot \cE)=\gamma_{\ell_j,j}\cdot \alpha.$
-%
-%We represent this map as matrix by writing $\left( \gamma_{\ell_j,j}\cE\right)[-\ell_j]$
-%\david{should this be $\gamma_{\ell_j,j}(\cE[-\ell_j])$?? Clarify the notation.}
-% in position $(i,j)$.  For instance, with $\cE$ as above, we have
-%\[
-%%\beta(-\cdot \cE)\Rightarrow
-%\begin{pmatrix}
-%&\vdots&\vdots&&\vdots&\\
-%\dots&\gamma_{0,3}&\gamma_{0,2}&0&\dots\\
-%\dots&\gamma_{0,2}&0&\gamma_{1,0}[-1]&\dots\\
-%\dots&0&\gamma_{1,0}[-1]&\gamma_{1,-1}[-1]&\dots\\
-%\dots&\gamma_{1,0}^\zp[-1]&\gamma_{1,-1}[-1]&\gamma_{1,-2}[-1]&\dots\\
-%\dots&\gamma_{1,-1}[-1]&\gamma_{1,-2}[-1]&0&\dots\\
-%\dots&\gamma_{1,-2}[-1]&0&\gamma_{2,-4}[-2]&\dots\\
-%%\dots&0&5[-2]&12[-2]&\dots\\
-%&\vdots&\vdots&&\vdots&\\
-%\end{pmatrix}
-%=
-%\begin{pmatrix}
-%&\vdots&\vdots&&\vdots&\\
-%\dots&12&5&0&\dots\\
-%\dots&5&0&3[-1]&\dots\\
-%\dots&0&3[-1]&4[-1]&\dots\\
-%\dots&3^\zp[-1]&4[-1]&3[-1]&\dots\\
-%\dots&4[-1]&3[-1]&0&\dots\\
-%\dots&3[-1]&0&5[-2]&\dots\\
-%%\dots&0&5[-2]&12[-2]&\dots\\
-%&\vdots&\vdots&&\vdots&\\
-%\end{pmatrix}.
-%\]
-%\end{example}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

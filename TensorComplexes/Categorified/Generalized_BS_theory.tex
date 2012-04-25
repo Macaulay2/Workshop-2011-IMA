@@ -210,9 +210,15 @@ Using the new foundation we  extend the reach of the theory to complexes with ho
 
 
 %In this paper, we
-We first construct a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable.  This construction gives a new foundation for \BS theory, and occupies Part I (\S\ref{sec:notation}--\ref{sec:duality pairing}) of this paper. 
+%We first construct a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable.  This construction gives a new foundation for \BS theory, and occupies Part I (\S\ref{sec:notation}--\ref{sec:duality pairing}) of this paper. 
 
-In Part II of the paper, we use the pairing to extend the theory from the consideration of free resolutions to the consideration of more general complexes. We treat the Betti numbers of finite free complexes with prescribed homology  (\S\ref{sec:refined}--\S\ref{sec:monads}), and we clarify the Eisenbud--Schreyer duality results (\S\ref{sec:functionals}--\ref{sec:duality}).  
+In Part I of this paper, 
+we construct a single pairing that unifies and categorifies all of the functionals $\langle-,-\rangle_{\tau,\kappa}$. The pairing takes values in a derived category of graded modules over a polynomial ring in 1 variable and gives a new foundation for \BS theory.
+
+
+In Part II, we use the pairing to extend the theory from the consideration of free resolutions to the consideration of more general complexes
+(or equivalently, the consideration of elements of the derived category).\daniel{What do you think of this parenthetical remark?}
+We treat the Betti numbers of finite free complexes with prescribed homology  (\S\ref{sec:refined}--\S\ref{sec:monads}), and we clarify the Eisenbud--Schreyer duality results (\S\ref{sec:functionals}--\ref{sec:duality}).  
 
 In Part III, we extend the theory to a much wider class of graded rings (\S\ref{sec:functor}), and we discuss some applications to the study of infinite resolutions (\S\ref{sec:infinite}).  Lastly, we explain a natural generalization to the multigraded case (\S\ref{sec:toric}).
 
@@ -221,7 +227,7 @@ In Part III, we extend the theory to a much wider class of graded rings (\S\ref{
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 Let $\kk$ be a field. Let $A= \kk[t]$ and $S=\kk[x_0, \dots, x_n]$ be the polynomial rings in 1 and $n+1$ variables. If 
 $$
-\FF= [\cdots \gets \FF_i \gets \cdots ]
+\FF= [\cdots \gets \FF_i \gets \FF_{i+1}\gets \cdots ]
 $$
 is a bounded complex of finitely generated graded free $S$-modules, then $\beta_{i,j}\FF$ is defined to be the dimension of the degree $j$ component of the graded vector space $\Tor_i(\FF,\kk)$.  The \defi{Betti table} of $\FF$ is the vector with coordinates $\beta_{i,j}\FF$ in the vector space $\VV = \oplus_{i\in \ZZ} \oplus_{j\in \ZZ}\QQ$. Similarly, the \defi{cohomology table} of a bounded complex of coherent sheaves $\cE$ on $\PP^{n}$ is the vector with coordinates $\gamma_{i,j}\cE := h^{i}\cE(j)$ in the vector space $\WW = \oplus_{i\in \ZZ}\prod_{j\in \ZZ}\QQ$, where $h^{i}\cE(j)$ denotes the dimension of the $i$-th hypercohomology of the complex $\cE(j) := \cE \otimes \cO_{\PP^{n}}(j)$. 
 
@@ -265,7 +271,7 @@ with the following properties:
 %\end{matrix}\right\},$
 %\end{tabular}
 %\end{equation}
-The theorem implies that, for any $1\leq k \leq n+1$, we obtain a pairing
+\noindent The theorem implies that for any $1\leq k \leq n+1$, we have a pairing\daniel{The displayed equation is new.  The old version is commented out.}
  \begin{equation}%\tag{**}
 \label{eqn:**}
 \begin{tabular}{c c c c c}
@@ -291,18 +297,18 @@ $\left\{\begin{matrix}
 \end{matrix}\right\},$
 \end{tabular}
 \end{equation}
-where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  Extending this pairing linearly yields a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**} as illustrated in Figure~\ref{fig:bracket}. 
+where $(\beta(\FF),\gamma(\cE))\mapsto \beta(\Phi(\FF,\cE))$.  Extending this map linearly yields a bilinear pairing among the three positive, rational cones spanned by the tables from \eqref{eqn:**} as illustrated in Figure~\ref{fig:bracket}. 
 
 We will show that this pairing gives a duality. More generally: 
 \begin{thm}\label{thm:duality}
 Fix a point $v\in \VV$.   The following are equivalent:
 \begin{enumerate}
 	\item   $v$ is a positive, rational multiple of a Betti table $\beta(\FF)$ for some free complex $\FF$ where the homology of $\FF$ has codimension $k$;
-	\item  Given any sheaf $\cE$ of codimension $n+1-k$, $v$ pairs with $\gamma(\cE)$ to give an element of the cone of Betti tables of $A$-complexes with finite length homology.
+	\item  Given any sheaf $\cE$ of codimension $n+1-k$, $v$ pairs with $\gamma(\cE)$ to give an element of the cone of Betti tables of generically exact free $A$-complexes.
 \end{enumerate}
 \end{thm}
 
-The cone of Betti tables on $A$ with finite length homology is easy to describe, and it is easy to write down the nonnegative functionals that define it.
+The cone of Betti tables of generically exact free $A$-complexes is easy to describe, and it is easy to write down the nonnegative functionals that define it.
 By composing the functor $\Phi$ with a nonnegative functional on this cone, we get all the functionals $\langle -,-\rangle_{\tau,\kappa}$ used by Eisenbud and Schreyer. In this sense, $\Phi(\FF,\cE)$ categorifies all of the nonnegative numbers $\langle \FF, \cE\rangle_{\tau,\kappa}$ used in \cite{eis-schrey1}. Allowing complexes with homology is essential, as the functor $\Phi$ does not respect the property of being a resolution: even if $\FF$ is a resolution of a finite length module the complex $\Phi(\FF,\cE)$ may fail to be a resolution. Moreover, the results on resolutions follow easily from these more general results on complexes.
 
 

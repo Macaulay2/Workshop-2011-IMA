@@ -49,6 +49,8 @@ NC = infinity
 
 -- OUR FIELD
 FFF = QQ
+FFF = RR
+FFF = CC
 ERROR'TOLERANCE := 0.001
 
 -- ---------------------
@@ -338,7 +340,6 @@ printTree MutableHashTable := node ->(
 -----------------
 -- example:
 -----------------
-
 makeLocalCoordinates = method(TypicalValue => MutableMatrix)
 makeLocalCoordinates Array := blackred ->(
   blackposition := first blackred;
@@ -387,10 +388,18 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      else scan(node.Children, c->resolveNode(c,remaining'conditions'and'flags));
      
      -- temporary: creates a superset of solutions via a blackbox solver
-     polynomials := makePolynomials(numgens ring coordX, node.FlagM * coordX, remaining'conditions'and'flags);
-     node.SolutionsSuperset = apply(solveSystem flatten entries polynomials, 
-	  s-> (map(CC,ring coordX,matrix s)) coordX);
-     
+     all'polynomials := makePolynomials(node.FlagM * coordX, remaining'conditions'and'flags);
+     polynomials := squareUpPolynomials(numgens ring coordX, all'polynomials);
+     node.SolutionsSuperset = apply(
+	  select(
+	       solveSystem flatten entries polynomials, 
+	       s-> norm sub(gens all'polynomials,matrix s) < ERROR'TOLERANCE * 
+	       norm matrix s * 
+	       norm sub(last coefficients gens all'polynomials,CC)
+	       ), 
+	  ss-> (map(CC,ring coordX,matrix ss)) coordX
+	  ); 
+     	  
      if node.Children == {} then node.Solutions = node.SolutionsSuperset;  -- should change!!! 
      
      scan(node.Fathers, father'movetype->(
@@ -412,7 +421,7 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      	       apply(node.Solutions, X->(
 		    	 X'' := (X^{0..r-1}) || (-X^{r+1}) || (X^{r}+X^{r+1}) ||( X^{r+2..n-1});
 			 j := position(red'sorted, i-> i==r+1);-- the column we need to normalize
-		    	 if j=!=null then redCheckersColumnReduce(normalizeColumn(X'',r+1,j),father)
+		    	 if j=!=null then redCheckersColumnReduce2(normalizeColumn(X'',r+1,j),father)
 			 else X''
 	       	    	 ))
 	       )
@@ -435,9 +444,10 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 			      position(red,i->i==red'sorted#j), -- column of the j-th red checker on the board
 			      father) 
 			 then (
-		    	      submatrix(Xt,{0..r-1},{j}) 
-		    	      || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
-		    	      || matrix{{0}}
+		    	      --submatrix(Xt,{0..r-1},{j}) 
+		    	      --|| submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
+		    	      submatrix(Xt,{0..r},{j}) 
+		    	      || matrix{{0_FFF}}
 		    	      || submatrix(Xt, {r+2..n-1}, {j})
 			      ) else (
 		    	      submatrix(Xt,{0..r},{j}) 
@@ -447,7 +457,7 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 		    	 );
 	       	    M'X' = promote(M,Rt) * VwrtM;
 	       	    ) 
-	       else if true or member(movetype,{{1,0,0},{1,1,1}}) then (-- case SWAP(middle row)		    
+	       else if member(movetype,{{1,0,0},{1,1,1},{0,0,0},{0,1,0}}) then (-- case SWAP(middle row)		    
 	       	    bigR := red'sorted#(s+1); -- row of the second moving red checker
 		    rightmost'col'B := position(black, j->j==r);
 		    leftmost'col'A := position(black, j->j==r+1)+1;
@@ -483,7 +493,7 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 			 then (
 		    	      submatrix(Xt,{0..r-1},{j}) 
 		    	      || submatrix(Xt,{r},{j}) + submatrix(Xt,{r+1},{j})
-		    	      || matrix{{0}}
+		    	      || matrix{{0_FFF}}
 		    	      || submatrix(Xt, {r+2..n-1}, {j})
 			      ) else (
 		    	      submatrix(Xt,{0..r},{j}) 
@@ -498,25 +508,28 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 --		    )
 	       else error "an unaccounted case";
 	       
-	       polys := makePolynomials(numgens R, M'X',remaining'conditions'and'flags);
+	       all'polys := makePolynomials(M'X',remaining'conditions'and'flags);
+	       polys := squareUpPolynomials(numgens R, all'polys);
 	       startSolutions := apply(node.Solutions, X->toRawSolutions(coordX,X));
 	       
 	       -- track homotopy and plug in the solution together with t=1 into Xt
-	       scan(startSolutions, 
-		    s->assert(norm sub(polys,matrix{{0}|s}) < ERROR'TOLERANCE * 
+	       scan(startSolutions,  
+		    s->assert(norm sub(polys,matrix{{0_FFF}|s}) < ERROR'TOLERANCE * 
 			 norm matrix{s} * 
 			 norm sub(last coefficients polys,CC))); 
 	       targetSolutions := trackHomotopy(polys,startSolutions);
 	       apply(targetSolutions, sln->( 
 		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix sln)) M'X';
 		    X'' := inverse M'' * M''X'';
-		    if not member(movetype,{{2,0,0},{2,1,0},{1,1,0}}) -- SWAP CASE
+		    if not member(movetype,{ {2,0,0},{2,1,0},{1,1,0} }) -- SWAP CASE
 		    then (
      			 k := numgens source X'';
 			 X'' = X''_{0..s}| X''_{s}+X''_{s+1}| X''_{s+2..k-1}; -- we substitute the s+1 column for the vector w_{s+1}
-		    	 normalizeColumn(X'',r,s)
+		    	 redCheckersColumnReduce2(normalizeColumn(X'',r,s),father)
 			 ) 
-		    else normalizeColumn(X'',r,s) -- !!!
+		    else --redCheckersColumnReduce2(
+		    normalizeColumn(X'',r,s)
+		    --,father) -- !!!
 		    ))
 	       );
      	  -- else {}; -- means: not implemented
@@ -524,9 +537,9 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	  -- verify solutions
 	  parentX := makeLocalCoordinates father.Board;
 	  parentXlist := flatten entries parentX;
-	  scan(parent'solutions, X''->( 
+	  scan(parent'solutions, X'''->( 
 		    -- check that solutions fit the parent's pattern
-		    a := flatten entries X'';
+		    a := flatten entries X''';
 		    scan(#a, i->assert(
 			      (abs a#i < ERROR'TOLERANCE and parentXlist#i == 0)
 			      or (abs(a#i-1) < ERROR'TOLERANCE and parentXlist#i == 1)
@@ -570,6 +583,12 @@ normalizeColumn(Matrix,ZZ,ZZ) := (X,r,j) -> (
      matrix X
      )
 
+-----------------
+-- redCheckersColumnReduce
+-----------------
+-- This function reduce specific column
+-- using elementary column operations
+-----------------
 redCheckersColumnReduce = method(TypicalValue => Matrix)
 redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
      k := numgens source X'';
@@ -591,6 +610,53 @@ redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
      matrix X''
      )
 
+redCheckersColumnReduceSwap = method(TypicalValue => Matrix)
+redCheckersColumnReduceSwap(Matrix, MutableHashTable) := (X'', father) -> (
+     k := numgens source X'';
+     n := numgens target X'';
+     red := delete(NC,last father.Board);
+     redSorted := sort red;
+     r := father.CriticalRow;
+     j := position(redSorted, i-> i>=r+1);
+     rowj := redSorted#j; -- the row of the lower swapped red checker (in the father)
+     if j=!=null then(
+     	  X''  = mutableMatrix X'';
+	  for jj from j+1 to k-1 do(
+	       -- reduce the columns for red checkers that have higher number and "see" the red checker in the row r+1
+	       scan(n, i-> (
+	       		 X''_(i,jj) = X''_(i,jj) - X''_(rowj,jj)*X''_(i,j);
+	       		 ));
+	       )
+     	  );
+     matrix X''
+     )
+
+redCheckersColumnReduce2 = method(TypicalValue => Matrix)
+redCheckersColumnReduce2(Matrix, MutableHashTable) := (X'', father) -> (
+     k := numgens source X'';
+     n := numgens target X'';
+     X''  = mutableMatrix X'';
+     red := delete(NC,last father.Board);
+     redSorted := sort red; -- numbers of the rows where red checkers are
+     apply(#redSorted, r->( -- column r is to be reduced 
+--	 -- find the redcheckers bellow that can see the current redChecker
+--	 witnessReds:=select(drop(red,r), i->i>red#r);
+--	 j:={};
+--         scan(witnessReds, i-> j=append(j,position(redSorted, l-> l==i)));
+     	 col'of'r'on'board := position(last father.Board, i->i==redSorted#r); 
+	 reducers := select(0..r-1, 
+	      j->position(last father.Board, i->i==redSorted#j)<col'of'r'on'board
+	      );  
+	 scan(reducers, j->(
+	      		-- reduce the columns for red checkers that have higher number and "see" the red checker in the row r+1
+			scan(n, i-> (
+			     	  X''_(i,r) = X''_(i,r) - X''_(redSorted#j,r)*X''_(i,j);
+			     	  ));
+		   	));
+	 ));
+     matrix X''
+     )
+ 
 -----------------
 -- makePolynomials
 --
@@ -600,7 +666,6 @@ redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
 -- together with specified flags.
 ----------------
 -- input:
--- 	   m = number of polynomials
 --     	   MX = global coordinates for an open subset
 --     	        of a checkerboard variety (or MX' in the homotopy (in Ravi's notes))
 --
@@ -608,8 +673,8 @@ redCheckersColumnReduce(Matrix, MutableHashTable) := (X'', father) -> (
 --
 -- output:  a matrix of polynomials
 -----------------
-makePolynomials = method(TypicalValue => Matrix)
-makePolynomials(ZZ, Matrix, List) := (m, MX,conds) ->(
+makePolynomials = method(TypicalValue => Ideal)
+makePolynomials(Matrix, List) := (MX, conds) ->(
      R := ring MX;
      k := numgens source MX;
      n := numgens target MX;
@@ -619,11 +684,16 @@ makePolynomials(ZZ, Matrix, List) := (m, MX,conds) ->(
 	       b := partition2bracket(l,k,n);
 	       sum(#b, r->( 
 			 c := b#r;
-			 minors(k+c-(r+1)+1, MXF_{0..k+c-1})
+			 mino:=minors(k+c-(r+1)+1, MXF_{0..k+c-1});
+			 mino
 			 ))
-	  ));
-     gens eqs * random(FFF^(numgens eqs), FFF^m)  -- m random linear combinations
+     	       ));
+     eqs 
 )
+
+-- m random linear combinations of generators of the ideal
+squareUpPolynomials = method()
+squareUpPolynomials(ZZ,Ideal) := (m,eqs) ->  gens eqs * random(FFF^(numgens eqs), FFF^m)  
 
 -- Tracks a homotopy
 -- Input: 
@@ -635,8 +705,8 @@ trackHomotopy = method(TypicalValue=>List)
 trackHomotopy (Matrix,List) := (H,S) -> (
      Rt := ring H;
      R := (coefficientRing Rt)[drop(gens Rt,1)];
-     map't'0 := map(R, Rt, matrix{{0}}|vars R);
-     map't'1 := map(R, Rt, matrix{{1}}|vars R);
+     map't'0 := map(R, Rt, matrix{{0_FFF}}|vars R);
+     map't'1 := map(R, Rt, matrix{{1_FFF}}|vars R);
      track(first entries map't'0 H, first entries map't'1 H, S)
      )
 

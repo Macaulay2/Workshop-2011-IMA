@@ -5,6 +5,7 @@
 -- ---------------------
 
 restart
+setRandomSeed 0
 debug needsPackage "LRcheckergame";
 root = playCheckers({1},{1},2,4)
 resolveNode(root, {({1},random(FFF^4,FFF^4)), ({1},random(FFF^4,FFF^4))})
@@ -12,7 +13,29 @@ printTree root
 
 root = playCheckers({2,1,0},{2,1,0},3,6)
 resolveNode(root, {({2,1,0},random(FFF^6,FFF^6))})
+peek root
 
+root = playCheckers({2,1},{2,1},3,6)
+resolveNode(root, {({2},random(FFF^6,FFF^6)), ({1},random(FFF^6,FFF^6))})
+peek root
+
+n=7; K'n=FFF^n;
+root = playCheckers({2,1,0},{2,1,0},3,n)
+resolveNode(root, {({2,1,0},random(K'n,K'n)),({2,1,0},random(K'n,K'n))})
+peek root
+
+
+movetype
+startSolutions
+s -- the "solutions that are wrong"
+polys
+norm sub(polys,matrix{{0}|s})
+
+SolBlackBox =apply(node.SolutionsSuperset, X->toRawSolutions(coordX,X))
+s2 = flatten SolBlackBox
+norm sub(polys,matrix{{0}|s2})
+
+--------------------------------------
 end
 moveCheckers({3,5,4,2,1,0},{3,99,99,5,99,1},6)
 restart

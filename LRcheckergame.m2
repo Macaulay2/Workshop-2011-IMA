@@ -684,8 +684,7 @@ makePolynomials(Matrix, List) := (MX, conds) ->(
 	       b := partition2bracket(l,k,n);
 	       sum(#b, r->( 
 			 c := b#r;
-			 mino:=minors(k+c-(r+1)+1, MXF_{0..k+c-1});
-			 mino
+			 minors(k+c-(r+1)+1, MXF_{0..k+c-1});
 			 ))
      	       ));
      eqs 

@@ -552,7 +552,7 @@ As we discuss in \S\ref{sec:toric}, the target of this pairing, that is, the con
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
 We thank Frank-Olaf Schreyer for many insights and inspirations.
-We also thank Christine Berkesch, Bhargav Bhatt, A.J.\ de Jong, Rob Lazarsfeld, Ezra Miller, Gregory G.\ Smith, and Ravi Vakil for conversations and suggestions that improved this paper.  
+We also thank Christine Berkesch, Bhargav Bhatt, A.J.\ de Jong, Rob Lazarsfeld, Ezra Miller, Steven Sam, Gregory G.\ Smith, and Ravi Vakil for conversations and suggestions that improved this paper.  
 Some of this work was completed during the first author's visit to the University of Michigan, and we are grateful for their hospitality.  The computer
 algebra system \texttt{Macaulay2} \cite{M2} provided valuable assistance throughout our work.
 
@@ -609,7 +609,7 @@ For every root sequence $f$, there exists a supernatural sheaf of type
 $f$~\cite[Theorem~0.4]{eis-schrey1}.
 Moreover, the cohomology table of any coherent sheaf 
 can be written as a positive real combination of cohomology tables 
-of supernatural sheaves~\cite[Theorem~0.1]{eis-schrey1}.  
+of supernatural sheaves~\cite[Theorem~0.1]{eis-schrey2}.  
 
 %One of the main results of \cite{eis-schrey1} indicates a duality between the cone of Betti tables of free resolutions of finite length graded $S$-modules and the cone of cohomology tables of vector bundles on $\PP^n$.  We provide a new perspective on this duality in \S\ref{sec:duality}. 
 
@@ -699,6 +699,8 @@ To see why this is an equivalent definition, note first  that there is an equiva
 \]
 Thus, the pullback of $R\pi_{2*}\left( \Sigma^*\FF\otimes \pi_{1}^{*}\cE\right)$ is quasi-isomorphic 
 to $\Phi(\FF,\cE)$.
+
+We remark that the functor $\Phi$ specializes to certain Fourier--Mukai transforms. If we fix a complex $\FF$, then using the notation of \cite[Defintion~3.3]{caldararu}, the functor $\Phi(\FF, -)$ is the Fourier--Mukai $\Phi^{\tau(\FF)}\colon \DD^b(\PP^n)\to \DD^b(\AA^1)$.
 
 Here is a sample computation of $\Phi$: 
 
@@ -831,7 +833,7 @@ $$
 \cE \cong \widetilde \FF \otimes \cE \otimes \cO_{\Spec A[t^{-1}]}
 $$
 has no homology. It follows by a spectral sequence computation that 
-the complex $R\pi_{2*}\GG$ on $\Spec A[t^{-1}]$ has no homology. By flat base change,
+the complex $R\pi_{2*}\Gbull$ on $\Spec A[t^{-1}]$ has no homology. By flat base change,
 this is equal to the restriction of $\Phi(\FF,\cE)$ on the open set $\Spec A[t^{-1}]\subseteq \Spec A$, and we see that the homology
 of $\Phi(\FF,\cE)$ is annihilated by a power of $t$, as required.
 \end{proof}
@@ -865,7 +867,7 @@ we will sometimes indicate the position of $c_{0}$ with $^{\circ}$.
 We say that a
 minimal graded free complex $\FF$ over $S$ (or the element of $\DD^{b}(S)$ that it represents) is \defi{compatible with $\cc$} if 
 $
-\codim \HH^i(\FF) \geq c_i, \text{ for all } i,
+\codim \HH_i(\FF) \geq c_i, \text{ for all } i,
 $
 and if $\FF_i=0$ whenever $c_i=\nothing$.
 
@@ -1303,7 +1305,7 @@ The  pairing $\Phi$ induces a map of cones:
 given by $(\beta(\FF), \gamma(\cE))\mapsto \beta(\FF\cdot \cE)$.
 \end{lemma}
 \begin{proof}
-Let $\FF\in \DD^b(S)$ be compatible with $\cc$ and let $\cE\in \DD^{b}(\PP^n)$ have codimension $\geq n+1-k$.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}, the Betti table of $\FF\cdot \cE$ only depends only the Betti table of $\FF$ and on the cohomology table of $\cE$.  Since extending the ground field does not affect either of these tables, we may assume $\kk$ is infinite.  Fixing $r$, we may replace $\cE$ by a general $\GL_{n+1}(\kk)$-translate and apply~\cite[Theorem, p.\ 335]{miller-speyer} to obtain that $\HH_r \widetilde{\FF}$ and $\cE$ are homologically transverse, that is:
+Let $\FF\in \DD^b(S)$ be compatible with $\cc$ and let $\cE\in \DD^{b}(\PP^n)$ have codimension $\geq n+1-k$.  By Theorem~\ref{thm:Phi}\eqref{thm:Phi:1}, the Betti table of $\FF\cdot \cE$ only depends on the Betti table of $\FF$ and on the cohomology table of $\cE$.  Since extending the ground field does not affect either of these tables, we may assume $\kk$ is infinite.  Fixing $r$, we may replace $\cE$ by a general $\GL_{n+1}(\kk)$-translate and apply~\cite[Theorem, p.\ 335]{miller-speyer} to obtain that $\HH_r \widetilde{\FF}$ and $\cE$ are homologically transverse, that is:
 \begin{itemize}
 	\item $\Tor_i(\HH_r\widetilde{\FF},\cE)=0 \text{ for } i>0$, and
 	\item $\codim ((\HH_r\widetilde{\FF})\otimes \cE) \geq \min\{n+1, \codim \HH_r\widetilde{\FF}+\codim \cE\}.$
@@ -1319,7 +1321,7 @@ E^2_{r,q}=\Tor_q(\HH_r\widetilde{\FF},\cE)\Rightarrow \Tor_{r+q}(\widetilde{\FF}
 The conclusion of the previous paragraph shows that $E^2_{r,q}=0$ whenever $r+q\geq 0$, and we thus conclude that 
 $\widetilde{\FF}\otimes \cE$ is exact in homological degrees $\geq 0$.
 
-By flat base change with respect to $U:=\AA^1\setminus \{0\} \subseteq \AA^1$, the complex $\Phi(\FF,\cE)\otimes_{\cO_{\AA^1}} \cO_{U}$ is quasi-isomorphic to $Rp_{2*}(\widetilde{\FF}\otimes \cE)\otimes_{\kk} \cO_{U}$.  It follows that $\Phi(\FF,\cE)$ is compatible with $\cc'$ if and only if $R^sp_{2*}(\widetilde{\FF}\otimes \cE)=0$ for $s\geq 0$.  This in turn follows from immediately from the above computation and from the hypercohomology spectral sequence
+By flat base change with respect to $U:=\AA^1\setminus \{0\} \subseteq \AA^1$, the complex $\Phi(\FF,\cE)\otimes_{\cO_{\AA^1}} \cO_{U}$ is quasi-isomorphic to $Rp_{2*}(\widetilde{\FF}\otimes \cE)\otimes_{\kk} \cO_{U}$.  It follows that $\Phi(\FF,\cE)$ is compatible with $\cc'$ if and only if $R^sp_{2*}(\widetilde{\FF}\otimes \cE)=0$ for $s\geq 0$.  This in turn follows immediately from the above computation and from the hypercohomology spectral sequence
 $
 E_2^{r,q}=R^{r}p_{2*}(\HH_{-q}(\widetilde{\FF}\otimes \cE))\Rightarrow R^{q+r}p_{2*}(\widetilde{\FF}\otimes \cE).
 $
@@ -1937,7 +1939,7 @@ contains sections of $L$ that generate $L$. We claim that $\BBQ^2(R)=\BBQ^2(\kk[
 that by Lemma~\ref{lem:ground field} we may assume that the ground field is infinite. It follows that there are
 two sections $x_{0},x_{1}$ of degree 1 in $R$ that generate $L$, so $R$ is a finite module over $S = \kk[x_{0},x_{1}].$
 By~\cite[Corollary~4.5]{eis-schrey-chow} the finite map $f: C\to \PP^{1}$ induced by $x_{0}, x_{1}$ admits
-an Ulrich sheaf (one can take a general line bunde of degree genus$(C_{1})-1$ on a reduced component $C_{1}$ of $C$)
+an Ulrich sheaf (one can take a general line bundle of degree genus$(C_{1})-1$ on a reduced component $C_{1}$ of $C$)
 so we may apply Theorem~\ref{cor:new graded rings}.
 \end{example}
 
@@ -1978,7 +1980,7 @@ $\beta(\Hom(\FF_{\leq e},R))$ as a positive rational linear combination of pure 
 \[
 \beta(\Hom(\FF_{\leq e},R))=\sum_{i=0}^{s_e} a_{i}\beta(\mathbf{G}_{\dd^i}).
 \]
-Since the decomposition algorithm proceeds from the right to left, the rightmost steps of the decomposition will not depend on the value of $e$.  More specifically, if
+Since the decomposition algorithm proceeds from the right to left, the rightmost steps of the decomposition of $\beta(\Hom(\FF_{\leq e},R))$ will not depend on the value of $e$.  More specifically, if
 $k$ is the minimal value such that $\dd^k_{-e}\ne -\infty$, then for all $i=0, \dots, k-1$, the value of $a_i$ will not depend on $e$.   Thus, as $e\to \infty$, the decomposition stabilizes to an infinite sum
 \[
 \beta(\Hom(\FF,R))=\sum_{i=0}^\infty a_i\beta(\mathbf{G}_{\dd^i}).
@@ -2029,7 +2031,7 @@ The chain of degree sequences used in this decomposition has a maximal element, 
 Throughout this section $X$ will denote a projective toric variety, and $R$ will denote its
  $\Pic(X)$-graded Cox ring. We let $C$ be the $\Pic(X)$-graded ring $\kk[\NE(X)]$,
  where $\NE(X)$ is the semigroup of numerically effective divisors. 
- When $\alpha\in \NE(X)$ we write $t^{a}$ for the corresponding element of $C$.
+ When $\alpha\in \NE(X)$ we write $t^{\alpha}$ for the corresponding element of $C$.
 
 We will define a pairing $\Phi_{X}: D^{b}(R) \times D^{b}(X) \to D^{b}(C)$ that is analogous to
 $\Phi$ and prove Theorem~\ref{thm:Phimulti}.  We will also define functionals $\chi_{i,\alpha}$ on $D^{b}(C)$ that are analogous to the 
@@ -2138,7 +2140,7 @@ Let $R=\kk[x_0,x_1,y_0,y_1]$ be the Cox ring of $\PP^1\times \PP^1$, with the bi
 
 Eisenbud and Schreyer have conjectured that, for some $r$, there exists a vector bundle $\cE$ on $\PP^1\times \PP^1$ of rank $9r$ with bigraded Hilbert polynomial $\chi(s_1,s_2)=r(9s_1s_2+20s_1+20s_2)$~\cite[Conjecture 2]{eis-schrey-abel}.  The existence of such a bundle would have implications for the structure of free $R$-complexes with irrelevant homology.  
 
-For instance, this would imply that there cannot a bigraded complex $\FF$ of $R$-modules with following form:
+For instance, this would imply that there cannot be a bigraded complex $\FF$ of $R$-modules with the following form:
 \[
 \FF
 =\left[
@@ -2301,6 +2303,24 @@ JOURNAL={arXiv},
 NUMBER = {0803.1645},
 YEAR = {2008},
 }
+
+\bib{caldararu}{article}{
+   author={C{\u{a}}ld{\u{a}}raru, Andrei},
+   title={Derived categories of sheaves: a skimming},
+   conference={
+      title={Snowbird lectures in algebraic geometry},
+   },
+   book={
+      series={Contemp. Math.},
+      volume={388},
+      publisher={Amer. Math. Soc.},
+      place={Providence, RI},
+   },
+   date={2005},
+   pages={43--75},
+   review={\MR{2182889 (2006h:14022)}},
+}
+
 
 
 %\bib{eis-erm-refined}{article}{

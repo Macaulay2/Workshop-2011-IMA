@@ -27,12 +27,12 @@ export {
      GeneralPosition,
      BasicPD,
      getSeparator,
+     isIrredundantPD,
      isEqualPDs,
      testPD
      }
 
 needs "./newGTZGenPos.m2"
-
 
 -- The following variables are used to keep track of times during computation
 eliminationTime = 0.0
@@ -484,17 +484,37 @@ isEqualPDs(List, List) := (PD1, PD2) -> (
      PD1' == PD2'
      )
 
+isIrredundantPD = method()
+isIrredundantPD(Ideal, List) := (I, PD) -> (
+     -- test:
+     -- I = intersect PD
+     -- each elem of PD is primary
+     -- each elem of PD is needed
+     test1 := I == intersect PD;
+     test2 := all(PD, isPrimary);
+     test3 := #PD === 1 or all(0..#PD-1, i -> (
+	       Pdi := drop(PD, {i,i});
+	       I != intersect Pdi
+	       ));
+     test1 and test2 and test3
+     )
+
 testPD = method()
 testPD Ideal := (I) -> (
-     time newPD1 := newPD(I,Verbosity=>2);
-     I = ideal I_*;
-     time newPD2 := newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-     I = ideal I_*;
-     time PD := primaryDecomposition I;
-     assert(I == intersect newPD2);
+     time newPD1 := newPD(I,Verbosity=>0);
+     assert isIrredundantPD(I, newPD1);
+
+     time newPD2 := newPD(ideal(I_*),Verbosity=>0,Strategy=>{GeneralPosition});
+     assert isIrredundantPD(I, newPD2);     
+
+     time PD := primaryDecomposition(ideal I_*);
+     assert isIrredundantPD(I, PD);
+
+     -- the following needs to be modified to consider non-uniqueness of embedded components
      assert isEqualPDs(newPD1, PD);
      assert isEqualPDs(newPD2, PD)
      )
+
 
 beginDocumentation()
 
@@ -583,11 +603,7 @@ doc ///
 TEST ///
   R = QQ[a,b,c]
   I = ideal apply(1 .. 3, i -> random(3,R))
-  time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-  assert(all(ourPD3,isPrimary))
-  assert(I == intersect ourPD3)
-  PD = primaryDecomposition(ideal I_*);
-  assert isEqualPDs(PD, ourPD3)
+  testPD I
 ///
 
 TEST ///
@@ -619,8 +635,6 @@ TEST ///
   I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
   testPD I
 ///
-
-end
 
 TEST ///
   R = ZZ/32003[a,b,c,d,h]
@@ -671,157 +685,104 @@ TEST ///
 ///
 
 TEST ///
-XXXXXXXXXXXX
--- CORRECT
-restart
-load "newGTZ.m2"
-R = QQ[b,s,t,u,v,w,x,y,z];
-I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten entries gens I
-time m2PD = primaryDecomposition I;
+  R = QQ[b,s,t,u,v,w,x,y,z];
+  I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
+  testPD I
 ///
 
 TEST ///
+  -- 2x2 permanents of generic 3x3 matrix
+  R = ZZ/32003[vars(0..8)];
+  I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
+  testPD I
+///
 
---- UNKNOWN - Takes a very long time.
+TEST ///
+  -- 2x2 permanents of generic 3x3 matrix
+  R = ZZ/32003[vars(0..8), MonomialOrder=>Lex];
+  I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
+  testPD I
+///
+
+TEST ///
+  -- 2x2 permanents of generic 3x3 matrix
+  R = QQ[vars(0..8)];
+  I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
+  testPD I
+///
+
+TEST ///
+  R = ZZ/32003[x,y,z];
+  I = ideal"
+    x2yz + xy2z + xyz2 + xyz + xy + xz + yz,
+    x2y2z + xy2z2 + x2yz + xyz + yz + x + z,
+    x2y2z2 + x2y2z + xy2z + xyz + xz + z + 1";
+  testPD I
+///
+
+TEST ///
+  R = ZZ/32003[x,y,z,t]
+  I = ideal(
+    t^10-x,
+    t^31-t^6-t-y,
+    t^8-z)
+  testPD I
+///
+
+TEST ///
+-- UNKNOWN - Runs for a very long time on built in version, as well as the 'decompose' version.
+-- The GeneralPosition one does indeed run a lot faster though
 restart
 load "newGTZ.m2"
-R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
-R = ZZ/32003[a,b,c,d,e,f,h]
-I = ideal(
+  R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l,MonomialOrder=>Lex]
+  I = ideal "-2hjk + 4ef + bj + ak,
+           -2hjl + 4eg + cj + al,
+           -4fhj - 4ehk - djk + 2be + 2af,
+           -4ghj - 4ehl - djl + 2ce + 2ag,
+           -2dfj - 2dek + ab,
+           -2dgj - 2del + ac"
+  testPD I
+///
+
+TEST ///
+  R = ZZ/32003[x,y,z,t,MonomialOrder=>Lex]
+  I = ideal(
+   y^2*z+2*x*y*t-2*x-z,
+   -x^3*z+4*x*y^2*z+4*x^2*y*t+2*y^3*t+4*x^2-10*y^2+4*x*z-10*y*t+2,
+   2*y*z*t+x*t^2-x-2*z,
+   -x*z^3+4*y*z^2*t+4*x*z*t^2+2*y*t^3+4*x*z+4*z^2-10*y*t-10*t^2+2)
+  testPD I
+///
+
+
+TEST ///
+  --- UNKNOWN - Takes a very long time.
+  R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
+  R = ZZ/32003[a,b,c,d,e,f,h]
+  I = ideal(
          a+b+c+d+e+f,
 	 a*b+b*c+c*d+d*e+e*f+a*f,
 	 a*b*c+b*c*d+c*d*e+d*e*f+e*f*a+f*a*b,
 	 a*b*c*d+b*c*d*e+c*d*e*f+d*e*f*a+e*f*a*b+f*a*b*c,
 	 a*b*c*d*e+b*c*d*e*f+c*d*e*f*a+d*e*f*a*b+e*f*a*b*c+f*a*b*c*d,
 	 a*b*c*d*e*f-h^6)
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten gens I
-time ourPD = newPD(I);
-I = ideal flatten gens I
-time ourPD2 = newPD(I,Verbosity=>2,Strategy=>{BasicPD});
-I = ideal flatten gens I
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten gens I
-time m2PD = primaryDecomposition I;
-
--- CORRECT
--- in this example, it seems we could be more careful with choosing the separator itself.  It goes quite far down the recursion
--- before it at last reaches the zero dimensional primary component.  Maybe nothing can be done about it.
-restart
-load "newGTZ.m2"
-debug newGTZ
-path = prepend("~/M2/Macaulay2/packages", path)
-load "~/M2/Macaulay2/packages/ExampleIdeals.m2"
-loadPackage "ExampleIdeals"
-R = QQ[vars(0..8)];
-I = permanents(2, genericMatrix(R,3,3))
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten entries gens I
-time m2PD = primaryDecomposition I;
-
--- CORRECT
--- in this example, it seems we could be more careful with choosing the separator itself.  It goes quite far down the recursion
--- before it at last reaches the zero dimensional primary component.  Maybe nothing can be done about it.
-restart
-load "newGTZ.m2"
-debug newGTZ
-path = prepend("~/M2/Macaulay2/packages", path)
-load "~/M2/Macaulay2/packages/ExampleIdeals.m2"
-loadPackage "ExampleIdeals"
-R = ZZ/32003[vars(0..8),MonomialOrder=>Lex];
-I = permanents(2, genericMatrix(R,3,3))
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten entries gens I
-time m2PD = primaryDecomposition I;
-
--- CORRECT
-restart
-load "newGTZ.m2"
-R = ZZ/32003[x,y,z];
-I = ideal"
-  x2yz + xy2z + xyz2 + xyz + xy + xz + yz,
-  x2y2z + xy2z2 + x2yz + xyz + yz + x + z,
-  x2y2z2 + x2y2z + xy2z + xyz + xz + z + 1"
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten entries gens I
-time m2PD = primaryDecomposition I;
-
--- INCORRECT
--- Must the GB really be calculated after going to the fraction field?  This example seems to say yes.
-restart
-load "newGTZ.m2"
-R = ZZ/32003[x,y,z,t]
-I = ideal(
-    t^10-x,
-    t^31-t^6-t-y,
-    t^8-z)
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten entries gens I
-time m2PD = primaryDecomposition I;
-
--- UNKNOWN - Runs for a very long time on built in version, as well as the 'decompose' version.
--- The GeneralPosition one does indeed run a lot faster though
-restart
-load "newGTZ.m2"
-R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l,MonomialOrder=>Lex]
-I = ideal "-2hjk + 4ef + bj + ak,
-           -2hjl + 4eg + cj + al,
-           -4fhj - 4ehk - djk + 2be + 2af,
-           -4ghj - 4ehl - djl + 2ce + 2ag,
-           -2dfj - 2dek + ab,
-           -2dgj - 2del + ac"
-gens gb I
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity => 2);
-I = ideal flatten entries gens I
-time m2PD = primaryDecomposition I;
+  testPD I
 ///
 
--- CORRECT
--- same error as in the cyclic permutation example in 5 variables 
--- ideals are going from zero dimensional to non-zero dimensional after a change of coordinates.
--- I shouldn't have to compute independent sets again after changing coordinates, should I?
 TEST ///
-restart
-load "newGTZ.m2"
-R = ZZ/32003[x,y,z,t,MonomialOrder=>Lex]
-I = ideal(
-   y^2*z+2*x*y*t-2*x-z,
-   -x^3*z+4*x*y^2*z+4*x^2*y*t+2*y^3*t+4*x^2-10*y^2+4*x*z-10*y*t+2,
-   2*y*z*t+x*t^2-x-2*z,
-   -x*z^3+4*y*z^2*t+4*x*z*t^2+2*y*t^3+4*x*z+4*z^2-10*y*t-10*t^2+2)
-time ourPD = newPD(I,Verbosity=>2);
-I = ideal flatten gens I
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
+  R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
+  I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f
+          ,e*g*j+8001*c*j^2+e^2*l,d*g*j+d*e*l+16001*a*c,e*f*j+8001*b*j^2+e^2*k,d*f*j+d*e*k+16001*a*b,d*e*j-a*h*j-16001*a^2,d*e^2-a*e*h-8001*a*d*j,d*g*k*l-c*h*k*l-d*f*l^2+b*h*l^2-2*c*f*g+2*b*g^2-16001
+       	  *c^2*k+16001*b*c*l,d*g*k^2-c*h*k^2-d*f*k*l+b*h*k*l-2*c*f^2+2*b*f*g-16001*b*c*k+16001*b^2*l,d*g^2*k-c*g*h*k-d*f*g*l+c*f*h*l-8001*c*d*k*l+8001*b*d*l^2+16001*c^2*f-16001*b*c*g,d*f*g*k-b*g*h*k-
+       	  8001*c*d*k^2-d*f^2*l+b*f*h*l+8001*b*d*k*l+16001*b*c*f-16001*b^2*g,c*f*g*k-b*g^2*k-8001*c^2*k^2-c*f^2*l+b*f*g*l-16001*b*c*k*l-8001*b^2*l^2,e^2*g*k+8001*c*e*j*k-e^2*f*l-8001*b*e*j*l,d*g*h*l^2
+       	  -c*h^2*l^2-8001*d^2*l^3+2*d*g^3-2*c*g^2*h+16000*c*d*g*l+c^2*h*l-8001*c^3,d*f*h*l^2-b*h^2*l^2-8001*d^2*k*l^2+2*d*f*g^2-2*b*g^2*h+16001*c*d*g*k+16001*c*d*f*l+16001*b*d*g*l+b*c*h*l-8001*b*c^2,
+       	  d*f*h*k*l-b*h^2*k*l-8001*d^2*k^2*l+2*d*f^2*g-2*b*f*g*h+16001*c*d*f*k+16001*b*d*g*k-16001*b*c*h*k+16001*b*d*f*l-16001*b^2*h*l-8001*b^2*c,d*f*h*k^2-b*h^2*k^2-8001*d^2*k^3+2*d*f^3-2*b*f^2*h+
+       	  16000*b*d*f*k+b^2*h*k-8001*b^3)
+  debug newGTZ
+  assert isPrimaryZeroDim(I)
 ///
 
 end
-
-restart
-loadPackage "newGTZ"
-installPackage "newGTZ"
-check "newGTZ"
-viewHelp newGTZ
-path = prepend("/Mac2SVN/M2/Macaulay2/packages", path)
-load "/Mac2SVN/M2/Macaulay2/packages/ExampleIdeals.m2"
-R = ZZ/32003[vars(0..8)];
-I = permanents(2, genericMatrix(R,3,3))
-time ourPD3 = newPD(I,Verbosity=>2,Strategy=>{GeneralPosition});
-I = ideal flatten entries gens I
-time ourPD = newPD(I,Verbosity=>2);
 
 restart
 path = prepend("/Mac2SVN/M2/Macaulay2/packages", path)
@@ -840,27 +801,3 @@ time ourPD = newPD(I,Verbosity=>2);
 
 time primaryDecomposition(ideal I_*)
 
--- ideal S in this example really is primary but isInGenPos returns false
--- fixing the (only?) bug in the check file
-restart
-loadPackage "newGTZ"
-debug newGTZ
-R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
-I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f
-          ,e*g*j+8001*c*j^2+e^2*l,d*g*j+d*e*l+16001*a*c,e*f*j+8001*b*j^2+e^2*k,d*f*j+d*e*k+16001*a*b,d*e*j-a*h*j-16001*a^2,d*e^2-a*e*h-8001*a*d*j,d*g*k*l-c*h*k*l-d*f*l^2+b*h*l^2-2*c*f*g+2*b*g^2-16001
-       	  *c^2*k+16001*b*c*l,d*g*k^2-c*h*k^2-d*f*k*l+b*h*k*l-2*c*f^2+2*b*f*g-16001*b*c*k+16001*b^2*l,d*g^2*k-c*g*h*k-d*f*g*l+c*f*h*l-8001*c*d*k*l+8001*b*d*l^2+16001*c^2*f-16001*b*c*g,d*f*g*k-b*g*h*k-
-       	  8001*c*d*k^2-d*f^2*l+b*f*h*l+8001*b*d*k*l+16001*b*c*f-16001*b^2*g,c*f*g*k-b*g^2*k-8001*c^2*k^2-c*f^2*l+b*f*g*l-16001*b*c*k*l-8001*b^2*l^2,e^2*g*k+8001*c*e*j*k-e^2*f*l-8001*b*e*j*l,d*g*h*l^2
-       	  -c*h^2*l^2-8001*d^2*l^3+2*d*g^3-2*c*g^2*h+16000*c*d*g*l+c^2*h*l-8001*c^3,d*f*h*l^2-b*h^2*l^2-8001*d^2*k*l^2+2*d*f*g^2-2*b*g^2*h+16001*c*d*g*k+16001*c*d*f*l+16001*b*d*g*l+b*c*h*l-8001*b*c^2,
-       	  d*f*h*k*l-b*h^2*k*l-8001*d^2*k^2*l+2*d*f^2*g-2*b*f*g*h+16001*c*d*f*k+16001*b*d*g*k-16001*b*c*h*k+16001*b*d*f*l-16001*b^2*h*l-8001*b^2*c,d*f*h*k^2-b*h^2*k^2-8001*d^2*k^3+2*d*f^3-2*b*f^2*h+
-       	  16000*b*d*f*k+b^2*h*k-8001*b^3)
-isPrimaryZeroDim(I)
--- next step
-restart
-loadPackage "newGTZ"
-debug newGTZ
-R = (ZZ/32003)(monoid[a..h, j..l, Degrees => {11:1}, Heft => {1}, MonomialOrder => VerticalList{MonomialSize => 32, Lex => 11, Position => Up}, DegreeRank => 1])
-fiberVars = {e,l,k,j}
--- S is already a gb for the ideal it generates.
--- now we need to find out if (ideal S) is a primary ideal in general position.
-
-loadPackage "ExampleIdeals"

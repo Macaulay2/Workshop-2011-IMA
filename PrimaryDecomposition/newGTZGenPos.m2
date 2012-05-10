@@ -125,8 +125,8 @@ splitZeroDimensionalIdeal(Ideal,List) := (I, independentVars) ->
    minPoly := getMinimalPolynomial(Isat, independentVars);
    factorTime = factorTime + first timing (factorList := apply(toList factor minPoly, toList));
    factorList = select(factorList, fac -> first degree fac#0 > 0);
-   << "Factor List:" << endl;
-   << netList factorList << endl;
+   --<< "Factor List:" << endl;
+   --<< netList factorList << endl;
    idealList := apply(factorList, fac -> ideal (fac#0)^(fac#1) + I);
    idealList = apply(idealList, J -> (sepSatTiming := timing sepAndSat(J,independentVars);
 	                              sepAndSatTime = sepAndSatTime + first sepSatTiming;

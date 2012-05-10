@@ -131,8 +131,9 @@ splitZeroDimensionalIdeal(Ideal,List) := (I, independentVars) ->
    idealList = apply(idealList, J -> (sepSatTiming := timing sepAndSat(J,independentVars);
 	                              sepAndSatTime = sepAndSatTime + first sepSatTiming;
 				      last sepSatTiming));
-   --error "debug";
-   apply(idealList, J -> trim ideal gens gb J)
+   t := timing (ret := apply(idealList, J -> trim ideal gens gb J));
+   splitZeroCleanupTime = splitZeroCleanupTime + t#0;
+   ret
 )
 
 TEST ///

@@ -169,7 +169,9 @@ minimalizeHashTable(HashTable) := (monHash) ->
      set flatten entries gens monomialIdeal keys monHash 
    else 
      set flatten entries mingens ideal keys monHash;
-   --if (p =!= 0_(ring p)) then minGens = set flatten entries mingens ideal keys monHash else minGens = set flatten entries gens monomialIdeal keys monHash;
+   --if (p =!= 0_(ring p)) then 
+   --     minGens = set flatten entries mingens ideal keys monHash 
+   --else minGens = set flatten entries gens monomialIdeal keys monHash;
    hashTable select(pairs monHash, (m,val) -> member(m,minGens))
 )
 
@@ -304,6 +306,14 @@ newPD(Ideal) := opts -> (I) -> (
    retVal
 )
 
+minSatPPDOur = (I, facs) -> (
+     ret1 := minSatPPD(I, facs);
+     ret2 := minSatPPD2(I, facs);
+     --error "debug me";
+     << netList{reverse ret1, reverse ret2} << endl;
+     ret1
+     )
+
 -- internal subroutine for newPD
 PDWorker = method(Options => {Verbosity => 0, Strategy => {}})
 PDWorker(Ideal, Ideal, ZZ) := opts -> (I, resultSoFar, callDepth) ->
@@ -334,8 +344,9 @@ PDWorker(Ideal, Ideal, ZZ) := opts -> (I, resultSoFar, callDepth) ->
 	 )
       else (
 	 -- this section includes code from the PrimaryDecomposition package  
-         --t2 = timing (ret := minSatPPD(I,factors mySep));
-	 t2 = timing (ret := minSatPPD(I,factors mySep));
+         --t2 = timing (ret := minSatPPD2(I,factors mySep));
+	 << "indep set: " << independentVars;
+	 t2 = timing (ret := minSatPPDOur(I,factors mySep));
          satIndex = 1;
          mySep = ret#2;
          Isat = ret#0;
@@ -1379,3 +1390,24 @@ time ourPD = newPD(I,Verbosity=>2);
 
 time primaryDecomposition(ideal I_*)
 
+-- This one does better
+R = QQ[b,s,t,u,v,w,x,y,z];
+minSatPPD(
+  ideal"su-bv,tv-sw,vx-uy,wy-vz,w2x2-2uwxz+u2z2,t2y2-2styz+s2z2,s2w,-tuw+bw2,s2t,btu3,s2v,s4".
+  {z, x, t, - t*x + b*z, - t*x + 2b*z}
+  )
+
+return; continue
+netList{reverse ret1, reverse ret2}
+I == intersect(ret1#0, I + ideal(ret1#2, ret2#2))
+
+
+time newPD2 = newPD(ideal(I_*),Verbosity=>2,Strategy=>{GeneralPosition});
+
+
+debug PrimaryDecomposition
+minSatPPD(I, gens R)
+use R
+J = I + ideal(s*v)
+
+time newPD2 = newPD(ideal(J_*),Verbosity=>2,Strategy=>{GeneralPosition});

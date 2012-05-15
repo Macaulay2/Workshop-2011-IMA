@@ -125,6 +125,7 @@ splitZeroDimensionalIdeal(Ideal,List) := (I, independentVars) ->
    minPoly := getMinimalPolynomial(Isat, independentVars);
    factorTime = factorTime + first timing (factorList := apply(toList factor minPoly, toList));
    factorList = select(factorList, fac -> first degree fac#0 > 0);
+   if #factorList === 1 then return {Isat};
    --<< "Factor List:" << endl;
    --<< netList factorList << endl;
    idealList := apply(factorList, fac -> ideal (fac#0)^(fac#1) + I);
@@ -246,65 +247,63 @@ TEST ///
 getVariablePowerGenerators=method()
 getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
    independentVars := toList (set gens ring first G) - set fiberVars;
-   apply(#fiberVars, i -> first select( G, g -> isSubset(set support leadTerm g, set ({fiberVars#i} | independentVars))))
-)
+   apply(#fiberVars, i -> (
+	     fiberAndIndep := set ({fiberVars#i} | independentVars);
+	     Gi := select(G, g -> isSubset(set support leadTerm g, fiberAndIndep));
+	     first Gi
+	     ))
+   )
 
 -- This function should be called only on ideals before a change of coordinates have been applied.
 isPrimaryZeroDim = method()
 isPrimaryZeroDim (Ideal,List) := (I, independentVars) ->
 (
-   -- null so that unless I is homogeneous, nothing is used in the Hilbert option in the GB computation below.
-   hilbI := null;
    R := ring I;
-   --independentVars := support first independentSets I;
    fiberVars := reverse sort toList (set gens R - set independentVars);
    lexR := (coefficientRing R)[fiberVars | independentVars,MonomialOrder=>{Lex=>#fiberVars,GRevLex=>#independentVars}];
-   lexI := sub(I,lexR);
-   fiberVars = fiberVars / map(lexR,R);
+   toLexR := map(lexR,R);
+   lexI := toLexR I;
+   fiberVars = fiberVars / (f -> toLexR f);
    
    G := flatten entries gens computeLexGB lexI;
-   --G := flatten entries gens gb lexI;
      
    gs := getVariablePowerGenerators(G,fiberVars);
    if all(#gs-1, i -> degree(fiberVars#i,gs#i) == 1) then return true;
    -- note: last gs need not be a power of a linear form! (note that prop 7.3 has no condition on g_n)
-   getLinearPowers(gs,fiberVars)
+   hasLinearPowers(gs,fiberVars)
 )
 
--- Pass in a lex GB of an ideal I, a set of gs as in prop 5.5 for I, and a list of variables forming the complement of an independent set for I
--- Should return the linear powers that appear in GTZ Prop 7.3 (or DGP algorithm 8, pg 11)
-getLinearPowers = method()
-getLinearPowers(List,List) := (gs, fiberVars) ->
+-- Pass in that part of a lex GB of an ideal I: a set of gs as in GTZ prop 5.5 for I, 
+-- and a list of variables forming the complement of an independent set for I
+-- Returns whether there are linear powers as in GTZ Prop 7.3 (or DGP algorithm 8, pg 11)
+hasLinearPowers = method()
+hasLinearPowers(List,List) := (gs, fiberVars) ->
 (
   R := ring first gs;
   kk := coefficientRing R;
   independentVars := sort toList (set gens R - set fiberVars);
   Q := frac (kk[independentVars])[fiberVars,MonomialOrder=>Lex];
-  -- below where reductions are done, sometimes one does not need the full reduction of a polynomial mod an ideal
-  -- is there a way to do this in M2?
+  -- TODO: below where reductions are done, sometimes one does not need 
+  -- the full reduction of a polynomial mod an ideal.  Is there a way to do this in M2?
   quotIdeal := sub(radical ideal last gs,Q);
   gs = apply(gs, g -> sub(g,Q));
   fiberVars = apply(fiberVars, x -> sub(x,Q));
-  linearFactorList := {};
   foundLinearFactors := all(reverse toList (0..(#fiberVars - 2)), i -> (   
 	    gi := gs#i % quotIdeal;
 	    xi := fiberVars#i;
 	    d := degree(xi,gi);
+	    if d_R == 0 then error "primary decomposition algorithm not implemented for small characteristic";
 	    a := leadCoefficient gi;
 	    -- find coeffs of xi^(d-1)
 	    b := contract(xi^(d-1),gi-a*xi^d);
-	    -- use binomial formula to guess linear factor
+	    -- use binomial formula to guess linear factor.  Warning: what if d == 0 in R??
+	    -- then this is not a linear factor...  TODO: fix this.
 	    linearFactor := (a*d*xi + b);
 	    gi = gi*(d^d)*(a^(d-1));
             -- here is where we could speed up by not fully reducing the difference.
-	    if (gi - linearFactor^d) % quotIdeal != 0_Q then (return false);
+	    if (gi - linearFactor^d) % quotIdeal != 0_Q then return false;
 	    quotIdeal = quotIdeal + ideal linearFactor;
-	    linearFactorList = linearFactorList | {linearFactor};
 	    true));
-  linearFactorList = reverse linearFactorList;
-  -- if we make it through the apply without an error, then all the factors are linear.
-  -- we should return the linear factor list.  However, before doing this, we need to clear denominators and put the linear forms
-  -- back in the polynomial ring.
   return foundLinearFactors;
 )
 

@@ -126,7 +126,6 @@ PDTEST ///
   --sy-st: shimoyama-yokoyama example St (DGP) 9 variables (ST_S/Y) x
   R = kk[b,s,t,u,v,w,x,y,z];
   I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
-  testPD I
 ///
 
 PDTEST ///
@@ -169,7 +168,6 @@ PDTEST ///
     4ab3d + 3b4e - b3cf - 6bd2f2,
     4a4d + 3a3be + a3cf - 8ae2f2
     "
-  testPD I
 ///
 
 PDTEST ///
@@ -181,7 +179,6 @@ PDTEST ///
     x2yz + xy2z + xyz2 + xyz + xy + xz + yz,
     x2y2z + xy2z2 + x2yz + xyz + yz + x + z,
     x2y2z2 + x2y2z + xy2z + xyz + xz + z + 1"
-  testPD I
 ///
 
 PDTEST ///

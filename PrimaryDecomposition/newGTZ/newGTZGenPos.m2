@@ -250,7 +250,7 @@ getVariablePowerGenerators(List,List) := (G,fiberVars) -> (
    apply(#fiberVars, i -> (
 	     fiberAndIndep := set ({fiberVars#i} | independentVars);
 	     Gi := select(G, g -> isSubset(set support leadTerm g, fiberAndIndep));
-	     first Gi
+	     first Gi -- TODO: is there a better choice here?  Hard to say.
 	     ))
    )
 

@@ -31,7 +31,8 @@ export {
      isEqualPDs,
      testPD,
      PDhelper,
-     myPD
+     myPD,
+     profilePD
      }
 
 needs (newGTZ#"source directory"|"newGTZ/newGTZGenPos.m2")
@@ -483,6 +484,41 @@ myPD(Ideal) := opts -> (I) -> (
 	<< "Total of these                    : " << totalTime << endl;
    );
    last result
+)
+
+gbsize = (Q) -> sum apply(flatten entries gens gb Q, size)
+
+profilePD = method(Options => {Verbosity => 0, Strategy => {}})
+profilePD(Ideal) := opts -> (I) -> (
+   eliminationTime = 0.0;
+   sepAndSatTime = 0.0;
+   sepAndSatPPDTime = 0.0;
+   factorTime = 0.0;
+   primaryTime = 0.0;
+   splitZeroCleanupTime = 0.0;
+   intersectionTime = 0.0;
+   result := (I, ideal 1_(ring I), {});
+   t := timing while result#0 =!= null do (
+     result = PDhelper(result, opts);
+     if opts.Verbosity >= 3 then (
+	  << "next return value: " << netList toList result << endl;
+	  );
+     );
+   totalTime := eliminationTime + sepAndSatTime + sepAndSatPPDTime + factorTime + primaryTime + splitZeroCleanupTime + intersectionTime;
+   Qs := last result;
+   Qs = sort(Qs/(Q -> (codim Q, degree Q, gbsize Q)));
+   ({{"Total time", t#0},
+	{"Total of these:", totalTime},
+	{"  Time spent on minpoly elimination : ", eliminationTime},
+	{"  Time spent on sep and sat", sepAndSatTime},
+	{"  Time spent on sep and satPPD", sepAndSatPPDTime},
+	{"  Time spent factoring", factorTime},
+	{"  Time spent checking primary", primaryTime},
+	{"  Time spent cleaning in splitzero", splitZeroCleanupTime},
+	{"  Time spent intersecting", intersectionTime},
+	{"#components", #Qs},
+	{"Codim,Degree,Size", Qs}
+	}, last result)
 )
 --------------------------------------------------
 -- These functions are not being used currently --

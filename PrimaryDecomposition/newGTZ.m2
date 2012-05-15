@@ -32,6 +32,7 @@ export {
      testPD
      }
 
+--input (newGTZ#"source directory"|"newGTZ/newGTZGenPos.m2")
 needs "./newGTZGenPos.m2"
 
 -- The following variables are used to keep track of times during computation
@@ -522,10 +523,16 @@ testPD Ideal := (I) -> (
      assert isIrredundantPD(I, PD);
 
      -- the following needs to be modified to consider non-uniqueness of embedded components
-     assert isEqualPDs(newPD1, PD);
-     assert isEqualPDs(newPD2, PD)
+     -- assert isEqualPDs(newPD1, PD);
+     -- assert isEqualPDs(newPD2, PD)
+     assert(#newPD1 == #PD);
+     assert(#newPD2 == #PD);
      )
 
+
+SLOW = (str) -> null
+BENCH = (str) -> null
+PDTEST = (str) -> TEST (str | "\n  testPD I\n")
 
 beginDocumentation()
 
@@ -611,17 +618,14 @@ doc ///
      better for the subsequent primary decomposition computations (i.e. low degree).  
 ///
 
-TEST ///
+{*
+
+PDTEST ///
   R = QQ[a,b,c]
   I = ideal apply(1 .. 3, i -> random(3,R))
-  testPD I
 ///
 
 TEST ///
-{*
-  restart
-  loadPackage "newGTZ"
-*}
   Q = ZZ/32003[a,b,c,d]
   -- 3 random cubics in R
   I = ideal(-840*a^3-7687*a^2*b+9625*a*b^2-3820*b^3-10392*a^2*c-13100*a*b*c-11362*b^2*c-7463*a*c^2-11288*b*c^2+1417*c^3-14802*a^2*d-7804*a*b*d+5834*b^2*d-10186*a*c*d-11900*b*c*
@@ -637,29 +641,23 @@ TEST ///
   assert isEqualPDs(ourPD2, singularList)
 ///
 
-TEST ///
-{*
-  restart
-  loadPackage "newGTZ"
-*}
+PDTEST ///
+
   R = ZZ/32003[a,b,c,h]
   I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   R = ZZ/32003[a,b,c,d,h]
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   R = QQ[a,b,c,d,h]
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   R = ZZ/32003[a,b,c,d,e,h]
   I = ideal(
          a+b+c+d+e,
@@ -667,24 +665,22 @@ TEST ///
 	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   R = QQ[a,b,c,d]
   I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
   testPD I
 ///
 
-TEST ///
+PDTEST ///
   R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
   p = z^2+1
   q = z^4+2
   I = ideal(p^2*q^3, (y-z^3)^3, (x-y*z+z^4)^4)
-  testPD I
 ///
 
-TEST ///
+SLOW ///
   R = QQ[a,b,c,d,e,h]
   I = ideal(
          a+b+c+d+e,
@@ -692,56 +688,52 @@ TEST ///
 	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   -- ST_S/Y x, except that one is ZZ/32003
   R = QQ[b,s,t,u,v,w,x,y,z];
   I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   -- 2x2 permanents of generic 3x3 matrix
   R = ZZ/32003[vars(0..8)];
   I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   -- 2x2 permanents of generic 3x3 matrix
   R = ZZ/32003[vars(0..8), MonomialOrder=>Lex];
   I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   -- 2x2 permanents of generic 3x3 matrix
   R = QQ[vars(0..8)];
   I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
-  testPD I
 ///
 
-TEST ///
+*}
+
+PDTEST ///
   R = ZZ/32003[x,y,z];
   I = ideal"
     x2yz + xy2z + xyz2 + xyz + xy + xz + yz,
     x2y2z + xy2z2 + x2yz + xyz + yz + x + z,
     x2y2z2 + x2y2z + xy2z + xyz + xz + z + 1";
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   R = ZZ/32003[x,y,z,t]
   I = ideal(
     t^10-x,
     t^31-t^6-t-y,
     t^8-z)
-  testPD I
 ///
 
-TEST ///
+
+BENCH ///
 -- UNKNOWN - Runs for a very long time on built in version, as well as the 'decompose' version.
 -- The GeneralPosition one does indeed run a lot faster though
 restart
@@ -756,18 +748,16 @@ load "newGTZ.m2"
   testPD I
 ///
 
-TEST ///
+BENCH ///
   R = ZZ/32003[x,y,z,t,MonomialOrder=>Lex]
   I = ideal(
    y^2*z+2*x*y*t-2*x-z,
    -x^3*z+4*x*y^2*z+4*x^2*y*t+2*y^3*t+4*x^2-10*y^2+4*x*z-10*y*t+2,
    2*y*z*t+x*t^2-x-2*z,
    -x*z^3+4*y*z^2*t+4*x*z*t^2+2*y*t^3+4*x*z+4*z^2-10*y*t-10*t^2+2)
-  testPD I
 ///
 
-
-TEST ///
+BENCH ///
   --- UNKNOWN - Takes a very long time.
   R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
   R = ZZ/32003[a,b,c,d,e,f,h]
@@ -781,7 +771,7 @@ TEST ///
   testPD I
 ///
 
-TEST ///
+BENCH ///
   R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
   I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f
           ,e*g*j+8001*c*j^2+e^2*l,d*g*j+d*e*l+16001*a*c,e*f*j+8001*b*j^2+e^2*k,d*f*j+d*e*k+16001*a*b,d*e*j-a*h*j-16001*a^2,d*e^2-a*e*h-8001*a*d*j,d*g*k*l-c*h*k*l-d*f*l^2+b*h*l^2-2*c*f*g+2*b*g^2-16001
@@ -790,12 +780,9 @@ TEST ///
        	  -c*h^2*l^2-8001*d^2*l^3+2*d*g^3-2*c*g^2*h+16000*c*d*g*l+c^2*h*l-8001*c^3,d*f*h*l^2-b*h^2*l^2-8001*d^2*k*l^2+2*d*f*g^2-2*b*g^2*h+16001*c*d*g*k+16001*c*d*f*l+16001*b*d*g*l+b*c*h*l-8001*b*c^2,
        	  d*f*h*k*l-b*h^2*k*l-8001*d^2*k^2*l+2*d*f^2*g-2*b*f*g*h+16001*c*d*f*k+16001*b*d*g*k-16001*b*c*h*k+16001*b*d*f*l-16001*b^2*h*l-8001*b^2*c,d*f*h*k^2-b*h^2*k^2-8001*d^2*k^3+2*d*f^3-2*b*f^2*h+
        	  16000*b*d*f*k+b^2*h*k-8001*b^3)
-  debug newGTZ
-  assert isPrimaryZeroDim(I)
 ///
 
-
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   --chemistry: a chemical process in glass melting (DGP set) 9 variables
   kk = ZZ/101
@@ -807,10 +794,9 @@ TEST ///
     fg2j - b,
     a + b + c + f + g - 1,
     3ad + 3bd + 2cd + df + dg - a - 2b - c - g"
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2 x
   kk = ZZ/32003
   --sy-j: shimoyama-yokoyama example J (DGP) 3 variables (J_S/Y) x
@@ -827,10 +813,9 @@ TEST ///
     2x4y2 + 6x3y2 + 6x2y2 + xy3 + xy2,
     x5z + x4z2 + x4z + 2x3z2 - x3z + x2z2 - x2z,
     x6y + 3x5y + 3x4y + x3y"
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2 x
   kk = ZZ/32003
   --sy-st: shimoyama-yokoyama example St (DGP) 9 variables (ST_S/Y) x
@@ -839,7 +824,7 @@ TEST ///
   testPD I
 ///
 
-TEST ///
+BENCH ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/32003
   --butcher (DGP) (up to a change of coordinates, this appears to be Bu_S/Y (Wang2)) x
@@ -856,7 +841,7 @@ TEST ///
   testPD I
 ///
 
-TEST ///
+BENCH  ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --gonnet (DGP) (I think this is: Go_S/Y, with change of coordinates) x
@@ -885,7 +870,7 @@ TEST ///
   testPD I
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/32003
   --horrocks (DGP) related to the Horrock bundle on P5 x
@@ -928,7 +913,7 @@ TEST ///
   testPD I
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/32003
   --arnborg-lazard (DGP, from POSSO) x
@@ -940,27 +925,26 @@ TEST ///
   testPD I
 ///
 
-TEST ///
+BENCH ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --schwarz (DGP) constructing idempotents in group theory x
   R = kk[a,b,c,d,e,h];
-  ideal"
+  I = ideal"
     -ab - b2 - 2de - 2ch,
     -ac - 2bc - e2 - 2dh,
     -c2 - ad - 2bd - 2eh,
     -2cd - ae - 2be - h2,
     -d2 - 2ce - ah - 2bh
     "
-  testPD I
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/32003
   --roczen (DGP) related to classification of singularities (Marko) x
   R = kk[a,b,c,d,e,f,g,h,k,o];
-  ideal"
+  I = ideal"
     o+1,
     k4+k,
     hk,
@@ -985,13 +969,13 @@ TEST ///
     f2h2+e2k2+a"
 ///
 
-TEST ///
+BENCH ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
 --dejong (DGP) related to the base space of a semi-universal deformation
 -- of a rational quadruple point (same as Theo1, after change of coord) x
 R = kk[a,b,c,d,e,f,g,h,j,k,l]
-ideal"-2hjk + 4ef + bj + ak,
+I = ideal"-2hjk + 4ef + bj + ak,
   -2hjl + 4eg + cj + al,
   -4fhj - 4ehk - djk + 2be + 2af,
   -4ghj - 4ehl - djl + 2ce + 2ag,
@@ -999,35 +983,35 @@ ideal"-2hjk + 4ef + bj + ak,
   -2dgj - 2del + ac"
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
---becker-niermann (DGP)
-R = kk[x,y,z];
-ideal"
-  x2+xy2z-2xy+y4+y2+z2,
-  -x3y2+xy2z+xyz3-2xy+y4,
-  -2x2y+xy4+yz4-3"
+  --becker-niermann (DGP)
+  R = kk[x,y,z];
+  I = ideal"
+    x2+xy2z-2xy+y4+y2+z2,
+    -x3y2+xy2z+xyz3-2xy+y4,
+    -2x2y+xy4+yz4-3"
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
 --caprasse4 (DGP, from POSSO)
 R = kk[x,y,z,t];
-ideal"
+I = ideal"
   y2z+2xyt-2x-z,
   -x3z+4xy2z+4x2yt+2y3t+4x2-10y2+4xz-10yt+2,
   2yzt+xt2-x-2z,
   -xz3+4yz2t+4xzt2+2yt3+4xz+4z2-10yt-10t2+2"
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
 --cassou (DGP, from POSSO)
 R = kk[b,c,d,e]
-ideal"
+I = ideal"
   6b4c3 + 21b4c2d + 15b4cd2 + 9b4d3 - 8b2c2e - 28b2cde + 36b2d2e - 144b2c
     - 648b2d - 120,
   9b4c4 + 30b4c3d + 39b4c2d2 + 18b4cd3 - 24b2c3e - 16b2c2de
@@ -1039,20 +1023,23 @@ ideal"
   -4b2c2 + 4b2cd - 3b2d2 + 22ce - 22de + 261"
 ///
 
-TEST ///
+end
+-- XXXXXXXXXXXXX
+
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
---square of a generic 3x3 matrix (DGP, from POSSO)
-R = kk[vars(0..8)]
-ideal (genericMatrix(R,3,3))^2
+  --square of a generic 3x3 matrix (DGP, from POSSO)
+  R = kk[vars(0..8)]
+  I = ideal (genericMatrix(R,3,3))^2
 ///
 
-TEST ///
+PDTEST ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
---shimoyama-yokoyama example I8 (DGP)
-R = ZZ/32003[b,c,d,e,f,g,h,j,k,l];
-ideal( 
+  --shimoyama-yokoyama example I8 (DGP)
+  R = ZZ/32003[b,c,d,e,f,g,h,j,k,l];
+  I = ideal( 
   (l-k)^9,
   (l-k)^8*(l-b),
   (l-k)^7*(l-c),
@@ -1064,12 +1051,12 @@ ideal(
   (l-k)*(l-j))
 ///
 
-TEST ///
+BENCH ///
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
 --gerdt (DGP, from POSSO)
 R = kk[t,u,v,w,x,y,z];
-ideal"2tw + 2wy - wz,
+I = ideal"2tw + 2wy - wz,
   2uw2 - 10vw2 + 20w3 - 7tu + 35tv - 70tw,
   6tw2 + 2w2y - 2w2z - 21t2 - 7ty + 7tz,
   2v3 - 4uvw - 5v2w + 6uw2 + 7vw2 - 15w3 - 42vy,

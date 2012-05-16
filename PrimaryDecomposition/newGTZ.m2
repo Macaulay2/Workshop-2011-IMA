@@ -32,9 +32,11 @@ export {
      testPD,
      PDhelper,
      myPD,
-     profilePD
+     profilePD,
+     singularPD
      }
 
+needsPackage "ExampleIdeals"
 needs (newGTZ#"source directory"|"newGTZ/newGTZGenPos.m2")
 --needs "./newGTZGenPos.m2"
 
@@ -437,6 +439,9 @@ PDhelper(Ideal, Ideal, List) := opts -> (I, resultSoFar, compsSoFar) -> (
 	<< "Sat Time : " << t2#0 << endl;
       	);
    if (not isSubset(resultSoFar,Isat)) then (
+	if opts.Verbosity >= 3 then (
+	     << "about to do ZERODIM" << endl;
+	     );
 	(comps,newResultSoFar) = primDecZeroDim(Isat, independentVars, resultSoFar, opts);
 	if opts.Verbosity >= 2 then (
              << "Components Found : " << netList comps << endl;
@@ -447,6 +452,9 @@ PDhelper(Ideal, Ideal, List) := opts -> (I, resultSoFar, compsSoFar) -> (
 	     << "Skipping PD of saturation." << endl;
 	     )
       	);
+   if opts.Verbosity >= 3 then (
+	<< "about to do RIGHT TREE" << endl;
+	);
    newI := I + ideal (mySep^satIndex);
    if (not isSubset(newResultSoFar,newI)) then (
 	(newI, newResultSoFar, join(compsSoFar, comps))
@@ -624,6 +632,42 @@ makeIrredundant(List) := (idealList) ->
 -- End of section of code not being used ---------
 --------------------------------------------------
 
+--------------------------------------------------
+-- Link to Singular primary decomposition --------
+--------------------------------------------------
+primdecStr = ///
+LIB "primdec.lib";
+list L=primdecGTZ(I1);
+L;
+link fil=":a @FILE@";
+for (int idx=1; idx<=size(L); idx++) {
+  for (int jdx=1; jdx<=size(L[idx]); jdx++) {
+    write(fil, L[idx][jdx]);
+  }}
+///
+  
+singularPD = method()
+singularPD Ideal := (I) -> (
+     -- checks: I is an ideal in a poly ring.
+     -- poly ring has variables usable by Singular
+     -- monomial order translates OK.
+     -- coeff ring is QQ or ZZ/p.  Perhaps allow others later?
+     --
+     -- Step 1: Create the ring and ideal for singular
+     outfile := "foo-sing.answer";
+     ringStr := toSingular ring I;
+     idealStr := toSingular I;
+     primdec := replace("@FILE@", outfile, primdecStr);
+     "foo.sing" << ringStr << endl << idealStr << endl << primdec << endl << close;
+     -- Step 2: Append code for prim decomp
+     -- Step 3: run Singular (from path)
+     if fileExists outfile then removeFile outfile;
+     result := get "!Singular <foo.sing";
+     -- Step 5: translate output to M2 list of lists of ideals
+     answer := apply(lines get outfile, f -> value("ideal\""|f|"\""));
+     pack(2,answer)
+     )
+--------------------------------------------------
 isEqualPDs = method()
 isEqualPDs(List, List) := (PD1, PD2) -> (
      -- PD1, PD2 are lists of ideals
@@ -826,3 +870,82 @@ use R
 J = I + ideal(s*v)
 
 time newPD2 = newPD(ideal(J_*),Verbosity=>2,Strategy=>{GeneralPosition});
+
+fromsingular = ///
+[1]:
+   [1]:
+      _[1]=y
+      _[2]=v
+      _[3]=s
+   [2]:
+      _[1]=y
+      _[2]=v
+      _[3]=s
+[2]:
+   [1]:
+      _[1]=w
+      _[2]=v
+      _[3]=u
+   [2]:
+      _[1]=w
+      _[2]=v
+      _[3]=u
+[3]:
+   [1]:
+      _[1]=-wy+vz
+      _[2]=-wx+uz
+      _[3]=-vx+uy
+      _[4]=-ty+sz
+      _[5]=-tv+sw
+      _[6]=-tx+bz
+      _[7]=-sx+by
+      _[8]=-tu+bw
+      _[9]=-su+bv
+   [2]:
+      _[1]=-wy+vz
+      _[2]=-wx+uz
+      _[3]=-vx+uy
+      _[4]=-ty+sz
+      _[5]=-tv+sw
+      _[6]=-tx+bz
+      _[7]=-sx+by
+      _[8]=-tu+bw
+      _[9]=-su+bv
+[4]:
+   [1]:
+      _[1]=y2
+      _[2]=w2
+      _[3]=-wy+vz
+      _[4]=vy
+      _[5]=vw
+      _[6]=v2
+      _[7]=-vx+uy
+      _[8]=uw
+      _[9]=uv
+      _[10]=u2
+      _[11]=sy
+      _[12]=-tv+sw
+      _[13]=sv
+      _[14]=s2
+      _[15]=bwy-suz
+      _[16]=-su+bv
+   [2]:
+      _[1]=y
+      _[2]=w
+      _[3]=v
+      _[4]=u
+      _[5]=s
+///
+
+topoly = (str) -> value ("poly\""|str|"\"")
+L1 = drop(separateRegexp(///^\[[0-9]+\]\:///, fromsingular), 1)
+L2 = apply(L1, f -> (
+	  f1 := drop(separateRegexp(///^ +\[[0-9]+\]\:///, f), 1);
+	  apply(f1, f2 -> (
+		    f3 := replace(///\_\[[0-9]+\]=///, "", f2);
+		    ideal apply(drop(lines f3, 1), topoly)
+	       ))))
+	  
+#oo
+o40#1
+

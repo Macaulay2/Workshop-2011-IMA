@@ -37,7 +37,6 @@ PDTEST ///
 PDTEST ///
   R = QQ[a,b,c,d]
   I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
-  testPD I
 ///
 
 PDTEST ///

@@ -85,6 +85,20 @@ makeIdeal Array := reactions -> (
   )
 )
 
+makeNaiveIdeal = method()
+makeNaiveIdeal Array := reactions -> (
+  transitions := apply( toList reactions, pair -> (
+    input := product(first pair, v -> value ("x" | (toString v)));
+    output := product(last pair, v -> value ("x" | (toString v)));
+    {input, output }
+    ));
+  ideal apply(transitions, t -> (
+    source := first t;
+    target := last t;
+    source * ( target - source )
+    )
+  ))
+
 -- returns true if larger is not a superset of smaller
 notSuperset = method()
 notSuperset(Set, Set) := (smaller, larger) -> (
@@ -123,6 +137,35 @@ translateVarsToNames (List, List) := (variables,Siphons) -> (
     apply( S, s->  H#s ) 
   ) )
 )
+
+factors = (F) -> (
+     facs := factor F;
+     facs = apply(#facs, i -> (facs#i#1, (1/leadCoefficient facs#i#0) * facs#i#0 ));
+     select(facs, (n,f) -> # support f =!= 0))
+
+findElementThatFactors = method()
+findElementThatFactors(Ideal, Set) := (I, nonzeros) -> (
+     for f in I_* do (
+	  facs := factors f;
+	  if #facs > 1 or facs#0#0 > 1 then return (f,facs/last);
+	  );
+     (f, {})
+     )
+
+facGB0 = method()
+facGB0(Ideal, Set) := (I, nonzeros) -> (
+     (f, facs) := findElementThatFactors(I, nonzeros); -- chooses a generator of I that factors
+     if #facs == 0 then ( << "no elements found that factor" << endl; << "ideal is " << toString I << endl; return null);
+     prev := set{};
+     for g in facs list (
+	  if member(g, nonzeros) then continue;
+	  J := trim(ideal(g) + I);
+	  J = trim ideal apply(J_*, f -> product((factors f)/last));
+	  result := (J, nonzeros + prev);
+	  prev = prev + set{g};
+	  result
+	  )
+     )
 end
 
 
@@ -133,6 +176,17 @@ reactions
 variables 
 R = makeRing variables
 I = makeIdeal reactions + ideal product gens R;
+
+-- try myPD:
+gbTrace=3
+gens gb I;
+myPD(I, Strategy=>{GeneralPosition}, Verbosity=>2)
+
+J = minimalPresentation(I)
+L = ideal(J_*/(f -> (factorize f)/last//product))
+myPD(L, Strategy=>{GeneralPosition}, Verbosity=>2)
+
+-- try Singular PD:
 D = singularPD I;
 minimalSiphons = getInclusionMinimalSets D;
 myRes = translateVarsToNames( variables, minimalSiphons)
@@ -207,4 +261,46 @@ while( member (18, I) ) do (
                                                                 ideal(x1940*x1671-x1671^2,-x622*x343+x1671,-x1940*x2254+x2309,x2867*x2309*x1671- x2309^2,x3331*x3271*x2254-x3271^2,-x2855*x3331+x3271,x634*x433-x433^2,-x331*x295+ x433,-x1928*x2254+x2297,x2867*x1659*x2297-x2297^2,x1928*x1659-x1659^2,-x1647*x295+ x1659,-x634*x343+x1659,x3096*x3188*x2254-x3188^2,-x3096*x2855+x3188,x622*x421-x421 ^2,-x319*x295+x421,-x1916*x2254+x2285,x2855*x1370*x2285-x2285^2,x1904*x1394-x1394^ 2,-x622*x307+x1394,-x343*x646+x1647,-x1370^2+x1370*x1916,-x646*x295+x634,-x2855* x622+x634,-x1904*x2254+x2273,x2855*x2273*x1394-x2273^2,-x646*x307+x1382,-x319* x2855+x331,-x634*x307+x1370,-x1382*x295+x1370,x2921*x2855*x2933-x2921^2,-x2909* x2855+x2921,-x1952*x2254+x2321,x1683*x2321*x2867-x2321^2,x1952*x1683-x1683^2,-x343 *x295+x1683,-x3331*x2254+x3096,x3283*x3319*x2254-x3283^2,-x2867*x3319+x3283,x3283* x3096*x2909*x1952*x319*x1683*x2321*x2921*x2855*x1370*x622*x331*x1904*x2933*x2867* x1382*x2273*x634*x343*x1916*x3319*x1647*x1394*x2285*x646*x421*x1928*x3331*x3188* x1659*x2297*x295*x433*x3271*x1940*x2309*x1671*x2254*x307)
 
 {3283 => DAGE, 3096 => PtP2, 2909 => Akt, 1952 => KdStarPgStar, 319 => G, 1683 => KdStarPg, 2321 => KdStarPgStarP2, 2921 => AktP3, 2855 => P3, 1370 => KdStarGStarP3kP3, 622 => KdStarGStar, 331 => GP3, 1904 => KdStarGStarP3kStar, 2933 => AktStar, 2867 => DAG, 1382 => GStarP3kP3, 2273 => KdStarGStarP3kStarP2, 634 => KdStarGStarP3, 343 => Pg, 1916 => KdStarGStarP3kStarP3, 3319 => E, 1647 => GStarPgP3, 1394 => KdStarGStarP3k, 2285 => KdStarGStarP3kStarP3P2, 646 => GStarP3, 421 => KdStarG, 1928 => KdStarGStarPgStarP3, 3331 => Pt, 3188 => PtP3P2, 1659 => KdStarGStarPgP3, 2297 => KdStarGStarPgStarP3P2, 295 => KdStar, 433 => KdStarGP3, 3271 => PtP3, 1940 => KdStarGStarPgStar, 2309 => KdStarGStarPgStarP2, 1671 => KdStarGStarPg, 2254 => P2, 307 => P3k}
+
+-------------------------------
+-- Mike+Franzi working together
+restart
+load "siphons.m2"
+load "newGTZ.m2"
+--reactions
+--variables 
+R = makeRing variables
+I = makeNaiveIdeal reactions --  + ideal product gens R;
+J = trim I
+
+findElementThatFactors(I, {})
+factor I_0
+
+-- facGB(ideal I) --> return a set of GB's s.t. the radical of I is the intersection of 
+--                    the radicals of all the GB ideals.
+
+facGB0(I, nonzeroElems)
+factor J_0
+
+L1 = facGB0(J, set{})
+L2 = flatten apply(L1, facGB0)
+L3 = flatten apply(L2, facGB0)
+L8/last
+L5/(x -> numgens x#0)
+L4 = flatten apply(L3, facGB0);
+L5 = flatten apply(L4, facGB0);
+#L5
+L6 = flatten apply(L5, facGB0);
+L7 = flatten apply(L6, facGB0);
+L8 = flatten apply(L7, facGB0);
+L9 = flatten apply(L8, facGB0);
+L10 = flatten apply(L9, facGB0);
+-- try myPD:
+gbTrace=3
+gens gb I;
+myPD(I, Strategy=>{GeneralPosition}, Verbosity=>2)
+
+J = minimalPresentation(I)
+L = ideal(J_*/(f -> (factorize f)/last//product))
+myPD(L, Strategy=>{GeneralPosition}, Verbosity=>2)
 

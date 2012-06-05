@@ -9,7 +9,7 @@ newPackage(
         DebuggingMode => true
         )
 
-export {findElementThatFactors, facGB, factors, facGB0}
+export {findElementThatFactors, facGB, factors, facGB0, saturateIdeals, removeRedundants}
 
 factors = (F) -> (
      facs := factor F;
@@ -72,6 +72,36 @@ facGB Ideal := opts -> (J) -> (
     (C, L)     
 )
 
+saturateIdeals = (L) -> (
+     -- L is a list of pairs (Ideal,sepSet)
+     -- where sepSet is a set of monic polynomials
+     result := apply(L, pair -> (
+         myI := first pair;
+       	 mySep := toList last pair;
+       	 satI := myI;	   
+       	 for s in mySep do (
+	    satI = trim saturate(satI, s) );
+         (satI, last pair)
+       	 ));
+     select(result, pair -> pair#0 != 1)
+     )
+
+removeRedundants = (L) -> (
+     -- L is a list of pairs (Ideal,sepSet)
+     -- where sepSet is a set of monic polynomials
+    H := partition(pair -> codim pair#0, L);
+    codims := sort keys H;
+    goodComps := {};
+    compsToCheck := flatten for c in codims list H#c;
+    for p in compsToCheck do (
+	 if not any(goodComps, pair -> isSubset(pair#0, p#0))
+	 then (
+	      << codim p#0 << " " << flush;
+	      goodComps = append(goodComps, p);
+	      )
+	 );
+    goodComps
+    )
 
 beginDocumentation()
 
@@ -132,19 +162,15 @@ restart
 load "FactorizingGB.m2"
 load "siphon-example.m2"
 
-facD1 = first facGB(I1)
-sortedFacD1 = sort apply(facD1, pair -> (
-  flatten entries gens gb first pair, last pair ) )  
+time facD1 = first facGB(I1);
+time sortedFacD1 = sort apply(facD1, pair -> (
+  flatten entries gens gb first pair, last pair ) );
+time sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1));
 
-satIdeals = apply(sortedFacD1, pair -> (
-  myI := ideal first pair;
-  mySep := toList last pair;
-  satI := myI;
-  for s in mySep do (
-    satI = saturate(satI, s) );
-  << codim satI << "  " << flush ;
-  satI
-  ));
+time irredFacD1 = removeRedundants sortedFacD1;
+time satIdeals = saturateIdeals irredFacD1;
+netList satIdeals
+
 
 
 mySep = toList last last sortedFacD1

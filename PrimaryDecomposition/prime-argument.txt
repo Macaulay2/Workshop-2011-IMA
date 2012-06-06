@@ -1,0 +1,28 @@
+Suppose:
+
+rad(I) = intersect(P1, ..., P112, J)
+  where P1, ..., P112 contain a variable (and are prime)
+  and J is prime, doesn't contain a variable in: x1, ..., xn
+
+
+rad(J + (x1 ... xn)) = intersect(Q1 , ..., Qr)
+
+the following is true:
+rad(I + (x1...xn)) = intersect(P1, ..., P112, Q1, ..., Qr)
+
+proof:
+  if f is in the RHS, want f in the LHS
+    therefore f is in rad(J + (x1...xn)).
+       f^N = j + hx1...xn, for j in J, h in ring, some N
+       therefore f^N-hx1...xn in J, but it is also in P1, ..., P112.
+         is in rad(I)
+       therefore (f^N-hx1...xn)^M is in I + (x1...xn)
+       therefore f^(M+N) is in I + (x1...xn)
+       therefore f in LHS
+
+  if f is in the LHS, want f in the RHS
+    if f^N = g + hx1...xn, g in I, h in ring
+    want that f is in each Pi, and Qj
+      f in Pi is ok
+      f is in rad(J + (x1...xn)), since rad(I) contained in rad(J) is contained rad(J + (x1...xn))
+        so f is in each Q1, ..., Qr.

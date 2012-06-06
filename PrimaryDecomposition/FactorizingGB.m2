@@ -39,15 +39,14 @@ facGB0(Ideal, Set) := (I, nonzeros) -> (
         );
     prev := set{};
     L := for g in toList(set facs - nonzeros) list (
-          if member(g, nonzeros) then continue;
+          --if member(g, nonzeros) then continue;
           J := trim(ideal(g) + I);
           J = trim ideal apply(J_*, f -> (
               product toList (set ((factors f)/last) - nonzeros)
           ));
-          if numgens J === 1 and J_0 == 1 then continue;
           result := (J, nonzeros + prev);
           prev = prev + set{g};
-          result
+          if numgens J === 1 and J_0 == 1 then continue else result
     );
     ({}, L)
 )
@@ -79,29 +78,27 @@ saturateIdeals = (L) -> (
          myI := first pair;
        	 mySep := toList last pair;
        	 satI := myI;	   
-       	 for s in mySep do (
-	    satI = trim saturate(satI, s) );
+       	 for s in mySep do satI = ideal gens gb trim saturate(satI, s);
          (satI, last pair)
-       	 ));
+     ));
      select(result, pair -> pair#0 != 1)
      )
 
 removeRedundants = (L) -> (
      -- L is a list of pairs (Ideal,sepSet)
      -- where sepSet is a set of monic polynomials
-    H := partition(pair -> codim pair#0, L);
-    codims := sort keys H;
-    goodComps := {};
-    compsToCheck := flatten for c in codims list H#c;
-    for p in compsToCheck do (
-	 if not any(goodComps, pair -> isSubset(pair#0, p#0))
-	 then (
-	      << codim p#0 << " " << flush;
-	      goodComps = append(goodComps, p);
-	      )
+   H := partition(pair -> codim pair#0, L);
+   codims := sort keys H;
+   goodComps := {};
+   compsToCheck := flatten for c in codims list H#c;
+   for p in compsToCheck do (
+       if not any(goodComps, pair -> isSubset(pair#0, p#0)) then (
+            << codim p#0 << " " << flush;
+            goodComps = append(goodComps, p);
+	     )
 	 );
-    goodComps
-    )
+   goodComps
+   )
 
 beginDocumentation()
 
@@ -163,6 +160,7 @@ load "FactorizingGB.m2"
 load "siphon-example.m2"
 
 time facD1 = first facGB(I1);
+--time facD1 = first facGB(I1 + ideal product gens R1);
 time sortedFacD1 = sort apply(facD1, pair -> (
   flatten entries gens gb first pair, last pair ) );
 time sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1));
@@ -170,6 +168,46 @@ time sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1));
 time irredFacD1 = removeRedundants sortedFacD1;
 time satIdeals = saturateIdeals irredFacD1;
 netList satIdeals
+
+time L1 = apply(satIdeals, pair -> first facGB first pair );
+K1 = flatten L1 
+K2 = K1 / first 
+-- check if every ideal contains a monomial, because we did not add x1...xn
+--into the original ideal
+I2 := first select(K2, I -> (
+   I_* / size // min > 1
+))
+
+flatten apply (K2, I-> select(I_*, g -> size g  == 1 ) ) 
+
+loadPackage "newGTZ"
+singularMinAss (I2 + ideal product gens R1)
+
+
+-- I + prod gens, ideal with 134 minimal primes
+-- J naively generated ideal with rad J is (supposed) to equal rad I
+-- is rad I == rad J
+-- is I+prod gens ideal with 134 min primes? (singular can compute that)
+-- for each prime, is (J+prod) contained in prime?
+
+
+
+
+  
+I1 = last K2
+
+loadPackage "newGTZ"
+loadPackage("newGTZ", Reload => true)
+
+
+singRes = K2 / singularMinAss;
+singRes / length
+all (K2, singRes, (ours, theirs) -> ours == first theirs ) 
+
+
+singRes = 
+singularMinAss I1
+singularMinAss (I1 + ideal product gens R1) 
 
 
 

@@ -174,8 +174,77 @@ load "siphons.m2"
 load "newGTZ.m2"
 reactions
 variables 
-R = makeRing variables
-I = makeIdeal reactions + ideal product gens R;
+R1 = makeRing variables
+I1 = makeIdeal reactions + ideal product gens R1;
+H1 = makeIdeal reactions
+J1 = makeNaiveIdeal reactions + ideal product gens R1;
+K1 = makeNaiveIdeal reactions;
+R2 = (coefficientRing R1 )[vars (0..numgens R1 -1 )] 
+I2 = sub(I1, vars R2)
+H2 = sub(H1, vars R2)
+J2 = sub(J1, vars R2)
+K2 = sub(K1, vars R2)
+D1 = singularMinAss I2 -- 134 components, should take 1 minute
+D1 = singularMinAss H2 -- 131 components, should take 1 minute
+
+-- check minimal primes for redundancies
+loadPackage "FactorizingGB"
+D2 = D1/ (d -> (d, set {} ) ) 
+D3 = removeRedundants D2;
+D1 / codim
+D1 / codim // tally  -- codim 26 - 33
+
+-- check that each component contains the naively generated ideal J
+all( D1, c-> isSubset(J2, c) ) 
+
+time facD1 = first facGB(K2);
+time facD1 = first facGB(H2); -- 368
+time sortedFacD1 = sort apply(facD1, pair -> (
+  flatten entries gens gb first pair, last pair ) );
+time sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1)); 
+time irredFacD1 = removeRedundants sortedFacD1; -- 113
+time satIdeals = saturateIdeals irredFacD1;
+time satIdeals = removeRedundants satIdeals; -- 105
+satIdeals /first / codim // tally -- this is 105 compoments, codim 26 - 32
+
+singRes = satIdeals / first / singularMinAss 
+apply( satIdeals, singRes, (ours, theirs) -> ( 
+  first ours == first theirs
+  )) -- are they all prime? 
+singRes / length -- all 1/s, all prime 
+
+L1 = sort apply( satIdeals, I -> flatten entries gens gb first I) 
+L2 = sort apply( D1, I -> flatten entries gens gb I )
+set L1 - set L2
+set L2 - set L1
+missedComponents = set L2 - set L1
+missedComponents = toList missedComponents
+apply(missedComponents, I -> isSubset(H2, ideal I ) )
+apply(L1, I -> isSubset(ideal I, ideal first missedComponents ) )
+
+
+P1 = ideal first toList (set L1 - set L2)
+P1_* / size // tally 
+Qs = singularMinAss(P1 + ideal product gens R2) -- 8 
+L3 = set L1 - (set L1 - set L2)
+L3 = join ( toList L3, Qs / (i -> flatten entries gens gb i )) 
+missedComponents = set L2 - set L3
+missedComponents = toList missedComponents
+first missedComponents
+
+
+isSubset(K2, P1)
+isSubset(J2, P1)
+isSubset(I2, P1)
+
+apply(satIdeals / first, I -> isSubset(I, P1) ) 
+L3 = select(satIdeals / first, I -> isSubset(I, P1) ) 
+L4 = toList set L3 - set {P1}
+L4 / codim
+
+
+
+all (K2, singRes, (ours, theirs) -> ours == first theirs ) 
 
 -- try myPD:
 gbTrace=3
@@ -187,7 +256,8 @@ L = ideal(J_*/(f -> (factorize f)/last//product))
 myPD(L, Strategy=>{GeneralPosition}, Verbosity=>2)
 
 -- try Singular PD:
-D = singularPD I;
+D = singular I;
+--D = singularPD I;
 minimalSiphons = getInclusionMinimalSets D;
 myRes = translateVarsToNames( variables, minimalSiphons)
 scan(myRes, S -> print toString S )

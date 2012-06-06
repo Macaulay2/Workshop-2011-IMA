@@ -33,7 +33,8 @@ export {
      PDhelper,
      myPD,
      profilePD,
-     singularPD
+     singularPD,
+     singularMinAss
      }
 
 needsPackage "ExampleIdeals"
@@ -634,6 +635,37 @@ makeIrredundant(List) := (idealList) ->
 
 --------------------------------------------------
 -- Link to Singular primary decomposition --------
+--------------------------------------------------
+minAssGTZStr = ///
+LIB "primdec.lib";
+list L=minAssGTZ(I1);
+L;
+link fil=":a @FILE@";
+for (int idx=1; idx<=size(L); idx++) {
+    write(fil, L[idx]);
+  }
+///
+  
+singularMinAss = method()
+singularMinAss Ideal := (I) -> (
+     -- checks: I is an ideal in a poly ring.
+     -- poly ring has variables usable by Singular
+     -- monomial order translates OK.
+     -- coeff ring is QQ or ZZ/p.  Perhaps allow others later?
+     --
+     -- Step 1: Create the ring and ideal for singular
+     outfile := "foo-sing.answer";
+     ringStr := toSingular ring I;
+     idealStr := toSingular I;
+     primdec := replace("@FILE@", outfile, minAssGTZStr);
+     "foo.sing" << ringStr << endl << idealStr << endl << primdec << endl << close;
+     -- Step 2: Append code for prim decomp
+     -- Step 3: run Singular (from path)
+     if fileExists outfile then removeFile outfile;
+     result := get "!Singular <foo.sing";
+     -- Step 5: translate output to M2 list of lists of ideals
+     apply(lines get outfile, f -> value("ideal\""|f|"\""))
+     )
 --------------------------------------------------
 primdecStr = ///
 LIB "primdec.lib";

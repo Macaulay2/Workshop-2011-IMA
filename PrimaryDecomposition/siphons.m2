@@ -172,6 +172,7 @@ end
 restart
 load "siphons.m2"
 load "newGTZ.m2"
+loadPackage "FactorizingGB"
 reactions
 variables 
 R1 = makeRing variables
@@ -188,7 +189,6 @@ D1 = singularMinAss I2 -- 134 components, should take 1 minute
 D1 = singularMinAss H2 -- 131 components, should take 1 minute
 
 -- check minimal primes for redundancies
-loadPackage "FactorizingGB"
 D2 = D1/ (d -> (d, set {} ) ) 
 D3 = removeRedundants D2;
 D1 / codim
@@ -202,8 +202,12 @@ time facD1 = first facGB(H2); -- 368
 time sortedFacD1 = sort apply(facD1, pair -> (
   flatten entries gens gb first pair, last pair ) );
 time sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1)); 
-time irredFacD1 = removeRedundants sortedFacD1; -- 113
-time satIdeals = saturateIdeals irredFacD1;
+time irredFacD1 = removeRedundants sortedFacD1; 
+time irredFacD2 = removeRedundants irredFacD1; -- This is 131, yeah :) 
+
+
+
+--time satIdeals = saturateIdeals irredFacD1;
 time satIdeals = removeRedundants satIdeals; -- 105
 satIdeals /first / codim // tally -- this is 105 compoments, codim 26 - 32
 
@@ -213,8 +217,8 @@ apply( satIdeals, singRes, (ours, theirs) -> (
   )) -- are they all prime? 
 singRes / length -- all 1/s, all prime 
 
-L1 = sort apply( satIdeals, I -> flatten entries gens gb first I) 
-L2 = sort apply( D1, I -> flatten entries gens gb I )
+L1 = sort apply( satIdeals, I -> flatten entries gens gb first I); 
+L2 = sort apply( D1, I -> flatten entries gens gb I );
 set L1 - set L2
 set L2 - set L1
 missedComponents = set L2 - set L1

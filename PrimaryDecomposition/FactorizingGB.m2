@@ -92,9 +92,11 @@ removeRedundants = (L) -> (
    goodComps := {};
    compsToCheck := flatten for c in codims list H#c;
    for p in compsToCheck do (
-       if not any(goodComps, pair -> isSubset(pair#0, p#0)) then (
+       if all(goodComps, pair -> not isSubset(pair#0, p#0)) then (
             << codim p#0 << " " << flush;
-            goodComps = append(goodComps, p);
+            satI := p#0;
+            for s in toList p#1 do satI = ideal gens gb trim saturate(satI, s);
+            goodComps = append( goodComps, (satI, {}));
 	     )
 	 );
    goodComps

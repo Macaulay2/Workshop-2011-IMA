@@ -9,10 +9,114 @@ newPackage(
         DebuggingMode => true
         )
 
-export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB",
+export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
      getIndependentSets,
-     makeFiberRings
+     makeFiberRings,
+     decomp
      }
+
+
+decomp = method(Options=>{Strategy=>null})
+
+--------------------------------
+-- Support routines ------------
+--------------------------------
+
+RingMap List := (F, L) -> L/(f -> F f)
+
+factorize = method()
+factorize RingElement := (F) -> (
+     -- TODO: if over a fraction ring, need to lift, then factor, then put back
+     -- this returns a list of {r, f}, where F is the product of all f^r, up to an 
+     -- element of the base ring (i.e. all f returned will have degree at least one)
+     --
+     -- TODO: how should these be ordered?
+     facs := factor F;
+     facs = facs//toList/toList/reverse;
+     select(facs, (r,f) -> first degree f > 0)
+     )
+
+
+computeLexGB = method()
+computeLexGB(Ring, Ideal, RingElement) := (Rlex, I, hilbfcn) -> (
+     -- TODO: use the one in newGTZ
+     J := sub(I, vars Rlex);
+     gb J; -- TODO: use hilb fcn, and whatever else we can!
+     J
+     )
+
+zeroDecomp = method()
+zeroDecomp(Ideal, Ideal) := (I,answerSoFar) -> {(I,I)} -- TODO: write this function!
+
+decomp Ideal := opts -> (I) -> (
+     -- 
+     R := ring I;
+     if I == 0 then return {(I,I)};
+     hilbfcn := if isHomogeneous I then poincare comodule I else null;
+     if isHomogeneous I and dim I == 0 then return {(I, ideal gens R)};
+     -- step 1: first compute a lex GB...
+     Rlex := newRing(R, MonomialOrder=>Lex);  -- ring gnir in decomp.
+     backToR := map(R,Rlex, vars R);
+     answerSoFar := ideal(1_Rlex);
+     -- compute gb of I in this order:
+     J := computeLexGB(Rlex, I, hilbfcn); -- J is now in the ring Rlex
+     if J == 1 then return {(ideal(1_R), ideal(1_R))};
+     -- TODO: also bring answerSoFar to Rlex (ser, peek)
+     -- step: clear out elements which have linear lead terms
+       -- this recursively calls decomp
+       --   then put the result into the original ring, and return.
+     -- special case: ring now has  1 variable
+     if numgens R === 1 then (
+     	  facs := factorize(J_0);
+     	  return for f in facs list (ideal (backToR f#1^f#0), ideal(backToR f#1));
+	  );
+     -- special case: dim J == 0.
+     if dim J == 0 then (
+     	  result := zeroDecomp(J, answerSoFar);
+     	  return backToR result;
+	  );
+     -- step: now find maximal indep sets, and use that to split the ideal.
+     indepSets := independentSets(J, Limit => opts.Limit);
+     Rgrevlex := newRing(R, MonomialOrder=>GRevLex); -- or use weight order??
+     Jgrevlex := sub(J, Rgrevlex);  -- TODO: compute or grab gb of this
+     )
+
+makeFiberRings = method()
+makeFiberRings(List) := (baseVars) -> (
+   -- This function takes an ideal I and a list of variables baseVars as input
+   -- and returns a pair of matrices (mons, cs) where mons are the monomials in the ideal
+   -- of lead terms of a gb of I, and cs are the coefficients, but with respect to
+   -- a product order kk[fiberVars][baseVars].  See example below for behavior
+   if #baseVars == 0 then error "expected at least one variable in the base";
+   R := ring baseVars#0;
+   if any(baseVars, x -> ring x =!= R) then error "expected all base variables to have the same ring";
+   allVars := set gens R;
+   fiberVars := rsort toList(allVars - set baseVars);
+   baseVars = rsort baseVars;
+   RU := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
+	     --MonomialOrder=>{#fiberVars,#baseVars}]);
+   KK := frac((coefficientRing R)[baseVars]);
+   KR := KK[fiberVars, MonomialOrder=>Lex];
+   (RU, KR)
+   )
+
+getIndependentSets = method(Options => options independentSets)
+getIndependentSets(Ideal) := opts -> (I) -> (
+     indeps := independentSets(I, Limit=>opts.Limit);
+     -- for each element, create two rings:
+     --  product order ring
+     --  frac field ring
+     indeps
+     )
+
+vectorSpaceDimension = method()
+vectorSpaceDimension Ideal := (I) -> (
+     -- hopefully we are using this in a place where 'forceGB gens I' works.
+     -- TODO: check that it is 0-dimensional too, give error if not.
+     degree ideal leadTerm gens gb I
+     )
+
+end
 
 -------------------------
 simplifyIdeal = method()
@@ -140,35 +244,126 @@ newDecompStep Ideal := opts -> (I) -> (
 *}
      )
 
-makeFiberRings = method()
-makeFiberRings(List) := (baseVars) -> (
-   -- This function takes an ideal I and a list of variables baseVars as input
-   -- and returns a pair of matrices (mons, cs) where mons are the monomials in the ideal
-   -- of lead terms of a gb of I, and cs are the coefficients, but with respect to
-   -- a product order kk[fiberVars][baseVars].  See example below for behavior
-   if #baseVars == 0 then error "expected at least one variable in the base";
-   R := ring baseVars#0;
-   if any(baseVars, x -> ring x =!= R) then error "expected all base variables to have the same ring";
-   allVars := set gens R;
-   fiberVars := rsort toList(allVars - set baseVars);
-   baseVars = rsort baseVars;
-   RU := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
-	     --MonomialOrder=>{#fiberVars,#baseVars}]);
-   KK := frac((coefficientRing R)[baseVars]);
-   KR := KK[fiberVars, MonomialOrder=>Lex];
-   (RU, KR)
-   )
+newReduction = method()
+newReduction(Ideal, Ideal, List) := (J, currentIntersection, baseVars) -> (
+     -- return a list of what??
+     -- what are we assuming here??
+     result := {}; -- list of either {ideal, null}, or {Q:ideal, P:ideal},
+                   -- where P is a prime, and Q is primary
+     -- if indepSet consists of >0 variables, create a new ring, in product order
+     (FiberRing, GenericFiberRing) := makeFiberRings baseVars; -- need ring maps too?
+     -- step: bring J, currentIntersection into FiberRing
+     -- step: compute gb of J in FiberRing, using (if homogeneous) hilb fcn
+     -- step:
+     currentIntersection = sub(currentIntersection, FiberRing);
+     Jnew := sub(J, FiberRing);
+     if isHomogeneous J then 
+         Jnew.poincare = poincare J;
+     gbJ := gens gb Jnew; -- computes using Hilbert function if possible
+     sizes := gbJ/size; -- list of number of monomials, for use in choosing 
+                       -- which elements of gb of H
+     vv := findMinimalGB(sub(leadTerm(1,gbJ), GenericFiberRing), sizes);
+     -- now prune out gbJ, or return it in the first place??
+     leadGbJ := gbJ/leadCoeff;
+     -- now call zero dimensional code (over the fraction field)
+     primaryList := newZeroDecomposition(leadGbJ,currentIntersection, Compute=>MinPrimes);
+     -- now we need to bring these back into the poly ring
+     -- for each elem in primaryList (note: each is a GB over the fraction field)
+     --  first get the lead terms
+     -- now we work in FiberRing:
+     --  grab the coeffs from the primaryList.
+     --  
+     )
+testPrimary = method()
 
-getIndependentSets = method(Options => options independentSets)
-getIndependentSets(Ideal) := opts -> (I) -> (
-     indeps := independentSets(I, Limit=>opts.Limit);
-     -- for each element, create two rings:
-     --  product order ring
-     --  frac field ring
-     indeps
+zeroDecomposition = method(Options=>{Return=>MinPrimes})
+zeroDecomposition(Ideal, Ideal) := opts -> (I, answerSoFar) -> (
+     -- input: I:  an ideal, 0-dimensional, likely over a fraction ring.  I should be a minimal GB, not nec reduced though.
+     -- output: a list of:
+     --  (Q, P),  P is prime, and Q is P-primary,
+     --     if P is instead null, then Q is possibly not primary.
+     --  If opts.Return is MinPrimes, then the result is a list of:
+     --  (P, P), or (P, null), meaning P is not proved to be a prime ideal
+     if dim I > 0 then error "zeroDecomposition expected a 0-dimensional ideal";
+     I = interReduce I; -- CHECK exactly what this does over frac fields, but I should now be a reduced GB over frac field,
+                        -- in a poly ring in Lex order
+     vecDim := vectorSpaceDimension I;
+     -- case 0: I = (1).  Return {}.
+     -- case 1: the GB has a polynomial f(x_n) of degree vecDim.  This is a good caase!
+     --  in this case, the GB looks like (f(xn), x_(n-1) - ..., ..., x_1 - ...), so replacing f with an irred  factor 
+     --   (or prime power factor of an irredu) retains that this is a GB (but usually needs to be reduced).
+     --  in this case we have the complete answer with no further (hard) work.  BUT: for each component, only place it on,
+     --  if it does not contain answerSoFar.
+     -- case 2: I is homogeneous (w.r.t. fiber vars, of course)
+     --  then I is primary to the homog max ideal, so return with that.
+     --  BUT: first make sure that I is not larger than answerSoFar
+     -- 
+     facs := factorize I_0; -- this takes care of moving back to a poly ring to do the factorization.
+     -- now we attempt to split I as much as possible, without doing random change of coordinates
+     
+     -- now we need to change coordinates, too bad.
      )
 
+splitComponent = method()
+splitComponent(Sequence, Ideal) := (PQ, answerSoFar) -> (
+     (Q,P,vecdim,isprimary) := PQ;
+     if isprimary then return {PQ};
+     if isSubset(answerSoFar, Q) then return {};
+     if isHomogeneous Q then return {(Q, ideal gens ring Q, vecdim, true)};
+     result := {};
+     -- loop through each element of Q_*
+     for f in Q_* do (
+       facs := factorize f; -- this only keeps factors of degree > 0.
+       -- if there is one factor of degree = vecdim, we are done:
+       if #facs === 1 and vecdim == first degree facs#0#0 then (
+	    -- there is only one component, and it is prime
+	    result = append(result, (P,P,vecdim,true));
+	    return result;
+	    );
+       );
+       if #facs === 1 and facs#0#1 > 1 then (
+	    P = interReduce(P + ideal facs#0#0);
+	    if isHomogeneous P then (
+		 P = ideal gens vars ring Q;
+		 result = append(result, (Q,P,vecdim,true));
+		 return result;
+		 );
+	    );
+       -- now we check: if all of the factors g_i satisfy for i != j, g_i + g_j == (1),
+       -- then Q = (Q + g_1^a_1) + ... + (Q + g_r^a_r).
+       -- we don't yet know if these are primary, but we'll recurse and find out.
+       if pairWiseDisjoint(facs/first) then (
+	    -- TODO: split using the factorization
+	    result;
+	    )
+       else
+            split(PQ, facs#0)
+     )
 
+splitZeroDimensional = method() -- splitPrimary in primdec.lib
+splitZeroDimensional(List, Ideal) := (PQs, answerSoFar) -> (
+     -- 2 cases: computing PD, or minprimes.
+     -- PQs is a list of Q=(I+ (g_i^a_i), P=(I + g_i), totaldim, isPrimary:Boolean)
+     --  where each Q is zero-dimensional (and Q \cap k[last var] = g_i^a_i).
+     -- 
+     -- Here, we have a TODO list of such components.  And we collect answers: these are components
+     --   that are either primary, or that we choose not to handle.
+     -- Perhaps instead, we should hav a routine that takes one such component, and returns a list.
+     --  then this routine processes that list over and over until it gets tired
+     --
+     -- Note that everything is equidimensional, same 0-dimension.  If N is the degree (vector space dim of quotient)
+     -- then the sum of all vector space quotients returned must add up to N.
+     TODO := PQs;
+     result := {};
+     while #TODO > 0 do (
+	  PQ := TODO#0;
+	  TODO = drop(TODO,1);
+	  (result1, todo1) := splitComponent(PQ, answerSoFar);
+	  result = join(result, result1);
+	  TODO = append(TODO, todo1);
+	  );
+     result
+     )
 
 beginDocumentation()
 
@@ -216,3 +411,18 @@ indeps = getIndependentSets I1
 #indeps
 makeFiberRings(support indeps#0)
 indeps / (makeFiberRings @@ support)
+
+---------- example ------------------
+R1 = ZZ/32003[a,b,c,d,e,f,g,h]
+I1 = ideal(a+c+d-e-h,
+   2*d*f+2*c*g+2*e*h-2*h^2-h-1,
+   3*d*f^2+3*c*g^2-3*e*h^2+3*h^3+3*h^2-e+4*h,
+   6*b*d*g-6*e*h^2+6*h^3-3*e*h+6*h^2-e+4*h,
+   4*d*f^3+4*c*g^3+4*e*h^3-4*h^4-6*h^3+4*e*h-10*h^2-h-1,
+   8*b*d*f*g+8*e*h^3-8*h^4+4*e*h^2-12*h^3+4*e*h-14*h^2-3*h-1,
+   12*b*d*g^2+12*e*h^3-12*h^4+12*e*h^2-18*h^3+8*e*h-14*h^2-h-1,
+   -24*e*h^3+24*h^4-24*e*h^2+36*h^3-8*e*h+26*h^2+7*h+1)
+loadPackage "PrimDecomposition"
+decomp I1
+independentSets ideal oo8
+independentSets I1

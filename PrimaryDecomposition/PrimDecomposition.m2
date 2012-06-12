@@ -16,7 +16,7 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
      }
 
 
-decomp = method(Options=>{Strategy=>null})
+
 
 --------------------------------
 -- Support routines ------------
@@ -48,8 +48,14 @@ computeLexGB(Ring, Ideal, RingElement) := (Rlex, I, hilbfcn) -> (
 zeroDecomp = method()
 zeroDecomp(Ideal, Ideal) := (I,answerSoFar) -> {(I,I)} -- TODO: write this function!
 
+decomp = method(Options=>{Strategy=>null, TestIdeal => null, OriginalIdeal => null, Limit=>infinity})
 decomp Ideal := opts -> (I) -> (
-     -- 
+     -- rings in use here:
+     --  R: original ring
+     --  Rlex: same, lex order
+     --  Rgrevlex: same, grevlex order
+     --  S: lex order, in a different set of vars
+     --  SF: lex order over a frac field, compatible with S
      R := ring I;
      if I == 0 then return {(I,I)};
      hilbfcn := if isHomogeneous I then poincare comodule I else null;
@@ -57,9 +63,14 @@ decomp Ideal := opts -> (I) -> (
      -- step 1: first compute a lex GB...
      Rlex := newRing(R, MonomialOrder=>Lex);  -- ring gnir in decomp.
      backToR := map(R,Rlex, vars R);
-     answerSoFar := ideal(1_Rlex);
+     Rgrevlex := newRing(R, MonomialOrder=>GRevLex); -- or use weight order??
+     Jgrevlex := sub(J, Rgrevlex);  -- TODO: compute or grab gb of this
      -- compute gb of I in this order:
      J := computeLexGB(Rlex, I, hilbfcn); -- J is now in the ring Rlex
+     -- some book-keeping:
+     originalIdeal := if opts.OriginalIdeal then sub(opts.OriginalIdeal, Rlex) else ideal(1_Rlex);
+     testIdeal := if opts.TestIdeal then sub(opts.TestIdeal, Rlex) else J;
+     -- now for a few special cases
      if J == 1 then return {(ideal(1_R), ideal(1_R))};
      -- TODO: also bring answerSoFar to Rlex (ser, peek)
      -- step: clear out elements which have linear lead terms
@@ -75,11 +86,36 @@ decomp Ideal := opts -> (I) -> (
      	  result := zeroDecomp(J, answerSoFar);
      	  return backToR result;
 	  );
+     -- now comes the real algorithm
+     result := {};
      -- step: now find maximal indep sets, and use that to split the ideal.
      indepSets := independentSets(J, Limit => opts.Limit);
-     Rgrevlex := newRing(R, MonomialOrder=>GRevLex); -- or use weight order??
-     Jgrevlex := sub(J, Rgrevlex);  -- TODO: compute or grab gb of this
-     )
+     J1 := J; -- loop variable in the following:
+     for basevars in indepSets do (
+     	 (RFiberLex, RFiberFrac) = makeFiberRings basevars;
+	 Jlex := sub(J, RFiberLex); -- NOTE: it is possible that RFiberLex == Rlex, if so Jlex should be above J!
+	    -- TODO: compute GB of Jlex (if not done.  Use hilb function, etc)
+         (JFrac, coeffs, h) := minimalizeOverFrac(Jlex, RFiberFrac);
+	 (Jsat, g) := minSat(J, coeffs); -- computed over a grevlex ring.  decomp does this step later, why??
+	 PQs := zeroDecompose(JFrac, TestIdeal => sub(testIdeal, RFiberFrac));
+	 PQs = for PQ in PQS list (
+	      -- substitute to Rlex
+	      -- saturate wrt coefficients (computed over grevlex ring)
+	      );
+	 result= join(result, PQs);  -- what ring are these in?
+	 J1 = J + ideal(g);
+	   -- and compute a GB of this with as little work as possible
+	 -- the commputation of the new testIdeal should be done in Rgrevlex
+	 testIdeal = interect(testIdeal, Jsat) -- BUT: over Rgrevlex!  Why not do this earlier??
+	 if #PQ > 0 then (
+	      -- need to compute more about test ideal??
+	      )
+         );
+     -- decomp: uses lower dimensional indep sets here
+     -- after that: now decompose J1:
+     backToR join(result, decomp(J1, TestIdeal=>testIdeal, OriginalIdeal=>I))
+     );
+    
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (

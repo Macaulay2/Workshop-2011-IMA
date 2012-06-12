@@ -9,16 +9,47 @@ newPackage(
         DebuggingMode => true
         )
 
-export {findElementThatFactors, facGB, factors, facGB0, saturateIdeals, removeRedundants, minAss}
+export {facGB, 
+     minAss, 
+     -- the following will not be exported
+     facGB0, 
+     findElementThatFactors, 
+     removeRedundants,
+     factors, 
+     simplifyIdeal, 
+     saturateIdeals}
 
+simplifyIdeal = method()
+simplifyIdeal Ideal := (originalI) -> (
+     -- input: ideal I in a polynomial ring R
+     -- output: (J, phi), J is an ideal in the same ring
+     --                   phi : R --> R
+     -- such that the only generators of J which are linear in a variable are themselves 
+     -- variables, and phi J == I
+     I := originalI;
+     R := ring I;
+     H := new MutableList from gens R;
+     for x in gens R do (
+	  k := position(I_*, f -> first degree diff(x,f) == 0);
+	  if k === null then continue;
+	  c := leadCoefficient diff(x,I_k);
+	  g := I_k - c*x;  
+	  -- at this point f = I_k = c*x + g, and g does not involve x.
+	  --  (and c is a constant)
+	  p := - 1/c * g;
+	  I = ideal(x) + ideal compress sub(gens I, x=>p);
+	  H#(index x) = x - p;
+	  );
+     (ideal compress gens I, map(R,R,toList H))
+     )
 
 minAss = (I) -> (
-  facD1 := first facGB I;
-  sortedFacD1 := sort apply(facD1, pair -> (
+  time facD1 := first facGB I;
+  time sortedFacD1 := sort apply(facD1, pair -> (
     flatten entries gens gb first pair, last pair ) );
   sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1)); 
-  irredFacD1 := removeRedundants sortedFacD1; 
-  irredFacD2 := removeRedundants irredFacD1;
+  time irredFacD1 := removeRedundants sortedFacD1; 
+  time irredFacD2 := removeRedundants irredFacD1;
   irredFacD2 / first
   )
 
@@ -104,7 +135,7 @@ removeRedundants = (L) -> (
    compsToCheck := flatten for c in codims list H#c;
    for p in compsToCheck do (
        if all(goodComps, pair -> not isSubset(pair#0, p#0)) then (
-            << codim p#0 << " " << flush;
+            -- << codim p#0 << " " << flush;
             satI := p#0;
             for s in toList p#1 do satI = ideal gens gb trim saturate(satI, s);
             goodComps = append( goodComps, (satI, {}));
@@ -176,6 +207,28 @@ TEST ///
   p2 = sort apply(p2, P -> flatten entries gens gb P );
   assert(p1 === p2)
 ///
+
+TEST ///
+  R1 = QQ[a..M, MonomialSize=>8]
+  I1 = ideal(I*K-K^2,-k*s+K,-I*L+J,o*J*K-J^2,B*H*L-H^2,-i*B+H,r*G-G^2,-l*F+G,-A*L+E,o*D*E-E^2, A*D-D^2,-v*F+D,-r*s+D,b*C*L-C^2,-b*i+C,k*z-z^2,-e*F+z,-t*L+x,i*j*x-x^2,m*w-w^2,-k*M+w,- s*y+v,-j^2+j*t,-y*F+r,-i*k+r,-m*L+q,i*q*w-q^2,-y*M+p,-e*i+l,-r*M+j,-p*F+j,h*i*n-h^2,-c* i+h,-d*L+g,f*g*o-g^2,d*f-f^2,-s*F+f,-B*L+b,a*u*L-a^2,-o*u+a);
+  time (J1,phi) = simplifyIdeal I1;
+  time D1 = minAss J1;
+
+  time D2 = D1/(I -> phi I);
+  time D3 = minAss I1;
+
+  p2 = sort apply(D2, P -> flatten entries gens gb P );
+  p3 = sort apply(D3, P -> flatten entries gens gb P );
+  p2 === p3
+  
+  J1' = ideal select(J1_*, f -> first degree f > 1 or size f > 1)
+  R2 = QQ[support J1', MonomialSize=>8]
+  J1' = sub(J1', R2)
+  time D1' = minAss J1';
+  apply(D1', i -> time decompose i)
+  time (D1'' = D1'/decompose);
+///
+
 
 TEST ///
   --R2 = ZZ/32003[d, f, j, k, m, r, t, A, D, G, I, K]

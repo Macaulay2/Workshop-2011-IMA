@@ -9,7 +9,18 @@ newPackage(
         DebuggingMode => true
         )
 
-export {findElementThatFactors, facGB, factors, facGB0, saturateIdeals, removeRedundants}
+export {findElementThatFactors, facGB, factors, facGB0, saturateIdeals, removeRedundants, minAss}
+
+
+minAss = (I) -> (
+  facD1 := first facGB I;
+  sortedFacD1 := sort apply(facD1, pair -> (
+    flatten entries gens gb first pair, last pair ) );
+  sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1)); 
+  irredFacD1 := removeRedundants sortedFacD1; 
+  irredFacD2 := removeRedundants irredFacD1;
+  irredFacD2 / first
+  )
 
 factors = (F) -> (
      facs := factor F;
@@ -140,9 +151,31 @@ TEST ///
 ///
 
 TEST ///
+  R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
+  I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
+  p1 = minAss I1;
+  p1 = sort apply(p1, P -> flatten entries gens gb P );
+  D1 = decompose I1;
+  D1 = sort apply(D1, i -> flatten entries gens gb i );  
+  assert(p1 === D1)
+///
+
+TEST ///
+  R1 = QQ[a..M]
+  I1 = ideal(I*K-K^2,-k*s+K,-I*L+J,o*J*K-J^2,B*H*L-H^2,-i*B+H,r*G-G^2,-l*F+G,-A*L+E,o*D*E-E^2, A*D-D^2,-v*F+D,-r*s+D,b*C*L-C^2,-b*i+C,k*z-z^2,-e*F+z,-t*L+x,i*j*x-x^2,m*w-w^2,-k*M+w,- s*y+v,-j^2+j*t,-y*F+r,-i*k+r,-m*L+q,i*q*w-q^2,-y*M+p,-e*i+l,-r*M+j,-p*F+j,h*i*n-h^2,-c* i+h,-d*L+g,f*g*o-g^2,d*f-f^2,-s*F+f,-B*L+b,a*u*L-a^2,-o*u+a);
+  p = minAss I1;
+  p = sort apply(p, P -> flatten entries gens gb P );
+  D1 = singularMinAss I1;  
+  D1 = sort apply(D1, i -> flatten entries gens gb i );  
+  assert(p === D1)
+///
+
+TEST ///
   --R2 = ZZ/32003[d, f, j, k, m, r, t, A, D, G, I, K]
   R2 = QQ[d, f, j, k, m, r, t, A, D, G, I, K]
   I2 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K)
+  p = minAss I2
+  p = sort apply(p, P -> flatten entries gens gb P )
 
   facD1 = first facGB(I2)
   facD1 = facD1 / first 

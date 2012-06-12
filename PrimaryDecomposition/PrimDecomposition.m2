@@ -136,7 +136,7 @@ minAssPrimes = method(Options => {FacGB => false, Strategy=>null})
   -- the list is the irredundant set of minimal primes.
 minAssPrimes Ideal := opts -> (I) -> (
      -- step 1: handle special case: I == 0
-     -- (also: check ring, and either put it into the correct form, or give error if can't)
+     -- (also: check ring, and either put it into the correct form, or give error if cannot)
      minAssFcn := if opts.Strategy === GTZ then minAssGTZ else minAssSL;
      P0 := ring I;
      -- define a new ring P, in grevlex, same number of vars

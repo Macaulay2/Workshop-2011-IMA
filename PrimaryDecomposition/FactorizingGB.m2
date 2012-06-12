@@ -93,6 +93,31 @@ facGB0(Ideal, Set) := (I, nonzeros) -> (
     ({}, L)
 )
 
+facGB0(Ideal, Set) := (I, nonzeros) -> (
+    -- returns a pair (P:List, L:List)
+    --  where : P is a list of ideals, that have no factorization left.
+    --  and     L is a list of (J:ideal, nonz: nonzeros), 
+    --  where J is an ideal containing I, and nonz is a set of monic polynomials, which 
+    --  are not in the resulting min primes
+    (f, facs) := findElementThatFactors(I, nonzeros); -- chooses a generator of I that factors
+    if #facs == 0 then ( 
+        --<< "no elements found that factor" << endl; << "ideal is " << toString I << endl; 
+        return ((I, nonzeros), {})
+        );
+    prev := set{};
+    L := for g in toList(set facs - nonzeros) list (
+          --if member(g, nonzeros) then continue;
+          J := (ideal(g) + I);
+          J = trim ideal apply(J_*, f -> (
+              product toList (set ((factors f)/last) - nonzeros)
+          ));
+          result := (J, nonzeros + prev);
+          prev = prev + set{g};
+          if numgens J === 1 and J_0 == 1 then continue else result
+    );
+    ({}, L)
+)
+
 facGB = method(Options=>{Limit=>infinity})
 facGB Ideal := opts -> (J) -> (
     C := {};
@@ -209,8 +234,10 @@ TEST ///
 ///
 
 TEST ///
+----- XXXXXXXXX
   R1 = QQ[a..M, MonomialSize=>8]
   I1 = ideal(I*K-K^2,-k*s+K,-I*L+J,o*J*K-J^2,B*H*L-H^2,-i*B+H,r*G-G^2,-l*F+G,-A*L+E,o*D*E-E^2, A*D-D^2,-v*F+D,-r*s+D,b*C*L-C^2,-b*i+C,k*z-z^2,-e*F+z,-t*L+x,i*j*x-x^2,m*w-w^2,-k*M+w,- s*y+v,-j^2+j*t,-y*F+r,-i*k+r,-m*L+q,i*q*w-q^2,-y*M+p,-e*i+l,-r*M+j,-p*F+j,h*i*n-h^2,-c* i+h,-d*L+g,f*g*o-g^2,d*f-f^2,-s*F+f,-B*L+b,a*u*L-a^2,-o*u+a);
+  I1 = I1 + ideal product gens R1;
   time (J1,phi) = simplifyIdeal I1;
   time D1 = minAss J1;
 

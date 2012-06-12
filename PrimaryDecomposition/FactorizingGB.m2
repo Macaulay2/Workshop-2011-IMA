@@ -163,12 +163,18 @@ TEST ///
 TEST ///
   R1 = QQ[a..M]
   I1 = ideal(I*K-K^2,-k*s+K,-I*L+J,o*J*K-J^2,B*H*L-H^2,-i*B+H,r*G-G^2,-l*F+G,-A*L+E,o*D*E-E^2, A*D-D^2,-v*F+D,-r*s+D,b*C*L-C^2,-b*i+C,k*z-z^2,-e*F+z,-t*L+x,i*j*x-x^2,m*w-w^2,-k*M+w,- s*y+v,-j^2+j*t,-y*F+r,-i*k+r,-m*L+q,i*q*w-q^2,-y*M+p,-e*i+l,-r*M+j,-p*F+j,h*i*n-h^2,-c* i+h,-d*L+g,f*g*o-g^2,d*f-f^2,-s*F+f,-B*L+b,a*u*L-a^2,-o*u+a);
-  p1 = minAss I1;
+  p1 = time minAss I1;
   p1 = sort apply(p1, P -> flatten entries gens gb P );
   load "newGTZ.m2"
   D1 = singularMinAss I1;  
   D1 = sort apply(D1, i -> flatten entries gens gb i );  
   assert(p1 === D1)
+
+  -- up to radical same ideal but naivley generated
+  I2 = ideal(j*r*M-j^2,-r^2*M^2+j*r*M,v*D*F-D^2,-v^2*F^2+v*D*F,s*v*y-v^2,-s^2*y^2+s*v*y,p *y*M-p^2,-y^2*M^2+p*y*M,a*o*u-a^2,-o^2*u^2+a*o*u,i*B*H-H^2,-i^2*B^2+i*B*H,o*D*E-E^ 2,o*J*K-J^2,f*g*o-g^2,i*j*x-x^2,i*q*w-q^2,-y^2*F^2+r*y*F,r*y*F-r^2,r*G-G^2,k*z-z^2 ,j*p*F-j^2,-p^2*F^2+j*p*F,i*k*r-r^2,-i^2*k^2+i*k*r,b*C*L-C^2,b*B*L-b^2,-B^2*L^2+b* B*L,A*D-D^2,I*K-K^2,d*f-f^2,-j^2+j*t,m*w-w^2,-s^2*F^2+f*s*F,a*u*L-a^2,l*F*G-G^2,B* H*L-H^2,-l^2*F^2+l*F*G,e*i*l-l^2,h*i*n-h^2,-e^2*i^2+e*i*l,c*h*i-h^2,-c^2*i^2+c*h*i ,e*z*F-z^2,-e^2*F^2+e*z*F,b*i*C-C^2,-b^2*i^2+b*i*C,A*E*L-E^2,-A^2*L^2+A*E*L,I*J*L- J^2,-I^2*L^2+I*J*L,d*g*L-g^2,-d^2*L^2+d*g*L,t*x*L-x^2,-t^2*L^2+t*x*L,m*q*L-q^2,-m^ 2*L^2+m*q*L,r*s*D-D^2,-r^2*s^2+r*s*D,k*s*K-K^2,-k^2*s^2+k*s*K,f*s*F-f^2,k*w*M-w^2 ,-k^2*M^2+k*w*M);
+  p2 = time minAss I2;
+  p2 = sort apply(p2, P -> flatten entries gens gb P );
+  assert(p1 === p2)
 ///
 
 TEST ///

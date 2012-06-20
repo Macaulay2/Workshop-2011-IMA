@@ -14,6 +14,7 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
      makeFiberRings,
      decomp,
      factors,
+     minSatSingular,
      "TestIdeal",
      "OriginalIdeal",
      "toAmbientField",
@@ -28,6 +29,54 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
 --------------------------------
 
 RingMap List := (F, L) -> L/(f -> F f)
+
+quotMinSingular = (I, facs, F) -> (
+    J := quotient(I,F); -- TODO: try to do this quotient iteratively, starting
+                        -- with small factors
+    if I == J then return (I, facs, F); -- is the 3rd argument really F?
+    if #facs === 1 then return (J, facs, F);
+    i := 0;
+    while i < #facs and #facs > 1 do (
+    	 fac1 := drop(facs,{i,i});
+	 G := product fac1;
+	 J1 := quotient(I,G);
+	 if J == J1 -- if isSubset(J1, J) -- (since J \subset J1 always)
+	 then (
+	      facs = fac1;
+	      F = G;
+	      )
+	 else i = i+1;
+	 );
+    {J,facs,F}
+    )
+
+minSatSingular = method()
+minSatSingular(Ideal, List) := (I, L) -> (
+     -- I is an ideal
+     -- L is a list of irred polynomials (all different, all monic, all of positive degree)
+     -- returns (Isat, F)
+     --   where: Isat = saturate(I, product L)
+     --   and       F = some product of the terms of L (with multiplicity)
+     --                 s.t. Isat = I : F
+     R := ring I;
+     if #L === 0 then 
+         (I, 1_(ring I))
+     else (
+	 L = sort L; -- TODO: fix this order
+	 F := product L;
+	 val := (I, L, F);  -- loop invariant: 
+	 resultF := 1_R;
+	 Iprevious := ideal(0_R);
+	 firsttime := true;
+	 while Iprevious != val#0 do (  -- isSubset(...)
+	      if not firsttime then resultF = resultF * val#2;
+	      Iprevious = val#0;
+	      val = quotMinSingular val;
+	      firsttime = false;
+	      );
+	 (val#0, val#2)
+     )
+)
 
 factors = (F) -> (
      R := ring F;
@@ -79,23 +128,23 @@ makeFiberRings(List) := (baseVars) -> (
 
 minimalizeOverFrac = method()
 minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
-     -- return (IS, ...)
-     -- I is a GB in lex order
-     -- 
-     -- get lead terms
-     -- find minimal elements
-     -- choose an element of G with each minimal element (maybe the one of smallest size?
-     -- return GS: Groebner basis of I S
-     --        for each element
+     -- I is an ideal in a ring with an elimination order (maybe Lex)
+     -- S is of the form k(basevars)[fibervars].
+     -- If G is a GB of I, then G S is a GB if I S.
+     -- this function returns a reduced minimal Groebner basis of I S, as a list
+     -- of polynomials (defined over S).
+     -- caveat: ring I must have either a Lex order or a product order, compatible with
+     --  fibervars >> basevars.
      G := flatten entries gens gb I;
-     sz := G/size;
+     sz := G/size; -- number of monomials per poly, used to choose which elem to take
      GS := flatten entries sub(gens gb I, S);
      minG := flatten entries mingens ideal(GS/leadMonomial);
      GF := for mon in minG list (
 	  z := positions(GS, f -> leadMonomial f == mon);
 	  i := minPosition (sz_z);
 	  GS_(z#i));
-     flatten entries gens forceGB matrix{GF}
+     coeffs := GF/leadCoefficient;
+     (flatten entries gens forceGB matrix{GF}, coeffs)
      )
 
 zeroDimRadical = method()
@@ -114,8 +163,9 @@ zeroDimRadical Ideal := (I) -> (
 
 contractToPolynomialRing = method()
 contractToPolynomialRing(Ideal) := (I) -> (
-     -- assumption: ring of I was created using makeFiberRings, and
-     --   in fact was the second retrun value of that function.
+     -- assumes: I is in a ring k(basevars)[fibervars] created with makeFiberRings
+     -- returns the intersection of I with k[fibervars,basevars] (also created with makeFiberRing).
+     --   note: numerator (and denominator) of element in ring I gives an element in k[fibervars,basevars]
      newI := I_*/numerator//ideal//trim;
      denoms := I_*/denominator;
      denomList := unique flatten for d in denoms list (factors d)/last;
@@ -544,6 +594,23 @@ I1 = ideal(a+c+d-e-h,
    12*b*d*g^2+12*e*h^3-12*h^4+12*e*h^2-18*h^3+8*e*h-14*h^2-h-1,
    -24*e*h^3+24*h^4-24*e*h^2+36*h^3-8*e*h+26*h^2+7*h+1)
 loadPackage "PrimDecomposition"
+debug PrimDecomposition
 decomp I1
 independentSets ideal oo8
 independentSets I1
+
+-- Testing minSat stuff
+  R = ZZ/32003[a,b,c,d,e,h]
+  I = ideal(
+         a+b+c+d+e,
+	 d*e+c*d+b*c+a*e+a*b,
+	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
+	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
+	 a*b*c*d*e-h^5)
+  basevars = support first independentSets I
+  (S,SF) = makeFiberRings basevars
+  describe S
+  describe SF
+  IS = sub(I,S)
+  gens gb IS;
+  minimalizeOverFrac(IS, SF)

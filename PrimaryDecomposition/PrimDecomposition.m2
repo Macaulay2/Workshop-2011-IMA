@@ -12,7 +12,12 @@ newPackage(
 export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
      getIndependentSets,
      makeFiberRings,
-     decomp
+     decomp,
+     factors,
+     "TestIdeal",
+     "OriginalIdeal",
+     "toAmbientField",
+     "fromAmbientField"
      }
 
 
@@ -24,6 +29,18 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
 
 RingMap List := (F, L) -> L/(f -> F f)
 
+factors = (F) -> (
+     R := ring F;
+     facs := if R.?toAmbientField then (
+	  F = R.toAmbientField F;
+     	  numerator factor F)
+        else factor F;
+     facs = apply(#facs, i -> (facs#i#1, (1/leadCoefficient facs#i#0) * facs#i#0 ));
+     facs = select(facs, (n,f) -> # support f =!= 0);
+     if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
+     )
+
+{*
 factorize = method()
 factorize RingElement := (F) -> (
      -- TODO: if over a fraction ring, need to lift, then factor, then put back
@@ -35,87 +52,7 @@ factorize RingElement := (F) -> (
      facs = facs//toList/toList/reverse;
      select(facs, (r,f) -> first degree f > 0)
      )
-
-
-computeLexGB = method()
-computeLexGB(Ring, Ideal, RingElement) := (Rlex, I, hilbfcn) -> (
-     -- TODO: use the one in newGTZ
-     J := sub(I, vars Rlex);
-     gb J; -- TODO: use hilb fcn, and whatever else we can!
-     J
-     )
-
-zeroDecomp = method()
-zeroDecomp(Ideal, Ideal) := (I,answerSoFar) -> {(I,I)} -- TODO: write this function!
-
-decomp = method(Options=>{Strategy=>null, TestIdeal => null, OriginalIdeal => null, Limit=>infinity})
-decomp Ideal := opts -> (I) -> (
-     -- rings in use here:
-     --  R: original ring
-     --  Rlex: same, lex order
-     --  Rgrevlex: same, grevlex order
-     --  S: lex order, in a different set of vars
-     --  SF: lex order over a frac field, compatible with S
-     R := ring I;
-     if I == 0 then return {(I,I)};
-     hilbfcn := if isHomogeneous I then poincare comodule I else null;
-     if isHomogeneous I and dim I == 0 then return {(I, ideal gens R)};
-     -- step 1: first compute a lex GB...
-     Rlex := newRing(R, MonomialOrder=>Lex);  -- ring gnir in decomp.
-     backToR := map(R,Rlex, vars R);
-     Rgrevlex := newRing(R, MonomialOrder=>GRevLex); -- or use weight order??
-     Jgrevlex := sub(J, Rgrevlex);  -- TODO: compute or grab gb of this
-     -- compute gb of I in this order:
-     J := computeLexGB(Rlex, I, hilbfcn); -- J is now in the ring Rlex
-     -- some book-keeping:
-     originalIdeal := if opts.OriginalIdeal then sub(opts.OriginalIdeal, Rlex) else ideal(1_Rlex);
-     testIdeal := if opts.TestIdeal then sub(opts.TestIdeal, Rlex) else J;
-     -- now for a few special cases
-     if J == 1 then return {(ideal(1_R), ideal(1_R))};
-     -- TODO: also bring answerSoFar to Rlex (ser, peek)
-     -- step: clear out elements which have linear lead terms
-       -- this recursively calls decomp
-       --   then put the result into the original ring, and return.
-     -- special case: ring now has  1 variable
-     if numgens R === 1 then (
-     	  facs := factorize(J_0);
-     	  return for f in facs list (ideal (backToR f#1^f#0), ideal(backToR f#1));
-	  );
-     -- special case: dim J == 0.
-     if dim J == 0 then (
-     	  result := zeroDecomp(J, answerSoFar);
-     	  return backToR result;
-	  );
-     -- now comes the real algorithm
-     result := {};
-     -- step: now find maximal indep sets, and use that to split the ideal.
-     indepSets := independentSets(J, Limit => opts.Limit);
-     J1 := J; -- loop variable in the following:
-     for basevars in indepSets do (
-     	 (RFiberLex, RFiberFrac) = makeFiberRings basevars;
-	 Jlex := sub(J, RFiberLex); -- NOTE: it is possible that RFiberLex == Rlex, if so Jlex should be above J!
-	    -- TODO: compute GB of Jlex (if not done.  Use hilb function, etc)
-         (JFrac, coeffs, h) := minimalizeOverFrac(Jlex, RFiberFrac);
-	 (Jsat, g) := minSat(J, coeffs); -- computed over a grevlex ring.  decomp does this step later, why??
-	 PQs := zeroDecompose(JFrac, TestIdeal => sub(testIdeal, RFiberFrac));
-	 PQs = for PQ in PQS list (
-	      -- substitute to Rlex
-	      -- saturate wrt coefficients (computed over grevlex ring)
-	      );
-	 result= join(result, PQs);  -- what ring are these in?
-	 J1 = J + ideal(g);
-	   -- and compute a GB of this with as little work as possible
-	 -- the commputation of the new testIdeal should be done in Rgrevlex
-	 testIdeal = interect(testIdeal, Jsat) -- BUT: over Rgrevlex!  Why not do this earlier??
-	 if #PQ > 0 then (
-	      -- need to compute more about test ideal??
-	      )
-         );
-     -- decomp: uses lower dimensional indep sets here
-     -- after that: now decompose J1:
-     backToR join(result, decomp(J1, TestIdeal=>testIdeal, OriginalIdeal=>I))
-     );
-    
+*}
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
@@ -133,8 +70,156 @@ makeFiberRings(List) := (baseVars) -> (
 	     --MonomialOrder=>{#fiberVars,#baseVars}]);
    KK := frac((coefficientRing R)[baseVars]);
    KR := KK[fiberVars, MonomialOrder=>Lex];
+   KR.toAmbientField = map(frac RU,KR);
+   KR.fromAmbientField = (f) -> (if ring f === frac RU then f = numerator f; (map(KR,RU)) f);
+   numerator KR := (f) -> numerator KR.toAmbientField f;
+   denominator KR := (f) -> denominator KR.toAmbientField f;
    (RU, KR)
    )
+
+minimalizeOverFrac = method()
+minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
+     -- return (IS, ...)
+     -- I is a GB in lex order
+     -- 
+     -- get lead terms
+     -- find minimal elements
+     -- choose an element of G with each minimal element (maybe the one of smallest size?
+     -- return GS: Groebner basis of I S
+     --        for each element
+     G := flatten entries gens gb I;
+     sz := G/size;
+     GS := flatten entries sub(gens gb I, S);
+     minG := flatten entries mingens ideal(GS/leadMonomial);
+     GF := for mon in minG list (
+	  z := positions(GS, f -> leadMonomial f == mon);
+	  i := minPosition (sz_z);
+	  GS_(z#i));
+     flatten entries gens forceGB matrix{GF}
+     )
+
+zeroDimRadical = method()
+zeroDimRadical Ideal := (I) -> (
+     R := ring I;
+     allvars := set gens R;
+     for x in gens R list (
+	  elimvars := toList(allvars - set {x});
+	  fx := eliminate(I, elimvars);
+	  facs := factors fx_0;
+	  --if all(facs, f1 -> first f1 === 1) then continue;
+	  if #facs === 1 and facs#0#0 === 1 then continue;
+	  facs
+	  )
+     )
+
+contractToPolynomialRing = method()
+contractToPolynomialRing(Ideal) := (I) -> (
+     -- assumption: ring of I was created using makeFiberRings, and
+     --   in fact was the second retrun value of that function.
+     newI := I_*/numerator//ideal//trim;
+     denoms := I_*/denominator;
+     denomList := unique flatten for d in denoms list (factors d)/last;
+     << " denoms = " << denoms << " and denomList = " << denomList << endl;
+     Isat := newI;
+     for f in denomList do Isat = saturate(Isat, f);
+     Isat
+     )
+///
+  restart
+  newPackage "PrimDecomposition"
+  R = ZZ/32003[a..f, MonomialOrder=>Lex]
+  
+///
+
+computeLexGB = method()
+computeLexGB(Ring, Ideal, RingElement) := (Rlex, I, hilbfcn) -> (
+     -- TODO: use the one in newGTZ
+     J := sub(I, vars Rlex);
+     gb J; -- TODO: use hilb fcn, and whatever else we can!
+     J
+     )
+
+zeroDecompose = method()
+zeroDecompose(Ideal, Ideal, Ideal) := (I,Isat,testIdeal) -> (
+     -- Needs to be rewritten to not use the original primaryDecomposition...!
+     Qs := primaryDecomposition Isat;
+     Ps := associatedPrimes Isat;
+     pos := positions(Qs, Q -> (gens testIdeal) % Q != 0);
+     apply(Qs_pos, Ps_pos, (Q,P) -> (Q,P))
+     )
+
+minSat = method()
+
+decomp = method(Options=>{Strategy=>null, TestIdeal => null, OriginalIdeal => null, Limit=>infinity})
+decomp Ideal := opts -> (I) -> (
+     -- rings in use here:
+     --  R: original ring
+     --  Rlex: same, lex order
+     --  Rgrevlex: same, grevlex order
+     --  S: lex order, in a different set of vars
+     --  SF: lex order over a frac field, compatible with S
+     R := ring I;
+     if I == 0 then return {(I,I)};
+     hilbfcn := if isHomogeneous I then poincare comodule I else null;
+     if isHomogeneous I and dim I == 0 then return {(I, ideal gens R)};
+     -- step 1: first compute a lex GB...
+     Rlex := newRing(R, MonomialOrder=>Lex);  -- ring gnir in decomp.
+     backToR := map(R,Rlex, vars R);
+     Rgrevlex := newRing(R, MonomialOrder=>GRevLex); -- or use weight order??
+     Jgrevlex := sub(I, Rgrevlex);  -- TODO: compute or grab gb of this
+     -- compute gb of I in this order: ***
+     J := computeLexGB(Rlex, I, hilbfcn); -- J is now in the ring Rlex
+     -- some book-keeping:
+     originalIdeal := if opts.OriginalIdeal then sub(opts.OriginalIdeal, Rlex) else ideal(1_Rlex);
+     testIdeal := if opts.TestIdeal then sub(opts.TestIdeal, Rlex) else J;
+     -- now for a few special cases
+     if J == 1 then return {(ideal(1_R), ideal(1_R))};
+     -- TODO: also bring testIdeal to Rlex (ser, peek)  ***
+     -- step: clear out elements which have linear lead terms  ***
+       -- this recursively calls decomp
+       --   then put the result into the original ring, and return.
+     -- special case: ring now has  1 variable
+     if numgens R === 1 then (
+     	  facs := factors(J_0);
+     	  return for f in facs list (ideal (backToR f#1^f#0), ideal(backToR f#1));
+	  );
+     -- special case: dim J == 0.
+     if dim J == 0 then (
+     	  result := zeroDecompose(J, J, testIdeal); -- ***
+     	  return backToR result;
+	  );
+     -- now comes the real algorithm
+     result = {};
+     -- step: now find maximal indep sets, and use that to split the ideal.
+     indepSets := independentSets(J, Limit => opts.Limit);
+     J1 := J; -- loop variable in the following:
+     for basevars in indepSets do (
+     	 (RFiberLex, RFiberFrac) := makeFiberRings basevars;
+	 Jlex := sub(J1, RFiberLex); -- NOTE: it is possible that RFiberLex == Rlex, if so Jlex should be above J!
+	    -- TODO: compute GB of Jlex (if not done.  Use hilb function, etc)
+         (JFrac, coeffs, h) := minimalizeOverFrac(Jlex, RFiberFrac);
+	 (Jsat, g) := minSat(J, coeffs); -- computed over a grevlex ring.  decomp does this step later, why??
+	 PQs := zeroDecompose(JFrac, Jsat, TestIdeal => sub(testIdeal, RFiberFrac));
+	 PQs = for PQ in PQs list (
+	      -- substitute to Rlex
+	      -- saturate wrt coefficients (computed over grevlex ring)
+	      );
+	 result = join(result, PQs);  -- what ring are these in?
+	 J1 = J + ideal(g);
+	   -- and compute a GB of this with as little work as possible
+	   -- once the dim of J1 drops, don't bother continuing in this loop
+	 -- the commputation of the new testIdeal should be done in Rgrevlex
+	 testIdeal = intersect(testIdeal, Jsat); -- BUT: over Rgrevlex!  Why not do this earlier??
+	 if #PQs > 0 then (
+	      -- need to compute more about test ideal??
+	      )
+         );
+     -- decomp: uses lower dimensional indep sets here
+     -- after that: now decompose J1:
+     backToR join(result, decomp(J1, TestIdeal=>testIdeal, OriginalIdeal=>I))
+     );
+    
+
 
 getIndependentSets = method(Options => options independentSets)
 getIndependentSets(Ideal) := opts -> (I) -> (
@@ -334,7 +419,7 @@ zeroDecomposition(Ideal, Ideal) := opts -> (I, answerSoFar) -> (
      --  then I is primary to the homog max ideal, so return with that.
      --  BUT: first make sure that I is not larger than answerSoFar
      -- 
-     facs := factorize I_0; -- this takes care of moving back to a poly ring to do the factorization.
+     facs := factors I_0; -- this takes care of moving back to a poly ring to do the factorization.
      -- now we attempt to split I as much as possible, without doing random change of coordinates
      
      -- now we need to change coordinates, too bad.
@@ -349,7 +434,7 @@ splitComponent(Sequence, Ideal) := (PQ, answerSoFar) -> (
      result := {};
      -- loop through each element of Q_*
      for f in Q_* do (
-       facs := factorize f; -- this only keeps factors of degree > 0.
+       facs := factors f; -- this only keeps factors of degree > 0.
        -- if there is one factor of degree = vecdim, we are done:
        if #facs === 1 and vecdim == first degree facs#0#0 then (
 	    -- there is only one component, and it is prime

@@ -55,7 +55,6 @@ intersectionTime = 0.0
 -- radical does not work for ideals over ZZ with nonunit coefficients
 -- cannot factor polynomials with coefficients not in QQ or ZZ/p
 
-
 getPCoeff = method()
 getPCoeff(RingElement, RingElement) := (g,p) ->
 (
@@ -529,6 +528,7 @@ profilePD(Ideal) := opts -> (I) -> (
 	{"Codim,Degree,Size", Qs}
 	}, last result)
 )
+
 --------------------------------------------------
 -- These functions are not being used currently --
 --------------------------------------------------

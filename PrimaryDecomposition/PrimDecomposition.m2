@@ -30,9 +30,19 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
 
 RingMap List := (F, L) -> L/(f -> F f)
 
+smartQuotient = (I,L) -> (
+   -- Input: An ideal I and a list of RingElements L
+   -- Output: I:(product L) but iteravely instead by computing quotients with small factors first
+   matrixL := matrix {select(L, f -> not isConstant f)};
+   sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Ascending));
+   result := I;
+   scan(sortedL, f -> result = quotient(result,f));
+   result
+)
+
 quotMinSingular = (I, facs, F) -> (
-    J := quotient(I,F); -- TODO: try to do this quotient iteratively, starting
-                        -- with small factors
+    --J := smartQuotient(I,facs);   -- smartQuotient attempts to compute the quotient iteravely since we have a factorization of F already.   
+    J := quotient(I,F);
     if I == J then return (I, facs, F); -- is the 3rd argument really F?
     if #facs === 1 then return (J, facs, F);
     i := 0;
@@ -47,13 +57,14 @@ quotMinSingular = (I, facs, F) -> (
 	      )
 	 else i = i+1;
 	 );
-    {J,facs,F}
+    (J,facs,F)
     )
 
 minSatSingular = method()
 minSatSingular(Ideal, List) := (I, L) -> (
      -- I is an ideal
      -- L is a list of irred polynomials (all different, all monic, all of positive degree)
+     -- L typically is the list of positive degree denominators that arise from a call to minimalizeOverFrac (Is this right?)
      -- returns (Isat, F)
      --   where: Isat = saturate(I, product L)
      --   and       F = some product of the terms of L (with multiplicity)
@@ -136,6 +147,7 @@ minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
      -- caveat: ring I must have either a Lex order or a product order, compatible with
      --  fibervars >> basevars.
      G := flatten entries gens gb I;
+     phi := map(ring I, S);
      sz := G/size; -- number of monomials per poly, used to choose which elem to take
      GS := flatten entries sub(gens gb I, S);
      minG := flatten entries mingens ideal(GS/leadMonomial);
@@ -143,7 +155,7 @@ minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
 	  z := positions(GS, f -> leadMonomial f == mon);
 	  i := minPosition (sz_z);
 	  GS_(z#i));
-     coeffs := GF/leadCoefficient;
+     coeffs := GF/leadCoefficient/phi;
      (flatten entries gens forceGB matrix{GF}, coeffs)
      )
 
@@ -600,17 +612,37 @@ independentSets ideal oo8
 independentSets I1
 
 -- Testing minSat stuff
-  R = ZZ/32003[a,b,c,d,e,h]
-  I = ideal(
-         a+b+c+d+e,
-	 d*e+c*d+b*c+a*e+a*b,
-	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
-	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
-	 a*b*c*d*e-h^5)
-  basevars = support first independentSets I
-  (S,SF) = makeFiberRings basevars
-  describe S
-  describe SF
-  IS = sub(I,S)
-  gens gb IS;
-  minimalizeOverFrac(IS, SF)
+restart
+loadPackage "PrimDecomposition"
+debug PrimDecomposition
+
+-- this example is not terribly interesting since only a single variable in basevars
+R = ZZ/32003[a,b,c,d,e,h]
+I = ideal(
+       a+b+c+d+e,
+       d*e+c*d+b*c+a*e+a*b,
+       c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
+       b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
+       a*b*c*d*e-h^5)
+basevars = support first independentSets I
+(S,SF) = makeFiberRings basevars
+describe S
+describe SF
+IS = sub(I,S)
+gens gb IS;
+minimalizeOverFrac(IS, SF)
+
+-- Huneke example, certainly complicated enough to look at.
+R = QQ[s,t,u,x,y]
+I = ideal"s15,t15,u15,u5 - s3tx + s2t2x + s2t2y - st3y"
+basevars = support first independentSets I
+(S,SF) = makeFiberRings basevars
+describe S
+describe SF
+IS = sub(I,S)
+gens gb IS;
+minInfo = minimalizeOverFrac(IS, SF)
+time minSatSingular(IS,select(minInfo#1, f -> not isConstant f))
+-- computing the quotient iteravely seems to slow down the computation in this example.  Am I doing something wrong?
+time quotient(IS,product minInfo#1)
+time smartQuotient(IS,minInfo#1)

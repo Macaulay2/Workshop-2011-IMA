@@ -22,8 +22,8 @@ I = ideal gens R
 computeFFGB I
 ///
 
-computeFFGB = method()
-computeFFGB Ideal := (I) -> (
+computeGB = method()
+computeGB Ideal := (I) -> (
   T := symbol T;
   R := ring I;
   gensR := gens R;  
@@ -67,5 +67,5 @@ I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+
        	  16000*b*d*f*k+b^2*h*k-8001*b^3)
 I = sub(I, {(last gens ring I) => random(1,R)});
 time gb I;
-time computeFFGB I;
+time computeGB I;
 ///

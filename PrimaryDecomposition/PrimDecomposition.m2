@@ -34,13 +34,21 @@ smartQuotient = (I,L) -> (
    -- Input: An ideal I and a list of RingElements L
    -- Output: I:(product L) but iteravely instead by computing quotients with small factors first
    matrixL := matrix {select(L, f -> not isConstant f)};
+   -- Curiously, it seems that in the Huneke example below, Ascending is faster.  How can one decide which order to choose?
    sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Ascending));
+   sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Descending));
    result := I;
+   -- this is the command that is slowing things down.  It seems a single call to quotient is better in some cases, but order certainly matters.
    scan(sortedL, f -> result = quotient(result,f));
    result
 )
 
 quotMinSingular = (I, facs, F) -> (
+    -- Input: An ideal I, a list of RingElements facs, and a RingElement F, which is the
+    --        product of facs
+    -- Output: A triple (J, facs, F)  J = (I:F) (where F is the input F), facs is a subset of the input facs, and F = product of the new facs.
+    --         Some work is done to find the smallest subset of facs for which this is true, so that F is of (relatively) small degree.  
+    --         This code does not match SINGULAR *exactly* since they start the computation of quotients over again any time an element is dropped from the list.
     --J := smartQuotient(I,facs);   -- smartQuotient attempts to compute the quotient iteravely since we have a factorization of F already.   
     J := quotient(I,F);
     if I == J then return (I, facs, F); -- is the 3rd argument really F?
@@ -49,6 +57,7 @@ quotMinSingular = (I, facs, F) -> (
     while i < #facs and #facs > 1 do (
     	 fac1 := drop(facs,{i,i});
 	 G := product fac1;
+	 --J1 := smartQuotient(I,fac1);
 	 J1 := quotient(I,G);
 	 if J == J1 -- if isSubset(J1, J) -- (since J \subset J1 always)
 	 then (

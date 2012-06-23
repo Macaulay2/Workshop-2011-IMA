@@ -21,6 +21,15 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
      "fromAmbientField"
      }
 
+--------------------------------
+-- Zero-dimensional ideals -----
+--------------------------------
+
+-- Routines needed:
+--    isZeroDimensionalPrimeGeneralPosition
+--    testZeroDimensionalPrimaryGeneralPosition (returns null, or a lex GB of a prime in general position)
+--    randomLast (returns ring map, and its inverse, randomizing the last variable)
+--    splitZeroDimensional (splits the ideal into as many parts as possible)
 
 
 
@@ -28,18 +37,38 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
 -- Support routines ------------
 --------------------------------
 
+cleanFactorList = method(Options => {Strategy=>0})
+cleanFactorList List := opts -> (L) -> (
+     -- input: list of polynomials
+     -- output: a list of distinct monic squarefree polynomials
+     -- Strategy=>0: sort in size, then asc degree
+     -- Strategy=>1: sort in desc degree, then monorder of lead term
+     -- Strategy=>2: sort in asc degree, then monorder of lead term
+     facs := select(L, f -> # support f > 0);
+     facs = facs/factors//flatten/last//unique;
+     if opts.Strategy === 0 then 
+          facs/(f -> (- first degree f, size f, f))//sort/last
+     else if opts.Strategy === 1 then (
+       	  matrixL := matrix{facs};
+       	  -- Curiously, it seems that in the Huneke example below, Ascending is faster.  How can one decide which order to choose?
+       	  flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Descending))
+       	  )
+     else if opts.Strategy === 2 then (
+       	  matrixL = matrix{facs};
+       	  -- Curiously, it seems that in the Huneke example below, Ascending is faster.  How can one decide which order to choose?
+       	  flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Ascending))
+	  )
+     else error "unknown Strategy in cleanFactorList"
+     )
+
 RingMap List := (F, L) -> L/(f -> F f)
 
 smartQuotient = (I,L) -> (
    -- Input: An ideal I and a list of RingElements L
    -- Output: I:(product L) but iteravely instead by computing quotients with small factors first
-   matrixL := matrix {select(L, f -> not isConstant f)};
-   -- Curiously, it seems that in the Huneke example below, Ascending is faster.  How can one decide which order to choose?
-   sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Ascending));
-   sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Descending));
    result := I;
    -- this is the command that is slowing things down.  It seems a single call to quotient is better in some cases, but order certainly matters.
-   scan(sortedL, f -> result = quotient(result,f));
+   scan(L, f -> result = quotient(result,f));
    result
 )
 
@@ -49,16 +78,16 @@ quotMinSingular = (I, facs, F) -> (
     -- Output: A triple (J, facs, F)  J = (I:F) (where F is the input F), facs is a subset of the input facs, and F = product of the new facs.
     --         Some work is done to find the smallest subset of facs for which this is true, so that F is of (relatively) small degree.  
     --         This code does not match SINGULAR *exactly* since they start the computation of quotients over again any time an element is dropped from the list.
-    --J := smartQuotient(I,facs);   -- smartQuotient attempts to compute the quotient iteravely since we have a factorization of F already.   
-    J := quotient(I,F);
+    --time J := smartQuotient(I,facs);   -- smartQuotient attempts to compute the quotient iteravely since we have a factorization of F already.   
+    time J = quotient(I,F);
     if I == J then return (I, facs, F); -- is the 3rd argument really F?
     if #facs === 1 then return (J, facs, F);
     i := 0;
     while i < #facs and #facs > 1 do (
     	 fac1 := drop(facs,{i,i});
 	 G := product fac1;
-	 --J1 := smartQuotient(I,fac1);
-	 J1 := quotient(I,G);
+	 --time J1 := smartQuotient(I,fac1);
+	 time J1 = quotient(I,G);
 	 if J == J1 -- if isSubset(J1, J) -- (since J \subset J1 always)
 	 then (
 	      facs = fac1;
@@ -642,6 +671,8 @@ gens gb IS;
 minimalizeOverFrac(IS, SF)
 
 -- Huneke example, certainly complicated enough to look at.
+restart
+debug loadPackage "PrimDecomposition"
 R = QQ[s,t,u,x,y]
 I = ideal"s15,t15,u15,u5 - s3tx + s2t2x + s2t2y - st3y"
 basevars = support first independentSets I
@@ -651,7 +682,36 @@ describe SF
 IS = sub(I,S)
 gens gb IS;
 minInfo = minimalizeOverFrac(IS, SF)
-time minSatSingular(IS,select(minInfo#1, f -> not isConstant f))
+facs = cleanFactorList minInfo#1
+time minSatSingular(IS,facs)
+facs = minInfo#1
 -- computing the quotient iteravely seems to slow down the computation in this example.  Am I doing something wrong?
 time quotient(IS,product minInfo#1)
 time smartQuotient(IS,minInfo#1)
+
+facs2 = select(minInfo#1, f -> # support f > 0)
+facs = cleanFactorList(minInfo#1, Strategy=>1)
+time quotient(IS,product facs)
+time smartQuotient(IS,reverse facs)
+time smartQuotient(IS,{product facs})
+
+time smartQuotient(IS,facs2)
+time smartQuotient(IS,reverse facs2)
+time smartQuotient(IS,{product facs})
+
+debug Core
+time quotelem0(IS, product facs);
+
+
+time ans1 = gens gb saturate(IS, product facs);
+Isat = trim ideal ans1 
+F = product facs
+
+M1 = compress((gens Isat) % IS)
+M2 = compress(((F//(facs#4 * facs#3 * facs#0)) ** M1) % IS)
+quotMinSingular(IS, facs, product facs)
+S1 = (coefficientRing S)[ttt, gens S, MonomialOrder=>Eliminate 1]
+J = sub(IS, S1) + ideal(ttt * sub(product facs, S1) - 1)
+time gens gb J;
+time ans2 = gens gb sub(selectInSubring(1, gens gb J), S)
+ans1 == ans2

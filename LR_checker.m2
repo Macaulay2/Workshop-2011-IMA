@@ -1,27 +1,28 @@
 -- Abraham Martin del Campo
 -- 25/July/2011
 -- ---------------------
--- This is a file where I implement Ravis LR-decomposition
+-- This is a file to test the implementation of numerical LR-rule
 -- ---------------------
 
 restart
-setRandomSeed 0
+--setRandomSeed 0
 debug needsPackage "LRcheckergame";
 root = playCheckers({1},{1},2,4)
 resolveNode(root, {({1},random(FFF^4,FFF^4)), ({1},random(FFF^4,FFF^4))})
 printTree root
+peek root
 
 root = playCheckers({2,1,0},{2,1,0},3,6)
-resolveNode(root, {({2,1,0},random(FFF^6,FFF^6))})
+time resolveNode(root, {({2,1,0},random(FFF^6,FFF^6))})
 peek root
 
 root = playCheckers({2,1},{2,1},3,6)
-resolveNode(root, {({2},random(FFF^6,FFF^6)), ({1},random(FFF^6,FFF^6))})
+time resolveNode(root, {({2},random(FFF^6,FFF^6)), ({1},random(FFF^6,FFF^6))})
 peek root
 
 n=7; K'n=FFF^n;
 root = playCheckers({2,1,0},{2,1,0},3,n)
-resolveNode(root, {({2,1,0},random(K'n,K'n)),({2,1,0},random(K'n,K'n))})
+time resolveNode(root, {({2,1,0},random(K'n,K'n)),({2,1,0},random(K'n,K'n))})
 peek root
 
 

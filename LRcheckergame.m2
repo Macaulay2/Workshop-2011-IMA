@@ -363,7 +363,7 @@ makeLocalCoordinates Array := blackred ->(
       ));
    );
    x:= symbol x;
-   R:=FFF[apply(select(keys E, k-> E#k===VAR), k-> x_k)];
+   R:=FFF[apply(select(sort keys E, k-> E#k===VAR), k-> x_k)];
    X := mutableMatrix(R,n,#rowsred);
    scan(keys E, k-> X_k = if E#k === 1 then 1 else x_k);
    matrix X
@@ -392,7 +392,7 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      polynomials := squareUpPolynomials(numgens ring coordX, all'polynomials);
      node.SolutionsSuperset = apply(
 	  select(
-	       solveSystem flatten entries polynomials, 
+	       time solveSystem flatten entries polynomials, 
 	       s-> norm sub(gens all'polynomials,matrix s) < ERROR'TOLERANCE * 
 	       norm matrix s * 
 	       norm sub(last coefficients gens all'polynomials,CC)
@@ -517,7 +517,8 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 		    s->assert(norm sub(polys,matrix{{0_FFF}|s}) < ERROR'TOLERANCE * 
 			 norm matrix{s} * 
 			 norm sub(last coefficients polys,CC))); 
-	       targetSolutions := trackHomotopy(polys,startSolutions);
+	       time targetSolutions := trackHomotopy(polys,startSolutions);
+	       print node.Board;
 	       apply(targetSolutions, sln->( 
 		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix sln)) M'X';
 		    X'' := inverse M'' * M''X'';
@@ -684,7 +685,7 @@ makePolynomials(Matrix, List) := (MX, conds) ->(
 	       b := partition2bracket(l,k,n);
 	       sum(#b, r->( 
 			 c := b#r;
-			 minors(k+c-(r+1)+1, MXF_{0..k+c-1});
+			 minors(k+c-(r+1)+1, MXF_{0..k+c-1})
 			 ))
      	       ));
      eqs 

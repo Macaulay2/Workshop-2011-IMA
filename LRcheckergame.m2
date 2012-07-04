@@ -110,6 +110,20 @@ output2bracket List := outp -> (
      apply(br, x-> x=x+1)
 ) 
 
+---- this is an unused function:
+---- input: redcheckers
+---- output: list with the two partitions that generate
+----         that redchecker board
+redcheckers2partitions= method(TypicalValue=>List)
+redcheckers2partitions List := redchckrs ->(
+     br := sort select(redchckrs, x-> x!=NC);     
+     part1:=apply(#br, i-> br#i-i);
+     br2:=select(#redchckrs, i-> redchckrs#i != NC);
+     part2 := apply(#br2, i-> br2#i-i);
+     {rsort part1, rsort part2}
+     )
+----
+
 bracket2partition = method(TypicalValue => List)
 bracket2partition(List,ZZ) := (l, n) -> (
 --     l = reverse sort l;
@@ -382,6 +396,12 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      n := #node.Board#0;
      node.Solutions = {};
      coordX := makeLocalCoordinates node.Board; -- local coordinates X = (x_(i,j))
+     if numgens ring coordX == 0 then (
+	  if #remaining'conditions'and'flags > 0
+	  then error "invalid Schubert problem"
+	  else node.Solutions = {lift(coordX,FFF)};
+	  return
+	  );
      black := first node.Board;
           
      if node.Children == {} then node.FlagM = matrix mutableIdentity(FFF,n)
@@ -390,9 +410,16 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      -- temporary: creates a superset of solutions via a blackbox solver
      all'polynomials := makePolynomials(node.FlagM * coordX, remaining'conditions'and'flags);
      polynomials := squareUpPolynomials(numgens ring coordX, all'polynomials);
+     ---* this part is to time and keep track of what is the expensive part of the computation
+     print("Blackbox solving cpuTime:");
+     time Soluciones:=solveSystem flatten entries polynomials;
+     ---*
      node.SolutionsSuperset = apply(
 	  select(
-	       time solveSystem flatten entries polynomials, 
+	       --// After finish with the timing, remove the previous part and the next line
+	       --// and uncomment the following line (deleting the line after that)
+	       Soluciones,
+	       --time solveSystem flatten entries polynomials, 
 	       s-> norm sub(gens all'polynomials,matrix s) < ERROR'TOLERANCE * 
 	       norm matrix s * 
 	       norm sub(last coefficients gens all'polynomials,CC)
@@ -400,11 +427,21 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	  ss-> (map(CC,ring coordX,matrix ss)) coordX
 	  ); 
      	  
-     if node.Children == {} then node.Solutions = node.SolutionsSuperset;  -- should change!!! 
+     if node.Children == {} then (
+	    --(Vars,Coeffs) := coefficients polynomials;
+	    --rws:= numRows Coeffs - 1;
+	    -- we solve the linear system
+	    --Soluts:= - inverse transpose Coeffs^{0..rws-1} * transpose Coeffs^{rws};
+	    --node.Solutions = {(map(CC,ring coordX,matrix sub(transpose Soluts, CC))) coordX}
+	    --print(node.SolutionsSuperset);
+	    --print({(map(CC,ring coordX,matrix sub(transpose Soluts, CC))) coordX});
+	    node.Solutions = node.SolutionsSuperset; 
+     ); -- should change!!! 
      
      scan(node.Fathers, father'movetype->(
      
      (father,movetype) := father'movetype; 
+     tparents1:=cpuTime();
      if father =!= "root" then (
      	  r := father.CriticalRow; -- critical row: rows r and r+1 are the most important ones
      	  red := last father.Board;     
@@ -414,7 +451,6 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
       	  father.FlagM = M'';
 	  
 --	  if movetype=={2,2,0} and r == 1 then 1/0;
-	  
 	  parent'solutions :=  -- THIS IS WHERE THE MAIN ACTION HAPPENS
 	  if node.Solutions == {} then {} -- means: not implemented
 	  else if movetype#1 == 2 then (-- case (_,2)
@@ -517,8 +553,10 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 		    s->assert(norm sub(polys,matrix{{0_FFF}|s}) < ERROR'TOLERANCE * 
 			 norm matrix{s} * 
 			 norm sub(last coefficients polys,CC))); 
-	       time targetSolutions := trackHomotopy(polys,startSolutions);
-	       print node.Board;
+	       t1:= cpuTime();
+	       targetSolutions := trackHomotopy(polys,startSolutions);
+	       t2:= cpuTime();
+	       << node.Board << " -- track time: " << (t2-t1) << endl;
 	       apply(targetSolutions, sln->( 
 		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix sln)) M'X';
 		    X'' := inverse M'' * M''X'';
@@ -548,7 +586,9 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 			      ));
 		    ));
 	  father.Solutions = father.Solutions | parent'solutions;
-	  )
+	  );
+     tparents2:=cpuTime();
+     << "time of computing one edge: "<< (tparents2 - tparents1) << endl;
      ));
      -- check against the blackbox solutions
      scan(node.Solutions, X->

@@ -12,14 +12,47 @@ newPackage(
 export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
      getIndependentSets,
      makeFiberRings,
+     minimalizeOverFrac,
      decomp,
      factors,
      minSatSingular,
+     simplifyIdeal,
      "TestIdeal",
      "OriginalIdeal",
      "toAmbientField",
      "fromAmbientField"
      }
+
+
+-- Functions we should have:
+--  isPrime
+--  isPrimary
+--  isRadical
+--  isEquidimensional
+--  
+--  minimalPrimes
+--  radical
+--  unmixedRadical
+--  associatedPrimes
+--    associatedPrimeWitness(PD, P)
+--  primaryDecomposition
+
+--  multiplicity(Ideal, Ideal)
+--
+-- Helper routines:
+--  splitting functions: via indeps (and using quotients only, or using splitting polys), use all indeps/one indep?
+--                       "easy" factorization (gens or gb)
+--                       factorization (gens or gb)
+--  extendIdeal
+--  contractToPolynomialRing
+--  splitZeroDimensional: first make sure each g_i is k-irreducible.
+--    can we make sure GB is just g1, ..., gn too?
+--  randomLastCoordinate
+--    change coordinates (with ring map to/from), on only a smaller number of variables.
+--  getNonLinearPart -- given a 0-dim GB {g1,...,gn}
+--     return the elements gi, g_(i+1), ..., gn, where in(gi) != xi.
+--  minimalizeOverFrac
+--  makeFiberRings
 
 --------------------------------
 -- Zero-dimensional ideals -----
@@ -79,7 +112,7 @@ quotMinSingular = (I, facs, F) -> (
     --         Some work is done to find the smallest subset of facs for which this is true, so that F is of (relatively) small degree.  
     --         This code does not match SINGULAR *exactly* since they start the computation of quotients over again any time an element is dropped from the list.
     --time J := smartQuotient(I,facs);   -- smartQuotient attempts to compute the quotient iteravely since we have a factorization of F already.   
-    time J = quotient(I,F);
+    time J := quotient(I,F);
     if I == J then return (I, facs, F); -- is the 3rd argument really F?
     if #facs === 1 then return (J, facs, F);
     i := 0;
@@ -87,7 +120,7 @@ quotMinSingular = (I, facs, F) -> (
     	 fac1 := drop(facs,{i,i});
 	 G := product fac1;
 	 --time J1 := smartQuotient(I,fac1);
-	 time J1 = quotient(I,G);
+	 time J1 := quotient(I,G);
 	 if J == J1 -- if isSubset(J1, J) -- (since J \subset J1 always)
 	 then (
 	      facs = fac1;
@@ -138,6 +171,11 @@ factors = (F) -> (
      if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
      )
 
+doesFactor = (F) -> (
+     facs := factors F;
+     #facs > 1 or facs#0#0 > 1
+     )
+
 {*
 factorize = method()
 factorize RingElement := (F) -> (
@@ -151,6 +189,7 @@ factorize RingElement := (F) -> (
      select(facs, (r,f) -> first degree f > 0)
      )
 *}
+
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
@@ -224,12 +263,18 @@ contractToPolynomialRing(Ideal) := (I) -> (
      for f in denomList do Isat = saturate(Isat, f);
      Isat
      )
-///
-  restart
-  newPackage "PrimDecomposition"
-  R = ZZ/32003[a..f, MonomialOrder=>Lex]
-  
-///
+
+extendIdeal = method()
+extendIdeal Ideal := (I) -> (
+     -- I is an ideal
+     -- returns an ideal whose elements are a reduced GB of I k(indepset)[fibervars]
+     indep := support first independentSets I;
+     (S,SF) := makeFiberRings indep;
+     IS := sub(I, S);
+     time gens gb IS;
+     (JSF, coeffs) := minimalizeOverFrac(IS, SF);
+     ideal JSF
+     )
 
 computeLexGB = method()
 computeLexGB(Ring, Ideal, RingElement) := (Rlex, I, hilbfcn) -> (
@@ -239,6 +284,159 @@ computeLexGB(Ring, Ideal, RingElement) := (Rlex, I, hilbfcn) -> (
      J
      )
 
+----------------------------------------------------
+-- "Remove" polynomials which occur as variables ---
+----------------------------------------------------
+-- Input: ideal I in a polynomial ring
+-- Output: (J:Ideal, F:RingMap)
+--   where F:R-->R is a ring map s.t. F J == I
+--   and J has the polynomials defining a variable x as linear, has  the corresp poly = x.
+simplifyIdeal = method()
+simplifyIdeal Ideal := (originalI) -> (
+     -- input: ideal I in a polynomial ring R
+     -- output: (J, phi), J is an ideal in the same ring
+     --                   phi : R --> R
+     -- such that the only generators of J which are linear in a variable are themselves 
+     -- variables, and phi J == I
+     I := originalI;
+     R := ring I;
+     H := new MutableList from gens R;
+     for x in gens R do (
+	  k := position(I_*, f -> first degree diff(x,f) == 0);
+	  if k === null then continue;
+	  c := leadCoefficient diff(x,I_k);
+	  g := I_k - c*x;  
+	  -- at this point f = I_k = c*x + g, and g does not involve x.
+	  --  (and c is a constant)
+	  p := - 1/c * g;
+	  I = ideal(x) + ideal compress sub(gens I, x=>p);
+	  H#(index x) = x - p;
+	  );
+     (ideal compress gens I, map(R,R,toList H))
+     )
+
+-----------------------
+-- Splitting methods --
+-----------------------
+splitBy = (I, h) -> (
+     Isat := saturate(I, h);
+     f := 1_(ring I);
+     while not isSubset(f*Isat, I) do f = f*h;
+     if Isat == I or Isat == 1 then error ("alas, your element "|toString h|" is not a splitting element");
+     if f == 1 then null else (Isat, trim(I + ideal f))
+     )
+
+splitUsingQuotientsBy = (I, h) -> (
+     Isat := saturate(I, h);
+     f := 1_(ring I);
+     I2 := I : Isat;
+     if Isat == I or Isat == 1 then (
+	  return null
+	  );
+     if intersect(Isat, I2) == I then (
+	  return (Isat, I2);
+	  );
+     << "second ideal might introduce non-redundancy" << endl;
+     while not isSubset(f*Isat, I) do f = f*h;
+     if Isat == I or Isat == 1 then error ("alas, your element "|toString h|" is not a splitting element");
+     if f == 1 then null else (Isat, trim(I + ideal f))
+     )
+
+splitViaIndep1 = method()
+splitViaIndep1 Ideal := (I) -> (
+     indeps := independentSets I;
+     indep := support first indeps;
+     << "Number of independent sets: " << #indeps << endl;
+     << "  Choosing: " << indep << endl;
+     (S, SF) := makeFiberRings indep;
+     IS := sub(I, S);
+     gens gb IS;
+     (ISF, coeffs) := minimalizeOverFrac(IS, SF);
+     G := (factors product coeffs)/last//product;
+     << "  the factors of the flattener: " << netList((factors G)/last) << endl;
+     G = sub(G,ring I);
+     J1 := saturate(I, G);
+     J2 := I: J1;
+     if intersect(J2,J1) == I then (
+	  << "  Yes! Quotient method split the ideal" << endl;
+	  return (J1,J2);
+	  );
+     << "  No! Need to manually determine the f^ell from lecture" << endl;
+     (J1, G)
+     )
+
+splitViaIndeps1 = (I) -> (
+     (J1, J2) := splitViaIndep1 I;
+     if class J2 === Ideal and J2 != 1 then (
+	      (equidims2, J) := splitViaIndeps1 J2;
+	      return ({J1} | equidims2, J);
+	      );
+     ({J1}, J2)
+     )
+
+
+splitViaIndep = method()
+splitViaIndep Ideal := (I) -> (
+     indeps := independentSets I;
+     indep := support first indeps;
+     << "Number of independent sets: " << #indeps << endl;
+     << "  Choosing: " << indep << endl;
+     (S, SF) := makeFiberRings indep;
+     IS := sub(I, S);
+     gens gb IS;
+     (ISF, coeffs) := minimalizeOverFrac(IS, SF);
+     G := (factors product coeffs)/last//product;
+     << "  the factors of the flattener: " << netList((factors G)/last) << endl;
+     G = sub(G,ring I);
+     J1 := saturate(I, G);
+     J2 := I: J1;
+     if intersect(J2,J1) == I then (
+	  << "  Yes! Quotient method split the ideal" << endl;
+	  return ((J1, indep, ISF),J2);
+	  );
+     << "  No! Need to manually determine the f^ell from lecture" << endl;
+     ((J1, indep, ISF), G)
+     )
+
+splitViaIndeps = (I) -> (
+     (J1, J2) := splitViaIndep I;
+     if class J2 === Ideal and J2 != 1 then (
+	      (equidims2, J) := splitViaIndeps J2;
+	      return ({J1} | equidims2, J);
+	      );
+     ({J1}, J2)
+     )
+
+splitEquidimFactors = (I) -> (
+     -- idea: loop through the gens of I.
+     --   if any factors, then try to split the ideal.
+     --     if it splits, call recursively on each elem of split, and return joined list.
+     --     if not, continue to the next generator
+     -- at the end, if it doesn't split, return {I}
+     I1 := ideal gens gb I;
+     for i from 0 to numgens I1 - 1 do (
+	  facs := factors I1_i;
+	  if #facs > 1 then (
+	       split := splitUsingQuotientsBy(I, facs#0#1);
+	       if split =!= null then return(split//toList/splitEquidimFactors//flatten);
+	       )
+	  );
+     {I}
+     )
+
+---------------------------------
+-- 0-dimensional PD routines ----
+---------------------------------
+-- For zero decomposition:
+--  Keep this in mind:
+--    1. split using factoring as much as possible
+--    2. if the GB is larger than the g1, ..., gn, how can we use that to simplify/split ideal?
+--    3. If we change variables, ignore the variables which occur linearly, both in the change of vars, and
+--       in the new GB computation.  Should we do the new computation in S or SF?
+--    4. How do we do the actual splitting?  Do we first change variables back to orig coordinates?
+--    5. Should we use Seidenberg radical formula?
+--    6. use testIdeal, originalIdeal ?
+--    7. 
 zeroDecompose = method()
 zeroDecompose(Ideal, Ideal, Ideal) := (I,Isat,testIdeal) -> (
      -- Needs to be rewritten to not use the original primaryDecomposition...!

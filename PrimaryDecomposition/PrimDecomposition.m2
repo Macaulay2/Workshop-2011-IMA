@@ -65,6 +65,56 @@ export {primdec, minAssPrimes, "Indeps", "Intersect", "FacGB", "MinPrimes",
 --    splitZeroDimensional (splits the ideal into as many parts as possible)
 
 
+------------------------------
+-- Radical containment -------
+------------------------------
+
+-- helper function for 'radicalContainment'
+radFcn = (I) -> (
+     if not I.cache#?"RadicalContainmentFunction" then (
+     	  R := ring I;
+     	  n := numgens R;
+     	  S := (coefficientRing R) (monoid[Variables=>n+1,MonomialSize=>16]);
+     	  mapto := map(S,R,submatrix(vars S,{0..n-1}));
+     	  I = mapto I;
+     	  A := S/I;
+	  rad := (g) -> (g1 := promote(mapto g, A); g1 == 0 or ideal(g1 * A_n - 1) == 1);
+	  I.cache#"RadicalContainmentFunction" = rad;
+	  );
+     I.cache#"RadicalContainmentFunction"
+     )
+
+radicalContainment = method()
+
+-- Returns true if g is in the radical of I.
+-- Assumption: I is in a monomial order for which you are happy to compute GB's.x
+radicalContainment(RingElement, Ideal) := (g,I) -> (radFcn I) g
+
+-- Returns the first index i such that I_i is not in the radical of J,
+--  and null, if none
+-- another way to do something almost identical: select(1, I_*, radFcn J)
+radicalContainment(Ideal, Ideal) := (I,J) -> (
+     rad := radFcn J;
+     G := I_*;
+     for i from 0 to #G-1 do if not rad G#i then return i;
+     null)
+
+TEST ///
+  restart
+  debug loadPackage "PrimDecomposition"
+  R = ZZ/32003[a..f]
+  F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
+  I = ker F
+  J = I^2
+  G = I_0
+  assert radicalContainment(G,J)
+  assert not radicalContainment(G-a^2,J)
+  assert radicalContainment(I, I^2)
+///
+
+--------------------------------   
+
+
 
 --------------------------------
 -- Support routines ------------
@@ -175,21 +225,6 @@ doesFactor = (F) -> (
      facs := factors F;
      #facs > 1 or facs#0#0 > 1
      )
-
-{*
-factorize = method()
-factorize RingElement := (F) -> (
-     -- TODO: if over a fraction ring, need to lift, then factor, then put back
-     -- this returns a list of {r, f}, where F is the product of all f^r, up to an 
-     -- element of the base ring (i.e. all f returned will have degree at least one)
-     --
-     -- TODO: how should these be ordered?
-     facs := factor F;
-     facs = facs//toList/toList/reverse;
-     select(facs, (r,f) -> first degree f > 0)
-     )
-*}
-
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
@@ -423,6 +458,42 @@ splitEquidimFactors = (I) -> (
 	  );
      {I}
      )
+
+-------------------------------------
+-- Zero dimensional minimal primes --
+-- Experimentation code -------------
+-------------------------------------
+-- Given: equidimensional ideal, indep set, and the GB over lex over the frac field
+--   Want: (a) find minimal primes
+--         (b) determine if prime
+--         (c) determine if primary, and if do, find the prime
+
+decomposeZeroDimensional = method()
+decomposeZeroDimensional(Ideal, List, Ideal) := (I, indep, IF) -> (
+     -- I is an ideal wrt block order lex >> grevlex(indep)
+     -- indep is a max indep set, s.t. I \cap k[indep] = (0).
+     -- IF is a reduced GB for I k(indep)[fibervars].
+     )
+
+findPurePowers = method()
+findPurePowers Ideal := (IF) -> (
+     -- IF is a reduced lex GB for I k(indep)[fiber]
+     -- returns the list of n (= #fiber) polynomials, s.t. i-th one has lead term x_i^(a_i),
+     --   where x_i are the fiber variables
+     select(IF_*, f -> # support leadTerm f == 1)
+     )
+
+splitPurePowers = method()
+splitPurePowers Ideal := (IF) -> (
+     L := findPurePowers IF;
+     for f in L do (
+	  facs := factors f;
+	  if #facs == 1 and facs#0#0 == 1 then continue;
+	  return flatten for fac in facs list splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
+	  );
+     {IF}
+     )
+
 
 ---------------------------------
 -- 0-dimensional PD routines ----

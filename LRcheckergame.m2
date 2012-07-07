@@ -303,7 +303,24 @@ playCheckers(List,List,ZZ,ZZ) := (partn1,partn2,k,n) -> (
           redChkrPos(partition2bracket(partn1,k,n),partition2bracket(partn2,k,n),k,n)
      ;
      blackChkrs := reverse toList (0..(n-1)); --initial black positions
-     playCheckers ([blackChkrs, redChkrs], "root", {})  -- returns the root of the tree
+     --///////////////////////////////
+     -- If two checkers produce no solutions, we can uncomment the code bellow
+     -- and it will check if it is an "invalid checkerboard" then it won't try
+     -- to play checkers but to output no solutions
+     -- ////////////////////////////
+     --if select(#redChkrs, i-> (redChkrs)_i < #redChkrs - i -1)!={} then(
+	--  self := new MutableHashTable from{
+	--  Board => [blackChkrs, redChkrs], 
+	--  Fathers => {("root",{})},
+	--  Children => {},
+	--  Solutions => {},
+	--  CriticalRow => "Schubert Problem with no solutions"
+	--  };
+        --  self
+	--  )
+     --else(
+     	  playCheckers ([blackChkrs, redChkrs], "root", {})  -- returns the root of the tree
+    -- )
 )
 
 playCheckers (Array,Thing,List) := (board,father,typeofmove) ->(

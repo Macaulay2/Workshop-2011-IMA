@@ -5,7 +5,7 @@
 -- ---------------------
 
 restart
---setRandomSeed 0
+setRandomSeed 0
 debug needsPackage "LRcheckergame";
 root = playCheckers({1},{1},2,4)
 resolveNode(root, {({1},random(FFF^4,FFF^4)), ({1},random(FFF^4,FFF^4))})
@@ -24,7 +24,33 @@ n=7; K'n=FFF^n;
 root = playCheckers({2,1,0},{2,1,0},3,n)
 time resolveNode(root, {({2,1,0},random(K'n,K'n)),({2,1,0},random(K'n,K'n))})
 peek root
+printTree root
 
+root = playCheckers({2,1}, {2}, 3,6)
+time resolveNode(root, {({2},random(FFF^6,FFF^6)), ({2},random(FFF^6,FFF^6))})
+peek root
+printTree root
+
+---- there is something wrong, 
+root = playCheckers({3,2,2},{2}, 3,6)
+peek root
+resolveNode(root, {})
+restart
+setRandomSeed 0
+debug needsPackage "LRcheckergame";
+
+-- we test if the resolveNode function
+-- can just solve the problem when 
+-- the Schubert problem consist of two
+-- complementary partitions only
+root = playCheckers({3,3,1},{2},3,6)
+resolveNode(root,{})
+peek root
+
+root = playCheckers({3,3,1}, {2}, 3,6)
+resolveNode(root, {({2,1,0},random(FFF^6,FFF^6))})
+
+-------
 
 movetype
 startSolutions

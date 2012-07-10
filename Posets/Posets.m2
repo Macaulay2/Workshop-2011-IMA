@@ -22,7 +22,8 @@
 
 -- Copyright 2011: David Cook II, Sonja Mapes, Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
--- License Version 2 as published by the Free Software Foundation.
+-- License as published by the Free Software Foundation, either version 2
+-- of the License, or any later version.
 
 ------------------------------------------
 ------------------------------------------
@@ -251,10 +252,8 @@ poset (List, List, Matrix) := Poset => opts -> (G, R, M) -> (
         })
 poset (List, List) := Poset => opts -> (G, R) -> poset(G, R = toList \ R, transitiveClosure(G, R), opts)
 poset (List, Function) := Poset => opts -> (G, cmp) -> (
-    try (
-        M := matrix for a in G list for b in G list if cmp(a,b) then 1 else 0;
-        R := flatten for i to #G-1 list for j to #G-1 list if i != j and M_j_i == 1 then {G_i, G_j} else continue;
-    ) else error "The comparison function cmp must (i) take two inputs, (ii) return a Boolean, and (iii) be defined for all pairs of G.";
+    M := matrix for a in G list for b in G list if cmp(a,b) then 1 else 0;
+    R := flatten for i to #G-1 list for j to #G-1 list if i != j and M_j_i == 1 then {G_i, G_j} else continue;
     poset(G, R, M, opts)
     )
 poset List := Poset => opts -> R -> poset(unique flatten (R = toList \ R), R, opts);

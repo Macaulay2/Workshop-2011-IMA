@@ -109,7 +109,7 @@ TEST ///
   G = I_0
   assert radicalContainment(G,J)
   assert not radicalContainment(G-a^2,J)
-  assert radicalContainment(I, I^2)
+  assert (radicalContainment(I, I^2) === null)
 ///
 
 --------------------------------   
@@ -271,6 +271,7 @@ minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
      (flatten entries gens forceGB matrix{GF}, coeffs)
      )
 
+-- Poorly named:
 zeroDimRadical = method()
 zeroDimRadical Ideal := (I) -> (
      R := ring I;
@@ -392,7 +393,6 @@ splitBy = (I, h) -> (
 
 splitUsingQuotientsBy = (I, h) -> (
      Isat := saturate(I, h);
-     f := 1_(ring I);
      I2 := I : Isat;
      if Isat == I or Isat == 1 then (
 	  return null
@@ -401,13 +401,14 @@ splitUsingQuotientsBy = (I, h) -> (
 	  return (Isat, I2);
 	  );
      << "second ideal might introduce non-redundancy" << endl;
+     f := 1_(ring I);
      while not isSubset(f*Isat, I) do f = f*h;
      if Isat == I or Isat == 1 then error ("alas, your element "|toString h|" is not a splitting element");
      if f == 1 then null else (Isat, trim(I + ideal f))
      )
 
-splitViaIndep1 = method()
-splitViaIndep1 Ideal := (I) -> (
+splitViaIndep = method()
+splitViaIndep Ideal := (I) -> (
      indeps := independentSets I;
      indep := support first indeps;
      << "Number of independent sets: " << #indeps << endl;
@@ -429,18 +430,19 @@ splitViaIndep1 Ideal := (I) -> (
      (J1, G)
      )
 
-splitViaIndeps1 = (I) -> (
-     (J1, J2) := splitViaIndep1 I;
+splitViaIndeps = (I) -> (
+     (J1, J2) := splitViaIndep I;
      if class J2 === Ideal and J2 != 1 then (
-	      (equidims2, J) := splitViaIndeps1 J2;
+	      (equidims2, J) := splitViaIndeps J2;
 	      return ({J1} | equidims2, J);
 	      );
      ({J1}, J2)
      )
 
 
-splitViaIndep = method()
-splitViaIndep Ideal := (I) -> (
+-- NOT YET FUNCTIONAL:
+splitViaIndepNEWER = method()
+splitViaIndepNEWER Ideal := (I) -> (
      indeps := independentSets I;
      indep := support first indeps;
      << "Number of independent sets: " << #indeps << endl;
@@ -462,10 +464,11 @@ splitViaIndep Ideal := (I) -> (
      ((J1, indep, ISF), G)
      )
 
-splitViaIndeps = (I) -> (
-     (J1, J2) := splitViaIndep I;
+-- NOT YET FUNCTIONAL:
+splitViaIndepsNEWER = (I) -> (
+     (J1, J2) := splitViaIndepNEWER I;
      if class J2 === Ideal and J2 != 1 then (
-	      (equidims2, J) := splitViaIndeps J2;
+	      (equidims2, J) := splitViaIndepsNEWER J2;
 	      return ({J1} | equidims2, J);
 	      );
      ({J1}, J2)

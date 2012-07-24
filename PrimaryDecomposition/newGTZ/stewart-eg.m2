@@ -29,11 +29,6 @@ debug loadPackage "PrimDecomposition"
   facs = factors (eliminate(L1, {g_2,g_3}))_0
   facs = apply(facs, (mult,h) -> (mult,sub(h,r=>r-g_2-g_3)))
   
-  facs/first
-  J + ideal( sub(facs_0_1, ring J) )
-  ideal gens gb oo
-
-  La = L : facs_0_1
   G = facs_0_1 % L
   sub(L,R) + ideal (sub(G,R))
   extendIdeal oo

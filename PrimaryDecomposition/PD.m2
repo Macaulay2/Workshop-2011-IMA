@@ -9,7 +9,11 @@ newPackage(
         DebuggingMode => true
         )
 
-export {toAmbientField, fromAmbientField, factors}
+export {
+     toAmbientField, 
+     fromAmbientField, 
+     factors
+     }
 
 -- needs documentation
 factors = (F) -> (
@@ -71,6 +75,8 @@ minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
      )
 -- Needs test
 
+-- question: What if we want to contract away only some of the basevars, not all of them?  Will this ever
+--           be the case?
 contractToPolynomialRing = method()
 contractToPolynomialRing(Ideal) := (I) -> (
      -- assumes: I is in a ring k(basevars)[fibervars] created with makeFiberRings
@@ -239,20 +245,81 @@ findPurePowers Ideal := (IF) -> (
      select(IF_*, f -> # support leadTerm f == 1)
      )
 
+findNonlinearPurePowers = method()
+findNonlinearPurePowers Ideal := (IF) -> (
+     -- IF is a reduced lex GB for I k(indep)[fiber]
+     -- returns the list of n (= #fiber) polynomials, s.t. i-th one has lead term x_i^(a_i),
+     --   where x_i are the fiber variables, and a_i > 1
+     select(IF_*, f -> (
+	       t := leadTerm f;
+	       s := support t;
+	       #s === 1 and s#0 != t))
+     )
+
+-- Below, IF is a reduced lex GB for I k(indep)[fiber]
+-- This function factors the terms that are not linear in a GB for IF and splits the ideal by those factors
 splitPurePowers = method()
 splitPurePowers Ideal := (IF) -> (
-     purePowers := findPurePowers IF;
+     L := findPurePowers IF;
+     for f in L do (
+	  facs := factors f;
+	  if #facs == 1 and facs#0#0 == 1 then continue;
+	  return flatten for fac in facs list splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
+	  );
+     {IF}
+     )
+-- needs test
+
+-- Below, IF is a reduced lex GB for I k(indep)[fiber]
+-- In this function, the polynomials themselves are irreducible over the field if not considered as a whole,
+-- but one can see some linear terms that split if we change coordinates.
+-- A good example is if the ideal (over QQ) has r^2-3 and x^2-3y^2 in it.  This should
+-- split as r^2-3,x+ry and r^2-3, x-ry.
+purePowerCoordinateChange = method()
+purePowerCoordinateChange Ideal := (IF) -> (
+     purePowers := findNonlinearPurePowers IF;
+     otherGens := toList((set IF_*) - (set purePowers));
+     J := ideal purePowers;
+     L := ideal (J_* / numerator);
      varsList := purePowers / leadTerm / support // flatten;
-     J1 := sub(J, (first varsList) => sum varsList);
+     F := sum apply(drop(varsList,1), x -> (1 + random 10) * x);
+     J1 := sub(J, varsList#0 => varsList#0 + F);
      L1 := ideal(J1_*/numerator);
      varsList = apply(varsList, f -> sub(f, ring L1));
      facs := factors (eliminate(L1, drop(varsList,1)))_0;
-     facs1 := apply(facs, (mult,h) -> (mult,sub(h, (first varsList) => (first varsList) - sum drop(varsList,1))))
-     if #facs1 == 1 and facs1#0#0 == 1 then return {IF}
-     else return flatten for fac in facs1 list (
-	 splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
+     F = sub(F,ring L1);
+     facs1 := apply(facs, (mult,h) -> (mult,sub(h, varsList#0 => varsList#0 - F)));
+     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
+     else for fac in facs1 list (
+     	  G := fac#1 % L;
+	  C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
+	  ideal gens gb (C + ideal otherGens)
+       )
      )
-
+TEST ///
+  restart
+  debug loadPackage "PD"
+  
+  R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
+  J = ideal(r^2-3,
+       g_3*r+e_1,
+       e_1*r+3*g_3,
+       e_4*g_3-e_3*g_4,
+       g_2^2-3*g_3^2,
+       e_3*g_2-e_2*g_3,
+       e_2*g_2-3*e_3*g_3,
+       e_1*g_1+4*e_3*g_3+e_4*g_4,
+       2*e_4^2+9*g_1^2+24*g_3^2+9*g_4^2,
+       4*e_3^2-3*g_1^2-6*g_3^2-3*g_4^2,
+       4*e_2^2-9*g_1^2-18*g_3^2-9*g_4^2,
+       e_1^2-3*g_3^2,
+       e_4*g_2*r-e_2*g_4*r,
+       g_1^2*r+g_4^2*r+2*e_3*g_1-4*e_1*g_3,e_4*g_1*r+2*e_3*e_4+3*g_3*g_4,2*e_3*g_1*r+3*g_1^2+12*g_3^2+3*g_4^2,2*e_3*e_4*r+3*e_4*g_1-3*e_1*g_4,2*e_2*e_3*r+3*e_2*g_1-3*e_1*g_2,6*e_3*g_1*g_3-4*e_1*g_3^2+e_4*g_1*g_4-e_1*g_4^2,6*e_2*e_3*g_3+3*g_2*g_3^2+e_2*e_4*g_4,e_1*e_4*g_2-e_1*e_2*g_4,2*e_1*e_3*e_4-3*e_3*g_1*g_4+3*e_1*g_3*g_4,2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
+  JE = extendIdeal J
+  
+  findNonlinearPurePowers JE
+  purePowerCoordinateChange JE
+///
 ----------------------------------------------------
 -- "Remove" polynomials which occur as variables ---
 ----------------------------------------------------
@@ -376,3 +443,7 @@ Caveat
 SeeAlso
 ///
 
+end
+
+restart
+loadPackage "PD"

@@ -15,6 +15,55 @@ export {
      factors
      }
 
+------------------------------
+-- Radical containment -------
+------------------------------
+
+-- helper function for 'radicalContainment'
+radFcn = (I) -> (
+     if not I.cache#?"RadicalContainmentFunction" then (
+     	  R := ring I;
+     	  n := numgens R;
+     	  S := (coefficientRing R) (monoid[Variables=>n+1,MonomialSize=>16]);
+     	  mapto := map(S,R,submatrix(vars S,{0..n-1}));
+     	  I = mapto I;
+     	  A := S/I;
+	  rad := (g) -> (g1 := promote(mapto g, A); g1 == 0 or ideal(g1 * A_n - 1) == 1);
+	  I.cache#"RadicalContainmentFunction" = rad;
+	  );
+     I.cache#"RadicalContainmentFunction"
+     )
+
+radicalContainment = method()
+
+-- Returns true if g is in the radical of I.
+-- Assumption: I is in a monomial order for which you are happy to compute GB's.x
+radicalContainment(RingElement, Ideal) := (g,I) -> (radFcn I) g
+
+-- Returns the first index i such that I_i is not in the radical of J,
+--  and null, if none
+-- another way to do something almost identical: select(1, I_*, radFcn J)
+radicalContainment(Ideal, Ideal) := (I,J) -> (
+     rad := radFcn J;
+     G := I_*;
+     for i from 0 to #G-1 do if not rad G#i then return i;
+     null)
+
+TEST ///
+  restart
+  debug loadPackage "PrimDecomposition"
+  R = ZZ/32003[a..f]
+  F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
+  I = ker F
+  J = I^2
+  G = I_0
+  assert radicalContainment(G,J)
+  assert not radicalContainment(G-a^2,J)
+  assert (radicalContainment(I, I^2) === null)
+///
+
+--------------------------------   
+
 -- needs documentation
 factors = (F) -> (
      R := ring F;
@@ -85,7 +134,7 @@ contractToPolynomialRing(Ideal) := (I) -> (
      newI := I_*/numerator//ideal//trim;
      denoms := I_*/denominator;
      denomList := unique flatten for d in denoms list (factors d)/last;
-     << " denoms = " << denoms << " and denomList = " << denomList << endl;
+     << "denoms = " << denoms << " and denomList = " << denomList << endl;
      Isat := newI;
      for f in denomList do Isat = saturate(Isat, f);
      Isat
@@ -318,6 +367,7 @@ TEST ///
   JE = extendIdeal J
   
   findNonlinearPurePowers JE
+  gbTrace = 3
   newJEs = purePowerCoordinateChange JE
 ///
 ----------------------------------------------------

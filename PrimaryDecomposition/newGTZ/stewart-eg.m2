@@ -22,6 +22,19 @@ debug loadPackage("PD", Reload=>true)
   intersect leaves == I
 
   leaves = drop(leaves, 1)
+  
+  gbTrace = 3
+  splitLeaves = leaves / extendIdeal / purePowerCoordinateChange // flatten / contractToPolynomialRing
+
+  radI = trim intersect apply(splitLeaves, C -> sub(C,R));
+  apply(#(radI_*), i -> radicalContainment(radI_i,I))
+  
+  -- note: we are just finding minimal primes, so the intersection will not be the original ideal
+  apply(#leaves, j -> (
+	    A := leaves_j;
+            B := apply(splitLeaves_j, C -> sub(contractToPolynomialRing C, R));
+            A == intersect B))
+  
   J = extendIdeal(leaves_0) -- splits at least into 2 primes (8 points over CC)
   J = ideal(J_0,J_1,J_2)
 

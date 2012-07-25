@@ -45,3 +45,32 @@ debug loadPackage("PD", Reload=>true)
   sub(L,R) + ideal (sub(G,R))
   extendIdeal oo
   contractToPolynomialRing oo
+
+ B = matrix basis comodule J
+ multMap = (f, B, J) -> (
+      -- J is a zero-diml ideal in a poly ring R = kk[vars]
+      -- f is the element in R/J
+      -- B is a basis of R/J (a matrix)
+      -- returns: matrix: kk^#B --> kk^B
+      R := ring J;
+      kk := coefficientRing R;
+      cols := (f * B) % J;
+      (mons,cfs) := coefficients(cols, Monomials=>B);
+      cfs
+      )
+
+  use ring B
+  F = r+g_2+g_3
+  M = multMap(F, B, J)
+  S1 = (ring M)[x]
+  sub(M,S1) - x
+  D = det oo
+  S2 = QQ[x,gens coefficientRing ring J]
+  D = sub(D,S2)
+  facs = factors D
+  use ring M
+  phi = map(ring B, S2, flatten {F, gens coefficientRing ring B})
+  (phi facs_0_1) % J
+  sub(facs_0_1, {x => F, appl)
+
+  -- easiest here would be to use gcd over algebraic function field

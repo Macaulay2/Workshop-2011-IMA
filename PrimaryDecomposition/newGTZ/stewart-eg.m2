@@ -1,7 +1,7 @@
 -- from lecture5.m2 from Stillman's Atlanta lectures, June 2012.
 
 restart
-debug loadPackage "PrimDecomposition"
+debug loadPackage("PD", Reload=>true)
 
   -- make ideal
   R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
@@ -14,13 +14,25 @@ debug loadPackage "PrimDecomposition"
   equis/codim
   equis/degree  
 
-  leaves = flatten(equis/splitEquidimFactors)
+  equis = first splitViaIndepsNEWER I;
+  equis/first/codim
+  equis/first/degree  
+
+  leaves = flatten(equis/splitEquidimFactorsNEWER)
   intersect leaves == I
 
   leaves = drop(leaves, 1)
   J = extendIdeal(leaves_0) -- splits at least into 2 primes (8 points over CC)
   J = ideal(J_0,J_1,J_2)
 
+  purePowers = findPurePowers J
+  varsList = purePowers / leadTerm / support // flatten
+  J1 = sub(J, (first varsList) => sum varsList)
+  L1 = ideal(J1_*/numerator)
+  varsList = apply(varsList, f -> sub(f, ring L1))
+  facs = factors (eliminate(L1, drop(varsList,1)))_0
+  facs1 = apply(facs, (mult,h) -> (mult,sub(h, (first varsList) => (first varsList) - sum drop(varsList,1))))
+       
   L = ideal(J_*/numerator)
   use ring J
   J1 = sub(J, r=>r+g_2+g_3)
@@ -29,7 +41,7 @@ debug loadPackage "PrimDecomposition"
   facs = factors (eliminate(L1, {g_2,g_3}))_0
   facs = apply(facs, (mult,h) -> (mult,sub(h,r=>r-g_2-g_3)))
   
-  G = facs_0_1 % L
+  G = facs1_0_1 % L
   sub(L,R) + ideal (sub(G,R))
   extendIdeal oo
   contractToPolynomialRing oo

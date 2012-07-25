@@ -149,6 +149,10 @@ RingMap List := (F, L) -> L/(f -> F f)
 smartQuotient = (I,L) -> (
    -- Input: An ideal I and a list of RingElements L
    -- Output: I:(product L) but iteravely instead by computing quotients with small factors first
+   matrixL := matrix {select(L, f -> not isConstant f)};
+   -- Curiously, it seems that in the Huneke example below, Ascending is faster.  How can one decide which order to choose?
+   --sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Ascending));
+   sortedL := flatten entries matrixL_(sortColumns(matrixL, DegreeOrder=>Descending));
    result := I;
    -- this is the command that is slowing things down.  It seems a single call to quotient is better in some cases, but order certainly matters.
    scan(L, f -> result = quotient(result,f));
@@ -1165,30 +1169,4 @@ facs = minInfo#1
 -- computing the quotient iteravely seems to slow down the computation in this example.  Am I doing something wrong?
 time quotient(IS,product minInfo#1)
 time smartQuotient(IS,minInfo#1)
-
-facs2 = select(minInfo#1, f -> # support f > 0)
-facs = cleanFactorList(minInfo#1, Strategy=>1)
-time quotient(IS,product facs)
-time smartQuotient(IS,reverse facs)
-time smartQuotient(IS,{product facs})
-
-time smartQuotient(IS,facs2)
-time smartQuotient(IS,reverse facs2)
-time smartQuotient(IS,{product facs})
-
-debug Core
-time quotelem0(IS, product facs);
-
-
-time ans1 = gens gb saturate(IS, product facs);
-Isat = trim ideal ans1 
-F = product facs
-
-M1 = compress((gens Isat) % IS)
-M2 = compress(((F//(facs#4 * facs#3 * facs#0)) ** M1) % IS)
-quotMinSingular(IS, facs, product facs)
-S1 = (coefficientRing S)[ttt, gens S, MonomialOrder=>Eliminate 1]
-J = sub(IS, S1) + ideal(ttt * sub(product facs, S1) - 1)
-time gens gb J;
-time ans2 = gens gb sub(selectInSubring(1, gens gb J), S)
-ans1 == ans2
+minInfo#1 / factors

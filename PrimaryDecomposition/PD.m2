@@ -318,7 +318,7 @@ TEST ///
   JE = extendIdeal J
   
   findNonlinearPurePowers JE
-  purePowerCoordinateChange JE
+  newJEs = purePowerCoordinateChange JE
 ///
 ----------------------------------------------------
 -- "Remove" polynomials which occur as variables ---

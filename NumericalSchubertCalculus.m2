@@ -33,9 +33,19 @@ export {
 -- Date:  October 29, 2009
 --
 -- Last Update: August 11, 2010
------------------------
+------------------------------------
+-- Littlewood-Richardson Homotopy --
+------------------------------------
+-- Authors: Anton Leykin
+--          Abraham Martin del Campo
+--
+-- Date: April 5, 2012
+--
+-- Last Update: July 30, 2012
+------------------------------------
 
 needsPackage "NumericalAlgebraicGeometry"
+-- we need to use GAP's package
 
 solutionsHash := new MutableHashTable;
 

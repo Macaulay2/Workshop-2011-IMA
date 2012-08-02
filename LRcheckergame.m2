@@ -52,10 +52,18 @@ FFF = QQ
 FFF = RR
 FFF = CC
 ERROR'TOLERANCE := 0.001
+------------------
+-- Debugg Level --
+------------------
+-- 0 = no debugg mode
+-- 1 = timing main processes
+-- 2 = verify solutions agains blackbox solver (no timing)
+-- 3 = time processes and blackbox solver 
+DEBUGG'LEVEL := 2
 
 -- ---------------------
 --	verifyLength	--
---								--
+--			  
 -- makes sure a partition l
 -- that is supposed to impose
 -- conditions on Gr(k,n)
@@ -73,7 +81,6 @@ verifyLength(VisibleList, ZZ) := (l,k) ->(
 
 --------------------------
 -- Dictionaries of different notations
---
 --------------------------
 
 partition2bracket = method(TypicalValue => List)
@@ -424,41 +431,51 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
      if node.Children == {} then node.FlagM = matrix mutableIdentity(FFF,n)
      else scan(node.Children, c->resolveNode(c,remaining'conditions'and'flags));
      
-     -- temporary: creates a superset of solutions via a blackbox solver
-     all'polynomials := makePolynomials(node.FlagM * coordX, remaining'conditions'and'flags);
-     polynomials := squareUpPolynomials(numgens ring coordX, all'polynomials);
-     ---* this part is to time and keep track of what is the expensive part of the computation
-     print("Blackbox solving cpuTime:");
-     time Soluciones:=solveSystem flatten entries polynomials;
-     ---*
-     node.SolutionsSuperset = apply(
-	  select(
-	       --// After finish with the timing, remove the previous part and the next line
-	       --// and uncomment the following line (deleting the line after that)
-	       Soluciones,
-	       --time solveSystem flatten entries polynomials, 
-	       s-> norm sub(gens all'polynomials,matrix s) < ERROR'TOLERANCE * 
-	       norm matrix s * 
-	       norm sub(last coefficients gens all'polynomials,CC)
-	       ), 
-	  ss-> (map(CC,ring coordX,matrix ss)) coordX
-	  ); 
+     if DEBUGG'LEVEL >= 2 then (
+     	  -- temporary: creates a superset of solutions via a blackbox solver
+     	  all'polynomials := makePolynomials(node.FlagM * coordX, remaining'conditions'and'flags);
+     	  polynomials := squareUpPolynomials(numgens ring coordX, all'polynomials);
      	  
-     if node.Children == {} then (
-	    --(Vars,Coeffs) := coefficients polynomials;
-	    --rws:= numRows Coeffs - 1;
-	    -- we solve the linear system
-	    --Soluts:= - inverse transpose Coeffs^{0..rws-1} * transpose Coeffs^{rws};
-	    --node.Solutions = {(map(CC,ring coordX,matrix sub(transpose Soluts, CC))) coordX}
-	    --print(node.SolutionsSuperset);
-	    --print({(map(CC,ring coordX,matrix sub(transpose Soluts, CC))) coordX});
-	    node.Solutions = node.SolutionsSuperset; 
-     ); -- should change!!! 
-     
+	  if DEBUGG'LEVEL >= 2 then(
+	       ---* this part is to time and keep track of what is the expensive part of the computation
+     	       if DEBUGG'LEVEL == 3 then blckbxtime1 := cpuTime();
+	       Soluciones:=solveSystem flatten entries polynomials;
+	       if DEBUGG'LEVEL == 3 then (
+		    blckbxtime2 := cpuTime();
+		    <<"Blackbox solving cpuTime:"<<(blckbxtime2 - blckbxtime1)<<endl;
+		    );
+	       ---*
+	       );
+	  
+     	  node.SolutionsSuperset = apply(
+	       select(
+	       	    --// After finish with the timing, remove the previous part and the next line
+	       	    --// and uncomment the following line (deleting the line after that)
+	       	    Soluciones,
+	       	    --time solveSystem flatten entries polynomials, 
+	       	    s-> norm sub(gens all'polynomials,matrix s) < ERROR'TOLERANCE * 
+	       	    norm matrix s * 
+	       	    norm sub(last coefficients gens all'polynomials,CC)
+	       	    ), 
+	       ss-> (map(CC,ring coordX,matrix ss)) coordX
+	       );      	  
+     	  if node.Children == {} then (
+	       --(Vars,Coeffs) := coefficients polynomials;
+	       --rws:= numRows Coeffs - 1;
+	       -- we solve the linear system
+	       --Soluts:= - inverse transpose Coeffs^{0..rws-1} * transpose Coeffs^{rws};
+	       --node.Solutions = {(map(CC,ring coordX,matrix sub(transpose Soluts, CC))) coordX}
+	       --print(node.SolutionsSuperset);
+	       --print({(map(CC,ring coordX,matrix sub(transpose Soluts, CC))) coordX});
+	       node.Solutions = node.SolutionsSuperset; 
+     	       ); -- should change!!! 
+     	  );
      scan(node.Fathers, father'movetype->(
      
      (father,movetype) := father'movetype; 
-     tparents1:=cpuTime();
+     if DEBUGG'LEVEL == 1 or DEBUGG'LEVEL == 3 then(
+     	  tparents1:=cpuTime();
+     	  );
      if father =!= "root" then (
      	  r := father.CriticalRow; -- critical row: rows r and r+1 are the most important ones
      	  red := last father.Board;     
@@ -560,8 +577,14 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 --	       else if member(movetype,{{0,0,0},{0,1,0}}) then (-- case SWAP(top row)		    
 --		    )
 	       else error "an unaccounted case";
-	       
+
+	       if DEBUGG'LEVEL == 1 or DEBUGG'LEVEL == 3 then timemakePolys1 := cpuTime();
 	       all'polys := makePolynomials(M'X',remaining'conditions'and'flags);
+	       if DEBUGG'LEVEL == 1 or DEBUGG'LEVEL == 3 then(
+		    timemakePolys2 := cpuTime();
+		    << "-- time to make equations:  "<< (timemakePolys2-timemakePolys1)<<endl;
+		    );
+    
 	       polys := squareUpPolynomials(numgens R, all'polys);
 	       startSolutions := apply(node.Solutions, X->toRawSolutions(coordX,X));
 	       
@@ -569,11 +592,15 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 	       scan(startSolutions,  
 		    s->assert(norm sub(polys,matrix{{0_FFF}|s}) < ERROR'TOLERANCE * 
 			 norm matrix{s} * 
-			 norm sub(last coefficients polys,CC))); 
-	       t1:= cpuTime();
+			 norm sub(last coefficients polys,CC)));
+	       if DEBUGG'LEVEL == 1 or DEBUGG'LEVEL == 3 then( 
+	       	    t1:= cpuTime();
+		    );
 	       targetSolutions := trackHomotopy(polys,startSolutions);
-	       t2:= cpuTime();
-	       << node.Board << " -- track time: " << (t2-t1) << endl;
+	       if DEBUGG'LEVEL == 1 or DEBUGG'LEVEL == 3 then(
+	       	    t2:= cpuTime();
+	       	    << node.Board << " -- trackHomotopy time: " << (t2-t1) << endl;
+	       	    );
 	       apply(targetSolutions, sln->( 
 		    M''X'' := (map(CC,Rt,matrix{{1}}|matrix sln)) M'X';
 		    X'' := inverse M'' * M''X'';
@@ -589,28 +616,34 @@ resolveNode(MutableHashTable,List) := (node,remaining'conditions'and'flags) ->(
 		    ))
 	       );
      	  -- else {}; -- means: not implemented
-	  
-	  -- verify solutions
-	  parentX := makeLocalCoordinates father.Board;
-	  parentXlist := flatten entries parentX;
-	  scan(parent'solutions, X'''->( 
-		    -- check that solutions fit the parent's pattern
-		    a := flatten entries X''';
-		    scan(#a, i->assert(
-			      (abs a#i < ERROR'TOLERANCE and parentXlist#i == 0)
-			      or (abs(a#i-1) < ERROR'TOLERANCE and parentXlist#i == 1)
-			      or (parentXlist#i != 0 and parentXlist#i != 1)
-			      ));
-		    ));
+	  if DEBUGG'LEVEL >= 2 then (
+	       -- verify solutions
+	       parentX := makeLocalCoordinates father.Board;
+	       parentXlist := flatten entries parentX;
+	       scan(parent'solutions, X'''->( 
+			 -- check that solutions fit the parent's pattern
+		    	 a := flatten entries X''';
+		    	 scan(#a, i->assert(
+			      	   (abs a#i < ERROR'TOLERANCE and parentXlist#i == 0)
+			      	   or (abs(a#i-1) < ERROR'TOLERANCE and parentXlist#i == 1)
+			      	   or (parentXlist#i != 0 and parentXlist#i != 1)
+			      	   ));
+		    	 ));
+	       );
 	  father.Solutions = father.Solutions | parent'solutions;
-	  );
-     tparents2:=cpuTime();
-     << "time of computing one edge: "<< (tparents2 - tparents1) << endl;
+     	  );
+     if DEBUGG'LEVEL == 1 or DEBUGG'LEVEL == 3 then(
+     	  tparents2:=cpuTime();
+     	  << "time of computing one edge: "<< (tparents2 - tparents1) << endl;
+     	  );
      ));
-     -- check against the blackbox solutions
-     scan(node.Solutions, X->
-	  assert(position(node.SolutionsSuperset, Y->norm(Y-X)<ERROR'TOLERANCE) =!= null)); 
+     if DEBUGG'LEVEL >= 2 then(
+     	  -- check against the blackbox solutions
+     	  scan(node.Solutions, X->
+	       assert(position(node.SolutionsSuperset, Y->norm(Y-X)<ERROR'TOLERANCE) =!= null)); 
+     	  );
      )
+
 
 toRawSolutions = method()
 toRawSolutions(Matrix,Matrix) := (coordX,X) -> (

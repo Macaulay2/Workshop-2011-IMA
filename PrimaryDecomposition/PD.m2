@@ -335,14 +335,14 @@ purePowerCoordinateChange Ideal := (IF) -> (
      J1 := sub(J, varsList#0 => varsList#0 + F);
      L1 := ideal(J1_*/numerator);
      varsList = apply(varsList, f -> sub(f, ring L1));
-     facs := factors (eliminate(L1, drop(varsList,1)))_0;
+     time facs := factors (eliminate(L1, drop(varsList,1)))_0;
      F = sub(F,ring L1);
-     facs1 := apply(facs, (mult,h) -> (mult,sub(h, varsList#0 => varsList#0 - F)));
+     time facs1 := apply(facs, (mult,h) -> (mult,sub(h, varsList#0 => varsList#0 - F)));
      if #facs1 == 1 and facs1#0#0 == 1 then {IF}
      else for fac in facs1 list (
-     	  G := fac#1 % L;
-	  C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
-	  ideal gens gb (C + ideal otherGens)
+     	  time G := fac#1 % L;
+	  time C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
+	  time ideal gens gb (C + ideal otherGens)
        )
      )
 TEST ///
@@ -433,6 +433,7 @@ TEST ///
 -------------------------------------
 -- Factorization over a tower -------
 -------------------------------------
+-- experimental: not functional
 factorize = method()
 factorize(RingElement, Ideal) := (F, I) -> (
      -- factor F mod I

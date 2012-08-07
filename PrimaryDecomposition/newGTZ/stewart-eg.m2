@@ -132,6 +132,35 @@ debug loadPackage("PD", Reload=>true)
   debug ModularGCD
   modpGCD(eval1 F, eval1 G, {eval1 m1, eval1 m2})
 
+  use A
+  eval1 = map(A,A,{g_2, g_3, r, g_1, random kk})
+  L1 = eval1 L
 
+
+
+
+  -- goal 1: via CRA and rat recon, determine lexGB of L1 (over kk(g_1)[g_2, g_3, r])
+  rand = () -> (a := random kk; (map(A,A,{g_2, g_3, r, a, 0_A}), a))
+
+  (phi1, p1) = rand()
+  G1 = flatten entries gens gb phi1 L1       
+
+  polyCRA((g1,m1),(g2,m2),t,32003)
+  polyRationalReconstruction(g1,t,m1,32003)
+  
+  (phi2, p2) = rand()
+  G2 = flatten entries gens gb phi2 L1       
+
+  (phi3, p3) = rand()
+  G3 = flatten entries gens gb phi3 L1 
+
+  B = kk[g_2, g_3, r, MonomialOrder=>Lex]
+  eval1 = map(B,A,vars B | matrix{{random kk, random kk}})
+  gens gb eval1 L
+
+  eval2 = map(B,A,vars B | matrix{{random kk, random kk}})
+  gens gb eval2 L
+
+  
 
 

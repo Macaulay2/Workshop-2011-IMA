@@ -158,6 +158,10 @@ if (not R.?markov) then error "expected a ring created with markovRing"
 
 
 R = gaussianRing G
+R = gaussianRing H
+R.graph
+R.digraph
+R#gaussianRing
 describe R
 R = gaussianRing 4
 Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
@@ -179,4 +183,23 @@ conditionalIndependenceIdeal (R,Stmts)
 
 --- running tests:
 check "GraphicalModels"
+
+
+R = markovRing (2,2,2,2)
+H = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+
+R = QQ[a11,a12,a21,a22,p111,p112,p121,p122,p211,p212,p221,p222,  MonomialOrder => Eliminate 4]
+
+I = ideal(
+     p111 - (p111 + p112)*a11, p112 - (p111 + p112)*a12, 
+     p121 - (p121 + p122)*a21, p122 - (p121 + p122)*a22, 
+     p211 - (p211 + p212)*a11, p212 - (p211 + p212)*a12, 
+     p221 - (p221 + p222)*a21, p222 - (p221 + p222)*a22,
+     a11+a12 -1, a21 + a22-1
+     );
+selectInSubring(1,gens gb I)
+ 
+     
+     
+     
 

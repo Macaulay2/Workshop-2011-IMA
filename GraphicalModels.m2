@@ -131,7 +131,7 @@ markov = local markov ----WHY IS IT A GOOD IDEA TO KEEP THESE LOCAL? WHY NOT LET
      	       	    	 --- Sonja&Seth 29july2011.  (we did not keep gaussian stuff like this local.)
 markovVariables = local markovVariables
 gaussianVariables = local gaussianVariables
--- mixedgraph = local mixedgraph
+mixedgraph = local mixedgraph
 numberOfEliminationVariables = local numberOfEliminationVariables  --entry stored inside gaussianRing. not used anywhere. delete?or document?
 
 

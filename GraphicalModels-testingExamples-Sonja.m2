@@ -200,7 +200,21 @@ I = ideal(
      );
 selectInSubring(1,gens gb I)
  
-     
-     
-     
+ 
+--- here is a digraph with a directed cycle:
+loadPackage "GraphicalModels"
+       G = digraph {{a,{b}}, {b,{c}}, {c,{d}}, {d,{a}}}
+--let's test functions to see which ones need exceptions added: 
+     R = gaussianRing G --OK
+pairMarkov G  --bad due to nondescentents -FIXED
+localMarkov G  --bad --FIXED
+     globalMarkov G --OK
+     trekIdeal(R,G) --OK, it seems.
+     gaussianMatrices(R,{{{a},{c},{d,b}}}) --OK
+     gaussianVanishingIdeal R --OK already has the error becaues uses topSort 
+     conditionalIndependenceIdeal(R,globalMarkov G) --OK
+
+--here is what I want to insert:
+if isCyclic G then error("digraph must be acyclic");
+ 
 

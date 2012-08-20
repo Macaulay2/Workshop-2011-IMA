@@ -115,7 +115,7 @@ export {bidirectedEdgesMatrix,
        pairMarkov, 
        trekIdeal, 
        trekSeparation,
-       VariableName,-- still used in markovRing; removed from gaussianRing
+       VariableName,
        sVariableName,
        kVariableName,
        lVariableName,
@@ -149,6 +149,7 @@ pairMarkov Digraph := List => (G) -> (
      -- where A,B,C are disjoint sets, and for every vertex v
      -- and non-descendent w of v,
      -- {v, w, nondescendents(G,v) - w}
+     if isCyclic G then error("digraph must be acyclic");
      removeRedundants flatten apply(sort vertices G, v -> (
 	       ND := nondescendents(G,v);
 	       W := ND - parents(G,v);
@@ -162,6 +163,7 @@ localMarkov = method()
 localMarkov Digraph := List =>  (G) -> (
      -- Given a digraph G, return a list of triples {A,B,C}
      -- of the form {v, nondescendents - parents, parents}
+     if isCyclic G then error("digraph must be acyclic");
      result := {};
      scan(sort vertices G, v -> (
 	       ND := nondescendents(G,v);

@@ -1,9 +1,9 @@
 restart
 uninstallPackage "GraphicalModels"
-uninstallPackage "Graphs"
-installPackage ("Graphs", RemakeAllDocumentation=>true)
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 
+uninstallPackage "Graphs"
+installPackage ("Graphs", RemakeAllDocumentation=>true)
 
 
 
@@ -13,6 +13,7 @@ viewHelp "GraphicalModels"
 ---gaussianRing:
 gaussianRing 3 
 gaussianRing 4
+peek oo
 gaussianRing (4, sVariableName=>t)
 S=gaussianRing 4
 covarianceMatrix S
@@ -31,7 +32,11 @@ trekIdeal(S,G)
 
 --gaussianRing does not take undirected graphs as input. It should:
 G = graph({{a,b},{d,a},{b,c},{c,d}}) 
-gaussianRing G --this now works!
+Rg= gaussianRing G --this now works!
+
+Rg.graph
+Rg.digraph
+Rg.mixedGraph
 
 gaussianRing (G, Coefficients=>ZZ)
 gaussianRing (G, VariableName=>{getSymbol "seth"}) -- this does NOT do what it's supposed to,
@@ -181,6 +186,9 @@ trekIdeal(R,H)
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
 
+peek R
+keys R
+
 conditionalIndependenceIdeal (R,Stmts)
 
 --- running tests:
@@ -189,6 +197,8 @@ check "GraphicalModels"
 
 R = markovRing (2,2,2,2)
 H = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+rH = gaussianRing H
+rH.digraph
 
 R = QQ[a11,a12,a21,a22,p111,p112,p121,p122,p211,p212,p221,p222,  MonomialOrder => Eliminate 4]
 

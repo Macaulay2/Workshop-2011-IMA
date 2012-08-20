@@ -128,13 +128,11 @@ export {bidirectedEdgesMatrix,
      
 needsPackage "Graphs"
 
-markovRingData = local markovRingData ----WHY IS IT A GOOD IDEA TO KEEP THESE LOCAL? WHY NOT LET THE USER ACCESS SOME OF THIS STUFF?
-     	       	    	 --- Sonja&Seth 29july2011.  (we did not keep gaussian stuff like this local.)
+markovRingData = local markovRingData
 markovVariables = local markovVariables
-gaussianVariables = local gaussianVariables
-mixedgraph = local mixedgraph
-numberOfEliminationVariables = local numberOfEliminationVariables  --entry stored inside gaussianRing. not used anywhere. delete?or document?
 gaussianRingData = local gaussianRingData
+gaussianVariables = local gaussianVariables
+numberOfEliminationVariables = local numberOfEliminationVariables  --entry stored inside gaussianRing
 
 --------------------------
 --   Markov relations   --
@@ -586,7 +584,7 @@ gaussianRing ZZ :=  Ring => opts -> (n) -> (
      w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
      v := apply (w, ij -> s_ij);
      R := kk(monoid [v, MonomialSize=>16]);
-     R.gaussianRingData = n; ---- OH MY GOD THE KEY EQUALS THE NAME OF THE METHOD!!! ---Seth&Sonja 29july2011
+     R.gaussianRingData = n; 
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
      gaussianRingList#((kk,s,n)) = R;); 
@@ -629,8 +627,8 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
      	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
      	    matrix SM	    
 	    ) 
-       else if R.?mixedgraph then (  
-     	    g = R.mixedgraph;
+       else if R.?mixedGraph then (  
+     	    g = R.mixedGraph;
 	    vv = sort vertices g;
      	    n = R.gaussianRingData#0;
      	    s = value R.gaussianRingData#1;
@@ -770,8 +768,8 @@ gaussianVanishingIdeal Ring := Ideal => R -> (
      	   I = eliminate(newvars, I + J););
         F := map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0));
      F(I))
-    else if R.?mixedgraph then (
-         G = R.mixedgraph;
+    else if R.?mixedGraph then (
+         G = R.mixedGraph;
 	 if (#edges(G#graph#Graph) > 0) then error "This function is currently only implemented for mixed graphs without undirected part"; 
 	 if (isCyclic G#graph#Digraph == true) then error "Directed part of mixed graph must be acyclic";
          S = covarianceMatrix R;    
@@ -852,9 +850,9 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
 		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           	    )
-	       else if R.?mixedgraph then (
-     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.mixedgraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
-	   	    g= R.mixedgraph;
+	       else if R.?mixedGraph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.mixedGraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
+	   	    g= R.mixedGraph;
            	    vv = sort vertices g;
            	    SM = covarianceMatrix(R);
            	    sum apply(Stmts, s -> minors(#s#2+1, 
@@ -935,7 +933,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
      R#numberOfEliminationVariables = m;
      R.gaussianRingData = {#vv,s,l,p};
-     R.mixedgraph = g;
+     R.mixedGraph = g;
      gaussianRingList#((kk,s,l,p,vv)) = R;); 
      gaussianRingList#((kk,s,l,p,vv))
      )
@@ -948,7 +946,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
 directedEdgesMatrix = method()
 directedEdgesMatrix Ring := Matrix => R -> (
      if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
-     g := R.mixedgraph;
+     g := R.mixedGraph;
      G := graph collateVertices g;
      dd := graph G#Digraph;
      vv := sort vertices g;
@@ -965,7 +963,7 @@ directedEdgesMatrix Ring := Matrix => R -> (
 bidirectedEdgesMatrix = method()
 bidirectedEdgesMatrix Ring := Matrix => R -> (
      if not R.?gaussianRingData then error "expected a ring created with gaussianRing";
-     g := R.mixedgraph;     
+     g := R.mixedGraph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
      vv := sort vertices g;
@@ -1089,8 +1087,8 @@ trekIdeal = method()
 --currently trekSeparation only works with directed and bidirected edges, which affects this function
 trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
      if not R.?gaussianRingData  then error "expected a ring created with gaussianRing";
-     if R.?mixedgraph then (
-         if not sort (vertices (R.mixedgraph))  === sort (vertices (g)) then 
+     if R.?mixedGraph then (
+         if not sort (vertices (R.mixedGraph))  === sort (vertices (g)) then 
 	     error "vertex labels of graph do not match labels in ring")
      else if R.?graph then (
          if not sort (vertices (R.graph))  === sort (vertices (g)) then 
@@ -1622,7 +1620,7 @@ doc ///
       Recovering the graph from the gaussian ring
     Example
       -- R#gaussianRing
-      R.graph  
+      --R.graph  
       covarianceMatrix R
       undirectedEdgesMatrix R
     Text
@@ -1630,7 +1628,7 @@ doc ///
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
       R = gaussianRing G;
-      R.digraph --the digraph gets stored in the ring
+      --R.digraph --the digraph gets stored in the ring --CAN'T ACCESS IT; BUT CAN PEEK!
     Text
       For mixed graphs, there is a variable $l_{(i,j)}$ for
       each directed edge i->j, a variable $w_{(i,i)}$ for each node i, and a variable $w_{(i,j)}$ 

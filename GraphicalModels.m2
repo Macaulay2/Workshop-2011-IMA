@@ -108,6 +108,7 @@ export {bidirectedEdgesMatrix,
        globalMarkov,
        hiddenMap,
        identifyParameters, 
+       inverseMarginMap,
        localMarkov,
        markovMatrices, 
        markovRing,        
@@ -412,6 +413,27 @@ marginMap(ZZ,Ring) := RingMap => (v,R) -> (
 	       else (
 		    i0 := drop(i,1);
 		    p i - sum(apply(toList(2..d#v), j -> (
+			      newi := join(take(i,v), {j}, take(i,v-#d+1));
+			      p newi))))));
+     map(R,R,F))
+
+ ----------------
+ -- inverseMarginMap ---
+ ----------------
+
+inverseMarginMap = method()
+inverseMarginMap(ZZ,Ring) := RingMap => (v,R) -> (
+     if (not R.?markovRingData) then error "expected a ring created with markovRing";
+     -- R should be a Markov ring
+     v = v-1;
+     d := R.markovRingData;
+     -- use R; -- Dan suggested to delete this line
+     p := i -> R.markovVariables#i;
+     F := toList apply(((#d):1) .. d, i -> (
+	       if i#v > 1 then p i
+	       else (
+		    i0 := drop(i,1);
+		    p i + sum(apply(toList(2..d#v), j -> (
 			      newi := join(take(i,v), {j}, take(i,v-#d+1));
 			      p newi))))));
      map(R,R,F))
@@ -748,6 +770,21 @@ gaussianVanishingIdeal Ring := Ideal => R -> (
      	   I = eliminate(newvars, I + J););
         F := map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0));
      F(I))
+    else if R.?mixedgraph then (
+         G = R.mixedgraph;
+	 if (#edges(G#graph#Graph) > 0) then error "This function is currently only implemented for mixed graphs without undirected part"; 
+	 if (isCyclic G#graph#Digraph == true) then error "Directed part of mixed graph must be acyclic";
+         S = covarianceMatrix R;    
+         W := bidirectedEdgesMatrix R;     
+         L = directedEdgesMatrix R;
+         Li := inverse(1-matrix(L));
+         M := transpose(Li)*matrix(W)*Li;
+	 tempideal := ideal(S-M);
+         m:= (R#numberOfEliminationVariables)-1;
+	 elimvarlist := flatten entries (vars(R))_{0..m};
+	 I = trim ideal(0_R);
+	 I = eliminate(elimvarlist,tempideal)
+    )
 )
      
 
@@ -896,6 +933,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
      m := #lL+#pL;
      R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
+     R#numberOfEliminationVariables = m;
      R.gaussianRingData = {#vv,s,l,p};
      R.mixedgraph = g;
      gaussianRingList#((kk,s,l,p,vv)) = R;); 

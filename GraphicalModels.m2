@@ -1153,20 +1153,22 @@ doc ///
     A package for discrete and Gaussian statistical graphical models 
   Description
     Text
+      {\bf Graphical Models} is a package for algebraic statistics, it constructs ideals of discrete and 
+      Gaussian graphical models. This package extends Markov.m2.
        
-      This package extends Markov.m2. It is used to construct ideals corresponding to discrete graphical models,
+      This package constructs ideals of discrete Bayesian networks (directed acyclic graphs)
       as described in several places, including the paper: Luis David Garcia, Michael Stillman and Bernd Sturmfels,
-      "The algebraic geometry of Bayesian networks", J. Symbolic Comput., 39(3-4):331–355, 2005.
+      {\em The algebraic geometry of Bayesian networks}, J. Symbolic Comput., 39(3-4):331–355, 2005.
   
-      The package also constructs ideals of Gaussian Bayesian networks and Gaussian graphical models 
+      It also constructs ideals of Gaussian Bayesian networks and Gaussian graphical models 
       (graphs containing both directed and bidirected edges), as described in the papers:
-      Seth Sullivant, "Algebraic geometry of Gaussian Bayesian networks", Adv. in Appl. Math. 40 (2008), no. 4, 482--513;
+      Seth Sullivant, {\em Algebraic geometry of Gaussian Bayesian networks}, Adv. in Appl. Math. 40 (2008), no. 4, 482--513;
       Seth Sullivant, Kelli Talaska and Jan Draisma, "Trek separation for Gaussian graphical models", 
       Annals of Statistics 38 no.3 (2010) 1665--1685. 
       
-      Further, the package contains procedures to solve the identifiability problem for 
+      The package also contains some procedures to solve the identifiability problem for 
       Gaussian graphical models as described in the paper: 
-      Luis D. Garcia-Puente, Sarah Spielvogel and Seth Sullivant, "Identifying causal effects with computer algebra", 
+      Luis D. Garcia-Puente, Sarah Spielvogel and Seth Sullivant, {\em Identifying causal effects with computer algebra}, 
       Proceedings of the $26^{th}$ Conference of Uncertainty in Artificial Intelligence.
       
       Here is a typical use of this package.  We create the ideal in 16 variables whose zero set 
@@ -1175,7 +1177,7 @@ doc ///
     Example
        G = digraph  {{a,{}},{b,{a}},{c,{a}},{d,{b,c}}}
        R = markovRing (2,2,2,2)
-       S = globalMarkov G        --I = markovIdeal(R,G,S)       --netList pack(2,I_*)
+       S = globalMarkov G  --I = markovIdeal(R,G,S)     --netList pack(2,I_*)
     Text
       Sometimes an ideal can be simplified by changing variables.  Very often, 
       by using @TO marginMap@

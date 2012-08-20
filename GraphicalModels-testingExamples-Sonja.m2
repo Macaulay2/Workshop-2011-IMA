@@ -99,6 +99,7 @@ loadPackage "GraphicalModels"
        S = covarianceMatrix R
 G1 = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}, {e,{a,b}}}
 R1 = gaussianRing G1
+peek R1
 S1=covarianceMatrix R1
 S2 = covarianceMatrix(R1,G1)
 entries S1 === entries S2

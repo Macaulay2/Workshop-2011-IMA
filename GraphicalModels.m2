@@ -564,7 +564,7 @@ gaussianRing ZZ :=  Ring => opts -> (n) -> (
      w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
      v := apply (w, ij -> s_ij);
      R := kk(monoid [v, MonomialSize=>16]);
-     R#gaussianRingData = n; ---- OH MY GOD THE KEY EQUALS THE NAME OF THE METHOD!!! ---Seth&Sonja 29july2011
+     R.gaussianRingData = n; ---- OH MY GOD THE KEY EQUALS THE NAME OF THE METHOD!!! ---Seth&Sonja 29july2011
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
      gaussianRingList#((kk,s,n)) = R;); 
@@ -583,7 +583,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
      v := apply (w, ij -> s_ij);
      R := kk(monoid [v, MonomialSize=>16]);
-     R#gaussianRingData = #vv;
+     R.gaussianRingData = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
      R.digraph = G; --changed 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
@@ -597,12 +597,12 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 
 covarianceMatrix = method()
 covarianceMatrix(Ring) := Matrix => (R) -> (
-       if not R#?gaussianRingData then error "expected a ring created with gaussianRing";    
+       if not R.?gaussianRingData then error "expected a ring created with gaussianRing";    
        if R.?graph then (  
      	    g:=R.graph;
 	    vv := sort vertices g;
-     	    n := R#gaussianRingData#0;
-     	    s := value R#gaussianRingData#1;
+     	    n := R.gaussianRingData#0;
+     	    s := value R.gaussianRingData#1;
      	    SM := mutableMatrix(R,n,n);
      	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
      	    matrix SM	    
@@ -610,14 +610,14 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
        else if R.?mixedgraph then (  
      	    g = R.mixedgraph;
 	    vv = sort vertices g;
-     	    n = R#gaussianRingData#0;
-     	    s = value R#gaussianRingData#1;
+     	    n = R.gaussianRingData#0;
+     	    s = value R.gaussianRingData#1;
      	    SM = mutableMatrix(R,n,n);
      	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then s_(i,j) else s_(j,i)));
      	    matrix SM	    
 	    ) 
        else (
-	    n =R#gaussianRingData; 
+	    n =R.gaussianRingData; 
 	    genericSymmetricMatrix(R,n)
 	    )
   )
@@ -631,7 +631,7 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
 
 gaussianMatrices = method()
 gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
-        if not (R#?gaussianRingData) then error "expected a ring created with gaussianRing";
+        if not (R.?gaussianRingData) then error "expected a ring created with gaussianRing";
         if R.?graph then (
 	   g := R.graph;
            vv := sort vertices g;
@@ -651,7 +651,7 @@ gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
 		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ) 
           )
         else (
-           vv = toList (1..R#gaussianRingData);
+           vv = toList (1..R.gaussianRingData);
 	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
 	   SM = covarianceMatrix(R);
            apply(Stmts, s->  
@@ -695,7 +695,7 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     m := #kL; --eliminate the k's 
     R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
     R#numberOfEliminationVariables = m;
-    R#gaussianRingData = {#vv,s,k};
+    R.gaussianRingData = {#vv,s,k};
     R.graph = g;
     gaussianRingList#((kk,s,k,bb)) = R;); 
     gaussianRingList#((kk,s,k,bb))
@@ -703,12 +703,12 @@ gaussianRing Graph := Ring => opts -> (g) -> (
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix Ring := Matrix =>  R -> (
-     if not (R.?graph or R#?gaussianRingData) then error "expected a ring created with gaussianRing graph";
+     if not (R.?graph or R.?gaussianRingData) then error "expected a ring created with gaussianRing graph";
      g := R.graph;
      bb:= graph g;
      vv := sort vertices g;
-     n := R#gaussianRingData#0; --number of vertices
-     p := value R#gaussianRingData#2;-- this p is actually k in this case (in name).
+     n := R.gaussianRingData#0; --number of vertices
+     p := value R.gaussianRingData#2;-- this p is actually k in this case (in name).
      PM := mutableMatrix(R,n,n);
      scan(vv,i->PM_(pos(vv,i),pos(vv,i))=p_(i,i));
      scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then p_(i,j) else p_(j,i)));
@@ -716,7 +716,7 @@ undirectedEdgesMatrix Ring := Matrix =>  R -> (
 
 gaussianVanishingIdeal=method()
 gaussianVanishingIdeal Ring := Ideal => R -> (
-    if not (R#?gaussianRingData) then error "expected a ring created with gaussianRing";
+    if not (R.?gaussianRingData) then error "expected a ring created with gaussianRing";
     if R.?graph then ( 
        --currently works on really small examples! future work to make faster...    
        K:= undirectedEdgesMatrix R;
@@ -793,10 +793,10 @@ globalMarkov Graph := List => (G) ->(
  
 conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
-     if not (R#?gaussianRingData or R.?markovRingData) then error "expected a ring created with gaussianRing or markovRing";
+     if not (R.?gaussianRingData or R.?markovRingData) then error "expected a ring created with gaussianRing or markovRing";
      if #Stmts === 0 then (ideal(0_R))
      else ( 
-     	  if R#?gaussianRingData then (      
+     	  if R.?gaussianRingData then (      
                if R.?graph then (
      		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.graph))  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    g := R.graph;
@@ -825,7 +825,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
 		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
           	    )
                else (
-	   	    vv = toList (1..R#gaussianRingData);
+	   	    vv = toList (1..R.gaussianRingData);
      		    if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match variable names in the Gaussian ring";
 	   	    SM = covarianceMatrix(R);
            	    sum apply(Stmts, s -> minors(#s#2+1, 
@@ -896,7 +896,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
      m := #lL+#pL;
      R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
-     R#gaussianRingData = {#vv,s,l,p};
+     R.gaussianRingData = {#vv,s,l,p};
      R.mixedgraph = g;
      gaussianRingList#((kk,s,l,p,vv)) = R;); 
      gaussianRingList#((kk,s,l,p,vv))
@@ -909,13 +909,13 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
 
 directedEdgesMatrix = method()
 directedEdgesMatrix Ring := Matrix => R -> (
-     if not R#?gaussianRingData then error "expected a ring created with gaussianRing";     
+     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
      g := R.mixedgraph;
      G := graph collateVertices g;
      dd := graph G#Digraph;
      vv := sort vertices g;
-     n := R#gaussianRingData#0;
-     l := value R#gaussianRingData#2;
+     n := R.gaussianRingData#0;
+     l := value R.gaussianRingData#2;
      LM := mutableMatrix(R,n,n);
      scan(vv,i->scan(toList dd#i, j->LM_(pos(vv,i),pos(vv,j))=l_(i,j)));
      matrix LM) 
@@ -926,13 +926,13 @@ directedEdgesMatrix Ring := Matrix => R -> (
 
 bidirectedEdgesMatrix = method()
 bidirectedEdgesMatrix Ring := Matrix => R -> (
-     if not R#?gaussianRingData then error "expected a ring created with gaussianRing";
+     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";
      g := R.mixedgraph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
      vv := sort vertices g;
-     n := R#gaussianRingData#0;
-     p := value R#gaussianRingData#3;
+     n := R.gaussianRingData#0;
+     p := value R.gaussianRingData#3;
      PM := mutableMatrix(R,n,n);
      scan(vv,i->PM_(pos(vv,i),pos(vv,i))=p_(i,i));
      scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then p_(i,j) else p_(j,i)));
@@ -944,14 +944,14 @@ bidirectedEdgesMatrix Ring := Matrix => R -> (
  
 gaussianParametrization = method(Options=>{SimpleTreks=>false})
 gaussianParametrization (Ring,MixedGraph) := Matrix => opts -> (R,g) -> (
-     if not R#?gaussianRingData then error "expected a ring created with gaussianRing";     
+     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
      S := covarianceMatrix R;    
      W := bidirectedEdgesMatrix R;     
      L := directedEdgesMatrix R;
      Li := inverse(1-matrix(L));
      M := transpose(Li)*matrix(W)*Li;
      if opts.SimpleTreks then (
-       n := R#gaussianRingData#0;
+       n := R.gaussianRingData#0;
        P := matrix {apply(n,i->W_(i,i)-M_(i,i)+1)};
        Q := apply(n,i->W_(i,i)=>P_(0,i));
        scan(n,i->P=sub(P,Q));
@@ -1050,7 +1050,7 @@ trekSeparation MixedGraph := List => (g) -> (
 trekIdeal = method()
 --currently trekSeparation only works with directed and bidirected edges, which affects this function
 trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
-     if not R#?gaussianRingData  then error "expected a ring created with gaussianRing";
+     if not R.?gaussianRingData  then error "expected a ring created with gaussianRing";
      if R.?mixedgraph then (
          if not sort (vertices (R.mixedgraph))  === sort (vertices (g)) then 
 	     error "vertex labels of graph do not match labels in ring")
@@ -1060,7 +1060,7 @@ trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
      else if R.?digraph then (
          if not sort (vertices (R.digraph))  === sort (vertices (g)) then 
 	     error "vertex labels of graph do not match labels in ring")
-     else if not ( 1..R#gaussianRingData === sort vertices(g))  then error "variables names in mixedGraph do not match variable names in the Gaussian ring";
+     else if not ( 1..R.gaussianRingData === sort vertices(g))  then error "variables names in mixedGraph do not match variable names in the Gaussian ring";
      Stmts:= trekSeparation g;
      vv := sort vertices g;
      SM := covarianceMatrix R ;	

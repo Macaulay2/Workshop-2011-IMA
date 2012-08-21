@@ -228,4 +228,3 @@ localMarkov G  --bad --FIXED
 --here is what I want to insert:
 if isCyclic G then error("digraph must be acyclic");
  
-

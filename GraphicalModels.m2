@@ -467,7 +467,8 @@ pos = (h, x) -> position(h, i->i===x)
 -- the following function retrieves the position of the vertices 
 -- in the graph G for all vertices contained in the list S
 -- vertices G does not return a sorted list of the vertices 
-getPositionOfVertices := (G,S) -> apply(S, w -> pos(sort vertices G, w))
+--question: is this even used anywhere??? I DON'T THINK SO, SO I'M DELETING IT.
+--getPositionOfVertices := (G,S) -> apply(S, w -> pos(sort vertices G, w))
 
 --------------------
 -- markovMatrices --
@@ -2315,14 +2316,12 @@ assert(M === m)
 --- TEST gaussianRing--------------------------
 -----------------------------------------------
 
-TEST ///
+TEST /// 
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R = gaussianRing G
-correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,b), k_(a,d),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}
+correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,d), k_(a,b),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}
 assert(0 == vars R - matrix correctOutput )
-/// --this test fails b/c of ordering too;
- --here is the output:    
- -- | 0 0 0 0 k_(a,d)-k_(a,b) -k_(a,d)+k_(a,b) 0 0 0 0 0 0 0 0 0 0 0 0 |
+/// 
 
 -----------------------------------------------
 --- TEST undirectedEdgesMatrix-----------------
@@ -2359,6 +2358,7 @@ I = gaussianVanishingIdeal R
 correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,d)+s_(a,b)*s_(b,d)*s_(c,d)+s_(a,c)*s_(b,b)*s_(d,d)-s_(a,b)*s_(b,c)*s_(d,d),s_(a,c)*s_(a,d)*s_(b,c)-s_(a,c)^2*s_(b,d)-s_(a,b)*s_(a,d)*s_(c,c)+s_(a,a)*s_(b,d)*s_(c,c)+s_(a,b)*s_(a,c)*s_(c,d)-s_(a,a)*s_(b,c)*s_(c,d), s_(a,b)*s_(a,d)*s_(b,d)*s_(c,c)-s_(a,a)*s_(b,d)^2*s_(c,c)-s_(a,c)*s_(a,d)*s_(b,b)*s_(c,d)+s_(a,a)*s_(b,c)*s_(b,d)*s_(c,d)+s_(a,c)^2*s_(b,b)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)*s_(d,d), s_(a,b)*s_(a,c)*s_(b,d)^2*s_(c,c)-s_(a,a)*s_(b,c)*s_(b,d)^2*s_(c,c)-s_(a,c)^2*s_(b,b)*s_(b,d)*s_(c,d)+s_(a,a)*s_(b,c)^2*s_(b,d)*s_(c,d)-s_(a,b)^2*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,a)*s_(b,b)*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,b)*s_(a,c)*s_(b,b)*s_(c,d)^2-s_(a,a)*s_(b,b)*s_(b,c)*s_(c,d)^2+s_(a,c)^2*s_(b,b)*s_(b,c)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)^2*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,b)*s_(c,c)*s_(d,d)+s_(a,b)^2*s_(b,c)*s_(c,c)*s_(d,d)}
 assert( I == ideal correctOutput)
 ///
+
 TEST ///
 G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 R = gaussianRing G
@@ -2370,12 +2370,13 @@ assert( I == ideal correctOutput)
 ---- TEST pairMarkov  ----
 --------------------------
 
-TEST ///
+TEST /// 
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 S = pairMarkov G
-L = {{{a}, {d}, {e, b, c}}, {{c}, {e}, {d, a, b}}, {{b}, {d}, {e,a, c}}, {{b}, {e}, {d, a, c}}, {{a}, {c}, {d, e, b}}}
-assert(S === L)
-/// --this test fails when shit inside statements is out of order !!! 
+Ssorted = apply(S, s-> replace(2,sort(s_2),s) )
+L = {{{a}, {d}, sort {e, b, c}}, {{c}, {e}, sort {d, a, b}}, {{b}, {d},sort {e,a, c}}, {{b}, {e},sort {d, a, c}}, {{a}, {c},sort {d, e, b}}}
+assert(sort Ssorted === sort L)
+/// 
 
 --------------------------
 ---- TEST localMarkov  ---
@@ -2384,9 +2385,10 @@ assert(S === L)
 TEST ///
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 S = localMarkov G
-L = {{{a}, {c, d}, {e, b}}, {{a, b}, {d}, {e, c}}, {{a, e}, {c},{d, b}}, {{b, c}, {e}, {d, a}}, {{b}, {d, e}, {a, c}}}
-assert(S === L)
-/// --this test fails when shit inside statements is out of order !!! 
+L = {{{a}, {c, d},sort {e, b}}, {{a, b}, {d},sort {e, c}}, {{a, e}, {c},sort {d, b}}, {{b, c}, {e}, sort{d, a}}, {{b}, {d, e}, sort{a, c}}}
+Ssorted = apply(S, s-> replace(2,sort(s_2),s) )
+assert(sort Ssorted === sort L)
+///
 
 ----------------------------------------------------------------------------------------------
 

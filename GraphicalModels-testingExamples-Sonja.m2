@@ -151,8 +151,12 @@ restart
 uninstallPackage "GraphicalModels"
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
+
 H = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 R = markovRing (2,2,2,2)
+
+(topSort H)#map
+
 R.markovRing
 R.markov
 R.markovVariables
@@ -228,3 +232,19 @@ localMarkov G  --bad --FIXED
 --here is what I want to insert:
 if isCyclic G then error("digraph must be acyclic");
  
+
+H = digraph {{a,{b,c}}, {b,{c,d}}, {d,{}}, {c,{}}}
+
+shuffle=apply(vertices H, v-> (topSort H)#map#v)
+shuffle = values (topSort H)#map --this results in the same permutation as above! duh.
+
+ind=shuffle-toList(4:1)
+d=(2,3,4,5)
+d_ind
+
+pos = (h, x) -> position(h, i->i===x)
+position(d,3)
+help position
+pos(d,5)
+n=#d
+apply(1..n,i-> pos(shuffle,i) )

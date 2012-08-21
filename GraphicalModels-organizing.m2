@@ -92,39 +92,56 @@ subsetsBetween -- [internal routine]
 
 ---- NOW LIST OF ALL FUNCTIONS/METHODS IN THE ORDER THEY SHOULD APPEAR IN THE PACKAGE:
 
---********************************--
+--**************************--
 --  INTERNAL ROUTINES        	  --
---********************************--
-bayesBall -- [internal function used by globalMarkov]
-cartesian -- [internal routine] 
-pos -- [internal routine to get position of an element in a list]
-possibleValues -- [internal routine]
-prob -- [internal routine] 
-setToBinary -- [internal routine]
-subsetsBetween -- [internal routine]
---remove redundant statements:
-equivStmts  -- [internal routine used within Markov relation routines to remove redundant statements]
-setit -- [internal routine used within Markov relation routines to remove redundant statements]
-under -- [internal routine used within Markov relation routines to remove redundant statements]
-sortdeps  -- [internal routine used within Markov relation routines to remove redundant statements]
-normalizeStmt -- [internal routine used within Markov relation routines to remove redundant statements]
-minimize -- [internal routine used within Markov relation routines to remove redundant statements]
-removeRedundants  -- [internal routine used within Markov relation routines to remove redundant statements]
+--**************************--
+--*************************************--
+--  Functions used by globalMarkov--
+--*************************************--
+bayesBall
+--*************************************--
+--  Functions used throughout          --
+--*************************************--
+cartesian
+pos 
+possibleValues 
+prob 
+setToBinary
+subsetsBetween 
+--***********************************************************************************--
+--  Functions used within Markov relation routines to remove redundant statements    --
+--***********************************************************************************--
+equivStmts  
+setit 
+under 
+sortdeps 
+normalizeStmt 
+minimize 
+removeRedundants  
 
---********************************--
+--**************************--
 --  METHODS 	      	   	  --
---********************************--
+--**************************--
+--****************************************************************************************--
+--  Methods for creating conditional independence statements from graphs and digraphs	  --
+--****************************************************************************************--
 pairMarkov Graph
 pairMarkov Digraph
 localMarkov Graph
 localMarkov Digraph
 globalMarkov Graph
 globalMarkov Digraph
+--**************************************************************************************************************************************--
+--  Methods for creating polynomial rings that carry information about random variables and/or underlying graph, digraph or mixed graph --
+--**************************************************************************************************************************************--
 markovRing Sequence
 gaussianRing ZZ
 gaussianRing Graph 
 gaussianRing Digraph
 gaussianRing MixedGraph
+--********************************************************************************************************************************--
+--  Methods for creating matrices relevant for the graphical models (covariance matrix, matrices whose minors vanish on the model)--
+--********************************************************************************************************************************--
 undirectedEdgesMatrix Ring 
 directedEdgesMatrix Ring 
 bidirectedEdgesMatrix Ring
@@ -132,6 +149,9 @@ markovMatrices(Ring,List,List)
 markovMatrices(Ring,List)
 covarianceMatrix(Ring)
 gaussianMatrices(Ring,List)
+--******************************************************************--
+--  Methods for creating ideals that vanish for a graphical model   --
+--******************************************************************--
 conditionalIndependenceIdeal (Ring,List)
 conditionalIndependenceIdeal (Ring,List,List)
 gaussianParametrization (Ring,MixedGraph)
@@ -140,6 +160,9 @@ trekSeparation MixedGraph
 trekIdeal (Ring,MixedGraph)
 trekIdeal (Ring,Graph)
 trekIdeal (Ring,Digraph)
+--********************************************************************************************************************************--
+--  Methods for manipulating polynomial maps frequently used in graphical models
+--********************************************************************************************************************************--
 marginMap(ZZ,Ring)
 inverseMarginMap(ZZ,Ring) 
 hiddenMap(ZZ,Ring)

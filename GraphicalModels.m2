@@ -1471,8 +1471,7 @@ doc ///
     marginMap
     (marginMap,ZZ,Ring)
   Headline
-    Generates a linear map on joint probabilitie distributions for discrete random variables that replaces 
-    marginals for indeterminates.
+    Generates a linear map on joint probabilitie distributions for discrete random variables that replaces marginals for indeterminates.
   Usage
     phi = marginMap(i,R)
   Inputs

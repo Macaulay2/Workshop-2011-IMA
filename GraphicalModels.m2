@@ -101,6 +101,7 @@ export {bidirectedEdgesMatrix,
        Coefficients,
        covarianceMatrix,
        directedEdgesMatrix,
+       discreteVanishingIdeal,
        gaussianMatrices,
        gaussianParametrization,
        SimpleTreks,
@@ -784,6 +785,54 @@ gaussianVanishingIdeal Ring := Ideal => R -> (
 	 I = trim ideal(0_R);
 	 I = eliminate(elimvarlist,tempideal)
     )
+)
+
+
+---------------------------------------------------------------
+----    Discrete Graphical Models  ----------------------------
+---------------------------------------------------------------
+
+discreteVanishingIdeal=method()
+discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
+     if not (R.?markovRingData) then error "expected a ring created with markovRing";
+     d := R.markovRingData;
+     n := #d; 
+     if not (#vertices(G) == n) then error "Number of vertices of graph does not match size of ring";
+     H := topSort G;
+     shuffle := apply(vertices G, v -> H#map#v);
+     dshuff := toSequence d_(shuffle - toList (n:1));
+     R1 := markovRing(dshuff , VariableName => getSymbol"p");     
+     p := j -> R1.markovVariables#j;
+     I := trim ideal(0_R1);     
+     SortedG := H#"newDigraph";  -- Sonja:  There is a string here because of a weird aspect of the graphs package
+     a := local a;
+     S := local S;
+     apply(2..n, i -> (
+         familyi := append(toList parents(SortedG,i),i);
+         tempd := toSequence dshuff_(familyi - toList (#familyi: 1));
+	 F := inverseMarginMap(i,R1);
+	 I = F(I);
+         S = markovRing( tempd, VariableName => getSymbol"a");	
+	 a = j1 -> S.markovVariables#j1;
+	 T := R1**S;
+	 newI := sub(I, T);
+	 di := toSequence flatten toList append( dshuff_(toList(0..(i-1))), toList ((n-i):1));
+	 indexset :=  (n:1)..di;
+	 newI = newI + ideal apply(indexset, j ->  (
+		  ajindex := toSequence j_(familyi - toList (#familyi: 1));
+		  sub(p j,T) - (sum apply(apply(d_(i-1), k -> replace(i-1, k+1, j)), 
+			    l-> sub(p l,T)))*sub(a ajindex,T)) );
+	 indexset = (#tempd:1)..tempd;
+	 newI = newI + ideal apply(indexset, j -> 1 - sum(apply(apply(dshuff_(i-1), k-> replace(#tempd-1,k+1,j)), 
+			    l -> sub(a l, T))));
+         J := eliminate(flatten entries sub(vars S, T), newI);
+	 I = sub(J,R1)        
+	 )     
+      );
+      inverseshuff := toList apply(1..n, i -> pos(shuffle,i));
+      q := j -> R.markovVariables#j;
+      F1 := map(R,R1, toList apply((n:1)..dshuff, j ->  q (toSequence j_inverseshuff)));
+      F1(I)   
 )
      
 

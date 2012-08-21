@@ -10,18 +10,18 @@ newPackage(
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
 	   HomePage => "http://www.shsu.edu/~ldg005"},
+          {Name=> "Sonja Petrovic", 
+	   Email=> "sonja@psu.edu",
+	   HomePage=>"http://www.personal.psu.edu/sxp61"}, 
 	  {Name => "Mike Stillman",
 	   Email => "mike@math.cornell.edu",
 	   HomePage => "http://www.math.cornell.edu/~mike/"},
           {Name=> "Seth Sullivant", 
 	   Email=> "smsulli2@ncsu.edu",
-	   HomePage=>"http://www4.ncsu.edu/~smsulli2/"},
-          {Name=> "Sonja Petrovic", 
-	   Email=> "sonja@psu.edu",
-	   HomePage=>"http://www.personal.psu.edu/sxp61"},
-          {Name=> "Contributing authors and collaborators: Alexander Diaz, Shaowei Lin, David Murrugarra", 
-	   Email=> "",
-	   HomePage=>""}      
+	   HomePage=>"http://www4.ncsu.edu/~smsulli2/"}
+          --{Name=> "Contributing authors and collaborators: Alexander Diaz, Shaowei Lin, David Murrugarra", 
+	  -- Email=> "",
+	  -- HomePage=>""}      
 	  },
      Headline => "A package for discrete and Gaussian graphical models",
      DebuggingMode => true
@@ -151,9 +151,10 @@ pairMarkov Digraph := List => (G) -> (
      -- {v, w, nondescendents(G,v) - w}
      if isCyclic G then error("digraph must be acyclic");
      removeRedundants flatten apply(sort vertices G, v -> (
-	       ND := nondescendents(G,v);
-	       W := ND - parents(G,v);
-	       apply(toList W, w -> {set {v}, set{w}, ND - set{w}}))))
+    	       ND := nondescendents(G,v);
+     	       W := ND - parents(G,v);
+     	       apply(toList W, w -> {set {v}, set{w}, ND - set{w}}))))
+    
 
 --------------------------
 --   localMarkov        --
@@ -1202,60 +1203,88 @@ doc ///
   Headline
     A package for discrete and Gaussian statistical graphical models 
   Description
+  
     Text
       {\bf Graphical Models} is a package for algebraic statistics, it constructs ideals of discrete and 
       Gaussian graphical models. This package extends Markov.m2.
        
       This package constructs ideals of discrete Bayesian networks (directed acyclic graphs)
       as described in several places, including the paper: Luis David Garcia, Michael Stillman and Bernd Sturmfels,
-      {\em The algebraic geometry of Bayesian networks}, J. Symbolic Comput., 39(3-4):331–355, 2005.
-  
+      {\em The algebraic geometry of Bayesian networks}, J. Symbolic Comput., 39(3-4):331–355, 2005. 
+      
       It also constructs ideals of Gaussian Bayesian networks and Gaussian graphical models 
       (graphs containing both directed and bidirected edges), as described in the papers:
-      Seth Sullivant, {\em Algebraic geometry of Gaussian Bayesian networks}, Adv. in Appl. Math. 40 (2008), no. 4, 482--513;
+      Seth Sullivant, {\em Algebraic geometry of Gaussian Bayesian networks}, Adv. in Appl. Math. 40 (2008), no. 4, 482--513; and 
       Seth Sullivant, Kelli Talaska and Jan Draisma, "Trek separation for Gaussian graphical models", 
       Annals of Statistics 38 no.3 (2010) 1665--1685. 
-      
+          
       The package also contains some procedures to solve the identifiability problem for 
       Gaussian graphical models as described in the paper: 
       Luis D. Garcia-Puente, Sarah Spielvogel and Seth Sullivant, {\em Identifying causal effects with computer algebra}, 
       Proceedings of the $26^{th}$ Conference of Uncertainty in Artificial Intelligence.
-      
+          
       Here is a typical use of this package.  We create the ideal in 16 variables whose zero set 
       represents the probability distributions on four binary random variables which satisfy the
-      conditional independence statements coming from the "diamond" graph d --> c,b --> a.
+      conditional independence statements coming from the "diamond" graph $4 \to 3, 2 \to 1$.
+      
     Example
-       G = digraph  {{a,{}},{b,{a}},{c,{a}},{d,{b,c}}}
-       R = markovRing (2,2,2,2)
-       S = globalMarkov G  --I = markovIdeal(R,G,S)     --netList pack(2,I_*)
+       G = digraph  {{1,{}},{2,{1}},{3,{1}},{4,{2,3}}}
+       R = markovRing (2,2,2,2) -- this ring corresponds to four binary random variables
+       S = globalMarkov G  
+       I = conditionalIndependenceIdeal (R,S);
+       netList pack(2,I_*)     
+       
     Text
       Sometimes an ideal can be simplified by changing variables.  Very often, 
       by using @TO marginMap@
       such ideals can be transformed to binomial ideals.  This is the case here.
+      
     Example
-       F = marginMap(1,R)        --I = F I --netList pack(2,I_*)
+       F = marginMap (1,R)        
+       J = F I; 
+       netList pack (2,J_*)
+       
     Text
       This ideal has 5 primary components.  The first component is the one that has statistical significance.
       It is the defining ideal of the variety parameterized by the 
       the factorization of the probability distributions 
-      according to the graph G. The remaining components lie on the boundary of the simplex
-      and are still poorly understood.
+      according to the graph G. The remaining components lie on the boundary of the simplex.
+      
     Example  
-      --netList primaryDecomposition I 
+      netList primaryDecomposition J
+      
     Text
-      The following example illustrates the caveat below.
+      The ideal in the next example correspond to a Gaussian graphical model on a graph with directed and bidirected edges.
+      The method @TO trekIdeal@ computes the ideal based on the trek separation statements of the mixed graph.
+      
     Example
-       H = digraph {{d,{b,a}},{c,{}},{b,{c}},{a,{c}}}
-       T = globalMarkov H  
-       --J = markovIdeal(R,H,T);        netList pack(2,J_*)       F = marginMap(3,R);       J = F J;       netList pack(2,J_*)
+      G = mixedGraph (digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+      R = gaussianRing G
+      J = trekIdeal (R,G) 
+      
     Text
-      Note that the graph $H$ is isomorphic to $G$, we have just relabeled the vertices. 
-      Observe that the vertices of $H$ are stored
-      in lexicographic order. Also note that the this graph isomorphism lifts to an isomorphism of ideals.     
+      The following ideal corresponds to a set of conditional statements of 5 Gaussian random variables.
+      
+    Example
+      R=gaussianRing 5
+      S={{{1},{2},{3,4}}, {{2,3},{1},{5}}}
+      I=conditionalIndependenceIdeal (R,S)    
+      
+    Text
+      The following people have generously contributed their time and effort to this project:  
+      
+      Alexander Diaz,
+      
+      Shaowie Lin<@HREF"http://math.berkeley.edu/~shaowei/"@>,
+      
+      David Murrugarra<@HREF"http://www.math.vt.edu/people/davidmur/Home.html"@>.
+      
   Caveat
      This package requires Graphs.m2, as a consequence it can do computations with graphs
-     whose vertices are not necessarily labeled by integers. This could potentially create some confusion about what does
-     $p_{i_1i_2\cdots i_n}$ mean. The package orders the vertices lexicographically, so 
+     whose vertices are not necessarily labeled by integers. This could potentially create some confusion 
+     regarding the joint probability distribution of discrete random variables. In order to avoid any ambiguity on
+     the meaning of the symbol  
+     $p_{i_1i_2\cdots i_n}$, GraphicalModels orders the vertices lexicographically. So 
      $p_{i_1i_2\cdots i_n} = p(X_1 = i_1, X_2 = i_2, \dots, X_n = i_n)$ where the labels
      $X_1,X_2,\dots,X_n$ have been ordered lexicographically. Therefore, the user is encouraged
      to label the vertices in a consistent way (all numbers, or all letters, etc).
@@ -1271,41 +1300,46 @@ doc ///
     (pairMarkov,Graph)
     (pairMarkov,Digraph)
   Headline
-    Pairwise Markov statements for a directed graph.
+    Pairwise Markov statements for a graph or a  directed graph.
   Usage
     pairMarkov G
   Inputs
     G: 
       @ofClass {Graph,Digraph}@
   Outputs
-    L:List
-      whose entries are triples {A,B,C} representing pairwise Markov  conditional independence statements of the form
-      ''A is independent of B given C'' that hold for G.
+    :List
+      whose entries are triples $\{A,B,C\}$ representing pairwise Markov  conditional independence statements of the form
+      ``$A$ is independent of $B$ given $C$'' that hold for $G$.
   Description
   
     Text
-      Given an undirected graph G, pairwise Markov statements are statements of the form \{v,w,nondescendents(G,v)-w\} 
-      for each vertex v of G. In other words, for every vertex v of G and all nondescendents w of v, 
-      v is independent of w given all other nondescendents. 
+      Given an undirected graph $G$, pairwise Markov statements are statements of the form 
+      \{$v$, $w$, all other vertices\}\   
+      for each pair of non-adjacent vertices $v$ and $w$ of $G$.
       
-      For example, for the undirected graph G on $5$ vertices with edges {{a,b},{b,c},{c,d},{d,e},{e,a}}, 
+      For example, for the undirected 5-cycle graph $G$, that is, the graph on $5$ vertices with edges 
+      $a---b---c---d---e--a$, 
       we get the following pairwise Markov statements:
+      
     Example
       G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
-      L = pairMarkov G
+      pairMarkov G
       
     Text
-      Given a directed graph G, pairwise Markov statements are statements of the form \{v,w,nondescendents(G,v)-w\} 
-      for each vertex v of G. In other words, for every vertex v of G and all nondescendents w of v, 
-      v is independent of w given all other nondescendents. 
+      Given a directed graph $G$, pairwise Markov statements are statements of the form \{$v$, $w$, nondescendents($G,v$)-$w$\}\ 
+      for each vertex $v$ of $G$ and each non-descendent vertex $w$ of $v$. In other words, for every vertex $v$ of $G$ and each nondescendent $w$ of $v$, 
+      this method returns the statement: $v$ is independent of $w$ given all other nondescendents. 
       
-      For example, for the digraph D on $4$ vertices with edges a->b, a->c, b->c, and b->d, 
+      For example, given the digraph $D$ on $7$ vertices with edges $1 \to 2, 1 \to 3, 2 \to 4, 2 \to 5, 3 \to 5, 3 \to 6, 4 \to 7, 5 \to 7$, and $6\to 7$, 
       we get the following pairwise Markov statements:
+      
     Example
-      D = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-      L = pairMarkov D
+      D = digraph {{1,{2,3}}, {2,{4,5}}, {3,{5,6}}, {4,{7}}, {5,{7}},{6,{7}},{7,{}}}
+      netList pack (3, pairMarkov D)
+      
     Text
       Note that the method displays only non-redundant statements.
+      
   SeeAlso
     localMarkov 
     globalMarkov
@@ -1321,7 +1355,7 @@ doc ///
     (localMarkov,Graph)
     (localMarkov,Digraph)
   Headline
-    Local Markov statements for a directed graph.
+    Local Markov statements for a graph or a directed graph.
   Usage
     localMarkov G
   Inputs
@@ -1329,33 +1363,37 @@ doc ///
       @ofClass {Graph,Digraph}@ 
   Outputs
     :List
-      whose entries are triples {A,B,C} representing local Markov  conditional independence statements of the form
-      ''A is independent of B given C'' that hold for G.
+      whose entries are triples $\{A,B,C\}$ representing local Markov  conditional independence statements of the form
+      ``$A$ is independent of B given C'' that hold for G.
   Description
   
     Text
-      Given an undirected graph G, local Markov statements are of the form
-      \{$v$, nondescendents($v$) - parents($v$), parents($v$)\} .
+      Given an undirected graph $G$, a local Markov statement is of the form
+      \{$v$, non-neighbours($v$), neighbours($v$)\} .
       That is, 
-      every vertex $v$ of G is independent of its nondescendents (excluding parents) given the parents. 
+      every vertex $v$ of $G$ is independent of its non-neighbours given its neighbours.
       
-      For example, for the undirected graph G on 5 vertices with edges {{a,b},{b,c},{c,d},{d,e},{e,a}}, 
+      For example, for the undirected  5-cycle graph $G$, that is, the graph on 5 vertices with 
+      $a---b---c---d---e---a$, 
       we get the following local Markov statements:
+      
     Example
       G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
-      L = localMarkov G
+      localMarkov G
       
     Text
-      Given a directed graph G, local Markov statements are of the form
+      Given a directed graph $G$, local Markov statements are of the form
       \{$v$, nondescendents($v$) - parents($v$), parents($v$)\} .
-      That is, 
-      every vertex $v$ of G is independent of its nondescendents (excluding parents) given the parents. 
+      In other words, 
+      every vertex $v$ of $G$ is independent of its nondescendents (excluding parents) given its parents. 
       
-      For example, for the digraph D on 4 vertices with edges a->b, a->c, b->c, and b->d, 
+      For example, given the digraph $D$ on $7$ vertices with edges $1 \to 2, 1 \to 3, 2 \to 4, 2 \to 5, 3 \to 5, 3 \to 6, 4 \to 7, 5 \to 7$, and $6\to 7$, 
       we get the following local Markov statements:
+      
     Example
-      D = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-      L = localMarkov D
+      D = digraph {{1,{2,3}}, {2,{4,5}}, {3,{5,6}}, {4,{7}}, {5,{7}},{6,{7}},{7,{}}}
+      netList pack (3, localMarkov D) 
+      
     Text
       Note that the method displays only non-redundant statements.
   SeeAlso
@@ -1373,7 +1411,7 @@ doc ///
     (globalMarkov,Digraph)
     (globalMarkov,Graph)
   Headline
-    Global Markov statements for a directed graph.
+    Global Markov statements for a graph or a directed graph.
   Usage
     globalMarkov G
   Inputs
@@ -1382,23 +1420,39 @@ doc ///
   Outputs
     :List
       whose entries are triples {A,B,C} representing global Markov  conditional independence statements of the form
-      ''A is independent of B given C'' that hold for G.
+      ``A is independent of B given C'' that hold for G.
   Description
+  
     Text
-      Given a directed graph G, global Markov states that      
-      A is independent of B given C for every triple of sets of vertices A, B, and C, 
-      such that A and B are $d$-separated by C (in the graph G).\break
+      Given an undirected graph $G$, a global Markov statement is of the form
+      $\{A, B, C\}$, where the subset $C$ separates the subset $A$ from the subset $B$ in the graph $G$.
+      
+      For example, for the undirected  5-cycle graph $G$, that is, the graph on 5 vertices with 
+      $a---b---c---d---e---a$, 
+      we get the following global Markov statements:
+      
+    Example
+      G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+      globalMarkov G
+      
+    Text
+      Given a directed graph $G$, global Markov states that      
+      $A$ is independent of $B$ given $C$ for every triple of sets of vertices $A$, $B$, and $C$, 
+      such that $A$ and $B$ are $d$-separated by $C$ (in the graph $G$).\break
        
       The global independent statements are computed using the Bayes ball algorithm,
-      as described in the paper "Bayes-Ball: The Rational Pastime (for Determining Irrelevance and Requisite Information
-      in Belief Networks and Influence Diagrams)" by Ross D. Shachter.
+      as described in the paper {\em Bayes-Ball: The Rational Pastime (for Determining Irrelevance and Requisite Information
+      in Belief Networks and Influence Diagrams)} by Ross D. Shachter.
       
-      For example, for the digraph D on 4 vertices with edges a->b, a->c, b->c, and b->d, 
+      For example, given the digraph $D$ on $7$ vertices with edges $1 \to 2, 1 \to 3, 2 \to 4, 2 \to 5, 3 \to 5, 3 \to 6, 4 \to 7, 5 \to 7$, and $6\to 7$, 
       we get the following global Markov statements:
+      
     Example
-      D = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}} 
-      L = globalMarkov D 
+      D = digraph {{1,{2,3}}, {2,{4,5}}, {3,{5,6}}, {4,{7}}, {5,{7}},{6,{7}},{7,{}}}
+      netList pack (3, globalMarkov D) 
+      
     Text
+    
       Note that the method displays only non-redundant statements.
   Caveat
     -- If G is large, this should maybe be rewritten so that
@@ -1417,7 +1471,8 @@ doc ///
     marginMap
     (marginMap,ZZ,Ring)
   Headline
-    Generates a linear map on joint probabilities for discrete variables that replaces marginals for indeterminates.
+    Generates a linear map on joint probabilitie distributions for discrete random variables that replaces 
+    marginals for indeterminates.
   Usage
     phi = marginMap(i,R)
   Inputs

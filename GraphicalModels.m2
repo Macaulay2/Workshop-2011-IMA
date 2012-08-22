@@ -1489,7 +1489,8 @@ doc ///
       R = markovRing (3,2)
       F = marginMap(1,R) 
       G = inverseMarginMap(1,R)
-      (F*G) .matrix == vars R
+      vars R
+      F*G -- we see that the composition is the identity map:
       
   SeeAlso
     hiddenMap

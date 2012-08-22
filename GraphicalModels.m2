@@ -642,7 +642,7 @@ bidirectedEdgesMatrix Ring := Matrix => R -> (
 ------------------------------------------------------------------
 
 markovMatrices = method()
-markovMatrices(Ring,List,List) := (R,VarNames,Stmts) -> (
+markovMatrices(Ring,List,List) := (R,Stmts,VarNames) -> (
      -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
      if not R.?markovRingData then error "expected a ring created with markovRing";
      d := R.markovRingData;
@@ -811,7 +811,7 @@ conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,Stmts,VarNames) ->(
      if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
      if #Stmts === 0 then ideal(0_R)
      else (	  	
-     	  M := markovMatrices(R,VarNames,Stmts);
+     	  M := markovMatrices(R,Stmts,VarNames);
      	  sum apply(M, m -> minors(2,m)) 
      	  )
      )	   
@@ -1679,9 +1679,9 @@ doc ///
     (markovMatrices,Ring,List)
     (markovMatrices,Ring,List,List) 
   Headline
-    The matrices whose minors form the ideal associated to the list of independence statements of the graph.
+    The matrices whose minors form the ideal of a list of independence statements.
   Usage
-    markovMatrices(R,VarNames,S)
+    markovMatrices(R,S,VarNames)
     markovMatrices(R,S)
   Inputs
     R:Ring
@@ -1704,14 +1704,14 @@ doc ///
       VarNames = {a,b,c,d}
       S = {{{a},{c},{d}}}
       R = markovRing (4:2)
-      L = markovMatrices (R,VarNames, S)
+      L = markovMatrices (R,S,VarNames)
     Text
       Here is an example where the independence statements are extracted from a graph
     Example  
       G = graph{{a,b},{b,c},{c,d},{a,d}}
       S = localMarkov G
       R = markovRing (4:2)
-      L = markovMatrices (R,vertices G,S)   
+      L = markovMatrices (R,S,vertices G)   
   SeeAlso
     markovRing
 ///

@@ -550,6 +550,8 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      G := graph collateVertices g;
      dd := graph G#Digraph;
      bb := graph G#Bigraph;
+     uu := G#Graph;
+     if #(edges uu) > 0 then error "mixedgraph must have no undirected part ";
      vv := sort vertices g;
      s := opts.sVariableName;
      l := opts.lVariableName;
@@ -1680,11 +1682,6 @@ doc ///
       as input gives a gaussianRing with extra indeterminates related to the parametrization
       of the graphical model associated to that graph. If a graph is used, 
       the indeterminates in the gaussianRing are indexed by the vertices in the graph G.  
-      
-      The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
-      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, 
-      @TO gaussianVanishingIdeal@ and @TO gaussianParametrization@ require that the 
-      ring be created by this function. 
 
     Example
       R = gaussianRing 5;
@@ -1720,6 +1717,12 @@ doc ///
       covarianceMatrix R
       directedEdgesMatrix R
       bidirectedEdgesMatrix R
+      
+    Text        
+      The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
+      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, 
+      @TO gaussianVanishingIdeal@ and @TO gaussianParametrization@ require that the 
+      ring be created by this function. 
 
   SeeAlso
     bidirectedEdgesMatrix
@@ -1828,7 +1831,7 @@ doc///
    Headline
      the matrix corresponding to the bidirected edges of a mixed graph
    Usage
-     W = bidirectedEdgesMatrix R
+     bidirectedEdgesMatrix R
    Inputs
      R:Ring
        which should be a gaussianRing created with a mixed graph
@@ -1840,7 +1843,7 @@ doc///
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       S = bidirectedEdgesMatrix R
+       bidirectedEdgesMatrix R
 
    SeeAlso
      gaussianRing
@@ -1860,20 +1863,24 @@ doc///
    Headline
      the matrix corresponding to the directed edges of a mixed graph
    Usage
-     L = directedEdgesMatrix R
+     directedEdgesMatrix R
    Inputs
      R:Ring
-       which should be a gaussianRing
+       which should be a gaussianRing created with a mixed graph
    Outputs
-     L:Matrix
-       the n x n matrix of symbols where we have $l_{(i,j)}$ if there is a directed edge i-->j, and 0 otherwise.
+     :Matrix
+       the n x n matrix of indeterminates where we have $l_{(i,j)}$ in the $(i,j)$ 
+       position
+       if there is a directed edge i-->j, and 0 otherwise.
    Description 
      Text
        Note that this matrix is NOT symmetric in the symbols.
+
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       S = directedEdgesMatrix R
+       directedEdgesMatrix R
+
    SeeAlso
      gaussianRing
      gaussianParametrization

@@ -819,12 +819,14 @@ conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,Stmts,VarNames) ->(
 
 
 ------------------------------------------------------------------
--- gaussianParametrization (Ring,MixedGraph)
+-- gaussianParametrization (Ring)
 ------------------------------------------------------------------
 
 gaussianParametrization = method(Options=>{SimpleTreks=>false})
-gaussianParametrization (Ring,MixedGraph) := Matrix => opts -> (R,g) -> (
+gaussianParametrization Ring := Matrix => opts -> R -> (
      if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
+     if not R.?mixedGraph then error "must be a gaussianRing created with a mixed graph";
+     g := R.mixedGraph;
      S := covarianceMatrix R;    
      W := bidirectedEdgesMatrix R;     
      L := directedEdgesMatrix R;
@@ -1128,8 +1130,11 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
 ------------------------------------------------------------------
 
 identifyParameters = method()
-identifyParameters (Ring,MixedGraph) := HashTable => (R,g) -> (
-     J := ideal unique flatten entries (covarianceMatrix(R)-gaussianParametrization(R,g));
+identifyParameters Ring := HashTable => R -> (
+     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
+     if not R.?mixedGraph then error "must be a gaussianRing created with a mixed graph";     
+     g := R.mixedGraph;
+     J := ideal unique flatten entries (covarianceMatrix(R)-gaussianParametrization(R));
      G := graph g;
      m := #edges(G#Digraph)+#edges(G#Bigraph)+#vertices(g);
      plvars := toList apply(0..m-1,i->(flatten entries vars R)#i);
@@ -1972,7 +1977,7 @@ doc///
 doc/// 
    Key
      gaussianParametrization
-     (gaussianParametrization,Ring,MixedGraph)
+     (gaussianParametrization,Ring)
      [gaussianParametrization, SimpleTreks]
    Headline
      the parametrization of the covariance matrix in terms of treks
@@ -1981,8 +1986,6 @@ doc///
    Inputs
      R:Ring
        which should be a gaussianRing
-     G:MixedGraph
-       mixed graph with directed and bidirected edges
    Outputs
      M:Matrix
        the parametrization of the covariance matrix in terms of treks
@@ -1995,27 +1998,35 @@ doc///
        to the mixed graph G can be parametrized by the matrix equation $S = (I-L)^{-T}W(I-L)^{-1}$, where
        I is the identity matrix.
        
-       The entry $S_{(i,j)}$ of the covariance matrix can also be written as the sum of all monomials corresponding
+       The entry $s_{(i,j)}$ of the covariance matrix can also be written as the sum of all monomials corresponding
        to treks between vertices i and j. See @TO trekSeparation@ for the definition of a trek. The monomial corresponding
        to a trek is the product of all parameters associated to the directed and bidirected edges on the trek.
        
-       The following example shows how to compute the ideal of the model using the parametrization.
+       The following example shows how to compute the ideal of the model using the parametrization,
+       which could also be computed using @TO gaussianVanishingIdeal@
+
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
        S = covarianceMatrix(R)
        L = directedEdgesMatrix(R)
        W = bidirectedEdgesMatrix(R)       
-       M = gaussianParametrization(R,G)
+       M = gaussianParametrization(R)
        J = delete(0_R, flatten entries (L|W))
        eliminate(J, ideal(S-M))
+       gaussianVanishingIdeal(R)
+       
      Text
        This next example shows how to use the option @TO SimpleTreks@ to compute a parametrization using simple treks 
-       instead of all treks. The resulting covariance matrix has diagonal entries equal to 1.
+       instead of all treks. The resulting covariance matrix has diagonal entries equal to 1.  This is
+       giving a parametrization of all correlation matrices of matrices that belong to the model.  This
+       formulation is also known as Wright's method of path analysis.
+
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       M = gaussianParametrization(R,G,SimpleTreks=>true)
+       M = gaussianParametrization(R,SimpleTreks=>true)
+
    SeeAlso
      covarianceMatrix
      directedEdgesMatrix
@@ -2052,16 +2063,14 @@ doc ///
 doc/// 
    Key
      identifyParameters
-     (identifyParameters,Ring,MixedGraph)
+     (identifyParameters,Ring)
    Headline
      solving the identifiability problem: expressing each parameter in terms of covariances 
    Usage
      H = identifyParameters(R,G)
    Inputs
      R:Ring
-       which should be a gaussianRing
-     G:MixedGraph
-       mixed graph with directed and bidirected edges
+       which should be a gaussianRing created with a mixed graph
    Outputs
      H:HashTable
        where H#p is the ideal of equations involving only the parameter p and the covariances s_{(i,j)}
@@ -2074,10 +2083,13 @@ doc///
        If H#p contains a polynomial in p of degree d, then p is algebraically d-identifiable.
        
        If H#p does not contain any polynomial in p, then p is not generically identifiable.
+
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
-       H = identifyParameters(R,G)
+       H = identifyParameters R
+     
+     Text  
    SeeAlso
      gaussianRing
 ///

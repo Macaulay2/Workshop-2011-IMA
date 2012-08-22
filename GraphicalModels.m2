@@ -1666,6 +1666,9 @@ doc ///
     gaussianRing G 
     gaussianRing(n,Coefficients=>Ring) 
     gaussianRing(n,sVariableName=>Symbol)
+    gaussianRing(G,lVariableName=>Symbol)
+    gaussianRing(G,pVariableName=>Symbol)
+    gaussianRing(G,kVariableName=>Symbol)    
   Inputs
     n:ZZ
       the number of random variables
@@ -1675,12 +1678,20 @@ doc ///
   Outputs
     :Ring
       a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
-      additionally $l_{(i,j)}, w_{(i,j)}$ for mixed graphs
+      additionally $l_{(i,j)}, p_{(i,j)}$ for mixed graphs or $k_{(i,j)}$ for graphs
   Description
     Text
+      This function creates a ring whose indeterminates are the covariances of an 
+      n dimensional Gaussian random vector.  Using a graph, digraph, or mixed graph G
+      as input gives a gaussianRing with extra indeterminates related to the parametrization
+      of the graphical model associated to that graph. If a graph is used, 
+      the indeterminates in the gaussianRing are indexed by the vertices in the graph G.  
+      
       The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
-      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, and
-      @TO gaussianParametrization@ require that the ring be created by this function. 
+      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, 
+      @TO gaussianVanishingIdeal@ and @TO gaussianParametrization@ require that the 
+      ring be created by this function. 
+
     Example
       R = gaussianRing 5;
       gens R
@@ -1688,27 +1699,26 @@ doc ///
       
     Text
       For undirected graphs, ...
+
     Example
       G = graph({{a,b},{b,c},{c,d},{a,d}})
       R = gaussianRing G
       gens R
-    Text
-      Recovering the graph from the gaussian ring
-    Example
-      -- R#gaussianRing
-      --R.graph  
       covarianceMatrix R
       undirectedEdgesMatrix R
+
     Text
       For directed graphs......
+
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
       R = gaussianRing G;
-      --R.digraph --the digraph gets stored in the ring --CAN'T ACCESS IT; BUT CAN PEEK!
+
     Text
       For mixed graphs, there is a variable $l_{(i,j)}$ for
-      each directed edge i->j, a variable $w_{(i,i)}$ for each node i, and a variable $w_{(i,j)}$ 
+      each directed edge i->j, a variable $p_{(i,i)}$ for each node i, and a variable $p_{(i,j)}$ 
       for each bidirected edge i<->j.
+
     Example
       G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
       R = gaussianRing G
@@ -1716,11 +1726,13 @@ doc ///
       covarianceMatrix R
       directedEdgesMatrix R
       bidirectedEdgesMatrix R
+
   SeeAlso
+    bidirectedEdgesMatrix
     conditionalIndependenceIdeal
     covarianceMatrix
     directedEdgesMatrix
-    bidirectedEdgesMatrix
+    gaussianVanishingIdeal
     trekIdeal
 ///
 
@@ -1735,39 +1747,29 @@ doc///
      gaussianMatrices
      (gaussianMatrices,Ring,List)
    Headline
-     Matrices whose minors form the ideal corresponding to the conditional independence ideal
+     Matrices whose minors generate the gaussian conditional independence ideal
    Usage
      gaussianMatrices(R,S)
    Inputs
      R:Ring
        must be a gaussianRing
-     G:Digraph
-       a directed acyclic graph
      S:List
        of conditional independence statements
    Outputs
      :Matrix
-       whose minors  form the ideal corresponding to the conditional independence ideal
+       whose minors generate the gaussian conditional independence ideal
    Description 
+   
      Text
-       This method displays a list of matrices whose minors generate the conditional independence ideal.  
-       Some people might find this useful.
+       This method displays a list of matrices whose minors generate the  gaussian 
+       conditional independence ideal.  It is called as a subroutine in @TO conditionalIndependenceIdeal@
+       but some people might find it useful to explicitly have these matrices.
+
      Example
        R = gaussianRing 4;
        Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
        gaussianMatrices(R,Stmts)
-     Text
-       If the gaussianRing is created with a graph G, then random variable names are obtained from the vertex labels of G:
-     Example
-       G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
-       R = gaussianRing G
-       gaussianMatrices (R,globalMarkov G)
-     Text
-       If the gaussianRing is created with a digraph G, then random variable names are obtained from the vertex labels of G:
-     Example
-       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-       R = gaussianRing G
-       gaussianMatrices (R,globalMarkov G)
+
    SeeAlso
      gaussianRing
      conditionalIndependenceIdeal
@@ -1790,26 +1792,30 @@ doc///
        which should be a gaussianRing
    Outputs
      :Matrix
-       the $n \times{} n$ covariance matrix of symbols where n is the number of vertices in $G$
+       the $n \times{} n$ covariance matrix  where n is the number of random
+       variables in the Gaussian graphical model.  If the gaussianRing was created
+       using a graph, $n$ will be the number of vertices of the graph.
    Description 
      Text
        If this function is called without a graph G, it is assumed that R is the gauss ring of a directed acyclic graph.
+
      Example
+       covarianceMatrix gaussianRing 4
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
        R = gaussianRing G
        S = covarianceMatrix R
+
      Text
-       Note that the covariance matrix is symmetric in the symbols.
+       This function also works for gaussianRings created with a graph or mixedGraph.
+
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
-       R = gaussianRing G
-       S = covarianceMatrix R       
-     Text
-       Note that the covariance matrix is symmetric in the symbols.
-     Example
+       R = gaussianRing G 
+       S = covarianceMatrix R      
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
        S = covarianceMatrix R
+
    SeeAlso
      gaussianRing
      gaussianParametrization
@@ -1831,18 +1837,17 @@ doc///
      W = bidirectedEdgesMatrix R
    Inputs
      R:Ring
-       which should be a gaussianRing
+       which should be a gaussianRing created with a mixed graph
    Outputs
-     S:Matrix
-       the n x n symmetric matrix of symbols where we have $w_{(i,i)}$ for each vertex i, 
-       $w_{(i,j)}$ if there is a bidirected edge between i and j, and 0 otherwise.
+     :Matrix
+       the n x n symmetric matrix of indeterminates where we have $p_{(i,i)}$ for each vertex i, 
+       $p_{(i,j)}$ if there is a bidirected edge between i and j, and 0 otherwise.
    Description 
-     Text
-       Note that this matrix is symmetric in the symbols.
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
        S = bidirectedEdgesMatrix R
+
    SeeAlso
      gaussianRing
      gaussianParametrization

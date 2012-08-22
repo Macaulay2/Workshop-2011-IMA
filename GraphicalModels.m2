@@ -1427,29 +1427,43 @@ doc ///
     marginMap
     (marginMap,ZZ,Ring)
   Headline
-    Generates a linear map on joint probabilitie distributions for discrete random variables that replaces marginals for indeterminates.
+    Generates a linear map on joint distributions for discrete random variables replacing marginals for indeterminates.
   Usage
-    phi = marginMap(i,R)
+    marginMap(i,R)
   Inputs
     i:ZZ
       the index of the variable to marginalize
     R:Ring
-      a Markov ring
+      a markovRing
   Outputs
-    phi:RingMap
+    :RingMap
   Description
     Text
-      Returns the ring map F : R -> R such that
-      $ F p_{u_1,u_2,..., +,...,u_n} = p_{u_1,u_2,...,1,...,u_n} $ and
-      $ F p_{u1,u2,..., j,...,un} = p_{u1,u2,..., j,...,un} $, for $ j\geq 2 $.
+      Let $p_{u_1,u_2,\dots, +,\dots,u_n}$ denote the linear form $p_{u_1,u_2,\dots, 1,\dots,u_n} + \dots + p_{u_1,u_2,\dots, d_i,\dots,u_n}$, where $d_i$ is the number of
+      states of random variable $X_i$.
+      
+      The method marginMap returns the ring map $F : R \to R$ such that
+      $ F(p_{u_1,u_2,\dots, +,\dots,u_n}) = p_{u_1,u_2,\dots,1,\dots,u_n}$ and
+      $ F(p_{u_1,u_2,\dots, j,\dots,u_n}) = p_{u_1,u_2,\dots, j,\dots,u_n} $, for all $j\geq 2$.
+      
     Example
-      marginMap(1,markovRing(3,2)) 
+      marginMap(1,markovRing(3,2))
+      
     Text
       This linear transformation simplifies ideals and/or polynomials involving 
       $ p_{u_1,u_2,..., +,...,u_n} $. In some cases, the resulting ideals are toric 
-      ideals as the example at the beginning of the documentation. For more details 
+      ideals as the example below shows. For more details 
       see the paper "Algebraic Geometry of Bayesian Networks" by Garcia, Stillman, and
-      Sturmfels. 
+      Sturmfels.
+      
+    Example
+      G = digraph  {{1,{}},{2,{1}},{3,{1}},{4,{2,3}}}
+      R = markovRing (2,2,2,2)
+      S = globalMarkov G
+      I = conditionalIndependenceIdeal (R,S)	
+      F = marginMap(1,R)
+      F I  
+      
   SeeAlso
     hiddenMap
 ///

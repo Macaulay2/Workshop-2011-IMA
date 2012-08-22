@@ -811,7 +811,7 @@ conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
      	  )	   
 )     
 
-conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
+conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,Stmts,VarNames) ->(
      if not R.?markovRingData then error "expected a ring created with markovRing";
      if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
      if #Stmts === 0 then ideal(0_R)
@@ -2150,7 +2150,7 @@ doc///
     the ideal of CI relations for a given list of CI statements
   Usage
     conditionalIndependenceIdeal(R,Stmts)
-    conditionalIndependenceIdeal(R,VarNames,Stmts)
+    conditionalIndependenceIdeal(R,Stmts,VarNames)
   Inputs
     R:Ring
       which must be a gaussianRing or a markovRing (error will be returned otherwise)
@@ -2188,7 +2188,7 @@ doc///
       R = markovRing (2,2,2,2)
       VarNames = {c,d,e,f}
       Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
-      conditionalIndependenceIdeal(R,VarNames,Stmts)
+      conditionalIndependenceIdeal(R,Stmts,VarNames)
     Text
      If you want the CI ideal with statements associated to a graph, use the following commands
     Example
@@ -2528,10 +2528,22 @@ M = matrix{{s_(1,3), s_(1,4), s_(1,2), s_(1,5)},{s_(3,4), s_(4,4), s_(2,4), s_(4
 assert({M} === L)
 ///
 
+--------------------------------------
+-- TEST conditionalIndependenceIdeal
+--------------------------------------
+
+TEST///
+R=gaussianRing 5
+S={{{1},{2},{3,4}}, {{2,3},{1},{5}}}
+I=conditionalIndependenceIdeal (R,S)
+assert(numcols mingens I == 4)
+assert(isSubset(ideal( -s_(1,4)*s_(2,4)*s_(3,3)+s_(1,4)*s_(2,3)*s_(3,4)+s_(1,3)*s_(2,4)*s_(3,4)-s_(1,2)*s_(3,4)^2-s_(1,3)*s_(2,3)*s_(4,4)+s_(1,2)*s_(3,3)*s_(4,4) ), I))
+///
 
 --------------------------------
 -- TEST discreteVanishingIdeal
 --------------------------------
+
 TEST///
 G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 R = markovRing (2,3,4,2)
@@ -2618,6 +2630,18 @@ R = markovRing (3,2)
 F = marginMap(1,R) 
 m = matrix {{p_(1,1)-p_(2,1)-p_(3,1), p_(1,2)-p_(2,2)-p_(3,2), p_(2,1), p_(2,2), p_(3,1), p_(3,2)}}
 assert(F.matrix === m)
+///
+
+--------------------------
+--- TEST inverseMarginMap     ---
+--------------------------
+
+TEST ///
+R = markovRing (3,2)
+F = marginMap(1,R) 
+m = matrix {{p_(1,1)-p_(2,1)-p_(3,1), p_(1,2)-p_(2,2)-p_(3,2), p_(2,1), p_(2,2), p_(3,1), p_(3,2)}}
+G = inverseMarginMap(1,R)
+assert( (F*G) .matrix == vars R)
 ///
 
 --------------------------

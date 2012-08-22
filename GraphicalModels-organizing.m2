@@ -213,8 +213,8 @@ ok (two tests): gaussianMatrices(Ring,List)
 --******************************************************************--
 --  Methods for creating ideals that vanish for a graphical model   --
 --******************************************************************--
-MISSING: conditionalIndependenceIdeal (Ring,List)
-MISSING: conditionalIndependenceIdeal (Ring,List,List)
+ok: conditionalIndependenceIdeal (Ring,List)
+ok (missing but ok): conditionalIndependenceIdeal (Ring,List,List)
 ok: discreteVanishingIdeal (Ring,Graph)
 ok: gaussianParametrization (Ring,MixedGraph)
 ok (graph and digraph): gaussianVanishingIdeal Ring
@@ -226,6 +226,7 @@ ok: trekIdeal (Ring,Digraph)
 --  Methods for manipulating polynomial maps frequently used in graphical models
 --********************************************************************************************************************************--
 ok: marginMap(ZZ,Ring)
-MISSING: inverseMarginMap(ZZ,Ring) 
+ok: inverseMarginMap(ZZ,Ring) 
 ok: hiddenMap(ZZ,Ring)
 ok: identifyParameters (Ring,MixedGraph)
+

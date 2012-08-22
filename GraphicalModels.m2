@@ -26,85 +26,14 @@ newPackage(
      Headline => "A package for discrete and Gaussian graphical models",
      DebuggingMode => true
      )
-
-------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------
--- ADDING gaussian undirected stuff during the IMA-2011 workshop...
--- we have tried to comment most changes in the code. some minor (but fundamental) changes to other methods have 
--- been thorougly documented on the WIKI!
---     	    	      Sonja & Seth
-------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------
-
-------------------------------------------
--- Algebraic Statistics in Macaulay2
--- Authors: Luis Garcia-Puente and Mike Stillman
--- Collaborators: Alexander Diaz, Shaowei Lin and Sonja Petrović
--- 
--- Routines:
---  Markov relations:
---   pairMarkov (Digraph G)
---   localMarkov (Digraph G)
---   globalMarkov (Digraph G)
---   bayesBall (set A, set C, Digraph G)  [internal function used by globalMarkov]
---
---  Removing redundant statements: 
---   equivStmts (S,T) -- [internal routine used within Markov relation routines]
---   setit (d) -- [internal routine used within Markov relation routines] 
---   under (d) -- [internal routine used within Markov relation routines]
---   sortdeps (Ds) -- [internal routine used within Markov relation routines]
---   normalizeStmt (D) -- [internal routine used within Markov relation routines]
---   minimize (Ds) -- [internal routine used within Markov relation routines]
---   removeRedundants (Ds) -- [internal routine used within Markov relation routines]
---
---  Markov Rings: 
---   markovRing (sequence d)
---   marginMap(R,i) : R --> R
---   hiddenMap(R,i) : R --> S
---
---  Markov Ideals:
---   markovMatrices (Ring R, Digraph G, List S)  -- S is a list of independence statements
---   markovIdeal (Ring R, Digraph G, List S)  -- S is a list of independence statements
---   cartesian -- [internal routine used in MarkovMatrices and MarkovIdeal]
---   possibleValues -- [internal routine used in MarkovMatrices and MarkovIdeal]
---   prob -- [internal routine used in MarkovMatrices and MarkovIdeal]
---   getPositionofVertices (Digraph G, list D) -- [internal routine]
---   
---  Gaussian directed acyclic graphs:
---   gaussianRing (Integer n)
---   gaussianRing (Digraph G)
---   covarianceMatrix (Ring R)
---   covarianceMatrix (Ring R, Digraph G)
---   gaussianMatrix (Ring R, Digraph G, List S) -- [internal routine]
---   gaussianMatrices (Ring R, Digraph G, List S) 
---   trekIdeal (Ring R, Digraph D)
---    
--- Gaussian mixed graphs (DAG + Bidirected)
---   pos -- [internal routine]
---   setToBinary -- [internal routine]
---   subsetsBetween -- [internal routine]
---   gaussianRing (MixedGraph G)
---   covarianceMatrix (Ring R, MixedGraph G)
---   directedEdgesMatrix (Ring R, MixedGraph G)
---   bidirectedEdgesMatrix (Ring R, MixedGraph G)
---   gaussianParametrization (Ring R, MixedGraph G)
---   identifyParameters (Ring R, MixedGraph G)
---   trekSeparation (MixedGraph G)
---   trekIdeal (Ring R, MixedGraph G, List L)
---   trekIdeal (Ring R, MixedGraph G)
---
-------------------------------------------
--- Gaussian undirected graphs:
---   gaussianRing
-
 export {bidirectedEdgesMatrix,
        Coefficients,
+       conditionalIndependenceIdeal,
        covarianceMatrix,
        directedEdgesMatrix,
-       discreteVanishingIdeal,
        gaussianMatrices,
        gaussianParametrization,
-       SimpleTreks,
+       gaussianVanishingIdeal,
        gaussianRing, 
        globalMarkov,
        hiddenMap,
@@ -117,15 +46,14 @@ export {bidirectedEdgesMatrix,
        pairMarkov, 
        trekIdeal, 
        trekSeparation,
+       SimpleTreks,
+       undirectedEdgesMatrix,
        VariableName,
        sVariableName,
        kVariableName,
        lVariableName,
-       pVariableName,
-       gaussianVanishingIdeal,
-       undirectedEdgesMatrix,
-       conditionalIndependenceIdeal
-	} 
+       pVariableName
+       	} 
      
 needsPackage "Graphs"
 
@@ -135,100 +63,36 @@ gaussianRingData = local gaussianRingData
 gaussianVariables = local gaussianVariables
 numberOfEliminationVariables = local numberOfEliminationVariables  --entry stored inside gaussianRing
 
---------------------------
---   Markov relations   --
---------------------------
 
---------------------------
---   pairMarkov         --
---------------------------
 
-pairMarkov = method()
-pairMarkov Digraph := List => (G) -> (
-     -- given a digraph G, returns a list of triples {A,B,C}
-     -- where A,B,C are disjoint sets, and for every vertex v
-     -- and non-descendent w of v,
-     -- {v, w, nondescendents(G,v) - w}
-     if isCyclic G then error("digraph must be acyclic");
-     removeRedundants flatten apply(sort vertices G, v -> (
-    	       ND := nondescendents(G,v);
-     	       W := ND - parents(G,v);
-     	       apply(toList W, w -> {set {v}, set{w}, ND - set{w}}))))
-    
+--**************************--
+--  INTERNAL ROUTINES        	  --
+--**************************--
 
---------------------------
---   localMarkov        --
---------------------------
+--*************************************--
+--  Functions used by Markov methods   --
+--*************************************--
 
-localMarkov = method()			 
-localMarkov Digraph := List =>  (G) -> (
-     -- Given a digraph G, return a list of triples {A,B,C}
-     -- of the form {v, nondescendents - parents, parents}
-     if isCyclic G then error("digraph must be acyclic");
-     result := {};
-     scan(sort vertices G, v -> (
-	       ND := nondescendents(G,v);
-	       P := parents(G,v);
-	       if #(ND - P) > 0 then
-	         result = append(result,{set{v}, ND - P, P})));
-     removeRedundants result)
 
---------------------------
---   globalMarkov       --
---------------------------
- 
-globalMarkov = method()
-globalMarkov Digraph := List => (G) -> (
-     -- Given a graph G, return a complete list of triples {A,B,C}
-     -- so that A and B are d-separated by C (in the graph G).
-     -- If G is large, this should maybe be rewritten so that
-     -- one huge list of subsets is not made all at once
-     V := sort vertices G;
-     result := {};
-     AX := subsets V;
-     AX = drop(AX,1); -- drop the empty set
-     AX = drop(AX,-1); -- drop the entire set
-     scan(AX, A -> (
-	       A = set A;
-	       Acomplement := toList(set V - A);
-	       CX := subsets Acomplement;
-	       CX = drop(CX,-1); -- we don't want C to be the entire complement
-	       scan(CX, C -> (
-			 C = set C;
-			 B := bayesBall(A,C,G);
-			 if #B > 0 then (
-			      B1 := {A,B,C};
-			      if all(result, B2 -> not equivStmts(B1,B2))
-			      then 
-			          result = append(result, {A,B,C});
-	       )))));
-     removeRedundants result
-     )
-
---------------------------
--- Bayes ball algorithm --
---------------------------
+--------------------------------------------
+-- bayesBall
+-- A is a set in 1..n (n = #G)
+-- C is a set in 1..n (the "blocking set")
+-- G is a DAG
+-- Returns the subset B of 1..n which is independent of A given C.
+-- The algorithm is the Bayes Ball algorithm, as implemented by Luis Garcia-Puente, 
+-- after the paper of Ross D. Shachter.
+--------------------------------------------
 
 bayesBall = (A,C,G) -> (
-     -- A is a set in 1..n (n = #G)
-     -- C is a set in 1..n (the "blocking set")
-     -- G is a DAG
-     -- Returns the subset B of 1..n which is
-     --   independent of A given C.
-     -- The algorithm is the Bayes Ball algorithm,
-     -- as implemented by Luis Garcia-Puente, after
-     -- the paper of Ross D. Shachter.
-     --
      V := sort vertices G;
-     -- DEVELOPMENT NOTES: 
-     -- 
      visited := new MutableHashTable from apply(V, k-> k=>false);
      blocked :=  new MutableHashTable from apply(V, k-> k=>false);
      up :=  new MutableHashTable from apply(V, k-> k=>false);
      down := new MutableHashTable from apply(V, k-> k=>false);
      top :=  new MutableHashTable from apply(V, k-> k=>false);
      bottom := new MutableHashTable from apply(V, k-> k=>false);
-     vqueue := toList A; -- sort toList A
+     vqueue := toList A;
      -- Now initialize vqueue, set blocked
      scan(vqueue, a -> up#a = true);
      scan(toList C, c -> blocked#c = true);
@@ -268,32 +132,116 @@ bayesBall = (A,C,G) -> (
 		    vqueue = join(vqueue,ch);
 		    );
 	       );
-	  ); -- while loop
+	  );
      set toList select(V, i -> not blocked#i and not bottom#i)     
-     )
+     )     
+
+--*************************************--
+--  Functions used throughout          --
+--*************************************--
+
+-- NOTE:
+-- /// FIX ME /// DELETE ME /// DO SOMETHING! ///
+--  ALL THE FUNCTIONS (in this section) BELOW ARE DECLARED GLOBAL INSTEAD OF LOCAL
+-- FOR THE REASON THAT LOCAL DEFINITIONS WOULD INEXPLICABLY 
+-- CREATE ERRORS. --Amelia? Luis? ---this is an old error message?! check this!
 
 
-------------------------------------------------------------------
--- Removing redundant statements:                               --
--- called from local, global, and pairwise Markov methods.      --
-------------------------------------------------------------------
 
--- An independent statement is a list {A,B,C}
+---------------------------------------------------------------
+-- cartesian
+-- cartesian({d_1,...,d_n}) returns the cartesian product 
+-- of {0,...,d_1-1} x ... x {0,...,d_n-1}
+---------------------------------------------------------------
+
+cartesian = (L) -> (
+     if #L == 1 then 
+	return toList apply (L#0, e -> 1:e);
+     L0 := L#0;
+     Lrest := drop (L,1);
+     C := cartesian Lrest;
+     flatten apply (L0, s -> apply (C, c -> prepend (s,c))))
+
+
+
+--------------------------------------------
+-- position of an element x in a list h
+--------------------------------------------
+
+pos = (h, x) -> position(h, i->i===x)
+
+
+
+--------------------------------------------------------------------------
+-- possibleValues ((d_1,...,d_n),A) returns the cartesian product 
+-- of all d_i's such that the vertex i is a member of the list A
+-- it assumes that the list A is a list of integers.
+--------------------------------------------------------------------------
+possibleValues = (d,A) ->
+     cartesian (toList apply(0..#d-1, i -> 
+	       if member(i,A) 
+	       then toList(1..d#i) 
+	       else {0}))
+     
+     
+     
+-------------------------------------------------------
+-- prob((d_1,...,d_n),(s_1,dots,s_n))
+-- Note: this function assumes that R is a markovRing
+-------------------------------------------------------
+
+prob = (R,s) -> (
+     d := R.markovRingData;
+     p := i -> R.markovVariables#i;
+     L := cartesian toList apply (#d, i -> 
+	   if s#i === 0 
+	   then toList(1..d#i) 
+	   else {s#i});
+     sum apply (L, v -> p v))
+
+
+
+-------------------------------------------------------------------------------
+-- takes a list A, and a sublist B of A, and converts 
+-- the membership sequence of 0's and 1's of elements of B in A to binary
+-------------------------------------------------------------------------------
+
+setToBinary = (A,B) -> sum(toList apply(0..#A-1, i->2^i*(if (set B)#?(A#i) then 1 else 0)))
+
+
+
+-------------------------------------------------------
+-- returns all subsets of B which contain A:
+-------------------------------------------------------
+
+subsetsBetween = (A,B) -> apply(subsets ((set B) - A), i->toList (i+set A))
+
+
+
+
+--***********************************************************************************--
+--  Functions used within Markov relation routines to remove redundant CI statements --
+--***********************************************************************************--
+
+
+--------------------------------------------------------------------------------------
+-- Removing redundant statements:                              
+-- called from local, global, and pairwise Markov methods.     
+--
+-- A conditional independence statement is a list {A,B,C}
 -- where A,B,C are (disjoint) subsets of labels for nodes in the graph.
 -- It should be interpreted as: A independent of B given C.
 -- A dependency list is a list of dependencies.
-
--- We have several simple routines to remove
--- the most obvious redundant elements, 
+-- 
+-- We have several simple routines to remove the most obvious redundant elements, 
 -- but a more serious attempt to remove dependencies could be made.
+--------------------------------------------------------------------------------------
 
--- If S and T represent exactly the same dependency, return true.
- 
--- check for symmetry:
 equivStmts = (S,T) -> S#2 === T#2 and set{S#0,S#1} === set{T#0,T#1} 
+     -- If S and T represent exactly the same dependency, return true.
 
--- More serious removal of redundancies.  
-setit = (d) -> {set{d#0,d#1},d#2}
+setit = (d) -> {set{d#0,d#1},d#2} 
+     -- More serious removal of redundancies.  
 
 under = (d) -> (
            d01 := toList d_0;
@@ -346,20 +294,24 @@ minimize = (Ds) -> (
 	  );
      apply(answer, normalizeStmt))
 
+--------------------------------------------------------------------------------------
+-- removeRedundants: the general function
+-- Ds is a list of triples of sets {A,B,C}
+-- test1: returns true if D1 can be removed
+-- Return a sublist of Ds which removes any that test1 declares not necessary.
+-- 
+--  **CAVEAT**
+--  This works just fine when used internally, e.g. from localMarkov. 
+--  However, if we export it and try to use it, there is a problem: we seem to be 
+--  attempting to add a List to a Set in 2 lines of "under".
+--------------------------------------------------------------------------------------
+
 removeRedundants = (Ds) -> (
-     -- Ds is a list of triples of sets {A,B,C}
-     -- test1: returns true if D1 can be removed
-     -- Return a sublist of Ds which removes any 
-     -- that test1 declares not necessary.
-     --**CAVEAT: this works just fine when used internally, e.g. from localMarkov. 
-     --  However, if we export it and try to use it, there is a problem: we seem to be 
-     --  attempting to add a List to a Set in 2 lines of "under".
      test1 := (D1,D2) -> (D1_2 === D2_2 and 
                           ((isSubset(D1_0, D2_0) and isSubset(D1_1, D2_1))
 	               or (isSubset(D1_1, D2_0) and isSubset(D1_0, D2_1))));
-     -- first remove non-unique elements, if any
      Ds = apply(Ds, d -> {set{d#0,d#1}, d#2});
-     Ds = unique Ds;
+     Ds = unique Ds;      -- first remove non-unique elements, if any.
      Ds = apply(Ds, d -> append(toList(d#0), d#1));
      c := toList select(0..#Ds-1, i -> (
 	       a := Ds_i;
@@ -367,15 +319,147 @@ removeRedundants = (Ds) -> (
 	       all(D0, b -> not test1(a,b))));
      minimize(Ds_c))
 
--------------------
--- Markov rings ---
--------------------
+
+
+--**************************--
+--  METHODS 	      	   	  --
+--**************************--
+
+--****************************************************************************************--
+--  Methods for creating conditional independence statements from graphs and digraphs	  --
+--****************************************************************************************--
+
+----------------------------------------------------
+-- pairMarkov
+-- pairMarkov Graph does the following:
+-- given a graph G, returns a list of triples {A,B,C}
+-- where A,B,C are disjoint sets of the form:
+-- for all non-edges {i,j}:  {i,j, all other vertices} 
+-- pairMarkov Digraph does the following:
+-- given a digraph G, returns a list of triples {A,B,C}
+-- where A,B,C are disjoint sets, and for every vertex v
+-- and non-descendent w of v,
+-- {v, w, nondescendents(G,v) - w}
+----------------------------------------------------
+
+pairMarkov = method()
+pairMarkov Graph := List => (G) -> (
+     removeRedundants flatten apply(sort vertices G, v -> (
+     	  apply(toList nonneighbors(G,v), non-> (
+		    {set {v}, set {non}, set vertices G - set {v} - set {non}}
+		    )
+	       )
+	  )
+     )
+)
+
+pairMarkov Digraph := List => (G) -> (
+     if isCyclic G then error("digraph must be acyclic");
+     removeRedundants flatten apply(sort vertices G, v -> (
+    	       ND := nondescendents(G,v);
+     	       W := ND - parents(G,v);
+     	       apply(toList W, w -> {set {v}, set{w}, ND - set{w}}))))
+    
+
+
+----------------------------------------------------
+-- localMarkov Graph
+-- localMarkov Digraph
+-- Given a graph G, return a list of triples {A,B,C}
+-- of the form {v, nonneighbors of v, all other vertices }
+-- Given a digraph G, return a list of triples {A,B,C}
+-- of the form {v, nondescendents - parents, parents}
+----------------------------------------------------
+
+localMarkov = method()
+localMarkov Graph := List =>  (G) -> (
+     removeRedundants apply(sort vertices G, v -> (
+	   {set {v},  nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
+		    )
+	       )
+	  )		
+     	 
+localMarkov Digraph := List =>  (G) -> (
+     if isCyclic G then error("digraph must be acyclic");
+     result := {};
+     scan(sort vertices G, v -> (
+	       ND := nondescendents(G,v);
+	       P := parents(G,v);
+	       if #(ND - P) > 0 then
+	         result = append(result,{set{v}, ND - P, P})));
+     removeRedundants result)
+
+
+------------------------------------------------------------------------------
+-- globalMarkov Graph
+-- globalMarkov Digraph
+-- Given a graph G, return a list of triples {A,B,C}
+-- of the form {A,B,C} if C separates A and B in the graph.
+-- Given a graph G, return a complete list of triples {A,B,C}
+-- so that A and B are d-separated by C (in the graph G).
+-- If G is large, this should maybe be rewritten so that
+-- one huge list of subsets is not made all at once
+------------------------------------------------------------------------------
+
+globalMarkov = method()
+globalMarkov Graph := List => (G) ->(
+     AX := subsets vertices G;
+     AX = drop(AX,1); -- drop the empty set
+     AX = drop(AX,-1); -- drop the entire set
+     -- product should apply * to entire list. note that  * of sets is intersection.
+     statements := for A in AX list (
+	  B:=product apply(A, v-> nonneighbors(G,v) ); --this is the list of all B's 
+	  if #B === 0 then continue; -- need both A and B to be nonempty
+     	  C := (vertices G) - set A - B ;
+     	  {set A,  B, set C}
+	  );
+    removeRedundants  statements
+    ) 
+ 
+globalMarkov Digraph := List => (G) -> (
+     V := sort vertices G;
+     result := {};
+     AX := subsets V;
+     AX = drop(AX,1); -- drop the empty set
+     AX = drop(AX,-1); -- drop the entire set
+     scan(AX, A -> (
+	       A = set A;
+	       Acomplement := toList(set V - A);
+	       CX := subsets Acomplement;
+	       CX = drop(CX,-1); -- we don't want C to be the entire complement
+	       scan(CX, C -> (
+			 C = set C;
+			 B := bayesBall(A,C,G);
+			 if #B > 0 then (
+			      B1 := {A,B,C};
+			      if all(result, B2 -> not equivStmts(B1,B2))
+			      then 
+			          result = append(result, {A,B,C});
+	       )))));
+     removeRedundants result
+     )
+
+
+
+--*************************************************************************
+--  Methods for creating polynomial rings that carry information about   --
+--  random variables and/or underlying graph, digraph or mixed graph     --
+--*************************************************************************
+
+------------------------------------------------------------------------------------------------
+-- markovRing Sequence
+-- outputs a polynomial ring of ....***********************....
+-- d should be a sequence of integers di >= 1
+--
+-- NOTE: there is a mutable hash table of all Markov rings created, so as to not re-create rings!
+-- the hashtable is indexed by the sequence d, the coefficient ring kk, and the variable name p, 
+-- as this information identifies the Markov ring uniquely. 
+------------------------------------------------------------------------------------------------
 
 markovRingList := new MutableHashTable;
--- the hashtable is indexed by the sequence d, the coefficient ring kk, and the variable name p.
+
 markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=>getSymbol "p"})
 markovRing Sequence := Ring => opts -> d -> (
-     -- d should be a sequence of integers di >= 1
      if any(d, di -> not instance(di,ZZ) or di <= 0)
      then error "markovRing expected positive integers";
      kk := opts.Coefficients;
@@ -388,9 +472,140 @@ markovRing Sequence := Ring => opts -> d -> (
 	  H := new HashTable from apply(#vlist, i -> vlist#i => R_i);
 	  R.markovVariables = H;
 	  markovRingList#(d,kk,toString p) = R;
-	 -- markovRingList#(d,kk,toString p).markovRingData = d;
 	  );
      markovRingList#(d,kk,toString p))
+
+
+
+------------------------------------------------------------------
+-- gaussianRing ZZ
+-- gaussianRing Graph 
+-- gaussianRing Digraph
+-- gaussianRing MixedGraph
+-- NOTE: the mutable hash table of all gaussian rings created is indexed by:
+--     (coefficient field, variable name, number of r.v.'s) --in case of ZZ input
+--     (coefficient field, variable name, vertices of the directed graph) --in case of Digraph input
+--     (coefficient field, variable name, whole undirected graph) --in case of Graph input
+------------------------------------------------------------------
+
+gaussianRingList := new MutableHashTable;
+
+gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
+	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",})
+gaussianRing ZZ :=  Ring => opts -> (n) -> (
+     -- s_{1,2} is the (1,2) entry in the covariance matrix.
+     -- this assumes r.v.'s are labeled by integers.
+     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
+     kk := opts.Coefficients;
+     if (not gaussianRingList#?(kk,s,n)) then ( 
+	  --(kk,s,n) uniquely identifies gaussianRing in case of ZZ input.
+     w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
+     v := apply (w, ij -> s_ij);
+     R := kk(monoid [v, MonomialSize=>16]);
+     R.gaussianRingData = n; 
+     H := new HashTable from apply(#w, i -> w#i => R_i); 
+     R.gaussianVariables = H;
+     gaussianRingList#((kk,s,n)) = R;); 
+     gaussianRingList#((kk,s,n))
+     )
+
+gaussianRing Graph := Ring => opts -> (g) -> (
+    bb := graph g;
+    vv := sort vertices g;
+    s := opts.sVariableName;
+    k := opts.kVariableName;
+    kk := opts.Coefficients;
+    if (not gaussianRingList#?(kk,s,k,bb)) then ( 
+	 --(kk,s,k,bb) uniquely identifies gaussianRing in case of Graph input.
+    sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
+    kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
+    m := #kL; --eliminate the k's 
+    R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); 
+    R#numberOfEliminationVariables = m;
+    R.gaussianRingData = {#vv,s,k};
+    R.graph = g;
+    gaussianRingList#((kk,s,k,bb)) = R;); 
+    gaussianRingList#((kk,s,k,bb))
+    )
+
+gaussianRing Digraph :=  Ring => opts -> (G) -> (
+     -- Input is a Digraph G, 
+     -- we read off the list of labels from the vertices.
+     -- This is done to avoid any ordering confusion. 
+     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
+     kk := opts.Coefficients;
+     vv := sort vertices G; 
+     if (not gaussianRingList#?(kk,s,vv)) then ( 
+	  --(kk,s,vv) uniquely identifies gaussianRing in case of Digraph input.
+     w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
+     v := apply (w, ij -> s_ij);
+     R := kk(monoid [v, MonomialSize=>16]);
+     R.gaussianRingData = #vv;
+     H := new HashTable from apply(#w, i -> w#i => R_i); 
+     R.gaussianVariables = H;
+     R.digraph = G; --changed 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
+     gaussianRingList#((kk,s,vv)) = R;); 
+     gaussianRingList#((kk,s,vv))
+     )
+
+
+gaussianRing MixedGraph := Ring => opts -> (g) -> (
+     G := graph collateVertices g;
+     dd := graph G#Digraph;
+     bb := graph G#Bigraph;
+     vv := sort vertices g;
+     s := opts.sVariableName;
+     l := opts.lVariableName;
+     p := opts.pVariableName;
+     kk := opts.Coefficients;          
+     if (not gaussianRingList#?(kk,s,l,p,vv)) then ( 
+	  --(kk,s,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
+     sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
+     lL := delete(null, flatten apply(vv, x-> apply(toList dd#x, y->l_(x,y))));	 
+     pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
+     m := #lL+#pL;
+     R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
+     R#numberOfEliminationVariables = m;
+     R.gaussianRingData = {#vv,s,l,p};
+     R.mixedGraph = g;
+     gaussianRingList#((kk,s,l,p,vv)) = R;); 
+     gaussianRingList#((kk,s,l,p,vv))
+     )
+
+
+
+
+
+
+
+
+
+--------------------------
+--   Markov relations   --
+--------------------------
+
+--------------------------
+--   pairMarkov         --
+--------------------------
+
+--------------------------
+--   localMarkov        --
+--------------------------
+
+--------------------------
+--   globalMarkov       --
+--------------------------
+ 
+
+
+
+
+
+ 
+-------------------
+-- Markov rings ---
+-------------------
+
 
  ----------------
  -- marginMap ---
@@ -464,8 +679,6 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
 -- Markov ideals --
 -------------------
 
--- returns the position in list h of  x
-pos = (h, x) -> position(h, i->i===x)
 -- the following function retrieves the position of the vertices 
 -- in the graph G for all vertices contained in the list S
 -- vertices G does not return a sorted list of the vertices 
@@ -520,39 +733,8 @@ markovMatrices(Ring,List) := (R,Stmts) -> (
 -- Constructing the ideal of an independence relation --
 --------------------------------------------------------
 
--- NOTE: ALL THE FUNCTIONS BELOW ARE DECLARED GLOBAL INSTEAD OF LOCAL
--- FOR THE REASON THAT LOCAL DEFINITIONS WOULD INEXPLICABLY 
--- CREATE ERRORS. --Amelia? Luis?
       
--- cartesian ({d_1,...,d_n}) returns the cartesian product 
--- of {0,...,d_1-1} x ... x {0,...,d_n-1}
-cartesian = (L) -> (
-     if #L == 1 then 
-	return toList apply (L#0, e -> 1:e);
-     L0 := L#0;
-     Lrest := drop (L,1);
-     C := cartesian Lrest;
-     flatten apply (L0, s -> apply (C, c -> prepend (s,c))))
 
--- possibleValues ((d_1,...,d_n),A) returns the cartesian product 
--- of all d_i's such that the vertex i is a member of the list A
--- it assumes that the list A is a list of integers.
-possibleValues = (d,A) ->
-     cartesian (toList apply(0..#d-1, i -> 
-	       if member(i,A) 
-	       then toList(1..d#i) 
-	       else {0}))
-     
--- prob((d_1,...,d_n),(s_1,dots,s_n))
--- this function assumes that R is a markovRing
-prob = (R,s) -> (
-     d := R.markovRingData;
-     p := i -> R.markovVariables#i;
-     L := cartesian toList apply (#d, i -> 
-	   if s#i === 0 
-	   then toList(1..d#i) 
-	   else {s#i});
-     sum apply (L, v -> p v))
 
 
 
@@ -564,56 +746,8 @@ prob = (R,s) -> (
 -- gaussianRing    --
 ---------------------
 
-------------------------------------------------------------------------------------------------------------------------------
--- QUESTION: how come markovRing is smart, and stores a hashtable markovRingList so as to not re-create rings, 
--- 	     and gaussianRing does not do that? 
---     	    Should this be fixed?      	    	 --- Sonja 28jul2011
---    FIXED: 	       	    	      	   	 ---Sonja 29jul2011
- ------------------------------------------------------------------------------------------------------------------------------
-gaussianRingList := new MutableHashTable;
---the mutable hash table of all gaussian rings created is indexed by:
---     (coefficient field, variable name, number of r.v.'s) --in case of ZZ input
---     (coefficient field, variable name, vertices of the directed graph) --in case of Digraph input
---     (coefficient field, variable name, whole undirected graph) --in case of Graph input
-gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
-	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",})
-gaussianRing ZZ :=  Ring => opts -> (n) -> (
-     -- s_{1,2} is the (1,2) entry in the covariance matrix.
-     -- this assumes r.v.'s are labeled by integers.
-     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
-     kk := opts.Coefficients;
-     if (not gaussianRingList#?(kk,s,n)) then ( 
-	  --(kk,s,n) uniquely identifies gaussianRing in case of ZZ input.
-     w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
-     v := apply (w, ij -> s_ij);
-     R := kk(monoid [v, MonomialSize=>16]);
-     R.gaussianRingData = n; 
-     H := new HashTable from apply(#w, i -> w#i => R_i); 
-     R.gaussianVariables = H;
-     gaussianRingList#((kk,s,n)) = R;); 
-     gaussianRingList#((kk,s,n))
-     )
-     
-gaussianRing Digraph :=  Ring => opts -> (G) -> (
-     -- Input is a Digraph G, 
-     -- we read off the list of labels from the vertices.
-     -- This is done to avoid any ordering confusion. 
-     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
-     kk := opts.Coefficients;
-     vv := sort vertices G; 
-     if (not gaussianRingList#?(kk,s,vv)) then ( 
-	  --(kk,s,vv) uniquely identifies gaussianRing in case of Digraph input.
-     w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
-     v := apply (w, ij -> s_ij);
-     R := kk(monoid [v, MonomialSize=>16]);
-     R.gaussianRingData = #vv;
-     H := new HashTable from apply(#w, i -> w#i => R_i); 
-     R.gaussianVariables = H;
-     R.digraph = G; --changed 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
-     gaussianRingList#((kk,s,vv)) = R;); 
-     gaussianRingList#((kk,s,vv))
-     )
 
+     
 ------------------------
 --- covarianceMatrix ---
 ------------------------
@@ -704,25 +838,6 @@ gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
 -- all these are totally new methods, but we also added a bunch of other functionality for undirected graphs throughout the package
 -- 26-29july2011 
 -----------------------------------------
-
-gaussianRing Graph := Ring => opts -> (g) -> (
-    bb := graph g;
-    vv := sort vertices g;
-    s := opts.sVariableName;
-    k := opts.kVariableName;
-    kk := opts.Coefficients;
-    if (not gaussianRingList#?(kk,s,k,bb)) then ( 
-	 --(kk,s,k,bb) uniquely identifies gaussianRing in case of Digraph input.
-    sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
-    kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
-    m := #kL; --eliminate the k's 
-    R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); --what is MonomialSize?
-    R#numberOfEliminationVariables = m;
-    R.gaussianRingData = {#vv,s,k};
-    R.graph = g;
-    gaussianRingList#((kk,s,k,bb)) = R;); 
-    gaussianRingList#((kk,s,k,bb))
-    )
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix Ring := Matrix =>  R -> (
@@ -838,44 +953,7 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      
 
 
-pairMarkov Graph := List => (G) -> (
-     -- given a graph G, returns a list of triples {A,B,C}
-     -- where A,B,C are disjoint sets of the form:
-     -- for all non-edges {i,j}:  {i,j, all other vertices} 
-     removeRedundants flatten apply(sort vertices G, v -> (
-     	  apply(toList nonneighbors(G,v), non-> (
-		    {set {v}, set {non}, set vertices G - set {v} - set {non}}
-		    )
-	       )
-	  )
-     )
-)
 
-localMarkov Graph := List =>  (G) -> (
-     -- Given a graph G, return a list of triples {A,B,C}
-     -- of the form {v, nonneighbors of v, all other vertices }
-     removeRedundants apply(sort vertices G, v -> (
-	   {set {v},  nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
-		    )
-	       )
-	  )
-
-globalMarkov Graph := List => (G) ->(
-     -- Given a graph G, return a list of triples {A,B,C}
-     -- of the form {A,B,C} if C separates A and B in the graph.
-     AX := subsets vertices G;
-     AX = drop(AX,1); -- drop the empty set
-     AX = drop(AX,-1); -- drop the entire set
-     -- product should apply * to entire list. note that  * of sets is intersection.
-     statements := for A in AX list (
-	  B:=product apply(A, v-> nonneighbors(G,v) ); --this is the list of all B's 
-	  if #B === 0 then continue; -- need both A and B to be nonempty
-     	  C := (vertices G) - set A - B ;
-     	  {set A,  B, set C}
-	  );
-    removeRedundants  statements
-    ) 
- 
  
 conditionalIndependenceIdeal=method()
 conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
@@ -948,16 +1026,6 @@ conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,VarNames,Stmts) ->(
 -- Gaussian mixed graphs    --
 ------------------------------
 
--------------------------
--- INTERNAL FUNCTIONS --
--------------------------
-
--- takes a list A, and a sublist B of A, and converts the membership sequence of 0's and 1's of elements of B in A to binary
-setToBinary = (A,B) -> sum(toList apply(0..#A-1, i->2^i*(if (set B)#?(A#i) then 1 else 0)))
-
--- returns all subsets of B which contain A
-subsetsBetween = (A,B) -> apply(subsets ((set B) - A), i->toList (i+set A))
-
 ------------------------------
 -- RINGS, MATRICES AND MAPS --
 ------------------------------
@@ -965,29 +1033,6 @@ subsetsBetween = (A,B) -> apply(subsets ((set B) - A), i->toList (i+set A))
 --------------------
 --- gaussianRing ---
 --------------------
-
-gaussianRing MixedGraph := Ring => opts -> (g) -> (
-     G := graph collateVertices g;
-     dd := graph G#Digraph;
-     bb := graph G#Bigraph;
-     vv := sort vertices g;
-     s := opts.sVariableName;
-     l := opts.lVariableName;
-     p := opts.pVariableName;
-     kk := opts.Coefficients;          
-     if (not gaussianRingList#?(kk,s,l,p,vv)) then ( 
-	  --(kk,s,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
-     sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
-     lL := delete(null, flatten apply(vv, x-> apply(toList dd#x, y->l_(x,y))));	 
-     pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
-     m := #lL+#pL;
-     R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
-     R#numberOfEliminationVariables = m;
-     R.gaussianRingData = {#vv,s,l,p};
-     R.mixedGraph = g;
-     gaussianRingList#((kk,s,l,p,vv)) = R;); 
-     gaussianRingList#((kk,s,l,p,vv))
-     )
 
 
 ---------------------------

@@ -1423,12 +1423,12 @@ doc ///
     marginMap
     (marginMap,ZZ,Ring)
   Headline
-    Generates a linear map on joint distributions for discrete random variables replacing marginals for indeterminates.
+    Generates a linear map on joint distributions for discrete random variables replacing marginals for indeterminates
   Usage
     marginMap(i,R)
   Inputs
     i:ZZ
-      the index of the variable to marginalize
+      the index of the variable on which to perform the `marginalization trick'
     R:Ring
       a markovRing
   Outputs
@@ -1461,9 +1461,41 @@ doc ///
       F I  
       
   SeeAlso
-    hiddenMap
+    hiddenMap 
+    inverseMarginMap
 ///
 
+--------------------------------
+-- Documentation inverseMarginMap    --
+--------------------------------
+
+doc ///
+  Key
+    inverseMarginMap
+    (inverseMarginMap,ZZ,Ring)
+  Headline
+    computes the inverse of the marginMap
+  Usage
+    inverseMarginMap(i,R)
+  Inputs
+    i:ZZ
+      the index of the variable for which to undo the "margin trick"
+    R:Ring
+      a markovRing
+  Outputs
+    :RingMap
+  Description      
+    Example
+      R = markovRing (3,2)
+      F = marginMap(1,R) 
+      G = inverseMarginMap(1,R)
+      (F*G) .matrix == vars R
+      
+  SeeAlso
+    hiddenMap
+    marginMap      
+///
+  
 --------------------------------
 -- Documentation hiddenMap    --
 --------------------------------`

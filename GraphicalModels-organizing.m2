@@ -168,3 +168,64 @@ marginMap(ZZ,Ring)
 inverseMarginMap(ZZ,Ring) 
 hiddenMap(ZZ,Ring)
 identifyParameters (Ring,MixedGraph)
+
+
+--********************************************************************************************************************************--
+--********************************************************************************************************************************--
+-- LIST OF ALL THE TESTS WE HAD (in order they used to appear): --- now it says "ok" if they have been checked and moved to the list below; see below... 
+
+ok---- TEST pairMarkov  ----
+ok---- TEST localMarkov  ---
+ok--- TEST globalMarkov  ---
+ok--- TEST marginMap     ---
+
+
+--********************************************************************************************************************************--
+-- NEW LIST OF ALL THE TESTS WE HAD (in order they appear now, and marked 'ok' if they have been checked): 
+--****************************************************************************************--
+--  TESTS FOR Methods for creating conditional independence statements from graphs and digraphs	  --
+--****************************************************************************************--
+ok: pairMarkov Graph
+ok: pairMarkov Digraph
+ok: localMarkov Graph
+ok: localMarkov Digraph
+new, ok: globalMarkov Graph
+ok: globalMarkov Digraph
+--**************************************************************************************************************************************--
+--  TESTS FOR Methods for creating polynomial rings that carry information about random variables and/or underlying graph, digraph or mixed graph --
+--**************************************************************************************************************************************--
+ok: markovRing Sequence
+ok: gaussianRing ZZ
+ok: gaussianRing Graph 
+ok: gaussianRing Digraph
+ok: gaussianRing MixedGraph
+--********************************************************************************************************************************--
+--  Methods for creating matrices relevant for the graphical models (covariance matrix, matrices whose minors vanish on the model)--
+--********************************************************************************************************************************--
+ok: undirectedEdgesMatrix Ring 
+ok: directedEdgesMatrix Ring 
+ok: bidirectedEdgesMatrix Ring
+new, ok: markovMatrices(Ring,List,List) 
+ok: markovMatrices(Ring,List)
+ok (with graph, digraph, mixedgraph!): covarianceMatrix(Ring)
+ok (two tests): gaussianMatrices(Ring,List)
+
+--******************************************************************--
+--  Methods for creating ideals that vanish for a graphical model   --
+--******************************************************************--
+MISSING: conditionalIndependenceIdeal (Ring,List)
+MISSING: conditionalIndependenceIdeal (Ring,List,List)
+ok: discreteVanishingIdeal (Ring,Graph)
+ok: gaussianParametrization (Ring,MixedGraph)
+ok (graph and digraph): gaussianVanishingIdeal Ring
+ok: trekSeparation MixedGraph
+ok: trekIdeal (Ring,MixedGraph)
+ok (no need to test; just calls other tested methods): trekIdeal (Ring,Graph)
+ok: trekIdeal (Ring,Digraph)
+--********************************************************************************************************************************--
+--  Methods for manipulating polynomial maps frequently used in graphical models
+--********************************************************************************************************************************--
+ok: marginMap(ZZ,Ring)
+MISSING: inverseMarginMap(ZZ,Ring) 
+ok: hiddenMap(ZZ,Ring)
+ok: identifyParameters (Ring,MixedGraph)

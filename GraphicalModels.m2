@@ -2325,6 +2325,14 @@ doc///
 ---- TEST pairMarkov  ----
 --------------------------
 
+TEST /// 
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+S = pairMarkov G
+Ssorted = apply(S, s-> replace(2,sort(s_2),s) )
+L = {{{a}, {d}, sort {e, b, c}}, {{c}, {e}, sort {d, a, b}}, {{b}, {d},sort {e,a, c}}, {{b}, {e},sort {d, a, c}}, {{a}, {c},sort {d, e, b}}}
+assert(sort Ssorted === sort L)
+/// 
+
 TEST ///
 G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 S = pairMarkov G
@@ -2338,10 +2346,14 @@ assert(S === L)
 --------------------------
 
 TEST ///
--- G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
--- S = localMarkov G
--- L = {{{2}, {3}, {1}}, {{1}, {4}, {2, 3}}}
--- assert(S === L)
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
+S = localMarkov G
+L = {{{a}, {c, d},sort {e, b}}, {{a, b}, {d},sort {e, c}}, {{a, e}, {c},sort {d, b}}, {{b, c}, {e}, sort{d, a}}, {{b}, {d, e}, sort{a, c}}}
+Ssorted = apply(S, s-> replace(2,sort(s_2),s) )
+assert(sort Ssorted === sort L)
+///
+
+TEST ///
 G = digraph { {1,{2,3,4}}, {5,{2,3,4}} }
 S = localMarkov G
 S = apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
@@ -2354,33 +2366,19 @@ assert(S === L)
 --------------------------
 
 TEST ///
-G = digraph { {2, {1}}, {3,{2}}, {4,{1,3}} }
+G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 S = globalMarkov G
-S = apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
-L = {{{1}, {3}, {2, 4}}, {{2}, {4}, {3}}}
+S = sort apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
+L={{{a}, {c, d}, {b, e}}, {{a, b}, {d}, {c, e}}, {{a, e}, {c}, {b, d}}, {{b}, {d, e}, {a,c}}, {{b, c}, {e}, {a, d}}}
 assert(S === L)
 ///
 
---------------------------
---- TEST marginMap     ---
---------------------------
-
 TEST ///
-R = markovRing (3,2)
-F = marginMap(1,R) 
-m = matrix {{p_(1,1)-p_(2,1)-p_(3,1), p_(1,2)-p_(2,2)-p_(3,2), p_(2,1), p_(2,2), p_(3,1), p_(3,2)}}
-assert(F.matrix === m)
-///
-
---------------------------
---- TEST hiddenMap     ---
---------------------------
-
-TEST ///
-R = markovRing (2,3,2)
-F = hiddenMap(1,R) 
-m = matrix {{p_(1,1,1)+p_(2,1,1), p_(1,1,2)+p_(2,1,2), p_(1,2,1)+p_(2,2,1), p_(1,2,2)+p_(2,2,2), p_(1,3,1)+p_(2,3,1), p_(1,3,2)+p_(2,3,2)}}
-assert(F.matrix === m)
+G = digraph { {2, {1}}, {3,{2}}, {4,{1,3}} }
+S = globalMarkov G
+S = sort apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
+L = {{{1}, {3}, {2, 4}}, {{2}, {4}, {3}}}
+assert(S === L)
 ///
 
 --------------------------
@@ -2391,44 +2389,39 @@ TEST ///
 d = (2,2,2)
 R = markovRing (d, Coefficients=>CC, VariableName=>q)
 V = {q_(1,1,1), q_(1,1,2), q_(1,2,1), q_(1,2,2), q_(2,1,1), q_(2,1,2), q_(2,2,1), q_(2,2,2)}
-assert(gens R === V)
+assert(sort gens R === sort V)
 ///
 
-------------------------------
---- TEST markovMatrices    ---
-------------------------------
-
-TEST ///
-G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
-S = localMarkov G
-R = markovRing (2,2,2,2)
-L = markovMatrices (R,S) 
-M = L#1
-m = matrix {{p_(2,1,1,1)+p_(2,1,1,2), p_(2,1,2,1)+p_(2,1,2,2)},{p_(2,2,1,1)+p_(2,2,1,2), p_(2,2,2,1)+p_(2,2,2,2)}} 
-assert(M === m)
-///
-
-
------------------------------------------------
---- TEST Gaussian Directed Graphical Models ---
------------------------------------------------
-
-----------------------------------------------------------------------------------------------
---27 JULY 2011
------------------------------------------------
---- TESTs for undirected methods:-------------- 
------------------------------------------------
- 
 -----------------------------------------------
 --- TEST gaussianRing--------------------------
 -----------------------------------------------
 
+TEST ///
+R = gaussianRing 4
+B = gens R
+L = {s_(1,1), s_(1,2), s_(1,3), s_(1,4), s_(2,2), s_(2,3), s_(2,4), s_(3,3), s_(3,4), s_(4,4)}
+assert(sort B === sort L)
+///
+
 TEST /// 
+d=getSymbol "d"
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R = gaussianRing G
 correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,d), k_(a,b),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}
 assert(0 == vars R - matrix correctOutput )
 /// 
+     
+TEST /// 
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = gaussianRing G
+assert(sort gens R === sort {s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)})
+///
+
+TEST ///
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R = gaussianRing G
+assert(sort gens R === sort {l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p_(c,c), p_(d,d), p_(a,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)})
+///
 
 -----------------------------------------------
 --- TEST undirectedEdgesMatrix-----------------
@@ -2440,152 +2433,6 @@ R=gaussianRing G
 M=undirectedEdgesMatrix(R)
 correctOutput = {{k_(a,a), k_(a,b), 0, k_(a,d)}, {k_(a,b), k_(b,b), k_(b,c),0}, {0, k_(b,c), k_(c,c), k_(c,d)}, {k_(a,d), 0, k_(c,d),k_(d,d)}}
 assert(0 == M - matrix correctOutput )
-///
-
------------------------------------------------
---- TEST covarianceMatrix(R,G)-----------------
------------------------------------------------
-
-TEST ///
-G = graph({{a,b},{b,c},{c,d},{a,d}}) 
-R=gaussianRing G 
-cov=covarianceMatrix R
-correctOutput = {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b),s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)},{s_(a,d), s_(b,d), s_(c,d), s_(d,d)}}
-assert(0 == cov - matrix correctOutput )
-///
-
------------------------------------------------
---- TEST gaussianVanishingIdeal-----------------
------------------------------------------------
-
-TEST ///
-G = graph({{a,b},{b,c},{c,d},{a,d}}) 
-R=gaussianRing G 
-I = gaussianVanishingIdeal R
-correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,d)+s_(a,b)*s_(b,d)*s_(c,d)+s_(a,c)*s_(b,b)*s_(d,d)-s_(a,b)*s_(b,c)*s_(d,d),s_(a,c)*s_(a,d)*s_(b,c)-s_(a,c)^2*s_(b,d)-s_(a,b)*s_(a,d)*s_(c,c)+s_(a,a)*s_(b,d)*s_(c,c)+s_(a,b)*s_(a,c)*s_(c,d)-s_(a,a)*s_(b,c)*s_(c,d), s_(a,b)*s_(a,d)*s_(b,d)*s_(c,c)-s_(a,a)*s_(b,d)^2*s_(c,c)-s_(a,c)*s_(a,d)*s_(b,b)*s_(c,d)+s_(a,a)*s_(b,c)*s_(b,d)*s_(c,d)+s_(a,c)^2*s_(b,b)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)*s_(d,d), s_(a,b)*s_(a,c)*s_(b,d)^2*s_(c,c)-s_(a,a)*s_(b,c)*s_(b,d)^2*s_(c,c)-s_(a,c)^2*s_(b,b)*s_(b,d)*s_(c,d)+s_(a,a)*s_(b,c)^2*s_(b,d)*s_(c,d)-s_(a,b)^2*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,a)*s_(b,b)*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,b)*s_(a,c)*s_(b,b)*s_(c,d)^2-s_(a,a)*s_(b,b)*s_(b,c)*s_(c,d)^2+s_(a,c)^2*s_(b,b)*s_(b,c)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)^2*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,b)*s_(c,c)*s_(d,d)+s_(a,b)^2*s_(b,c)*s_(c,c)*s_(d,d)}
-assert( I == ideal correctOutput)
-///
-
-TEST ///
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-R = gaussianRing G
-I = gaussianVanishingIdeal(R) 
-correctOutput = { -s_(a,d)*s_(b,b)+s_(a,b)*s_(b,d), s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d), s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d) }
-assert( I == ideal correctOutput)
-///
---------------------------
----- TEST pairMarkov  ----
---------------------------
-
-TEST /// 
-G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
-S = pairMarkov G
-Ssorted = apply(S, s-> replace(2,sort(s_2),s) )
-L = {{{a}, {d}, sort {e, b, c}}, {{c}, {e}, sort {d, a, b}}, {{b}, {d},sort {e,a, c}}, {{b}, {e},sort {d, a, c}}, {{a}, {c},sort {d, e, b}}}
-assert(sort Ssorted === sort L)
-/// 
-
---------------------------
----- TEST localMarkov  ---
---------------------------
-
-TEST ///
-G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
-S = localMarkov G
-L = {{{a}, {c, d},sort {e, b}}, {{a, b}, {d},sort {e, c}}, {{a, e}, {c},sort {d, b}}, {{b, c}, {e}, sort{d, a}}, {{b}, {d, e}, sort{a, c}}}
-Ssorted = apply(S, s-> replace(2,sort(s_2),s) )
-assert(sort Ssorted === sort L)
-///
-
-----------------------------------------------------------------------------------------------
-
-
-----------------------------
---- TEST gaussianRing    ---
-----------------------------
-
-TEST ///
-R = gaussianRing 4
-B = gens R
-L = {s_(1,1), s_(1,2), s_(1,3), s_(1,4), s_(2,2), s_(2,3), s_(2,4), s_(3,3), s_(3,4), s_(4,4)}
-assert(B === L)
-///
-     
-TEST /// 
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-assert(toString gaussianRing G === "QQ[s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)]")
-///
-
------------------------------
---- TEST covarianceMatrix ---
------------------------------
-
-TEST /// 
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-R = gaussianRing G
-S = covarianceMatrix R
-assert(0==S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)}, {s_(a,d), s_(b,d), s_(c,d), s_(d,d)}})
-///
-
-
-
-------------------------------
---- TEST gaussianMatrices  ---
-------------------------------
-
-TEST ///
-G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
-R = gaussianRing G
-S = localMarkov G
-L = gaussianMatrices(R,S)
-M1 = matrix {{s_(1,4), s_(1,3)}, {s_(2,4), s_(2,3)}, {s_(3,4), s_(3,3)}}
-M2 = matrix {{s_(1,5), s_(1,4), s_(1,3)},{s_(2,5), s_(2,4), s_(2,3)},{s_(4,5), s_(4,4), s_(3,4)}, {s_(3,5), s_(3,4), s_(3,3)}}
-M3 = matrix {{s_(1,3), s_(1,2)},{s_(2,3), s_(2,2)}}
-assert({M1,M2,M3} === L)
-///
-
-TEST ///
-G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
-R = gaussianRing G
-L = gaussianMatrices(R,{{{1},{3},{4,2,5}}})
-M = matrix{{s_(1,3), s_(1,4), s_(1,2), s_(1,5)},{s_(3,4), s_(4,4), s_(2,4), s_(4,5)},{ s_(2,3), s_(2,4) ,s_(2,2), s_(2,5)}, { s_(3,5), s_(4,5), s_(2,5) ,s_(5,5) }}
-assert({M} === L)
-///
-
------------------------
---- TEST trekIdeal  ---
------------------------
-
---TEST ///
---G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
---R = gaussianRing G
---I = trekIdeal(R,G)
---assert(I==ideal(s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d),s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d),s_(a,d)*s_(b,b)-s_(a,b)*s_(b,d)))
---///
-
------------------------------------------------
---- TEST Gaussian Mixed Graphical Models ------
------------------------------------------------
-
--------------------------
---- TEST gaussianRing ---
--------------------------
-
-TEST ///
-G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
-R = gaussianRing G
-assert(flatten entries vars R ==={l_(b,c), l_(b,d), l_(c,d), p_(a,a), p_(b,b), p_(c,c), p_(d,d), p_(a,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)})
-///  --- THIS TEST SOMETIMES FAILS BUT I HAVE NO IDEA WHY, WHEN RUN BY HAND IT ALWAYS RETURNS TRUE!! HELP!!
-
------------------------------
---- TEST covarianceMatrix ---
------------------------------
-
-TEST ///
-G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
-R = gaussianRing G
-S = covarianceMatrix R
-assert(0 == S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)}, {s_(a,d), s_(b,d), s_(c,d), s_(d,d)}})
 ///
 
 --------------------------------
@@ -2610,6 +2457,88 @@ W = bidirectedEdgesMatrix R
 assert(0 == W-matrix {{p_(a,a), 0, 0, p_(a,d)}, {0, p_(b,b), 0, 0}, {0, 0, p_(c,c), 0}, {p_(a,d), 0, 0, p_(d,d)}})
 ///
 
+------------------------------
+--- TEST markovMatrices    ---
+------------------------------
+
+TEST ///
+G = digraph { {1, {2,3}}, {2, {4}}, {3, {4}} }
+S = localMarkov G
+R = markovRing (2,2,2,2)
+L = markovMatrices (R,S) 
+M = L#1
+m = matrix {{p_(2,1,1,1)+p_(2,1,1,2), p_(2,1,2,1)+p_(2,1,2,2)},{p_(2,2,1,1)+p_(2,2,1,2), p_(2,2,2,1)+p_(2,2,2,2)}} 
+assert(M === m)
+///
+
+TEST ///
+R=markovRing (4:2)
+L = markovMatrices ( R ,{a,b,c,d},  {{{a},{c},{d}}})
+M = L#1
+m = matrix {{ p_(1,1,1,2)+p_(1,2,1,2), p_(1,1,2,2)+p_(1,2,2,2)}, {p_(2,1,1,2)+p_(2,2,1,2), p_(2,1,2,2)+p_(2,2,2,2)}} 
+assert(M === m)
+///
+
+-----------------------------------------------
+--- TEST covarianceMatrix(R,G)-----------------
+-----------------------------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
+cov=covarianceMatrix R
+correctOutput = {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b),s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)},{s_(a,d), s_(b,d), s_(c,d), s_(d,d)}}
+assert(0 == cov - matrix correctOutput )
+///
+
+TEST /// 
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = gaussianRing G
+S = covarianceMatrix R
+assert(0==S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)}, {s_(a,d), s_(b,d), s_(c,d), s_(d,d)}})
+///
+
+TEST ///
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R = gaussianRing G
+S = covarianceMatrix R
+assert(0 == S-matrix {{s_(a,a), s_(a,b), s_(a,c), s_(a,d)}, {s_(a,b), s_(b,b), s_(b,c), s_(b,d)}, {s_(a,c), s_(b,c), s_(c,c), s_(c,d)}, {s_(a,d), s_(b,d), s_(c,d), s_(d,d)}})
+///
+
+------------------------------
+--- TEST gaussianMatrices  ---
+------------------------------
+
+TEST ///
+G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
+R = gaussianRing G
+S = localMarkov G
+L = gaussianMatrices(R,S)
+M1 = matrix {{s_(1,4), s_(1,3)}, {s_(2,4), s_(2,3)}, {s_(3,4), s_(3,3)}}
+M2 = matrix {{s_(1,5), s_(1,4), s_(1,3)},{s_(2,5), s_(2,4), s_(2,3)},{s_(4,5), s_(4,4), s_(3,4)}, {s_(3,5), s_(3,4), s_(3,3)}}
+M3 = matrix {{s_(1,3), s_(1,2)},{s_(2,3), s_(2,2)}}
+assert({M1,M2,M3} === L)
+///
+
+TEST ///
+G = digraph { {1,{2}}, {2,{3}}, {3,{4,5}},{4,{5}} } ;
+R = gaussianRing G
+L = gaussianMatrices(R,{{{1},{3},{4,2,5}}})
+M = matrix{{s_(1,3), s_(1,4), s_(1,2), s_(1,5)},{s_(3,4), s_(4,4), s_(2,4), s_(4,5)},{ s_(2,3), s_(2,4) ,s_(2,2), s_(2,5)}, { s_(3,5), s_(4,5), s_(2,5) ,s_(5,5) }}
+assert({M} === L)
+///
+
+
+--------------------------------
+-- TEST discreteVanishingIdeal
+--------------------------------
+TEST///
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = markovRing (2,3,4,2)
+I = discreteVanishingIdeal (R,G);
+assert ( numcols mingens I == 84)
+///
+
 ------------------------------------
 --- TEST gaussianParametrization ---
 ------------------------------------
@@ -2628,6 +2557,80 @@ M = gaussianParametrization(R,G,SimpleTreks=>true)
 assert(0 == M-matrix {{1, 0, 0, p_(a,d)}, {0, 1, l_(b,c), l_(b,c)*l_(c,d)+l_(b,d)}, {0, l_(b,c), 1, l_(b,c)*l_(b,d)+l_(c,d)}, {p_(a,d), l_(b,c)*l_(c,d)+l_(b,d), l_(b,c)*l_(b,d)+l_(c,d), 1}})
 ///
 
+-----------------------------------------------
+--- TEST gaussianVanishingIdeal-----------------
+-----------------------------------------------
+
+TEST ///
+G = graph({{a,b},{b,c},{c,d},{a,d}}) 
+R=gaussianRing G 
+I = gaussianVanishingIdeal R
+correctOutput = {s_(a,d)*s_(b,c)*s_(b,d)-s_(a,c)*s_(b,d)^2-s_(a,d)*s_(b,b)*s_(c,d)+s_(a,b)*s_(b,d)*s_(c,d)+s_(a,c)*s_(b,b)*s_(d,d)-s_(a,b)*s_(b,c)*s_(d,d),s_(a,c)*s_(a,d)*s_(b,c)-s_(a,c)^2*s_(b,d)-s_(a,b)*s_(a,d)*s_(c,c)+s_(a,a)*s_(b,d)*s_(c,c)+s_(a,b)*s_(a,c)*s_(c,d)-s_(a,a)*s_(b,c)*s_(c,d), s_(a,b)*s_(a,d)*s_(b,d)*s_(c,c)-s_(a,a)*s_(b,d)^2*s_(c,c)-s_(a,c)*s_(a,d)*s_(b,b)*s_(c,d)+s_(a,a)*s_(b,c)*s_(b,d)*s_(c,d)+s_(a,c)^2*s_(b,b)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)*s_(d,d), s_(a,b)*s_(a,c)*s_(b,d)^2*s_(c,c)-s_(a,a)*s_(b,c)*s_(b,d)^2*s_(c,c)-s_(a,c)^2*s_(b,b)*s_(b,d)*s_(c,d)+s_(a,a)*s_(b,c)^2*s_(b,d)*s_(c,d)-s_(a,b)^2*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,a)*s_(b,b)*s_(b,d)*s_(c,c)*s_(c,d)+s_(a,b)*s_(a,c)*s_(b,b)*s_(c,d)^2-s_(a,a)*s_(b,b)*s_(b,c)*s_(c,d)^2+s_(a,c)^2*s_(b,b)*s_(b,c)*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,c)^2*s_(d,d)-s_(a,b)*s_(a,c)*s_(b,b)*s_(c,c)*s_(d,d)+s_(a,b)^2*s_(b,c)*s_(c,c)*s_(d,d)}
+assert( I == ideal correctOutput)
+///
+
+TEST ///
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = gaussianRing G
+I = gaussianVanishingIdeal(R) 
+correctOutput = { -s_(a,d)*s_(b,b)+s_(a,b)*s_(b,d), s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d), s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d) }
+assert( I == ideal correctOutput)
+///
+
+--------------------------
+-- TEST trekSeparation  --
+--------------------------
+
+TEST ///
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R = gaussianRing G
+T = trekSeparation G
+T = apply(T,s -> {sort s#0, sort s#1, sort s#2, sort s#3})
+L = {{{a}, {b, c}, {}, {}}, {{b, c}, {a, b}, {}, {b}}, {{a, b}, {b, c}, {}, {b}}, {{b, c}, {a, c}, {}, {c}}, {{b, c}, {a, d}, {}, {d}}}
+assert(sort T=== sort L)
+///
+
+-----------------------
+--- TEST trekIdeal  ---
+-----------------------
+
+TEST ///
+G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+R = gaussianRing G
+I = trekIdeal(R,G)
+assert(I==ideal(s_(b,c)*s_(b,d)-s_(b,b)*s_(c,d),s_(a,d)*s_(b,c)-s_(a,b)*s_(c,d),s_(a,d)*s_(b,b)-s_(a,b)*s_(b,d)))
+///
+
+TEST ///
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R = gaussianRing G
+T = trekSeparation G
+I = trekIdeal(R,G)
+assert(I == ideal(s_(a,c),s_(a,b),s_(a,c)*s_(b,b)-s_(a,b)*s_(b,c),-s_(a,c)*s_(b,b)+s_(a,b)*s_(b,c),s_(a,c)*s_(b,c)-s_(a,b)*s_(c,c),s_(a,c)*s_(b,d)-s_(a,b)*s_(c,d)))
+///
+
+--------------------------
+--- TEST marginMap     ---
+--------------------------
+
+TEST ///
+R = markovRing (3,2)
+F = marginMap(1,R) 
+m = matrix {{p_(1,1)-p_(2,1)-p_(3,1), p_(1,2)-p_(2,2)-p_(3,2), p_(2,1), p_(2,2), p_(3,1), p_(3,2)}}
+assert(F.matrix === m)
+///
+
+--------------------------
+--- TEST hiddenMap     ---
+--------------------------
+
+TEST ///
+R = markovRing (2,3,2)
+F = hiddenMap(1,R) 
+m = matrix {{p_(1,1,1)+p_(2,1,1), p_(1,1,2)+p_(2,1,2), p_(1,2,1)+p_(2,2,1), p_(1,2,2)+p_(2,2,2), p_(1,3,1)+p_(2,3,1), p_(1,3,2)+p_(2,3,2)}}
+assert(F.matrix === m)
+///
+
 ------------------------------
 -- TEST identifyParameters ---
 ------------------------------
@@ -2639,46 +2642,28 @@ H = identifyParameters(R,G)
 assert(H === new HashTable from {p_(a,d) => ideal(s_(a,c),s_(a,b),p_(a,d)-s_(a,d)),p_(d,d) => ideal(s_(a,c),s_(a,b),p_(d,d)*s_(b,c)^2-p_(d,d)*s_(b,b)*s_(c,c)-s_(b,d)^2*s_(c,c)+2*s_(b,c)*s_(b,d)*s_(c,d)-s_(b,b)*s_(c,d)^2-s_(b,c)^2*s_(d,d)+s_(b,b)*s_(c,c)*s_(d,d)), l_(c,d) =>ideal(s_(a,c),s_(a,b),l_(c,d)*s_(b,c)^2-l_(c,d)*s_(b,b)*s_(c,c)-s_(b,c)*s_(b,d)+s_(b,b)*s_(c,d)), l_(b,d) =>ideal(s_(a,c),s_(a,b),l_(b,d)*s_(b,c)^2-l_(b,d)*s_(b,b)*s_(c,c)+s_(b,d)*s_(c,c)-s_(b,c)*s_(c,d)), l_(b,c) =>ideal(s_(a,c),s_(a,b),l_(b,c)*s_(b,b)-s_(b,c)), p_(a,a) =>ideal(s_(a,c),s_(a,b),p_(a,a)-s_(a,a)), p_(b,b) =>ideal(s_(a,c),s_(a,b),p_(b,b)-s_(b,b)), p_(c,c) =>ideal(s_(a,c),s_(a,b),p_(c,c)*s_(b,b)+s_(b,c)^2-s_(b,b)*s_(c,c))})
 ///
 
---------------------------
--- TEST trekSeparation  --
---------------------------
-
--- This TEST could potentially fail since each statement in L could be written
--- in a different order, that is, {A,B,C,D} is equivalent to {B,A,D,C}
--- and trekSeparation may return either one of these statements
--- So I have commented this test for the moment
--- but one can test trekSeparation by testing trekIdeal.
--- TEST ///
--- G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
--- R = gaussianRing G
--- T = trekSeparation G
--- T = apply(T,s -> {sort s#0, sort s#1, sort s#2, sort s#3})
--- L = {{{a}, {b, c}, {}, {}}, {{b, c}, {a, b}, {}, {b}}, {{a, b}, {b, c}, {}, {b}}, {{b, c}, {a, c}, {}, {c}}, {{b, c}, {a, d}, {}, {d}}}
--- assert(T === L)
--- ///
-
-----------------------
--- TEST trekIdeal  ---
-----------------------
-
-TEST ///
-G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
-R = gaussianRing G
-T = trekSeparation G
-I = trekIdeal(R,G)
-assert(I == ideal(s_(a,c),s_(a,b),s_(a,c)*s_(b,b)-s_(a,b)*s_(b,c),-s_(a,c)*s_(b,b)+s_(a,b)*s_(b,c),s_(a,c)*s_(b,c)-s_(a,b)*s_(c,c),s_(a,c)*s_(b,d)-s_(a,b)*s_(c,d)))
-///
 
 
---------------------------------
--- TEST discreteVanishingIdeal
---------------------------------
-TEST///
-G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
-R = markovRing (2,3,4,2)
-I = discreteVanishingIdeal (R,G);
-assert ( numcols mingens I == 84)
-///
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
      
 --------------------------------------
 --------------------------------------

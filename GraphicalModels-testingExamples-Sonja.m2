@@ -2,6 +2,10 @@ restart
 uninstallPackage "GraphicalModels"
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 
+--- running tests:
+check "GraphicalModels"
+
+
 uninstallPackage "Graphs"
 installPackage ("Graphs", RemakeAllDocumentation=>true)
 

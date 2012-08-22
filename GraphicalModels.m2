@@ -62,12 +62,12 @@ markovRingData = local markovRingData
 markovVariables = local markovVariables
 gaussianRingData = local gaussianRingData
 gaussianVariables = local gaussianVariables
-numberOfEliminationVariables = local numberOfEliminationVariables  --entry stored inside gaussianRing
+numberOfEliminationVariables = local numberOfEliminationVariables  
 
 
 
 --**************************--
---  INTERNAL ROUTINES        	  --
+--  INTERNAL ROUTINES       --
 --**************************--
 
 --*************************************--
@@ -137,16 +137,12 @@ bayesBall = (A,C,G) -> (
      set toList select(V, i -> not blocked#i and not bottom#i)     
      )     
 
---*************************************--
---  Functions used throughout          --
---*************************************--
 
--- NOTE:
--- /// FIX ME /// DELETE ME /// DO SOMETHING! ///
---  ALL THE FUNCTIONS (in this section) BELOW ARE DECLARED GLOBAL INSTEAD OF LOCAL
--- FOR THE REASON THAT LOCAL DEFINITIONS WOULD INEXPLICABLY 
--- CREATE ERRORS. --Amelia? Luis? ---this is an old error message?! check this!
 
+
+--*************************************--
+--  Functions (local) used throughout  --
+--*************************************--
 
 
 ---------------------------------------------------------------
@@ -155,7 +151,7 @@ bayesBall = (A,C,G) -> (
 -- of {0,...,d_1-1} x ... x {0,...,d_n-1}
 ---------------------------------------------------------------
 
-cartesian = (L) -> (
+cartesian := (L) -> (
      if #L == 1 then 
 	return toList apply (L#0, e -> 1:e);
      L0 := L#0;
@@ -169,7 +165,7 @@ cartesian = (L) -> (
 -- position of an element x in a list h
 --------------------------------------------
 
-pos = (h, x) -> position(h, i->i===x)
+pos := (h, x) -> position(h, i->i===x)
 
 
 
@@ -178,7 +174,7 @@ pos = (h, x) -> position(h, i->i===x)
 -- of all d_i's such that the vertex i is a member of the list A
 -- it assumes that the list A is a list of integers.
 --------------------------------------------------------------------------
-possibleValues = (d,A) ->
+possibleValues := (d,A) ->
      cartesian (toList apply(0..#d-1, i -> 
 	       if member(i,A) 
 	       then toList(1..d#i) 
@@ -191,7 +187,7 @@ possibleValues = (d,A) ->
 -- Note: this function assumes that R is a markovRing
 -------------------------------------------------------
 
-prob = (R,s) -> (
+prob := (R,s) -> (
      d := R.markovRingData;
      p := i -> R.markovVariables#i;
      L := cartesian toList apply (#d, i -> 
@@ -207,7 +203,7 @@ prob = (R,s) -> (
 -- the membership sequence of 0's and 1's of elements of B in A to binary
 -------------------------------------------------------------------------------
 
-setToBinary = (A,B) -> sum(toList apply(0..#A-1, i->2^i*(if (set B)#?(A#i) then 1 else 0)))
+setToBinary := (A,B) -> sum(toList apply(0..#A-1, i->2^i*(if (set B)#?(A#i) then 1 else 0)))
 
 
 
@@ -215,7 +211,7 @@ setToBinary = (A,B) -> sum(toList apply(0..#A-1, i->2^i*(if (set B)#?(A#i) then 
 -- returns all subsets of B which contain A:
 -------------------------------------------------------
 
-subsetsBetween = (A,B) -> apply(subsets ((set B) - A), i->toList (i+set A))
+subsetsBetween := (A,B) -> apply(subsets ((set B) - A), i->toList (i+set A))
 
 
 
@@ -252,9 +248,9 @@ under = (d) -> (
            e0 := subsets d0;
            e1 := subsets d1;
            z1 := flatten apply(e0, x -> apply(e1, y -> (
-      		    {set{d01_0 - set x, d01_1 - set y}, set x + set y +  d_1})));-- see comment at removeRedundants
+      		    {set{d01_0 - set x, d01_1 - set y}, set x + set y +  d_1})));-- see caveat for removeRedundants
            z2 := flatten apply(e0, x -> apply(e1, y -> (
-      		    {set{d01_0 - set x, d01_1 - set y},  d_1})));-- see comment at removeRedundants
+      		    {set{d01_0 - set x, d01_1 - set y},  d_1})));-- see caveat for removeRedundants
            z := join(z1,z2);
            z = select(z, z0 -> not member(set{}, z0_0));
            set z
@@ -304,7 +300,7 @@ minimize = (Ds) -> (
 --  **CAVEAT**
 --  This works just fine when used internally, e.g. from localMarkov. 
 --  However, if we export it and try to use it, there is a problem: we seem to be 
---  attempting to add a List to a Set in 2 lines of "under".
+--  attempting to add a List to a Set in the two marked lines of the function "under".
 --------------------------------------------------------------------------------------
 
 removeRedundants = (Ds) -> (
@@ -448,7 +444,8 @@ globalMarkov Digraph := List => (G) -> (
 
 ------------------------------------------------------------------------------------------------
 -- markovRing Sequence
--- outputs a polynomial ring of ....***********************....??????????????????????????????????????????????????????
+-- Outputs a polynomial ring whose indeterminates are joint probabilities of discrete 
+-- random variables with a given number of states. 
 -- d should be a sequence of integers di >= 1
 --
 -- NOTE: there is a mutable hash table of all Markov rings created, so as to not re-create rings!
@@ -477,16 +474,19 @@ markovRing Sequence := Ring => opts -> d -> (
 
 
 
-------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
 -- gaussianRing ZZ
 -- gaussianRing Graph 
 -- gaussianRing Digraph
 -- gaussianRing MixedGraph
+-- Outputs a polynomial ring whose indeterminates are joint probabilities of Gaussian
+-- random variables corresponding to vertices of a graph (or variables 1..n). 
 -- NOTE: the mutable hash table of all gaussian rings created is indexed by:
 --     (coefficient field, variable name, number of r.v.'s) --in case of ZZ input
 --     (coefficient field, variable name, vertices of the directed graph) --in case of Digraph input
 --     (coefficient field, variable name, whole undirected graph) --in case of Graph input
-------------------------------------------------------------------
+--     (coefficient field, variable name s, variable name l, variable name p, vertices of the mixed graph) -- in case of MixedGraph input.
+------------------------------------------------------------------------------------------------------------------------------------
 
 gaussianRingList := new MutableHashTable;
 
@@ -529,9 +529,6 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     )
 
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
-     -- Input is a Digraph G, 
-     -- we read off the list of labels from the vertices.
-     -- This is done to avoid any ordering confusion. 
      s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
      kk := opts.Coefficients;
      vv := sort vertices G; 
@@ -543,7 +540,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      R.gaussianRingData = #vv;
      H := new HashTable from apply(#w, i -> w#i => R_i); 
      R.gaussianVariables = H;
-     R.digraph = G; --changed 8sep2011-sonja ---this is new. we use this a lot for the undirected case so why not try this too... --- sonja 28july2011
+     R.digraph = G;
      gaussianRingList#((kk,s,vv)) = R;); 
      gaussianRingList#((kk,s,vv))
      )
@@ -644,9 +641,7 @@ bidirectedEdgesMatrix Ring := Matrix => R -> (
 
 markovMatrices = method()
 markovMatrices(Ring,List,List) := (R,VarNames,Stmts) -> (
-     -- R should be a markovRing, G a digraph 
-     -- and Stmts is a list of
-     -- independence statements
+     -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
      if not R.?markovRingData then error "expected a ring created with markovRing";
      d := R.markovRingData;
      if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
@@ -662,9 +657,7 @@ markovMatrices(Ring,List,List) := (R,VarNames,Stmts) -> (
     )
 
 markovMatrices(Ring,List) := (R,Stmts) -> (
-     -- R should be a markovRing, G a digraph 
-     -- and Stmts is a list of
-     -- independence statements
+     -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
      if not R.?markovRingData then error "expected a ring created with markovRing";
      d := R.markovRingData;
      if not isSubset ( set unique flatten flatten Stmts,  set( 1..#d) )  then error "variables names in statements do not match list of random variable names";
@@ -848,13 +841,15 @@ gaussianParametrization (Ring,MixedGraph) := Matrix => opts -> (R,g) -> (
 
 ------------------------------------------------------------------
 -- gaussianVanishingIdeal Ring
+-- Note: this method currently works on really small examples,
+-- because it computes the vanishing ideal as an elimination ideal.
+-- More clever ways to compute it would be of interest.
 ------------------------------------------------------------------
 
 gaussianVanishingIdeal=method()
 gaussianVanishingIdeal Ring := Ideal => R -> (
     if not (R.?gaussianRingData) then error "expected a ring created with gaussianRing";
-    if R.?graph then ( 
-       --currently works on really small examples! future work to make faster...    
+    if R.?graph then (    
        K:= undirectedEdgesMatrix R;
        adjK := sub(det(K)*inverse(sub(K,frac R)), R);
        Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
@@ -948,6 +943,9 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
  
 ------------------------------------------------------------------
 -- trekSeparation MixedGraph
+-- NOTE: currently, trekSeparation only works with directed and 
+-- bidirected edges. We don't work with MixedGraphs in full
+-- generality (undirected, directed, bidirected). See gaussianRing.
 ------------------------------------------------------------------
 
 trekSeparation = method()
@@ -1016,7 +1014,8 @@ trekSeparation MixedGraph := List => (g) -> (
 -- trekIdeal (Ring,MixedGraph)
 -- trekIdeal (Ring,Graph)
 -- trekIdeal (Ring,Digraph)
--- NOTE: currently, trekSeparation only works with directed and bidirected edges, which affects this function
+-- NOTE: We don't work with MixedGraphs in full generality 
+-- (undirected, directed, bidirected). See gaussianRing.
 ------------------------------------------------------------------
 
 trekIdeal = method()
@@ -1102,10 +1101,8 @@ inverseMarginMap(ZZ,Ring) := RingMap => (v,R) -> (
 
 ------------------------------------------------------------------
 -- hiddenMap(ZZ,Ring)
--- creates a ring map inclusion F : S --> A.
---
--- what a TERRIBLE NONDESCRIPTIVE NAME!!!! ----
---
+-- Creates a ring map for the model where one of the (formerly
+-- observed) random variables is now a hidden variable. 
 ------------------------------------------------------------------
 
 hiddenMap = method()
@@ -1143,9 +1140,6 @@ identifyParameters (Ring,MixedGraph) := HashTable => (R,g) -> (
 
 
 
-
-
-     
 
 --******************************************--
 -- DOCUMENTATION     	       	    	    -- 
@@ -1274,7 +1268,7 @@ doc ///
       for each pair of non-adjacent vertices $v$ and $w$ of $G$.
       
       For example, for the undirected 5-cycle graph $G$, that is, the graph on $5$ vertices with edges 
-      $a---b---c---d---e--a$, 
+      $a---b---c---d---e---a$, 
       we get the following pairwise Markov statements:
       
     Example

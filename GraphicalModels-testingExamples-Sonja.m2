@@ -67,6 +67,8 @@ numgens I
 --by the way:
 m=R#numberOfEliminationVariables
 
+restart
+loadPackage "GraphicalModels"
 --trying to modify gaussianVanishingIdeal:
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R=gaussianRing G 
@@ -144,6 +146,7 @@ genericSymmetricMatrix (r,r#gaussianRing#0)  ---- but shifted to ignore the k va
 -------------------------------------------------
 
 R = markovRing (2,2,2,2)
+vars R
 --R.markov
 --#R.markov
 VarNames = {c,d,e,f}
@@ -157,8 +160,9 @@ installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}}) 
 
 H = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+H=digraph{{1,{2,3}},{2,{3,4}}}
 R = markovRing (2,2,2,2)
-
+markovMatrices(R,globalMarkov H)
 (topSort H)#map
 
 R.markovRing

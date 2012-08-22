@@ -1435,15 +1435,22 @@ doc ///
     :RingMap
   Description
     Text
+      The ring $R$ must be a ring of probability distributions on $n$ random variables created using markovRing. The integer $i$
+      must be in the range from 1 to $n$.  
+       
       Let $p_{u_1,u_2,\dots, +,\dots,u_n}$ denote the linear form $p_{u_1,u_2,\dots, 1,\dots,u_n} + \dots + p_{u_1,u_2,\dots, d_i,\dots,u_n}$, where $d_i$ is the number of
       states of random variable $X_i$.
       
-      The method marginMap returns the ring map $F : R \to R$ such that
-      $ F(p_{u_1,u_2,\dots, +,\dots,u_n}) = p_{u_1,u_2,\dots,1,\dots,u_n}$ and
+      The method marginMap returns a ring map $F : R \to R$ such that after applying $F$, the indeterminate
+      $p_{u_1,u_2,\dots,1,\dots,u_n}$ refers to $ p_{u_1,u_2,\dots, +,\dots,u_n}$, where the '1' and the '$+$' are
+      in the $i$th spot. 
+      
+      Further $F$ in the identity on all other indeterminates, that is, 
       $ F(p_{u_1,u_2,\dots, j,\dots,u_n}) = p_{u_1,u_2,\dots, j,\dots,u_n} $, for all $j\geq 2$.
       
     Example
-      marginMap(1,markovRing(3,2))
+      F = marginMap(1,markovRing(3,2));
+      transpose F.matrix
       
     Text
       This linear transformation simplifies ideals and/or polynomials involving 
@@ -1456,9 +1463,12 @@ doc ///
       G = digraph  {{1,{}},{2,{1}},{3,{1}},{4,{2,3}}}
       R = markovRing (2,2,2,2)
       S = globalMarkov G
-      I = conditionalIndependenceIdeal (R,S)	
-      F = marginMap(1,R)
-      F I  
+      I = conditionalIndependenceIdeal (R,S);
+      I / print	
+      F = marginMap(1,R);
+      transpose F.matrix
+      J = F I;  
+      J / print
       
   SeeAlso
     hiddenMap 
@@ -1499,32 +1509,51 @@ doc ///
   
 --------------------------------
 -- Documentation hiddenMap    --
---------------------------------`
+--------------------------------
 
 doc ///
   Key
     hiddenMap
     (hiddenMap,ZZ,Ring)
   Headline
-    Creates a linear map from a ring of probability distributions among observed discrete random variables into a ring of probability distributions among observed variables and one hidden variable specified by the integer input.
+    Linear map between the ring of a model with one hidden variable and the ring of the corresponding fully observed model
   Usage
-    phi = hiddenMap(i,R)
+    hiddenMap(i,R)
   Inputs
     i:ZZ
       the index corresponding to the hidden random variable
     R:Ring
-      a Markov ring
+      a markovRing
   Outputs
-    phi:RingMap
+    :RingMap
   Description
     Text
-      A linear map from a ring of probability distributions among observed discrete random variables into 
-      a ring of probability distributions among observed variables and one hidden variable specified by the integer input. 
-      This method is used to work with Bayesian networks with hidden variables.
-      For more details see the paper "Algebraic Geometry of Bayesian Networks"
+      The ring $R$ is  a ring of probability distributions on $n$ random variables created using markovRing.
+      This method creates a ring map $F: S \to R$ from the ring $S$ of probability distributions on $n-1$ 
+      random variables, leaving out the $i$th random variable from $R$. This corresponds to the situation where
+      the $i$th random variable is hidden and $S$ is the ring of {\bf observed} probability distributions. 
+     
+    Example  
+      F = hiddenMap(1,markovRing(2,3,2));
+      transpose F.matrix 
+      
+    Text  
+      This method is frequently used when computing the vanishing ideal of a graphical model 
+      with hidden variables by computing the kernel of $F$.
+      For more details see the paper ``Algebraic Geometry of Bayesian Networks''
       by Garcia, Stillman, and Sturmfels.
+      
     Example
-      hiddenMap(1,markovRing(2,3,2)) 
+      G = digraph  {{1,{}},{2,{}},{3,{}},{4,{1,2,3}}}
+      R = markovRing (2,2,3,2)
+      I = discreteVanishingIdeal (R,G);
+      I / print
+      S = markovRing(2,2,3)
+      F = hiddenMap(4,R);
+      transpose F.matrix
+      J = preimage (F, I);
+      J / print
+      
   SeeAlso
     marginMap
 ///
@@ -1536,58 +1565,73 @@ doc ///
 doc ///
   Key
     markovRing
-    (markovRing,Sequence)
+    (markovRing, Sequence)
     [markovRing, Coefficients]
     [markovRing, VariableName]
   Headline
-    Ring of probability distributions on several discrete random variables.
+    Ring of joint probability distributions on several discrete random variables.
   Usage
     markovRing(d) or markovRing(d,Coefficients=>Ring) or markovRing(d,Variable=>Symbol)
   Inputs
     d:Sequence
-      with positive integer entries (d1,...,dr)
+      with positive integer entries $(d_1,\dots ,d_r)$
   Outputs
-    R:Ring
-      A polynomial ring with d1*d2*...*dr variables $p_{i_1,...,i_r}$,
+    :Ring
+      a polynomial ring with $d_1*d_2*\dots   *d_r$ variables $p_{i_1,\dots ,i_r}$,
       with each $i_j$ satisfying $1\leq i_j \leq d_j$.
   Consequences
     Item
       Information about this sequence of integers is placed into the ring, and is used 
       by other functions in this package.  Also, at most one ring for each such sequence
-      is created: the results are cached.
+      is created since the ring is  cached.
   Description
     Text 
-      The sequence $d$ represents the number of states each discrete random variable can take.
-      For example, if there are four random variables with the following state space sizes
+      The sequence $d$ represents the number of states of each discrete random variable. 
+      This example creates a ring of joint probability distributions on 4 random
+      variables with 2, 3, 4, and 5 states. This ring has a total of 120 indeterminates.
+      
     Example
-      d=(2,3,4,5)
-    Text 
-      the corresponding ring will have as variables all the possible joint 
-      probability distributions for the four variables:
-    Example
+      d=(2,3,4,5);
       R = markovRing d;
       numgens R
       R_0, R_1, R_119 --here are some of the variables in the ring
+      
     Text
       If no coefficient choice is specified, the polynomial ring is created over the rationals. 
+      
     Example
       coefficientRing R
+      
     Text 
-      If we prefer to have a different base field, the following command can be used:
+      The optional argument @TO Coefficients@ allows to change the base field.
+ 
     Example
-      Rnew = markovRing (d,Coefficients=>CC); 
-      coefficientRing Rnew
+      R2 = markovRing (d,Coefficients=>CC); 
+      coefficientRing R2
+      
     Text
-      We might prefer to give different names to our variables. The letter ''p'' suggests a joint probability, 
-      but it might be useful to create a new ring where the variables have changed. This can easily be done
-      with the following option:
+      The indeterminates are labeled with the letter ''p'' suggesting probability distributions. However, sometimes
+      it might be useful to create a new ring where the indeterminates are labeled different (for example, 
+      they may represent marginal probabilities). This can be accomplished
+      with the @TO VariableName@ option.
+      
     Example
       d=(1,2);
       markovRing (d,VariableName=>q);
-      vars oo --here is the list of variables.
+      vars oo 
+   
     Text
-      -- The LIST OF FNS USING THIS FUNCTION SHOULD BE INSERTED AS WELL.
+      The routines @TO conditionalIndependenceIdeal@, @TO discreteVanishingIdeal@, @TO hiddenMap@, 
+      @TO inverseMarginMap@, @TO marginMap@, @TO markovMatrices@ require that the ring be created by this function. 
+     
   SeeAlso
+    conditionalIndependenceIdeal 
+    discreteVanishingIdeal 
+    gaussianRing 
+    hiddenMap 
+    inverseMarginMap 
+    marginMap 
+    markovMatrices
 ///
 
 ------------------------------------

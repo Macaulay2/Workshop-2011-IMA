@@ -910,7 +910,7 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      n := #d; 
      if not (#vertices(G) == n) then error "Number of vertices of graph does not match size of ring";
      H := topSort G;
-     shuffle := apply(vertices G, v -> H#map#v);
+     shuffle := apply(sort vertices G, v -> H#map#v);
      dshuff := toSequence d_(shuffle - toList (n:1));
      R1 := markovRing(dshuff , VariableName => getSymbol"p");     
      p := j -> R1.markovVariables#j;
@@ -931,7 +931,7 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
 	 indexset :=  (n:1)..di;
 	 newI = newI + ideal apply(indexset, j ->  (
 		  ajindex := toSequence j_(familyi - toList (#familyi: 1));
-		  sub(p j,T) - (sum apply(apply(d_(i-1), k -> replace(i-1, k+1, j)), 
+		  sub(p j,T) - (sum apply(apply(dshuff_(i-1), k -> replace(i-1, k+1, j)), 
 			    l-> sub(p l,T)))*sub(a ajindex,T)) );
 	 indexset = (#tempd:1)..tempd;
 	 newI = newI + ideal apply(indexset, j -> 1 - sum(apply(apply(dshuff_(i-1), k-> replace(#tempd-1,k+1,j)), 

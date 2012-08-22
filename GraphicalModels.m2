@@ -2568,7 +2568,7 @@ assert(M === m)
 
 TEST ///
 R=markovRing (4:2)
-L = markovMatrices ( R ,{a,b,c,d},  {{{a},{c},{d}}})
+L = markovMatrices ( R ,  {{{a},{c},{d}}},{a,b,c,d})
 M = L#1
 m = matrix {{ p_(1,1,1,2)+p_(1,2,1,2), p_(1,1,2,2)+p_(1,2,2,2)}, {p_(2,1,1,2)+p_(2,2,1,2), p_(2,1,2,2)+p_(2,2,2,2)}} 
 assert(M === m)
@@ -2757,7 +2757,7 @@ assert(F.matrix === m)
 TEST ///
 G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
 R = gaussianRing G
-H = identifyParameters(R,G)
+H = identifyParameters(R)
 assert(H === new HashTable from {p_(a,d) => ideal(s_(a,c),s_(a,b),p_(a,d)-s_(a,d)),p_(d,d) => ideal(s_(a,c),s_(a,b),p_(d,d)*s_(b,c)^2-p_(d,d)*s_(b,b)*s_(c,c)-s_(b,d)^2*s_(c,c)+2*s_(b,c)*s_(b,d)*s_(c,d)-s_(b,b)*s_(c,d)^2-s_(b,c)^2*s_(d,d)+s_(b,b)*s_(c,c)*s_(d,d)), l_(c,d) =>ideal(s_(a,c),s_(a,b),l_(c,d)*s_(b,c)^2-l_(c,d)*s_(b,b)*s_(c,c)-s_(b,c)*s_(b,d)+s_(b,b)*s_(c,d)), l_(b,d) =>ideal(s_(a,c),s_(a,b),l_(b,d)*s_(b,c)^2-l_(b,d)*s_(b,b)*s_(c,c)+s_(b,d)*s_(c,c)-s_(b,c)*s_(c,d)), l_(b,c) =>ideal(s_(a,c),s_(a,b),l_(b,c)*s_(b,b)-s_(b,c)), p_(a,a) =>ideal(s_(a,c),s_(a,b),p_(a,a)-s_(a,a)), p_(b,b) =>ideal(s_(a,c),s_(a,b),p_(b,b)-s_(b,b)), p_(c,c) =>ideal(s_(a,c),s_(a,b),p_(c,c)*s_(b,b)+s_(b,c)^2-s_(b,b)*s_(c,c))})
 ///
 

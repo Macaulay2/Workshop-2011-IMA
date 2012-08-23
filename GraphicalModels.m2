@@ -2497,16 +2497,16 @@ doc ///
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G 
        J = gaussianVanishingIdeal(R); 
-       J / print
+       ideal mingens J / print
 
      Text
-       This method works both for graphs, digraphs and mixedgraphs
+       This method works for graphs, digraphs and mixedgraphs
 
      Example
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
        R = gaussianRing G
        gaussianVanishingIdeal(R) 
-       H = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+       H = mixedGraph(digraph {{a,{c}},{b,{c}}, {c,{d}}},bigraph {{c,d}})
        S = gaussianRing H
        gaussianVanishingIdeal(S) 
        

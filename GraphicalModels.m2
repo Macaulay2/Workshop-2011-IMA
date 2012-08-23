@@ -2149,7 +2149,9 @@ doc///
    Description 
      Text
        Expresses each parameter in the gaussianParametrization in terms of covariances,
-       if it is possible to do so, or displays that no identification formula is possible.
+       if it is possible to do so, or displays that no identification formula is possible.  The identifiability
+       problem for mixed graph models is described in Garcia, Spielvogel, Sullivant,  "Identifying causal effects with computer algebra",
+        UAI, Proceedings of the 26th Conferences, AUAI Press, 2010.
        
        If H#p contains a linear equation a*p+b where a is always nonzero, then p is identifiable.
        
@@ -2167,7 +2169,7 @@ doc///
      Text
        Reading the output (first line in the HashTable), we see that parameter $l_{(a,b)}$ is identifiable by the
        formula $l_{(a,b)} = s_{(a,b)}/s_{(a,a)}$.  On the other hand, $l_{(b,c)}$ is
-       not identifaible.  
+       not identifiable.    
      
    SeeAlso
      gaussianRing

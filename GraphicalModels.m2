@@ -1840,7 +1840,8 @@ doc ///
     Text
       For mixed graphs, there is a variable $l_{(i,j)}$ for
       each directed edge i->j, a variable $p_{(i,i)}$ for each node i, and a variable $p_{(i,j)}$ 
-      for each bidirected edge i<->j.
+      for each bidirected edge i<->j.  gaussianRing of a mixed graph assumes that the
+      undirected part of the graph is empty.
 
     Example
       G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
@@ -1849,7 +1850,16 @@ doc ///
       covarianceMatrix R
       directedEdgesMatrix R
       bidirectedEdgesMatrix R
-      
+
+    Text
+      The variable names that appear can be changed using the options sVariableName, lVariableName,
+      pVariableName, and kVariableName
+
+    Example
+      G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+      R = gaussianRing (G,pVariableName => psi)
+      gens R      
+            
     Text        
       The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
       @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, 
@@ -2288,7 +2298,7 @@ doc ///
   Key
     sVariableName
   Headline
-    optional input to choose the letter for the variable name
+    optional input to choose the variable for the covariance matrix
   Description
     Text
       Put {\tt sVariableName => stilde} for a choice of a symbol s as an argument in 
@@ -2300,7 +2310,7 @@ doc ///
   Key
     lVariableName
   Headline
-    optional input to choose the letter for the variable name
+    optional input to choose the variable name for the regression matrix
   Description
     Text
       Put {\tt lVariableName => ltilde} for a choice of a symbol l as an argument in 
@@ -2312,7 +2322,7 @@ doc ///
   Key
     pVariableName
   Headline
-    optional input to choose the letter for the variable name
+    optional input to choose the variable name for the error covariance matrix
   Description
     Text
       Put {\tt pVariableName => ptilde} for a choice of a symbol p as an argument in 
@@ -2324,7 +2334,7 @@ doc ///
   Key
     kVariableName
   Headline
-    optional input to choose the letter for the variable name
+    optional input to choose the variable name for the concentration matrix
   Description
     Text
       Put {\tt kVariableName => ktilde} for a choice of a symbol k as an argument in 

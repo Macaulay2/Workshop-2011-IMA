@@ -491,7 +491,7 @@ markovRing Sequence := Ring => opts -> d -> (
 gaussianRingList := new MutableHashTable;
 
 gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
-	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k",})
+	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k"})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.

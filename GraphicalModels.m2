@@ -1168,7 +1168,7 @@ doc ///
        
       This package constructs ideals of discrete Bayesian networks (directed acyclic graphs)
       as described in several places, including the paper: Luis David Garcia, Michael Stillman and Bernd Sturmfels,
-      {\em The algebraic geometry of Bayesian networks}, J. Symbolic Comput., 39(3-4):331–355, 2005. 
+      {\em The algebraic geometry of Bayesian networks}, J. Symbolic Comput., 39(3-4):331--355, 2005. 
       
       It also constructs ideals of Gaussian Bayesian networks and Gaussian graphical models 
       (graphs containing both directed and bidirected edges), as described in the papers:
@@ -1183,7 +1183,7 @@ doc ///
           
       Here is a typical use of this package.  We create the ideal in 16 variables whose zero set 
       represents the probability distributions on four binary random variables which satisfy the
-      conditional independence statements coming from the "diamond" graph $4 \to 3, 2 \to 1$.
+      conditional independence statements coming from the "diamond" graph $4 \to 3, 4 \to 2, 3 \to 1, 2 \to 1$.
       
     Example
        G = digraph  {{1,{}},{2,{1}},{3,{1}},{4,{2,3}}}
@@ -1212,7 +1212,7 @@ doc ///
       netList primaryDecomposition J
       
     Text
-      The ideal in the next example correspond to a Gaussian graphical model on a graph with directed and bidirected edges.
+      The ideal in the next example corresponds to a Gaussian graphical model on a graph with directed and bidirected edges.
       The method @TO trekIdeal@ computes the ideal based on the trek separation statements of the mixed graph.
       
     Example
@@ -1233,7 +1233,7 @@ doc ///
       
       Alexander Diaz,
       
-      Shaowie Lin<@HREF"http://math.berkeley.edu/~shaowei/"@>,
+      Shaowei Lin<@HREF"http://math.berkeley.edu/~shaowei/"@>,
       
       David Murrugarra<@HREF"http://www.math.vt.edu/people/davidmur/Home.html"@>.
       
@@ -1821,7 +1821,7 @@ doc ///
       covarianceMatrix R
       
     Text
-      For undirected graphs, ...
+      The function works with an undirected graph as follows.
 
     Example
       G = graph({{a,b},{b,c},{c,d},{a,d}})
@@ -1831,7 +1831,7 @@ doc ///
       undirectedEdgesMatrix R
 
     Text
-      For directed graphs......
+      The function works with an undirected graph as follows.
 
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
@@ -2137,7 +2137,7 @@ doc///
      identifyParameters
      (identifyParameters,Ring)
    Headline
-     solving the identifiability problem: expressing each parameter in terms of covariances 
+     solve the identifiability problem for gaussian graphical models 
    Usage
      H = identifyParameters(R)
    Inputs
@@ -2148,6 +2148,9 @@ doc///
        where H#p is the ideal of equations involving only the parameter p and the covariances s_{(i,j)}
    Description 
      Text
+       Expresses each parameter in the gaussianParametrization in terms of covariances,
+       if it is possible to do so, or displays that no identification formula is possible.
+       
        If H#p contains a linear equation a*p+b where a is always nonzero, then p is identifiable.
        
        If H#p contains a linear equation a*p+b where a may be zero, then p is generically identifiable.
@@ -2157,11 +2160,15 @@ doc///
        If H#p does not contain any polynomial in p, then p is not generically identifiable.
 
      Example
-       G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+       G = mixedGraph(digraph {{a,{b}},{b,{c}}},bigraph {{a,c}, {b,c}})
        R = gaussianRing G
        H = identifyParameters R
+       
+     Text
+       Reading the output (first line in the HashTable), we see that parameter $l_{(a,b)}$ is identifiable by the
+       formula $l_{(a,b)} = s_{(a,b)}/s_{(a,a)}$.  On the other hand, $l_{(b,c)}$ is
+       not identifaible.  
      
-     Text  
    SeeAlso
      gaussianRing
 ///
@@ -2177,7 +2184,7 @@ doc///
      (trekIdeal,Ring,Digraph)
      (trekIdeal,Ring,Graph)
    Headline
-     The trek separation ideal of a mixed graph ---IN PROCESS OF CHANGING THIS
+     The trek separation ideal of a mixed graph 
    Usage
      I = trekIdeal(R,G) 
    Inputs
@@ -2196,17 +2203,34 @@ doc///
        rows are in A, and whose columns are in B, and where r = #CA+#CB.
        
        These ideals are described in more detail by Sullivant, Talaska and Draisma in "Trek Separation for Gaussian Graphical Models"
+       Annals of Statistics 38 no.3 (2010) 1665--1685
        and give all determinantal constraints on the covariance matrix of a gaussian graphical model.        
+
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
        T = trekIdeal(R,G)
        ideal gens gb T
+       
+     Text
+       For undirected graphs G, the trekIdeal(R,G) is the same as 
+       conditionalIndependenceIdeal(R,globalMarkov(G)).  For directed graphs G, trekIdeal(R,G)
+        is generally larger than conditionalIndependenceIdeal(R,globalMarkov(G)).
+
+     Example
+       G = graph{{a,b},{b,c},{c,d},{a,d}}     
+       R = gaussianRing G
+       T = trekIdeal(R,G);
+       CI = conditionalIndependenceIdeal(R,globalMarkov(G));
+       T == CI
+       H = digraph{{1,{4}},{2,{4}},{3,{4,5}},{4,{5}}}
+       R = gaussianRing H
+       T = trekIdeal(R,H);
+       CI = conditionalIndependenceIdeal(R,globalMarkov(H));
+       T == CI
    Caveat
        trekSeparation is currently only implemented with mixedGraphs that have directed and 
-       bidirected edges.  For undirected graphs G, the trekIdeal(R,G) is the same as 
-       conditionalIndependenceIdeal(R,globalMarkov(G)), which is how the function is currently
-       implemented in that case. 
+       bidirected edges.  
    SeeAlso
      trekSeparation
 ///
@@ -2243,9 +2267,11 @@ doc///
        #CA + #CB < min(#A, #B). Each statement is maximal in the ordering where \{A1,B1,CA,CB\}\,<\,\{A2,B2,CA,CB\}\,if A1 is a 
        subset of A2 and B1 is a subset of B2. Each statement is also unique up to symmetry, since \{B,A,CB,CA\}\,is a 
        trek separation statement if and only if \{A,B,CA,CB\}.
+
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        S = trekSeparation G
+
    Caveat
        trekSeparation G is only implemented for mixedGraphs with directed and bidirected edges.    
    SeeAlso
@@ -2413,7 +2439,8 @@ doc///
        which should be created with @TO gaussianRing@ created with a Graph
    Outputs
      :Matrix
-       the n x n symmetric matrix ... EXPLAIN!!
+       the n x n symmetric matrix concentration matrix of an undirected gaussian
+       graphical model.  This symmetric matrix has entry $k_{(i,i)}$
    Description 
      Text
        Note that this matrix is symmetric in the symbols.

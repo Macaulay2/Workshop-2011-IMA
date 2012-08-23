@@ -455,7 +455,7 @@ globalMarkov Digraph := List => (G) -> (
 
 markovRingList := new MutableHashTable;
 
-markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=>getSymbol "p"})
+markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> getSymbol "p"})
 markovRing Sequence := Ring => opts -> d -> (
      if any(d, di -> not instance(di,ZZ) or di <= 0)
      then error "markovRing expected positive integers";
@@ -911,7 +911,8 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      H := topSort G;
      shuffle := apply(sort vertices G, v -> H#map#v);
      dshuff := toSequence d_(shuffle - toList (n:1));
-     R1 := markovRing(dshuff , VariableName => getSymbol"p");     
+     R1 := local R1;
+     R1 = markovRing(dshuff , VariableName => getSymbol"p");     
      p := j -> R1.markovVariables#j;
      I := trim ideal(0_R1);     
      SortedG := H#"newDigraph"; --Note: "" is there because Graphs.m2 is silly and this key is an unexported string!~Sonja
@@ -1581,22 +1582,40 @@ doc ///
     gaussianRing
 ///
 
-------------------------------------
--- Documentation VariableName     --
-------------------------------------
 
 doc ///
   Key
-    VariableName
+    [markovRing, Coefficients]
+    [gaussianRing, Coefficients]
   Headline
-    Optional input to choose the letter for the variable name.
+    Optional input to choose the base field in markovRing or gaussianRing
+  Usage
+    gaussianRing(n,Coefficients=>Ring)
+    gaussianRing(G,Coefficients=>Ring)  
+    markovRing(d,Coefficients=>Ring)  
+  Inputs
+    d:Sequence
+      with positive integer entries $(d_1,\dots ,d_r)$
+    n:ZZ
+      number of random variables
+    G:Graph
+      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
+      or @ofClass MixedGraph@ with directed and bidirected edges
+  Outputs
+    :Ring       
   Description
     Text
-      Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
-      the function @TO markovRing@
+      In both markovRing and gaussianRing, the default coefficient ring is QQ.
+      Putting {\tt Coefficients => r} for a choice of ring(field) r as an argument in 
+      the function @TO markovRing@ or @TO gaussianRing@ creates a ring with the
+      desired coefficient ring.
   SeeAlso
     markovRing
+    gaussianRing
 ///
+
+
+
 
 
 --------------------------------
@@ -1607,12 +1626,12 @@ doc ///
   Key
     markovRing
     (markovRing, Sequence)
-    [markovRing, Coefficients]
     [markovRing, VariableName]
   Headline
     Ring of joint probability distributions on several discrete random variables.
   Usage
-    markovRing(d) or markovRing(d,Coefficients=>Ring) or markovRing(d,Variable=>Symbol)
+    markovRing(d)
+    markovRing(d,VariableName=>Symbol)
   Inputs
     d:Sequence
       with positive integer entries $(d_1,\dots ,d_r)$
@@ -1658,7 +1677,7 @@ doc ///
       
     Example
       d=(1,2);
-      markovRing (d,VariableName=>q);
+      markovRing (d,VariableName => q);
       vars oo 
    
     Text
@@ -1674,6 +1693,29 @@ doc ///
     marginMap 
     markovMatrices
 ///
+
+
+------------------------------------
+-- Documentation VariableName     --
+------------------------------------
+
+doc ///
+  Key
+    VariableName
+  Headline
+    Optional input to markovRing
+  Description
+    Text
+      Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
+      the function @TO markovRing@
+  SeeAlso
+    markovRing
+///
+
+
+
+
+
 
 
 ------------------------------------
@@ -1736,7 +1778,6 @@ doc ///
     (gaussianRing, Graph)
     (gaussianRing, Digraph)
     (gaussianRing, MixedGraph)
-    [gaussianRing, Coefficients]
     [gaussianRing, sVariableName]
     [gaussianRing, lVariableName]
     [gaussianRing, pVariableName]
@@ -1746,7 +1787,6 @@ doc ///
   Usage
     gaussianRing n 
     gaussianRing G 
-    gaussianRing(n,Coefficients=>Ring) 
     gaussianRing(n,sVariableName=>Symbol)
     gaussianRing(G,lVariableName=>Symbol)
     gaussianRing(G,pVariableName=>Symbol)
@@ -1982,11 +2022,10 @@ doc///
    Key
      gaussianParametrization
      (gaussianParametrization,Ring)
-     [gaussianParametrization, SimpleTreks]
    Headline
      the parametrization of the covariance matrix in terms of treks
    Usage
-     M = gaussianParametrization(R,G)
+     M = gaussianParametrization(R)
    Inputs
      R:Ring
        which should be a gaussianRing
@@ -2046,18 +2085,41 @@ doc ///
   Key
     SimpleTreks
   Headline
-    optional input to choose the type of parametrization in @TO gaussianParametrization@
+    optional input for gaussianParametrization
   Description
     Text
-      Put {\tt SimpleTreks => true} as an argument in the function @TO gaussianParametrization@ to compute 
-      a parametrization of the covariance matrix S=(s_{(i,j)}) where s_{(i,j)} is the sum of monomials corresponding
-      to simple treks between vertices i and j. Here, a simple trek is a trek (P_L,P_R) where the paths P_L and P_R 
-      do not have any common vertices except perhaps at their source. See @TO trekSeparation@ for the definition of a trek.
-      
-      If the option {\tt SimpleTreks => false} is used, then the sum is over 
-      all treks, and not just simple treks. 
+      This is an option to tell @TO gaussianParametrization@ to use simple treks.  false
+      is the default option.
+
   SeeAlso
     gaussianParametrization
+///
+
+doc/// 
+   Key
+     [gaussianParametrization, SimpleTreks]
+   Headline
+     optional input for gaussianParametrization
+   Usage
+     M = gaussianParametrization(R,SimpleTreks => true)
+   Inputs
+     R:Ring
+       which should be a gaussianRing
+   Outputs
+     M:Matrix
+       the parametrization of the covariance matrix in terms of treks
+   Description 
+     Text
+       Put {\tt SimpleTreks => true} as an argument in the function @TO gaussianParametrization@ to compute 
+       a parametrization of the covariance matrix S=(s_{(i,j)}) where s_{(i,j)} is the sum of monomials corresponding
+       to simple treks between vertices i and j. Here, a simple trek is a trek (P_L,P_R) where the paths P_L and P_R 
+       do not have any common vertices except perhaps at their source. See @TO trekSeparation@ for the definition of a trek.
+      
+       If the option {\tt SimpleTreks => false} is used, then the sum is over 
+       all treks, and not just simple treks. 
+
+   SeeAlso
+     gaussianParametrization
 ///
 
 -----------------------------------------
@@ -2071,7 +2133,7 @@ doc///
    Headline
      solving the identifiability problem: expressing each parameter in terms of covariances 
    Usage
-     H = identifyParameters(R,G)
+     H = identifyParameters(R)
    Inputs
      R:Ring
        which should be a gaussianRing created with a mixed graph

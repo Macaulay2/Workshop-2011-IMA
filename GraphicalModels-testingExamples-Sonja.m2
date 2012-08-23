@@ -1,7 +1,9 @@
+quit
 restart
 uninstallPackage "GraphicalModels"
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
-
+viewHelp "GraphicalModels"
+E
 --- running tests:
 check "GraphicalModels"
 

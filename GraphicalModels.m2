@@ -2439,15 +2439,17 @@ doc///
        which should be created with @TO gaussianRing@ created with a Graph
    Outputs
      :Matrix
-       the n x n symmetric matrix concentration matrix of an undirected gaussian
-       graphical model.  This symmetric matrix has entry $k_{(i,i)}$
+       the n x n symmetric concentration matrix of an undirected gaussian
+       graphical model.  
    Description 
      Text
-       Note that this matrix is symmetric in the symbols.
+       This symmetric matrix has entries $k_{(i,i)}$ along the diagonal
+       adn entry $k_{(i,j)}$ in the $(i,j)$ position if there is an edge from i to j, and a zero otherwise.
+
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G
-       M = undirectedEdgesMatrix(R)
+       K = undirectedEdgesMatrix(R)
    SeeAlso
      gaussianRing
      gaussianParametrization

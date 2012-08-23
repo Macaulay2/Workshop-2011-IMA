@@ -1500,7 +1500,10 @@ doc ///
       a markovRing
   Outputs
     :RingMap
-  Description      
+  Description     
+    Text
+      This method computes the inverse of the @TO marginMap@.
+      
     Example
       R = markovRing (3,2)
       F = marginMap(1,R) 
@@ -1748,22 +1751,25 @@ doc ///
   Description
     Text
       List of matrices whose 2x2 minors form the conditional independence ideal of the independence statements on the list $S$. 
-      This method is used in conditionalIndependenceIdeal,  it is exported to be able to read independence constraints  
+      This method is used in @TO conditionalIndependenceIdeal@,  it is exported to be able to read independence constraints  
       as minors of matrices instead of their polynomial expansions. 
       
     Example
       VarNames = {a,b,c,d}
       S = {{{a},{c},{d}}}
       R = markovRing (4:2)
-      L = markovMatrices (R,S,VarNames)
+      markovMatrices (R,S,VarNames) 
+      
     Text
-      Here is an example where the independence statements are extracted from a graph
+      Here is an example where the independence statements are extracted from a graph.
+      
     Example  
       G = graph{{a,b},{b,c},{c,d},{a,d}}
       S = localMarkov G
       R = markovRing (4:2)
-      L = markovMatrices (R,S,vertices G)   
+      markovMatrices (R,S,vertices G)   
   SeeAlso
+    conditionalIndependenceIdeal 
     markovRing
 ///
 
@@ -2308,56 +2314,86 @@ doc///
     (conditionalIndependenceIdeal, Ring, List)
     (conditionalIndependenceIdeal, Ring, List, List)
   Headline
-    the ideal of CI relations for a given list of CI statements
+    the ideal of a list of conditional independent statements.
   Usage
     conditionalIndependenceIdeal(R,Stmts)
     conditionalIndependenceIdeal(R,Stmts,VarNames)
   Inputs
     R:Ring
-      which must be a gaussianRing or a markovRing (error will be returned otherwise)
+      it must be a @TO gaussianRing@ or a @TO markovRing@ 
     Stmts:List
-      of conditional independence statements
+      list of conditional independence statements
     VarNames:List
-       of names of random variables in conditional independence statements in S.  If this is omited
-       it is assumed that these are integers 1 to n where n is the number of variables in the
+       list of names of random variables in conditional independence statements in S.  If this is omited
+       it is assumed that these are integers 1 to $n$ where $n$ is the number of variables in the
        declaration of markovRing or gaussianRing
   Outputs
     :Ideal
-      of CI relations
+      ideal of conditional independence relations
   Description
     Text
-      conditionalIndependenceIdeal computes the CI ideal of a set of statements:
+      conditionalIndependenceIdeal computes the ideal of a set of conditional independence statements. This method works
+      for both discrete and Gaussian graphical models. 
+
+      Below are two examples of independence ideals on discrete random variables. 
+
     Example
-      G = graph({{a,b},{b,c},{c,d},{d,a}})
+      G = graph {{1,2},{2,3},{3,4},{4,1}}
+      D = digraph {{1,{}},{2,{1}},{3,{1}},{4,{2,3}}}
+      R = markovRing (2,2,2,2)
+      conditionalIndependenceIdeal (R, globalMarkov(G)) / print
+      conditionalIndependenceIdeal (R, localMarkov(D)) / print
+       
+    Text    
+       The following example is an independence ideal of a Gaussian graphical model.
+       
+    Example
+      G = graph {{a,b},{b,c},{c,d},{d,a}}
       R=gaussianRing G
-      S={{{a},{c},{b,d}}}
-      I=conditionalIndependenceIdeal (R,S)
+      conditionalIndependenceIdeal (R,globalMarkov(G))  / print 
+        
     Text
-      If the gaussianRing was created without a graph, this still works:
+      For Gaussian models, 	
+      conditionalIndependenceIdeal  can compute the ideal of a list of independence statements on a graph even
+      if the ring was not constructed with that specific graph.  
+      However, the vertex labels in the graph should be integers. 
+      
+    Example
+      G = graph({{1,2},{2,3},{3,4},{4,1}})  
+      R=gaussianRing 4
+      conditionalIndependenceIdeal (R, globalMarkov G)  / print   
+      
+    Text
+      This method also accepts as input arbitrary lists of independent statements that may not 
+      arise from a graphical model. 
+      	
     Example
       R=gaussianRing 5
       S={{{1},{2},{3,4}}, {{2,3},{1},{5}}}
-      I=conditionalIndependenceIdeal (R,S)
+      conditionalIndependenceIdeal (R,S) / print
+
     Text
-      However, the set of labels on the graph nodes should match those used in the statements:
-    Example
-      R=gaussianRing 4
-      G = graph({{a,b},{b,c},{c,d},{d,a}})  --I=conditionalIndependenceIdeal (R,G)        --UNCOMMENT WHEN DEBUG MODE => FALSE!
-    Text
-      conditionalIndependenceIdeal also works in the discrete case for both graphs, digraphs and with lists of statements.
+      For general discrete independence models (not necessarily arising from a graph), conditionalIndependenceIdeal requires one of the 
+      following two options: 
+      (1) the random variables are labelled by integers (as in the first example above) or 
+      (2) in case the random variables have arbitrary names, an extra input parameter must be used in order to specify
+      the names of the random variables. 
+      
+      The user is encourage to read the caveat on the method @TO markovRing@ regarding probability distributions 
+      on random variables that have been labeled arbitrarily.
+
     Example    
       R = markovRing (2,2,2,2)
       VarNames = {c,d,e,f}
       Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
-      conditionalIndependenceIdeal(R,Stmts,VarNames)
-    Text
-     If you want the CI ideal with statements associated to a graph, use the following commands
-    Example
-      G = graph({{a,b},{b,c},{c,d},{d,a}})
-      R=gaussianRing G
-      I=conditionalIndependenceIdeal (R,globalMarkov(G))
-
+      conditionalIndependenceIdeal(R,Stmts,VarNames)	/ print  
+      
   SeeAlso
+    discreteVanishingIdeal
+    gaussianRing 
+    gaussianVanishingIdeal
+    markovRing
+    trekIdeal
 ///
 
 --------------------------------------------

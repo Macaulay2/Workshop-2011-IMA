@@ -169,6 +169,67 @@ are explained in the remaining sections.
 \item trek separation
 \end{itemize}
 
+(This kinda depends on details in the definition of CI in previous section.)
+In the case of $n$ discrete random variables, the conditional independence ideal of a set of statements consists of all polynomial relations on the joint probabilities that hold under the given conditional independence statements.  The ideal lives in the polynomial ring whose indeterminates are joint probabilities indexed by the states of the $n$ random variables. This ring is created by {\tt markovRing}.
+Let's consider a very simple example. The statement $1\ci 2 | 3$ for three binary random variables gives rise to the following:
+
+%i32 : statements = {{{1,2},{3},{4}}, {{1},{3},{}}}; 
+%\small{
+\begin{verbatim}
+i56 : s = {{{1},{2},{3}}};  --statement is: {1} independent of {2} given {3}
+i58 : R=markovRing(2,2,2) 
+o58 : PolynomialRing
+i6 : gens R --states of three binary random variables are represented by indices
+o6 = {p     , p     , p     , p     , p     , p     , p     , p     }
+       1,1,1   1,1,2   1,2,1   1,2,2   2,1,1   2,1,2   2,2,1   2,2,2
+i74 : I = conditionalIndependenceIdeal(R,s)
+
+o74 = ideal (- p     p      + p     p     , - p     p      + p     p     )
+                1,2,1 2,1,1    1,1,1 2,2,1     1,2,2 2,1,2    1,1,2 2,2,2
+\end{verbatim}
+%}
+In general, $I$ is the ideal of minors of a set of matrices: 
+%\small{
+\begin{verbatim}
+i75 : markovMatrices (R,s)
+o75 = {| p_(1,1,1) p_(1,2,1) |, | p_(1,1,2) p_(1,2,2) |}
+       | p_(2,1,1) p_(2,2,1) |  | p_(2,1,2) p_(2,2,2) |
+\end{verbatim}
+%}
+If the $1\ci 2 | 3$  indeed holds, the minors all vanish. 
+
+
+For a given graphical model, there are families of CI statements that always hold. 
+
+...
+Given an undirected graph $G$, pairwise Markov statements are statements of the form $v \ci w | \textit{all other vertices}$ for each pair of non-adjacent vertices $v, w$ of $G$. 
+%\small{
+\begin{verbatim}
+i81 : G = graph({{a,b},{b,c},{b,d}}); 
+i82 : pairMarkov G
+o82 = {{{a}, {c}, {b, d}}, {{a}, {d}, {b, c}}, {{c}, {d}, {b, a}}}
+\end{verbatim}
+%}
+
+Let's start over. I think this can be the main example in this section. 
+
+\begin{verbatim}
+i101 : G = graph({{a,b},{b,c}})
+o101 = Graph{a => set {b}   }
+             b => set {a, c}
+             c => set {b}
+i7 : st=pairMarkov G
+o7 = {{{a}, {c}, {b}}}
+i8 : R=gaussianRing G
+o8 : PolynomialRing
+i9 : conditionalIndependenceIdeal(R,st)
+o9 = ideal(s   s    - s   s   )
+            a,c b,b    a,b b,c
+i10 : gaussianMatrices (R,st)
+o10 = {| s_(a,c) s_(a,b) |}
+       | s_(b,c) s_(b,b) |
+\end{verbatim}
+
 
 \section{Computing the vanishing ideal of a model}
 

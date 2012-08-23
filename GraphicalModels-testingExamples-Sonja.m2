@@ -185,7 +185,34 @@ R.digraph
 R#gaussianRing
 describe R
 R = gaussianRing 4
-Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
+
+
+printWidth = 80
+s = {{{1},{2},{3}}}
+R=markovRing(2,2,2)
+gens R
+conditionalIndependenceIdeal(R,s)
+ betti oo
+markovMatrices (R,s)
+ 
+G = graph({{a,b},{b,c}})
+st=pairMarkov G
+
+
+
+
+help markovRing
+markovRing((1,2),VariableName=> getSymbol "tr")
+markovRing((1,2),VariableName=> "tr")
+markovRing((1,2),VariableName=> tr)
+tr_(1,1)
+
+R=gaussianRing G
+conditionalIndependenceIdeal(R,st)
+gaussianMatrices (R,st)
+
+ 
+ 
 gaussianMatrices (R,globalMarkov G)
 
 R = QQ[x,y,z]

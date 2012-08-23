@@ -1159,7 +1159,7 @@ doc ///
   Key
     GraphicalModels
   Headline
-    A package for discrete and Gaussian statistical graphical models 
+    a package for discrete and Gaussian statistical graphical models 
   Description
   
     Text
@@ -1258,7 +1258,7 @@ doc ///
     (pairMarkov,Graph)
     (pairMarkov,Digraph)
   Headline
-    Pairwise Markov statements for a graph or a  directed graph.
+    pairwise Markov statements for a graph or a  directed graph
   Usage
     pairMarkov G
   Inputs
@@ -1313,7 +1313,7 @@ doc ///
     (localMarkov,Graph)
     (localMarkov,Digraph)
   Headline
-    Local Markov statements for a graph or a directed graph.
+    local Markov statements for a graph or a directed graph
   Usage
     localMarkov G
   Inputs
@@ -1369,7 +1369,7 @@ doc ///
     (globalMarkov,Digraph)
     (globalMarkov,Graph)
   Headline
-    Global Markov statements for a graph or a directed graph.
+    global Markov statements for a graph or a directed graph
   Usage
     globalMarkov G
   Inputs
@@ -1429,7 +1429,7 @@ doc ///
     marginMap
     (marginMap,ZZ,Ring)
   Headline
-    Generates a linear map on joint distributions for discrete random variables replacing marginals for indeterminates
+    generates a linear map on joint distributions for discrete random variables replacing marginals for indeterminates
   Usage
     marginMap(i,R)
   Inputs
@@ -1525,7 +1525,7 @@ doc ///
     hiddenMap
     (hiddenMap,ZZ,Ring)
   Headline
-    Linear map between the ring of a model with one hidden variable and the ring of the corresponding fully observed model
+    linear map between the ring of a model with one hidden variable and the ring of the corresponding fully observed model
   Usage
     hiddenMap(i,R)
   Inputs
@@ -1575,7 +1575,7 @@ doc ///
   Key
     Coefficients
   Headline
-    Optional input to choose the base field.
+    optional input to choose the base field
   Description
     Text
       Put {\tt Coefficients => r} for a choice of ring(field) r as an argument in 
@@ -1591,7 +1591,7 @@ doc ///
     [markovRing, Coefficients]
     [gaussianRing, Coefficients]
   Headline
-    Optional input to choose the base field in markovRing or gaussianRing
+    optional input to choose the base field in markovRing or gaussianRing
   Usage
     gaussianRing(n,Coefficients=>Ring)
     gaussianRing(G,Coefficients=>Ring)  
@@ -1631,7 +1631,7 @@ doc ///
     (markovRing, Sequence)
     [markovRing, VariableName]
   Headline
-    Ring of joint probability distributions on several discrete random variables.
+    ring of joint probability distributions on several discrete random variables
   Usage
     markovRing(d)
     markovRing(d,VariableName=>Symbol)
@@ -1706,7 +1706,7 @@ doc ///
   Key
     VariableName
   Headline
-    Optional input to markovRing
+    optional input to markovRing
   Description
     Text
       Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
@@ -1731,7 +1731,7 @@ doc ///
     (markovMatrices,Ring,List)
     (markovMatrices,Ring,List,List) 
   Headline
-    The matrices whose minors form the ideal of a list of independence statements.
+    the matrices whose minors form the ideal of a list of independence statements
   Usage
     markovMatrices(R,S)
     markovMatrices(R,S,VarNames)
@@ -1876,7 +1876,7 @@ doc///
      gaussianMatrices
      (gaussianMatrices,Ring,List)
    Headline
-     Matrices whose minors generate the gaussian conditional independence ideal
+     matrices whose minors generate the gaussian conditional independence ideal
    Usage
      gaussianMatrices(R,S)
    Inputs
@@ -2186,7 +2186,7 @@ doc///
      (trekIdeal,Ring,Digraph)
      (trekIdeal,Ring,Graph)
    Headline
-     The trek separation ideal of a mixed graph 
+     the trek separation ideal of a mixed graph 
    Usage
      I = trekIdeal(R,G) 
    Inputs
@@ -2288,7 +2288,7 @@ doc ///
   Key
     sVariableName
   Headline
-    Optional input to choose the letter for the variable name.
+    optional input to choose the letter for the variable name
   Description
     Text
       Put {\tt sVariableName => stilde} for a choice of a symbol s as an argument in 
@@ -2300,7 +2300,7 @@ doc ///
   Key
     lVariableName
   Headline
-    Optional input to choose the letter for the variable name.
+    optional input to choose the letter for the variable name
   Description
     Text
       Put {\tt lVariableName => ltilde} for a choice of a symbol l as an argument in 
@@ -2312,7 +2312,7 @@ doc ///
   Key
     pVariableName
   Headline
-    Optional input to choose the letter for the variable name.
+    optional input to choose the letter for the variable name
   Description
     Text
       Put {\tt pVariableName => ptilde} for a choice of a symbol p as an argument in 
@@ -2324,7 +2324,7 @@ doc ///
   Key
     kVariableName
   Headline
-    Optional input to choose the letter for the variable name.
+    optional input to choose the letter for the variable name
   Description
     Text
       Put {\tt kVariableName => ktilde} for a choice of a symbol k as an argument in 
@@ -2342,7 +2342,7 @@ doc///
     (conditionalIndependenceIdeal, Ring, List)
     (conditionalIndependenceIdeal, Ring, List, List)
   Headline
-    the ideal of a list of conditional independent statements.
+    the ideal of a list of conditional independent statements
   Usage
     conditionalIndependenceIdeal(R,Stmts)
     conditionalIndependenceIdeal(R,Stmts,VarNames)

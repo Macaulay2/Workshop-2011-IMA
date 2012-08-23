@@ -1563,6 +1563,42 @@ doc ///
     marginMap
 ///
 
+------------------------------------
+-- Documentation Coefficients     --
+------------------------------------
+
+doc ///
+  Key
+    Coefficients
+  Headline
+    Optional input to choose the base field.
+  Description
+    Text
+      Put {\tt Coefficients => r} for a choice of ring(field) r as an argument in 
+      the function @TO markovRing@ or @TO gaussianRing@ 
+  SeeAlso
+    markovRing
+    gaussianRing
+///
+
+------------------------------------
+-- Documentation VariableName     --
+------------------------------------
+
+doc ///
+  Key
+    VariableName
+  Headline
+    Optional input to choose the letter for the variable name.
+  Description
+    Text
+      Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
+      the function @TO markovRing@
+  SeeAlso
+    markovRing
+///
+
+
 --------------------------------
 -- Documentation markovRing   --
 --------------------------------
@@ -1639,40 +1675,6 @@ doc ///
     markovMatrices
 ///
 
-------------------------------------
--- Documentation Coefficients     --
-------------------------------------
-
-doc ///
-  Key
-    Coefficients
-  Headline
-    Optional input to choose the base field.
-  Description
-    Text
-      Put {\tt Coefficients => r} for a choice of ring(field) r as an argument in 
-      the function @TO markovRing@ or @TO gaussianRing@ 
-  SeeAlso
-    markovRing
-    gaussianRing
-///
-
-------------------------------------
--- Documentation VariableName     --
-------------------------------------
-
-doc ///
-  Key
-    VariableName
-  Headline
-    Optional input to choose the letter for the variable name.
-  Description
-    Text
-      Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
-      the function @TO markovRing@
-  SeeAlso
-    markovRing
-///
 
 ------------------------------------
 -- Documentation markovMatrices   --
@@ -1686,25 +1688,27 @@ doc ///
   Headline
     The matrices whose minors form the ideal of a list of independence statements.
   Usage
-    markovMatrices(R,S,VarNames)
     markovMatrices(R,S)
+    markovMatrices(R,S,VarNames)
   Inputs
     R:Ring
       R must be a markovRing
-    VarNames:List
-      of names of random variables in conditional independence statements in S.  If this is omited 
-      it is assumed that these are integers 1 to n where n is the number of variables in the declaration of markovRing 
     S:List 
-      of conditional independence statements that are true for the DAG G
+      list of conditional independence statements among discrete random variables. 
+    VarNames:List
+      list of names of the random variables in the statements of $S$.  If this is omited 
+      it is assumed that these are integers in the range from 1 to $n$ where $n$ is the number of 
+      random variables in the declaration of markovRing. 
+    
   Outputs
     :List 
-      whose elements are instances of Matrix. Minors of these matrices form the independence ideal for the independent statements of the Digraph.
+      list whose elements are instances of Matrix. 
   Description
     Text
-      List of matrices encoding the independent statements of the Digraph G. The 2x2 minors of each matrix generate the ideal of 
-      independence constraints of the Digraph G. the  This method 
-      is used in markovIdeals. But it is exported to be able to see constraints not as 
-      polynomials but as minors of matrices in this list. 
+      List of matrices whose 2x2 minors form the conditional independence ideal of the independence statements on the list $S$. 
+      This method is used in conditionalIndependenceIdeal,  it is exported to be able to read independence constraints  
+      as minors of matrices instead of their polynomial expansions. 
+      
     Example
       VarNames = {a,b,c,d}
       S = {{{a},{c},{d}}}

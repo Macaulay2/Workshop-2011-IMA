@@ -1,0 +1,126 @@
+\documentclass{article}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amscd}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{url,hyperref}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{conj}[thm]{Conjecture}
+\newtheorem{assumption}[thm]{Assumption}
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}%[section]
+\newtheorem{example}[thm]{Example}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{algorithm}[thm]{Algorithm}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\A}{\mathbb{A}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\Prob}{{\rm Prob}}
+\newcommand{\pa}{{\rm pa}}
+\newcommand{\nd}{{\rm nd}}
+\def\ci{\perp\!\!\!\perp}
+
+\title{A computational algebraic geometry package for graphical models}
+\author{Luis David Garcia-Puente, \\Sonja Petrovi\'c, Seth Sullivant}
+%\date{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+The abstract is not to exceed 150 words.
+\end{abstract}
+
+
+
+
+\section{Graphical models}
+{\bf to put here: }some math background and including an example of some basic functionality (with output, but not to take a lot of space!)...
+
+%\small{
+\begin{verbatim}
+Macaulay2, version 1.4
+i1 : G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
+o1 = Digraph{a => set {b, c}}
+             b => set {c, d}
+             c => set {}
+             d => set {}
+\end{verbatim}
+%}
+
+\section{Manipulating conditional independence statements}
+
+\section{Computing the vanishing ideal}
+
+
+
+\section{Technical discussion (?) }
+This package requires Graphs.m2, as a consequence it can do
+computations with graphs whose vertices are not necessarily labeled by
+integers. 
+
+
+\section*{Acknowledgements} -- other authors of the package!.... -- Dan Grayson and Amelia Taylor.
+
+
+
+
+\begin{thebibliography}{20}
+
+\bibitem{theRpackage!}
+Gabriel C. G. de Abreu, Rodrigo Labouriau, David Edwards, High-dimensional Graphical Model Search with gRapHD R Package, \href{http://arxiv.org/abs/0909.1234}{arXiv:0909.1234v4}
+{\bf CITE ME!!!}
+
+\bibitem{DSS} 
+M.~Drton, B.~Sturmfels and S.~Sullivant, (2009) \emph{Lectures on Algebraic Statistics}, Birkhauser 
+
+\bibitem{MortonSturm}
+I. Onur Filiz, Xin Guo, Jason Morton, Bernd Sturmfels, Graphical models for correlated defaults, \href{http://arxiv.org/abs/0809.1393}{arXiv:0809.1393v1}
+{\bf CITE ME!!!}
+
+\bibitem{GSS} L.~D.~Garcia, M.~Stillman and B.~Sturmfels: Algebraic geometry of Bayesian networks, {\em J. Symbolic Comput.}
+  {\bf 39} (2005) 331--355.
+  
+\bibitem{GeigerMeekSturm}
+Dan Geiger, Christopher Meek, Bernd Sturmfels, On the toric algebra of graphical models, \href{http://arxiv.org/abs/math/0608054}{arXiv:math/0608054v1}
+{\bf CITE ME!!!}
+
+\bibitem{HaraTakemura}
+Hisayuki Hara, Satoshi Aoki, Akimichi Takemura, Minimal and minimal invariant Markov bases of decomposable models for contingency tables, Bernoulli 2010, Vol. 16, No. 1, 208-233  (preprint FOR OUR REFERENCE: \href{http://arxiv.org/abs/math/0701429}{arXiv:math/0701429v3})
+{\bf CITE ME?}
+
+\bibitem{Lauritzen}
+S.~Lauritzen,  (1996) \emph{Graphical models}, Oxford University Press
+
+\bibitem{Elena}
+E.~Stanghellini, B.~Vantaggi, On the identification of discrete graphical models with hidden nodes, \href{http://arxiv.org/abs/1009.4279}{	arXiv:1009.4279v1}
+{\bf DO WE NEED THIS REFERENCE?}
+
+\bibitem{S} S.~Sullivant: Algebraic geometry of Gaussian Bayesian
+  networks, {\em Adv. in Appl. Math.} {\bf 40} (2008) 482--513.
+
+\bibitem{STD}
+S.~Sullivant, K.~Talaska, and J.~Draisma: Trek separation for Gaussian
+graphical models, {\em Ann. Statist.} {\bf 38} (2010) 1665--1685. 
+
+\bibitem{GPSS} L.~D.~Garcia-Puente, S.~Spielvogel and S.~Sullivant: Identifying
+causal effects with computer algebra, to appear in {\em Proceedings of the 26th
+Conference of Uncertainty in Artificial Intelligence}.
+
+\end{thebibliography}
+\end{document}
+
+

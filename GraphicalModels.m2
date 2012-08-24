@@ -586,7 +586,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix Ring := Matrix =>  R -> (
-     if not (R.?graph or R.?gaussianRingData) then error "expected a ring created with gaussianRing graph";
+     if not (R.?graph or R.?gaussianRingData) then error "expected a ring created with gaussianRing of a graph";
      g := R.graph;
      bb:= graph g;
      vv := sort vertices g;

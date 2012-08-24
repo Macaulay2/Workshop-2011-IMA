@@ -207,8 +207,13 @@ vars R
 I = conditionalIndependenceIdeal(R,globalMarkov(G));
 J = gaussianVanishingIdeal(R);
 mingens I
-mingens J
+J=ideal mingens J
 betti J
+degrees mingens J
+
+flatten degrees J
+flatten degrees I
+betti I
 
 gens R
 directedEdgesMatrix R

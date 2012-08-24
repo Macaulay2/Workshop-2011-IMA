@@ -111,7 +111,7 @@ the vanishing ideal $I_{G}$ of the gaussian graphical model on $G$.
 Macaulay2, version 1.4
 
 i1 : loadPackage "GraphicalModels";
-i2 : G = digraph{{a,{d}},{b,{d}},{c,{d,e}},{d,{e}}} 
+i2 : G = digraph{{a,d},{b,d},{c,{d,e}},{d,e}} 
 o2 = Digraph{a => set {d}   }
              b => set {d}
              c => set {d, e}

@@ -359,12 +359,12 @@ the trek ideal, which in this case is the zero ideal.
 
 
 \begin{verbatim}
-i3 : G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{1,2},{2,4}});
-i4 : R = gaussianRing G;
-i8 : I = gaussianVanishingIdeal R;
-o16 : Ideal of R
-i35 : J = trekIdeal (R,G)
-o35 = 0
+i26 : G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{1,2},{2,4}});
+i27 : R = gaussianRing G;
+i28 : I = gaussianVanishingIdeal R;
+o28 : Ideal of R
+i29 : J = trekIdeal (R,G)
+o29 = 0
 \end{verbatim}
 
 An important problem in these models consists in finding which parameters are
@@ -374,10 +374,9 @@ structural equation models. The following example shows that the parameter
 $\lambda_{12}$ is not generically identifiable. 
 
 \begin{verbatim}
-i37 : H = identifyParameters R;
-i42 : isSubset ({l_(1,2)},  support H#(l_(1,2)))
-
-o42 = false
+i30 : H = identifyParameters R;
+i31 : isSubset ({l_(1,2)},  support H#(l_(1,2)))
+o31 = false
 \end{verbatim}
 
 

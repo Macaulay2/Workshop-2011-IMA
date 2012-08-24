@@ -43,12 +43,17 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-The {\tt Macaulay2} package {\tt GraphicalModels} contains implementations of basic constructions and algorithms for algebraic statistical models associated to undirected, directed and mixed graphs. 
-The basic constructions of conditional independence statements follow classical definitions ...Lauritzen, while the algorithms that manipulate the idelas ... implement results from the work of Sullivant, Garcia-Puente, .. 
-
-{\bf The abstract is not to exceed 150 words.}
-
-{\bf Good example of a recent paper:}\\ \url{http://j-sag.org/Volume4/jsag-1-2012.pdf}
+The {\tt Macaulay2} package {\tt GraphicalModels} contains algorithms 
+for the algebraic study of graphical models associated to undirected, 
+directed and mixed graphs, and associated collections of 
+conditional independence statements. 
+Among the algorithms implemented are procedures for computing
+the vanishing ideal of graphical models, for generating
+conditional independence ideals of various families of statements
+associated to graphs, and for checking for identifiable parameters
+in Gaussian mixed graph models.
+These procedures can be used to study various fundamental 
+problems about graphical models and their relatives. 
 \end{abstract}
 
 
@@ -354,16 +359,17 @@ bidirected edge in the model between $i$ and $j$.
 
 
 
-\section{Technical discussion (?) }
-This package requires Graphs.m2, as a consequence it can do
-computations with graphs whose vertices are not necessarily labeled by
-integers. 
+\section*{Acknowledgements}  
+The following people generated contributed time and effort to this
+project:  Alexander Diaz, Shaowei Lin, David Murrugarra, and Mike Stillman.
+Work on this package was carried out in part at the 2010 and 2011
+{\tt Macaulay2} programming workshops, which were partially supported 
+by the US National Science Foundation and the Institute of Mathematics and 
+Its Applications.
 
-\section{sonja}
-Grant #FA9550-12-1-0392 from the U.S. Air Force Office of Scientific Research (AFOSR) and the Defense Advanced Research Projects Agency (DARPA).
-
-\section*{Acknowledgements} {\bf TO DO: -- other authors of the package!....} -- Dan Grayson and Amelia Taylor.
-
+Luis Garcia-Puente was partially supported by a2012 SHSU Faculty Research Grant (29001).
+Sonja Petrovi\'c was partially supported by Grant \#FA9550-12-1-0392 from the U.S. Air Force Office of Scientific Research (AFOSR) and the Defense Advanced Research Projects Agency (DARPA).
+Seth Sullivant was partially supported by the US National Science Foundation (DMS 0954865) and the David and Lucille Packard Foundation.
 
 
 

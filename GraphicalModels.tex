@@ -165,8 +165,7 @@ are explained in the remaining sections.
 
 \section{Computing conditional independence ideals}
 
-Conditional independence constraints on discrete or gaussian
-random variables translate to rank conditions certain matrices
+Conditional independence constraints on discrete or Gaussian random variables translate to rank conditions on certain matrices
 associated to the probability densities.  We briefly explain
 these constructions here and how to generate these constraints
 in {\tt Macaulay2} using {\tt GraphicalModels}.  More details
@@ -176,8 +175,7 @@ Let $X = (X_{1}, \ldots, X_{n})$ be a discrete random
 vector where each random variable $X_{i}$ has state space
 $[d_{i}] = \{1,2, \ldots, d_{i} \}$. Let $d = (d_{1}, \ldots, d_{n})$.  
 A probability distribution
-for $X$ is a tensor in $\mathbb{R}^{d_{1}} \otimes \cdots \otimes \mathbb{R}^{d_{n}}$,
-whose coordinates sum to one and all of whose coordinates are nonnegative.
+for $X$ is a tensor in $\mathbb{R}^{d_{1}}\otimes \cdots \otimes \mathbb{R}^{d_{n}}$, all of whose coordinates are nonnegative and sum to one.
 The set of all such distributions is the probability simplex $\Delta_{d}$.
 Let $p_{i_{1}\cdots i_{n}} = {\rm P}(X_{1} = i_{1}, \ldots, X_{n} = i_{n})$
 denote the probability of a primitive event.  The polynomial
@@ -217,20 +215,21 @@ o26 = {| p_(1,1,1) p_(1,2,1) p_(1,3,1) |, | p_(1,1,2) p_(1,2,2) p_(1,3,2) |,
        | p_(2,1,1) p_(2,2,1) p_(2,3,1) |  | p_(2,1,2) p_(2,2,2) p_(2,3,2) |  
      | p_(1,1,1)+p_(1,2,1)+p_(1,3,1) p_(1,1,2)+p_(1,2,2)+p_(1,3,2) |}
      | p_(2,1,1)+p_(2,2,1)+p_(2,3,1) p_(2,1,2)+p_(2,2,2)+p_(2,3,2) |
-i30 : I = conditionalIndependenceIdeal(R,s);      
+i10 : I = conditionalIndependenceIdeal(R,s); degrees  I 
+o10 : Ideal of R
+o11 = {{2}, {2}, {2}, {2}, {2}, {2}, {2}}
 \end{verbatim}
 
 There are many different sets of conditional independence statements
 associated to a graph $G$, whose nodes correspond to random variables.
 For example, the \emph{local Markov statements} of an undirected graph $G$
 is the set of conditional independence statements of the form
-$X_{i} \ci X_{V \setminus (i \cup N(i)} | X_{N(i)}$
-where $N(i)$ is the set of neighbors of $I$ in the graph $G$.
+$X_{i} \ci X_{V \setminus (i \cup N(i)} | X_{N(i)}$ where $N(i)$ is the set of neighbors of $i$ in the graph $G$.
 The functions {\tt pairMarkov}, {\tt localMarkov}, and {\tt globalMarkov}
 compute the pairwise Markov statements, the local Markov statements, and the global Markov statements for both directed and undirected graphs.
 
 \begin{verbatim}
-i44 : G = graph{{1,2},{2,3},{3,4}, {4,5},{1,5}};
+i44 : G = graph{{1,2},{2,3},{3,4},{4,5},{1,5}};
 i45 : localMarkov G
 o45 = {{{1}, {3, 4}, {5, 2}}, {{1, 2}, {4}, {5, 3}}, {{1, 5}, {3}, {4, 2}}, 
       {{2, 3}, {5}, {4, 1}}, {{2}, {4, 5}, {1, 3}}}
@@ -360,6 +359,8 @@ This package requires Graphs.m2, as a consequence it can do
 computations with graphs whose vertices are not necessarily labeled by
 integers. 
 
+\section{sonja}
+Grant #FA9550-12-1-0392 from the U.S. Air Force Office of Scientific Research (AFOSR) and the Defense Advanced Research Projects Agency (DARPA).
 
 \section*{Acknowledgements} {\bf TO DO: -- other authors of the package!....} -- Dan Grayson and Amelia Taylor.
 

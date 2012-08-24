@@ -198,10 +198,57 @@ markovMatrices (R,s)
 G = graph({{a,b},{b,c}})
 st=pairMarkov G
 
-undirectedEdgesMatrix (gaussianRing G)
+
+G = graph({{a,b},{b,c}})
+Rg =gaussianRing G
+D= digraph{{a,b},{c,d}}
+M= mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+
+undirectedEdgesMatrix (Rg)
+undirectedEdgesMatrix (gaussianRing D)
+break
+undirectedEdgesMatrix (gaussianRing M)
+break
+
+directedEdgesMatrix (Rg)
+break
+directedEdgesMatrix (gaussianRing D)
+break
+DintoMixed = mixedGraph ( D,bigraph{})
+directedEdgesMatrix gaussianRing DintoMixed
+use gaussianRing M
+directedEdgesMatrix (gaussianRing M)
+
+bidirectedEdgesMatrix (Rg)
+break
+bidirectedEdgesMatrix (gaussianRing D)
+break
+bidirectedEdgesMatrix (gaussianRing M)
+
+
+undirectedEdgesMatrix(QQ[x,y])
+break
+directedEdgesMatrix(QQ[x,y])
+break
+bidirectedEdgesMatrix(QQ[x,y])
+break
+
+
+
+restart
+uninstallPackage "GraphicalModels"
+installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
+
+    
+loadPackage "GraphicalModels" 
+viewHelp "GraphicalModels"
+
+
+
 
 --seth's example:
 G = digraph{{a,{d}},{b,{d}},{c,{d,e}},{d,{e}}}
+ G = digraph{{a,d},{b,d},{c,{d,e}},{d,e}} 
 R = gaussianRing G
 vars R
 I = conditionalIndependenceIdeal(R,globalMarkov(G));

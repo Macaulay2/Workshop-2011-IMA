@@ -586,7 +586,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix Ring := Matrix =>  R -> (
-     if not (R.?graph or R.?gaussianRingData) then error "expected a ring created with gaussianRing of a graph";
+     if not (R.?graph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a Graph";
      g := R.graph;
      bb:= graph g;
      vv := sort vertices g;
@@ -605,7 +605,7 @@ undirectedEdgesMatrix Ring := Matrix =>  R -> (
 
 directedEdgesMatrix = method()
 directedEdgesMatrix Ring := Matrix => R -> (
-     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
+     if not (R.?mixedGraph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a MixedGraph";     
      g := R.mixedGraph;
      G := graph collateVertices g;
      dd := graph G#Digraph;
@@ -623,7 +623,7 @@ directedEdgesMatrix Ring := Matrix => R -> (
 
 bidirectedEdgesMatrix = method()
 bidirectedEdgesMatrix Ring := Matrix => R -> (
-     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";
+     if not (R.?mixedGraph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a MixedGraph";     
      g := R.mixedGraph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
@@ -2019,9 +2019,17 @@ doc///
        Note that this matrix is NOT symmetric in the symbols.
 
      Example
-       G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+       G = mixedGraph(digraph {{b,{c,d}},{c,d}},bigraph {{a,d}})
        R = gaussianRing G
        directedEdgesMatrix R
+
+     Text
+       To obtain the directed edges matrix of a Digraph, it should first be embedded into a mixed graph as follows.
+
+     Example
+       D = digraph{{a,b},{c,d}}
+       Dembedded = mixedGraph(D, bigraph{})
+       directedEdgesMatrix gaussianRing Dembedded
 
    SeeAlso
      gaussianRing

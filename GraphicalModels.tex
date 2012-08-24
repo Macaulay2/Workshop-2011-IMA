@@ -233,6 +233,34 @@ o10 = {| s_(a,c) s_(a,b) |}
 
 \section{Computing the vanishing ideal of a model}
 
+The package GraphicalModels has the capability of computing the vanishing ideal
+of  a \emph{discrete Bayesian network} (discrete graphical model on a directed
+graph) and also of a Gaussian graphical model on a directed, undirected, or  mixed
+graph (a graph with directed, and bidirected edges). 
+
+The method
+\textbf{discreteVanishingIdeal} implements this capability for discrete Bayesian
+networks. A Bayesian network $G$ on $n$ discrete random variables 
+is defined parametrically by the
+\emph{recursive factorization} of the joint probability  distribution
+\[p(X) = \prod_{v} p(X_{v} | X_{\pa v},\]
+where the product runs over all vertices $v$ of $G$ and $\pa v$ is the set of
+parents of $v$. 
+The implementation of this method does not compute the kernel of the
+corresponding ring map. Instead, the vanishing ideal is
+computed recursively using the factorization 
+\[p(X_{1},\dots, X_{n}) = p(X_{1},\dots, X_{n})\cdot p(X_{n} | \pa X_{n}).\]
+%At the level of ideals the previous factorization produces the equality
+%\[I_{G} = \]
+
+\begin{verbatim}
+i3 : G = digraph {{1,{3}}, {2,{3}},{3,{4}},{4,{}}};
+i4 : R = markovRing (2,2,2,2);
+i8 : I = discreteVanishingIdeal (R,G) / print
+
+\end{verbatim}
+
+
 \begin{itemize}
 \item from parametric representation
 \item how does it compare to CI ideal

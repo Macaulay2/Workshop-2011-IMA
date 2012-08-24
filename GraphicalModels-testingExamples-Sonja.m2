@@ -198,6 +198,26 @@ markovMatrices (R,s)
 G = graph({{a,b},{b,c}})
 st=pairMarkov G
 
+undirectedEdgesMatrix (gaussianRing G)
+
+--seth's example:
+G = digraph{{a,{d}},{b,{d}},{c,{d,e}},{d,{e}}}
+R = gaussianRing G
+vars R
+I = conditionalIndependenceIdeal(R,globalMarkov(G));
+J = gaussianVanishingIdeal(R);
+mingens I
+mingens J
+betti J
+
+gens R
+directedEdgesMatrix R
+undirectedEdgesMatrix R
+break 
+
+
+
+
 
 
 

@@ -455,12 +455,13 @@ globalMarkov Digraph := List => (G) -> (
 
 markovRingList := new MutableHashTable;
 
-markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> getSymbol "p"})
+markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> "p"})
 markovRing Sequence := Ring => opts -> d -> (
      if any(d, di -> not instance(di,ZZ) or di <= 0)
-     then error "markovRing expected positive integers";
+          then error "markovRing expected positive integers";
      kk := opts.Coefficients;
      p := opts.VariableName;
+     if instance(p,String) then p=getSymbol p;
      if (not markovRingList#?(d,kk,toString p)) then (
      	  start := (#d):1;
 	  vlist := start .. d;
@@ -1714,7 +1715,6 @@ doc ///
   SeeAlso
     markovRing
 ///
-
 
 
 

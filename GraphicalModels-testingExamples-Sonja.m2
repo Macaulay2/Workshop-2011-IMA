@@ -233,6 +233,15 @@ break
 bidirectedEdgesMatrix(QQ[x,y])
 break
 
+s = {{{1},{2},{3}}, {{1},{3},{}}}
+R = markovRing (2,3,2)
+I = conditionalIndependenceIdeal(R,s); degrees  I
+
+
+G = digraph {{1,{2}}, {2,{3}},{3,{4}},{4,{}}};
+R = markovRing (2,2,2,2);
+I = discreteVanishingIdeal (R,G);
+betti mingens I
 
 
 restart

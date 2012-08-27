@@ -913,7 +913,8 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      shuffle := apply(sort vertices G, v -> H#map#v);
      dshuff := toSequence d_(shuffle - toList (n:1));
      R1 := local R1;
-     R1 = markovRing(dshuff , VariableName => getSymbol"p");     
+     --R1 = markovRing(dshuff , VariableName => getSymbol"p");     
+     R1 = markovRing(dshuff , VariableName =>"p");          
      p := j -> R1.markovVariables#j;
      I := trim ideal(0_R1);     
      SortedG := H#"newDigraph"; --Note: "" is there because Graphs.m2 is silly and this key is an unexported string!~Sonja
@@ -1630,12 +1631,10 @@ doc ///
   Key
     markovRing
     (markovRing, Sequence)
-    [markovRing, VariableName]
   Headline
     ring of joint probability distributions on several discrete random variables
   Usage
     markovRing(d)
-    markovRing(d,VariableName=>Symbol)
   Inputs
     d:Sequence
       with positive integer entries $(d_1,\dots ,d_r)$
@@ -1716,6 +1715,13 @@ doc ///
     markovRing
 ///
 
+doc ///
+  Key
+    [markovRing, VariableName]
+  Description
+    Text
+      This is the documentation node I have trouble with. If this is gone, the package installs.  
+///
 
 
 

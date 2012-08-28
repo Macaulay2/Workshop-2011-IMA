@@ -2025,7 +2025,7 @@ doc///
      :Matrix
        the n x n matrix of indeterminates where we have $l_{(i,j)}$ in the $(i,j)$ 
        position
-       if there is a directed edge i-->j, and 0 otherwise.
+       if there is a directed edge $i \to j$, and 0 otherwise.
    Description 
      Text
        Note that this matrix is NOT symmetric in the symbols.

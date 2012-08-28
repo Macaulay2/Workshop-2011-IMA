@@ -26,34 +26,34 @@ newPackage(
      Headline => "A package for discrete and Gaussian graphical models",
      DebuggingMode => true
      )
-export {bidirectedEdgesMatrix,
-       Coefficients,
-       conditionalIndependenceIdeal,
-       covarianceMatrix,
-       directedEdgesMatrix,
-       discreteVanishingIdeal,
-       gaussianMatrices,
-       gaussianParametrization,
-       gaussianVanishingIdeal,
-       gaussianRing, 
-       globalMarkov,
-       hiddenMap,
-       identifyParameters, 
-       inverseMarginMap,
-       localMarkov,
-       markovMatrices, 
-       markovRing,        
-       marginMap, 
-       pairMarkov, 
-       trekIdeal, 
-       trekSeparation,
-       SimpleTreks,
-       undirectedEdgesMatrix,
-       VariableName,
-       sVariableName,
-       kVariableName,
-       lVariableName,
-       pVariableName
+export {"bidirectedEdgesMatrix",
+       "Coefficients",
+       "conditionalIndependenceIdeal",
+       "covarianceMatrix",
+       "directedEdgesMatrix",
+       "discreteVanishingIdeal",
+       "gaussianMatrices",
+       "gaussianParametrization",
+       "gaussianVanishingIdeal",
+       "gaussianRing", 
+       "globalMarkov",
+       "hiddenMap",
+       "identifyParameters", 
+       "inverseMarginMap",
+       "localMarkov",
+       "markovMatrices", 
+       "markovRing",        
+       "marginMap", 
+       "pairMarkov", 
+       "trekIdeal", 
+       "trekSeparation",
+       "SimpleTreks",
+       "undirectedEdgesMatrix",
+       "VariableName",
+       "sVariableName",
+       "kVariableName",
+       "lVariableName",
+       "pVariableName"
        	} 
      
 needsPackage "Graphs"
@@ -453,6 +453,14 @@ globalMarkov Digraph := List => (G) -> (
 -- as this information identifies the Markov ring uniquely. 
 ------------------------------------------------------------------------------------------------
 
+toSymbol = (p) -> (
+     if instance(p,Symbol) then p
+     else
+     if instance(p,String) then getSymbol p
+     else
+     error ("expected a string or symbol, but got: ", toString p))
+
+
 markovRingList := new MutableHashTable;
 
 markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> "p"})
@@ -460,18 +468,17 @@ markovRing Sequence := Ring => opts -> d -> (
      if any(d, di -> not instance(di,ZZ) or di <= 0)
           then error "markovRing expected positive integers";
      kk := opts.Coefficients;
-     p := opts.VariableName;
-     if instance(p,String) then p=getSymbol p;
-     if (not markovRingList#?(d,kk,toString p)) then (
+     p := toSymbol opts.VariableName;
+     if not markovRingList#?(d,kk,p) then (
      	  start := (#d):1;
 	  vlist := start .. d;
 	  R := kk(monoid [p_start .. p_d, MonomialSize=>16]);
 	  R.markovRingData = d;
 	  H := new HashTable from apply(#vlist, i -> vlist#i => R_i);
 	  R.markovVariables = H;
-	  markovRingList#(d,kk,toString p) = R;
+	  markovRingList#(d,kk,p) = R;
 	  );
-     markovRingList#(d,kk,toString p))
+     markovRingList#(d,kk,p))
 
 
 
@@ -491,12 +498,12 @@ markovRing Sequence := Ring => opts -> d -> (
 
 gaussianRingList := new MutableHashTable;
 
-gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>getSymbol "s", lVariableName=>getSymbol "l", 
-	  pVariableName=>getSymbol "p", kVariableName=>getSymbol "k"})
+gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>"s", lVariableName=>"l", 
+	  pVariableName=>"p", kVariableName=>"k"})
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
-     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
+     s := toSymbol opts.sVariableName;
      kk := opts.Coefficients;
      if (not gaussianRingList#?(kk,s,n)) then ( 
 	  --(kk,s,n) uniquely identifies gaussianRing in case of ZZ input.
@@ -513,8 +520,8 @@ gaussianRing ZZ :=  Ring => opts -> (n) -> (
 gaussianRing Graph := Ring => opts -> (g) -> (
     bb := graph g;
     vv := sort vertices g;
-    s := opts.sVariableName;
-    k := opts.kVariableName;
+    s := toSymbol opts.sVariableName;
+    k := toSymbol opts.kVariableName;
     kk := opts.Coefficients;
     if (not gaussianRingList#?(kk,s,k,bb)) then ( 
 	 --(kk,s,k,bb) uniquely identifies gaussianRing in case of Graph input.
@@ -530,7 +537,7 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     )
 
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
-     s := if instance(opts.sVariableName,Symbol) then opts.sVariableName else opts.sVariableName;
+     s := toSymbol opts.sVariableName;
      kk := opts.Coefficients;
      vv := sort vertices G; 
      if (not gaussianRingList#?(kk,s,vv)) then ( 
@@ -554,9 +561,9 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      uu := G#Graph;
      if #(edges uu) > 0 then error "mixedgraph must have no undirected part ";
      vv := sort vertices g;
-     s := opts.sVariableName;
-     l := opts.lVariableName;
-     p := opts.pVariableName;
+     s := toSymbol opts.sVariableName;
+     l := toSymbol opts.lVariableName;
+     p := toSymbol opts.pVariableName;
      kk := opts.Coefficients;          
      if (not gaussianRingList#?(kk,s,l,p,vv)) then ( 
 	  --(kk,s,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
@@ -913,8 +920,7 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      shuffle := apply(sort vertices G, v -> H#map#v);
      dshuff := toSequence d_(shuffle - toList (n:1));
      R1 := local R1;
-     --R1 = markovRing(dshuff , VariableName => getSymbol"p");     
-     R1 = markovRing(dshuff , VariableName =>"p");          
+     R1 = markovRing dshuff;          
      p := j -> R1.markovVariables#j;
      I := trim ideal(0_R1);     
      SortedG := H#"newDigraph"; --Note: "" is there because Graphs.m2 is silly and this key is an unexported string!~Sonja
@@ -925,7 +931,7 @@ discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
          tempd := toSequence dshuff_(familyi - toList (#familyi: 1));
 	 F := inverseMarginMap(i,R1);
 	 I = F(I);
-         S = markovRing( tempd, VariableName => getSymbol"a");	
+         S = markovRing( tempd, VariableName => getSymbol "a");	
 	 a = j1 -> S.markovVariables#j1;
 	 T := R1**S;
 	 newI := sub(I, T);
@@ -1799,10 +1805,10 @@ doc ///
   Usage
     gaussianRing n 
     gaussianRing G 
-    gaussianRing(n,sVariableName=>Symbol)
-    gaussianRing(G,lVariableName=>Symbol)
-    gaussianRing(G,pVariableName=>Symbol)
-    gaussianRing(G,kVariableName=>Symbol)    
+    gaussianRing(n,sVariableName=>s)
+    gaussianRing(G,lVariableName=>l)
+    gaussianRing(G,pVariableName=>p)
+    gaussianRing(G,kVariableName=>k)    
   Inputs
     n:ZZ
       the number of random variables
@@ -2669,7 +2675,6 @@ assert(sort B === sort L)
 ///
 
 TEST /// 
-d=getSymbol "d"
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R = gaussianRing G
 correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,d), k_(a,b),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}

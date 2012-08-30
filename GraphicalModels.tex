@@ -1,6 +1,7 @@
 \documentclass[letterpaper]{article}
 
 \usepackage[margin=2.54cm]{geometry}
+\usepackage{setspace}
 
 \usepackage{amsthm}
 \usepackage{amsmath}
@@ -38,33 +39,13 @@
 
 \title{Graphical models}
 \author{Luis David  Garc\'{\i}a-Puente\footnote{Department of Mathematics \& Statistics,         Sam Houston State University,          Huntsville, TX\ 77341, \href{mailto:lgarcia@shsu.edu}{lgarcia@shsu.edu}},
- Sonja Petrovi\'c\footnote{Department of Statistics,       Pennsylvania State University,           University Park, PA\ 16802, \href{mailto:petrovic@psu.edu}{petrovic@psu.edu}}, 
+ Sonja Petrovi\'c\footnote{Department of Statistics,       Pennsylvania State University,           University Park, PA\ 16802, \href{mailto:petrovic@psu.edu}{sonja@psu.edu}}, 
  Seth Sullivant\footnote{Department of Mathematics,   North Carolina State University, Raleigh, NC\ 27695, \href{mailto:smsulli2@ncsu.edu}{smsulli2@ncsu.edu}}}
 
-
-%\affil[1]{Dept. of Mathematics \& Statistics,
-%         Sam Houston State University, 
-%         Huntsville, TX \ 77341
-%%\href{mailto:lgarcia@shsu.edu}{lgarcia@shsu.edu}
 %%\url{www.shsu.edu/\~ldg005}
-%}
-
-%\affil[2]{Department of Statistics,       
-%Pennsylvania State University,           
-%University Park, PA\ 16802
-%%\href{mailto:petrovic@psu.edu}{petrovic@psu.edu}
 %%\url{http://www.personal.psu.edu/sxp61/}
-%}
-
-%\affil[3]{Department of Mathematics,         
-% North Carolina State University,
-%Raleigh, NC\ 27695
-%%\href{mailto:smsulli2@ncsu.edu}{smsulli2@ncsu.edu}
 %%\url{http://www4.ncsu.edu/~smsulli2/}
-%}
 
-
-%\date{}
 \date{\today}
 
 \begin{document}
@@ -92,7 +73,7 @@ problems about graphical models.
 
 A graphical model is a statistical model associated to a graph,
 where the nodes of the graph represent random variables and the
-edges in the graph encode relationships between the random variables.
+edges of the graph encode relationships between the random variables.
 Graphical models are an important class of statistical models used
 in many applications (see standard textbooks \cite{Lauritzen, Whitaker})
 because of their ability to model complex interactions between
@@ -125,7 +106,7 @@ the parametrized family of probability distributions also
 is a semialgebraic set (of the probability simplex for discrete
 random variables, and of the cone of positive definite matrices
 for Gaussian random variables).  This algebraic perspective
-has been studied by many authors %CMS
+has been studied by many authors  
 \cite{ GSS, GMS, S}, and the book \cite{DSS}
 provides many details.
 
@@ -142,7 +123,7 @@ set $\{a \to d, b \to d, c \to d, c \to e, d \to e\}$.
 The following commands compute the associated conditional
 independence ideal for the set of global Markov statements,
 $CI_{{\rm global}(G)}$, and 
-the vanishing ideal $I_{G}$ of the gaussian graphical model on $G$.
+the vanishing ideal $I_{G}$ of the Gaussian graphical model on $G$.
 
 %Deleted from below
 %o2 = Digraph{a => set {d}   }
@@ -172,7 +153,7 @@ associated with graphs.  First we create a polynomial ring
 for carrying out the computations, which contains the entries of
 the covariance matrix $\Sigma$ of a jointly normal random vector
 as its indeterminates.  Information about the underlying graph is stored with the polynomial ring. 
-Hence many functions in the graphical models package use only the ring as input, but require that it be created with {\tt gaussianRing}, or with {\tt markovRing} in the discrete case.
+Hence many functions in  this package take only ring as input, but require that it be created with {\tt gaussianRing}, or {\tt markovRing} in the discrete case.
 
 For directed acyclic graphs it is known that 
 $V(CI_{{\rm global}(G)}) \cap PD_{m}  =  
@@ -225,7 +206,7 @@ denote the probability of a primitive event.  The polynomial
 ring in these quantities is created using the command ${\tt markovRing}$.
 
 \begin{verbatim}
-i10 : R = markovRing (2,3,2)
+i10 : d = (2,3,2); R = markovRing d
 o10 : PolynomialRing
 i11 : gens R
 o11 = {p     , p     , p     , p     , p     , p     , p     , p     , p     ,
@@ -268,7 +249,7 @@ There are many different sets of conditional independence statements
 associated to a graph $G$, whose nodes correspond to random variables.
 For example, the \emph{local Markov statements} of an undirected graph $G$
 is the set of conditional independence statements of the form
-$X_{i} \ci X_{V \setminus \left\{i \cup N(i)\right\}} | X_{N(i)}$ where $N(i)$ is the set of neighbors of $i$ in the graph $G$.
+$X_{i} \ci X_{V \setminus \left\{i \cup N(i)\right\}} | X_{N(i)}$, where $N(i)$ is the set of neighbors of $i$ in the graph $G$.
 The functions {\tt pairMarkov}, {\tt localMarkov}, and {\tt globalMarkov}
 compute the pairwise, local, and global Markov statements, respectively, 
 for both directed and undirected graphs.
@@ -284,7 +265,7 @@ For example, the first conditional independence statement produced
 is $X_{1} \ci (X_{3}, X_{4}) | (X_{2}, X_{5})$.  In the 
 context of conditional independence, the graphical model
 consists of all distributions satisfying one of these collections
-of independence statements associated to the graphs.
+of independence statements associated to the graph $G$.
 
 A Gaussian random vector, $X = (X_{1}, \ldots, X_{n}) 
 \sim \mathcal{N}(\mu, \Sigma)$, is an
@@ -340,7 +321,7 @@ Our implementation of this method does not compute the kernel of the
 corresponding ring map. Instead, the vanishing ideal is
 computed recursively using the factorization 
 \[{\rm P}(X = i) = {\rm P}(X_{1} = i_{1},\dots, X_{n-1} = i_{n-1})\cdot {\rm P}(X_{n} = i_{n} | X_{\pa(n)} = i_{\pa(n)}),\]
-where we assume that $1, \ldots, n$ is a topological ordering of
+where $1, \ldots, n$ is a topological ordering of
 the vertices of the directed acyclic graph $G$.
 
 The following example computes the vanishing ideal of the graphical model $1\to
@@ -444,31 +425,15 @@ LGP was partially supported by a 2012 SHSU Faculty Research Grant (29001).
 SP was partially supported by Grant \#FA9550-12-1-0392 from the U.S. Air Force Office of Scientific Research (AFOSR) and the Defense Advanced Research Projects Agency (DARPA).
 SS was partially supported by the US National Science Foundation (DMS 0954865) and the David and Lucille Packard Foundation.
 
-
+\begin{spacing}{0.5}
 
 \begin{thebibliography}{20}
 
-%\bibitem{theRpackage!}
-%Gabriel C. G. de Abreu, Rodrigo Labouriau, David Edwards, High-dimensional Graphical Model Search with gRapHD R Package, \href{http://arxiv.org/abs/0909.1234}{arXiv:0909.1234v4}
-%{\bf CITE ME!!!}
-
-%\bibitem{CMS}
-%M.~A.~Cueto, J.~Morton and B.~Sturmfels: Geometry of the restricted Boltzmann
-%machine. Algebraic methods in statistics and probability II, 135--153, 
-%\emph{Contemp. Math.}, {\bf 516}, Amer. Math. Soc., Providence, RI, 2010. 
 
 \bibitem{DSS} 
 M.~Drton, B.~Sturmfels and S.~Sullivant, \emph{Lectures on Algebraic Statistics}, 
 Oberwolfach Seminars, 39. Birkh\"auser Verlag, Basel, 2009.
 
-%\bibitem{DS}
-%M.~Drton and S.~Sullivant:
-%Algebraic statistical models. 
-%{\em Statist. Sinica}  {\bf 17} (2007), no. 4, 1273--1297. 
-
-%\bibitem{MortonSturm}
-%I. Onur Filiz, Xin Guo, Jason Morton, Bernd Sturmfels, Graphical models for correlated defaults, \href{http://arxiv.org/abs/0809.1393}{arXiv:0809.1393v1}
-%{\bf CITE ME!!!}
 
 \bibitem{GPSS} L.~D.~Garcia-Puente, S.~Spielvogel and S.~Sullivant: Identifying
 causal effects with computer algebra, {\em Proceedings of the 26th
@@ -482,16 +447,10 @@ Algebraic geometry of Bayesian networks, {\em J. Symbolic Comput.}
 D.~Geiger, C.~Meek and B.~Sturmfels: On the toric algebra of graphical
 models, {\em Ann. Statist.} {\bf 34} (2006), no. 3, 1463--1492.
 
-%\bibitem{HaraTakemura}
-%Hisayuki Hara, Satoshi Aoki, Akimichi Takemura, Minimal and minimal invariant Markov bases of decomposable models for contingency tables, Bernoulli 2010, Vol. 16, No. 1, 208-233  (preprint FOR OUR REFERENCE: \href{http://arxiv.org/abs/math/0701429}{arXiv:math/0701429v3})
-%{\bf CITE ME?}
 
 \bibitem{Lauritzen}
 S.~Lauritzen,  \emph{Graphical models}, Oxford Statistical Science Series, 17. Oxford University Press, New York, 1996.
 
-%\bibitem{Elena}
-%E.~Stanghellini, B.~Vantaggi, On the identification of discrete graphical models with hidden nodes, \href{http://arxiv.org/abs/1009.4279}{	arXiv:1009.4279v1}
-%{\bf DO WE NEED THIS REFERENCE?}
 
 \bibitem{S} S.~Sullivant: Algebraic geometry of Gaussian Bayesian
   networks, {\em Adv. in Appl. Math.} {\bf 40} (2008) 482--513.
@@ -507,6 +466,9 @@ graphical models, {\em Ann. Statist.} {\bf 38} (2010) 1665--1685.
 
 
 \end{thebibliography}
+
+\end{spacing}
+
 \end{document}
 
 

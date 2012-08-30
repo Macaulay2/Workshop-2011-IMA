@@ -1620,6 +1620,11 @@ doc ///
       Putting {\tt Coefficients => r} for a choice of ring(field) r as an argument in 
       the function @TO markovRing@ or @TO gaussianRing@ creates a ring with the
       desired coefficient ring.
+
+    Example
+      R2 = markovRing ((2,2),Coefficients=>CC); 
+      coefficientRing R2
+
   SeeAlso
     markovRing
     gaussianRing
@@ -1712,11 +1717,10 @@ doc ///
   Key
     VariableName
   Headline
-    optional input to markovRing
+    optional input to choose indeterminate name in markovRing
   Description
     Text
-      Put {\tt VariableName => s} for a choice of a symbol s as an argument in 
-      the function @TO markovRing@
+      The option {\tt VariableName => q} changes the symbol used for intedeterminates in a polynomial ring created with @TO markovRing@.
   SeeAlso
     markovRing
 ///
@@ -1724,9 +1728,24 @@ doc ///
 doc ///
   Key
     [markovRing, VariableName]
+  Headline
+    symbol used for indeterminates in a ring of discrete joint probability distributions
+  Usage
+    markovRing (d,VariableName => q)
+  Inputs
+    q:
+      @ofClass Symbol@ or @ofClass String@
   Description
     Text
-      This is the documentation node I have trouble with. If this is gone, the package installs.  
+      The indeterminates in the polynomial ring made by markovRing are labeled with the letter ''p'' suggesting probability distributions. 
+      However, sometimes it might be useful to create a new ring where the indeterminates are labeled different (for example, 
+      they may represent marginal probabilities). 
+ 
+    Example
+      d=(1,2);
+      markovRing (d,VariableName => q);
+      vars oo 
+
 ///
 
 
@@ -1796,19 +1815,11 @@ doc ///
     (gaussianRing, Graph)
     (gaussianRing, Digraph)
     (gaussianRing, MixedGraph)
-    [gaussianRing, sVariableName]
-    [gaussianRing, lVariableName]
-    [gaussianRing, pVariableName]
-    [gaussianRing, kVariableName]
   Headline
-    ring of gaussian correlations on n random variables
+    ring of Gaussian correlations on n random variables
   Usage
     gaussianRing n 
     gaussianRing G 
-    gaussianRing(n,sVariableName=>s)
-    gaussianRing(G,lVariableName=>l)
-    gaussianRing(G,pVariableName=>p)
-    gaussianRing(G,kVariableName=>k)    
   Inputs
     n:ZZ
       the number of random variables
@@ -1898,7 +1909,7 @@ doc///
      gaussianMatrices
      (gaussianMatrices,Ring,List)
    Headline
-     matrices whose minors generate the gaussian conditional independence ideal
+     matrices whose minors generate the Gaussian conditional independence ideal
    Usage
      gaussianMatrices(R,S)
    Inputs
@@ -1908,11 +1919,11 @@ doc///
        of conditional independence statements
    Outputs
      :Matrix
-       whose minors generate the gaussian conditional independence ideal
+       whose minors generate the Gaussian conditional independence ideal
    Description 
    
      Text
-       This method displays a list of matrices whose minors generate the  gaussian 
+       This method displays a list of matrices whose minors generate the  Gaussian 
        conditional independence ideal.  It is called as a subroutine in @TO conditionalIndependenceIdeal@
        but some people might find it useful to explicitly have these matrices.
 
@@ -1935,7 +1946,7 @@ doc///
      covarianceMatrix
      (covarianceMatrix,Ring)
    Headline
-     the covariance matrix of a gaussian graphical model
+     the covariance matrix of a Gaussian graphical model
    Usage
      covarianceMatrix R
    Inputs
@@ -2073,7 +2084,7 @@ doc///
        Given a mixed graph G with directed and bidirected edges, let L be the matrix corresponding to 
        the directed edges (see @TO directedEdgesMatrix@) and let W be the matrix corresponding to 
        the bidirected edges (see @TO bidirectedEdgesMatrix@). Then, the covariance matrix S 
-       (see @TO covarianceMatrix@) of the random variables in the gaussian graphical model corresponding
+       (see @TO covarianceMatrix@) of the random variables in the Gaussian graphical model corresponding
        to the mixed graph G can be parametrized by the matrix equation $S = (I-L)^{-T}W(I-L)^{-1}$, where
        I is the identity matrix.
        
@@ -2167,7 +2178,7 @@ doc///
      identifyParameters
      (identifyParameters,Ring)
    Headline
-     solve the identifiability problem for gaussian graphical models 
+     solve the identifiability problem for Gaussian graphical models 
    Usage
      H = identifyParameters(R)
    Inputs
@@ -2236,7 +2247,7 @@ doc///
        
        These ideals are described in more detail by Sullivant, Talaska and Draisma in "Trek Separation for Gaussian Graphical Models"
        Annals of Statistics 38 no.3 (2010) 1665--1685
-       and give all determinantal constraints on the covariance matrix of a gaussian graphical model.        
+       and give all determinantal constraints on the covariance matrix of a Gaussian graphical model.        
 
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
@@ -2310,9 +2321,9 @@ doc///
      trekIdeal
 ///
 
-------------------------------------
--- Documentation sVariableName     --
-------------------------------------
+----------------------------------------------------------------------------------
+-- Documentation sVariableName, kVariableName, lVariableName, pVariableName     --
+----------------------------------------------------------------------------------
 
 doc ///
   Key
@@ -2321,11 +2332,32 @@ doc ///
     optional input to choose the variable for the covariance matrix
   Description
     Text
-      Put {\tt sVariableName => stilde} for a choice of a symbol s as an argument in 
-      the function @TO gaussianRing@
+      Put {\tt sVariableName =>  Symbol} for a choice of a symbol s as an argument in the function @TO gaussianRing@
   SeeAlso
     gaussianRing
 ///
+doc ///
+  Key
+    [gaussianRing, sVariableName]
+  Headline
+    symbol used for indeterminates in a ring of Gaussian joint probability distributions
+  Usage
+    gaussianRing(G,sVariableName=>t)    
+  Inputs 
+    t:
+      a @TO Symbol@ or a @TO String@ 
+  Description
+    Text
+      The option {\tt gaussianRing(G,kVariableName=>t)} changes the symbol used for intedeterminates in the error covariance matrix 
+      in a polynomial ring created with @TO gaussianRing@.
+      
+    Example
+      R = gaussianRing 4
+      vars R
+      Rnew=gaussianRing(4,sVariableName => "t")
+      vars Rnew
+///
+
 doc ///
   Key
     lVariableName
@@ -2333,11 +2365,31 @@ doc ///
     optional input to choose the variable name for the regression matrix
   Description
     Text
-      Put {\tt lVariableName => ltilde} for a choice of a symbol l as an argument in 
+      Put {\tt lVariableName => Symbol} for a choice of a symbol l as an argument in 
       the function @TO gaussianRing@
   SeeAlso
     gaussianRing
 ///
+doc ///
+  Key
+    [gaussianRing, lVariableName]
+  Headline
+    symbol used for indeterminates in a ring of Gaussian joint probability distributions
+  Usage
+    gaussianRing(G,lVariableName=>w)    
+  Inputs 
+    w:
+      a @TO Symbol@ or a @TO String@ 
+  Description
+    Text
+      The option {\tt gaussianRing(G,lVariableName=>w)} changes the symbol used for intedeterminates in the regression matrix 
+      in a polynomial ring created with @TO gaussianRing@.
+
+    Example
+      G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+      gens gaussianRing(G,lVariableName=>"lambda")
+///
+
 doc ///
   Key
     pVariableName
@@ -2345,22 +2397,67 @@ doc ///
     optional input to choose the variable name for the error covariance matrix
   Description
     Text
-      Put {\tt pVariableName => ptilde} for a choice of a symbol p as an argument in 
+      Put {\tt pVariableName => Symbol} for a choice of a symbol p as an argument in 
       the function @TO gaussianRing@
   SeeAlso
     gaussianRing
 ///
 doc ///
   Key
-    kVariableName
+    [gaussianRing, pVariableName]
   Headline
-    optional input to choose the variable name for the concentration matrix
+    symbol used for indeterminates in a ring of Gaussian joint probability distributions
+  Usage
+    gaussianRing(G,pVariableName=>q)    
+  Inputs 
+    q:
+      a @TO Symbol@ or a @TO String@ 
   Description
     Text
-      Put {\tt kVariableName => ktilde} for a choice of a symbol k as an argument in 
-      the function @TO gaussianRing@
+      The option {\tt gaussianRing(G,kVariableName=>q)} changes the symbol used for intedeterminates in the error covariance matrix 
+      in a polynomial ring created with @TO gaussianRing@.
+    
+    Example
+      G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+      R = gaussianRing G
+      gens R
+      R = gaussianRing (G,pVariableName => psi)
+      gens R      
+///
+
+doc ///
+  Key
+    kVariableName
+  Headline
+    optional input to choose variable name for concentration matrix in gaussianRing
+  Description
+    Text
+      The option {\tt kVariableName => Symbol} changes the symbol used for intedeterminates in a polynomial ring created with @TO gaussianRing@.
+      These indeterminates, k's by default, are entries in the concentration matrix. 
   SeeAlso
     gaussianRing
+///
+doc ///
+  Key
+    [gaussianRing, kVariableName]
+  Headline
+    symbol used for indeterminates in a ring of Gaussian joint probability distributions
+  Usage
+    gaussianRing(G,kVariableName=>m)    
+  Inputs 
+    m:
+      a @TO Symbol@ or a @TO String@ 
+  Description
+    Text
+      The option {\tt gaussianRing(G,kVariableName=>m)} changes the symbol used for intedeterminates in the concentration 
+      matrix in a polynomial ring created with @TO gaussianRing@.
+
+    Example 
+      R = gaussianRing graph({{a,b},{b,c},{c,d},{a,d}})
+      undirectedEdgesMatrix R
+      vars R
+      Rnew = gaussianRing( graph({{a,b},{b,c},{c,d},{a,d}}), kVariableName => kappa)
+      vars Rnew
 ///
 
 --------------------------------------------
@@ -2678,7 +2775,7 @@ TEST ///
 G = graph({{a,b},{b,c},{c,d},{a,d}}) 
 R = gaussianRing G
 correctOutput = {{k_(a,a), k_(b,b), k_(c,c), k_(d,d), k_(a,d), k_(a,b),k_(b,c), k_(c,d), s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b),s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)}}
-assert(0 == vars R - matrix correctOutput )
+assert(ideal gens R == ideal flatten correctOutput )
 /// 
      
 TEST /// 

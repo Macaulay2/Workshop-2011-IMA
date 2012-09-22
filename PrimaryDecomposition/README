@@ -28,20 +28,30 @@ Files of interest:
     quickGB.m2 -- Question: is this the current best version of this code?
       -- it is also poorly named
 
-    sing.m2 -- what is this??
-
     newGTZ.m2 -- code that Frank and Franzi wrote at IMA (and by Frank (et al) before that)
+      -- BUG or poblem: need ExampleIdeals.m2 in the path in order to load this package.
     newGTZ/newGTZGenPos.m2
+
+Files that need to be cleaned up, or categorized, or understood by me!
+    eg-decomp.m2 -- this is an example of what?
+    prime-argument.txt
+    sing.m2 -- what is this??
+    siphon-example.m2 -- move to example directory?
+    siphon-example.sing -- same?
+    siphons.m2 -- Franzi, is this current code?  How should we be using it?
+    newGTZ/tests.m2 -- tests and example: need to be cleaned up
+    newGTZ/stewart-eg.m2
+    slower-tests.m2
 
 Other files of interest, that we should probably move here:
     modularGCD.m2 and related files -- this is in M2-dev/mike, but the packages need some work (i.e. testing for bugs, doc, etc)
 
 Location of good examples:
   newGTZ/stewart-eg.m2
+  siphons above
   include: string theory examples
   include: examples from atlanta 2012
   include: example Allen K.  about Grassmannians matroid.
   include: singular examples
-    
-
+  include: Bayesian ideals
 

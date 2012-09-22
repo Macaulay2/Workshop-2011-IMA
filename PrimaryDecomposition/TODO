@@ -1,0 +1,25 @@
+A list of activities that are required or at least desirable
+
+* (Mike's machine): make sure Singular and Risa/Asir are running on new rMBP
+  and that all PD papers are avialable
+
+* Find best algorithms and ideas for absolute PD
+
+* Get examples into a situation where:
+  ** they are easy to run
+  ** can run them in other systems too
+  ** we can easily tell which ones we need to work on to improve
+  We should have one subdir for examples?
+
+* Improve 0-dimensional PD (over a frac field)
+  ** use as many tricks as possible to reduce to a case with as small dim over base as possible
+    This is perhaps the most interesting part!
+  ** possibly use rational function interpolation to find these GB's?
+
+* get all of the code running so it is not in disarray
+  i.e, for each function in PD.m2:
+  ** make sure we like the interface
+  ** document it
+  ** write tests for it
+
+  

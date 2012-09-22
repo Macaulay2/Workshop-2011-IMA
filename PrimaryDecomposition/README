@@ -44,7 +44,8 @@ Files that need to be cleaned up, or categorized, or understood by me!
     slower-tests.m2
 
 Other files of interest, that we should probably move here:
-    modularGCD.m2 and related files -- this is in M2-dev/mike, but the packages need some work (i.e. testing for bugs, doc, etc)
+    modularGCD.m2 and related files -- this is in M2-dev/mike 
+       -- but the packages need some work (i.e. testing for bugs, doc, etc)
 
 Location of good examples:
   newGTZ/stewart-eg.m2

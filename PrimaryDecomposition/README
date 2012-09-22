@@ -1,0 +1,47 @@
+
+     Improving Primary Decomposition in Macaulay2
+          F. Hinkelmann, F. Moore, M. Stillman
+
+This project is an attempt to improve the computation in M2 of:
+  a. minimalPrimes (decompose)
+  b. primaryDecomposition
+and associated computations, such as:
+  c. radical
+  d. associatedPrimes
+We would also like to implement absolute primary decomposition and absolute minimal primes
+
+As a subproject, we need to clean up the computation of ideal quotients in M2.
+  (and, computation of GB's).
+
+Files of interest:
+
+    PD.m2  -- this is the file we are creating
+    PD/    -- doesn't exisst yet, but should include doc and implementation files for the PD.m2 package
+
+    PrimDecomposition.m2 -- has code in it that is not yet in PD.m2 (I think)
+       -- Also: has explanation of some of singular algorithms, in M2 pseudo-code form.
+
+    FactorizingGB.m2 -- file that Franzi+Mike were writing
+      -- Note: this is BADLY named: it is NOT a factorizing GB algorithm
+      -- Still, it is quite fast for the siphon examples.
+
+    quickGB.m2 -- Question: is this the current best version of this code?
+      -- it is also poorly named
+
+    sing.m2 -- what is this??
+
+    newGTZ.m2 -- code that Frank and Franzi wrote at IMA (and by Frank (et al) before that)
+    newGTZ/newGTZGenPos.m2
+
+Other files of interest, that we should probably move here:
+    modularGCD.m2 and related files -- this is in M2-dev/mike, but the packages need some work (i.e. testing for bugs, doc, etc)
+
+Location of good examples:
+  newGTZ/stewart-eg.m2
+  include: string theory examples
+  include: examples from atlanta 2012
+  include: example Allen K.  about Grassmannians matroid.
+  include: singular examples
+    
+
+

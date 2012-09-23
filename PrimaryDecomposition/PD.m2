@@ -21,18 +21,18 @@ export {
 
 -- helper function for 'radicalContainment'
 radFcn = (I) -> (
-     if not I.cache#?"RadicalContainmentFunction" then (
-     	  R := ring I;
-     	  n := numgens R;
-     	  S := (coefficientRing R) (monoid[Variables=>n+1,MonomialSize=>16]);
-     	  mapto := map(S,R,submatrix(vars S,{0..n-1}));
-     	  I = mapto I;
-     	  A := S/I;
-	  rad := (g) -> (g1 := promote(mapto g, A); g1 == 0 or ideal(g1 * A_n - 1) == 1);
-	  I.cache#"RadicalContainmentFunction" = rad;
-	  );
-     I.cache#"RadicalContainmentFunction"
-     )
+    if not I.cache#?"RadicalContainmentFunction" then (
+        R := ring I;
+        n := numgens R;
+        S := (coefficientRing R) (monoid[Variables=>n+1,MonomialSize=>16]);
+        mapto := map(S,R,submatrix(vars S,{0..n-1}));
+        I = mapto I;
+        A := S/I;
+        rad := (g) -> (g1 := promote(mapto g, A); g1 == 0 or ideal(g1 * A_n - 1) == 1);
+        I.cache#"RadicalContainmentFunction" = rad;
+        );
+    I.cache#"RadicalContainmentFunction"
+    )
 
 radicalContainment = method()
 
@@ -44,38 +44,42 @@ radicalContainment(RingElement, Ideal) := (g,I) -> (radFcn I) g
 --  and null, if none
 -- another way to do something almost identical: select(1, I_*, radFcn J)
 radicalContainment(Ideal, Ideal) := (I,J) -> (
-     rad := radFcn J;
-     G := I_*;
-     for i from 0 to #G-1 do if not rad G#i then return i;
-     null)
+    rad := radFcn J;
+    G := I_*;
+    for i from 0 to #G-1 do if not rad G#i then return i;
+    null
+    )
 
 TEST ///
-  restart
-  debug loadPackage "PrimDecomposition"
-  R = ZZ/32003[a..f]
-  F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
-  I = ker F
-  J = I^2
-  G = I_0
-  assert radicalContainment(G,J)
-  assert not radicalContainment(G-a^2,J)
-  assert (radicalContainment(I, I^2) === null)
+    restart
+    debug loadPackage "PrimDecomposition"
+    R = ZZ/32003[a..f]
+    F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
+    I = ker F
+    J = I^2
+    G = I_0
+    assert radicalContainment(G,J)
+    assert not radicalContainment(G-a^2,J)
+    assert (radicalContainment(I, I^2) === null)
 ///
 
 --------------------------------   
 
 -- needs documentation
-factors = (F) -> (
-     R := ring F;
-     facs := if R.?toAmbientField then (
-	  F = R.toAmbientField F;
-     	  numerator factor F)
-        else factor F;
-     facs = apply(#facs, i -> (facs#i#1, (1/leadCoefficient facs#i#0) * facs#i#0 ));
-     facs = select(facs, (n,f) -> # support f =!= 0);
-     if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
-     )
+factors = method()
+factors RingElement := (F) -> (
+    R := ring F;
+    facs := if R.?toAmbientField then (
+        F = R.toAmbientField F;
+        numerator factor F)
+    else factor F;
+    facs = apply(#facs, i -> (facs#i#1, (1/leadCoefficient facs#i#0) * facs#i#0 ));
+    facs = select(facs, (n,f) -> # support f =!= 0);
+    if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
+    )
 -- need test
+TEST ///
+///
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
@@ -90,7 +94,7 @@ makeFiberRings(List) := (baseVars) -> (
    fiberVars := rsort toList(allVars - set baseVars);
    baseVars = rsort baseVars;
    RU := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
-	     --MonomialOrder=>{#fiberVars,#baseVars}]);
+       --MonomialOrder=>{#fiberVars,#baseVars}]);
    KK := frac((coefficientRing R)[baseVars]);
    KR := KK[fiberVars, MonomialOrder=>Lex];
    KR.toAmbientField = map(frac RU,KR);
@@ -116,9 +120,9 @@ minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
      GS := flatten entries sub(gens gb I, S);
      minG := flatten entries mingens ideal(GS/leadMonomial);
      GF := for mon in minG list (
-	  z := positions(GS, f -> leadMonomial f == mon);
-	  i := minPosition (sz_z);
-	  GS_(z#i));
+    z := positions(GS, f -> leadMonomial f == mon);
+    i := minPosition (sz_z);
+    GS_(z#i));
      coeffs := GF/leadCoefficient/phi;
      (flatten entries gens forceGB matrix{GF}, coeffs)
      )
@@ -170,11 +174,11 @@ splitUsingQuotientsBy = (I, h) -> (
      Isat := saturate(I, h);
      I2 := I : Isat;
      if Isat == I or Isat == 1 then (
-	  return null
-	  );
+    return null
+    );
      if intersect(Isat, I2) == I then (
-	  return (Isat, I2);
-	  );
+    return (Isat, I2);
+    );
      << "second ideal might introduce non-redundancy" << endl;
      f := 1_(ring I);
      while not isSubset(f*Isat, I) do f = f*h;
@@ -200,9 +204,9 @@ splitViaIndep Ideal := (I) -> (
      J1 := saturate(I, G);
      J2 := I: J1;
      if intersect(J2,J1) == I then (
-	  << "  Yes! Quotient method split the ideal" << endl;
-	  return (J1,J2);
-	  );
+    << "  Yes! Quotient method split the ideal" << endl;
+    return (J1,J2);
+    );
      << "  No! Need to manually determine the f^ell from lecture" << endl;
      (J1, G)
      )
@@ -210,9 +214,9 @@ splitViaIndep Ideal := (I) -> (
 splitViaIndeps = (I) -> (
      (J1, J2) := splitViaIndep I;
      if class J2 === Ideal and J2 != 1 then (
-	      (equidims2, J) := splitViaIndeps J2;
-	      return ({J1} | equidims2, J);
-	      );
+        (equidims2, J) := splitViaIndeps J2;
+        return ({J1} | equidims2, J);
+        );
      ({J1}, J2)
      )
 -- Needs test
@@ -234,9 +238,9 @@ splitViaIndepNEWER Ideal := (I) -> (
      J1 := saturate(I, G);
      J2 := I: J1;
      if intersect(J2,J1) == I then (
-	  << "  Yes! Quotient method split the ideal" << endl;
-	  return ((J1, indep, ISF),J2);
-	  );
+    << "  Yes! Quotient method split the ideal" << endl;
+    return ((J1, indep, ISF),J2);
+    );
      << "  No! Need to manually determine the f^ell from lecture" << endl;
      ((J1, indep, ISF), G)
      )
@@ -244,9 +248,9 @@ splitViaIndepNEWER Ideal := (I) -> (
 splitViaIndepsNEWER = (I) -> (
      (J1, J2) := splitViaIndepNEWER I;
      if class J2 === Ideal and J2 != 1 then (
-	      (equidims2, J) := splitViaIndepsNEWER J2;
-	      return ({J1} | equidims2, J);
-	      );
+        (equidims2, J) := splitViaIndepsNEWER J2;
+        return ({J1} | equidims2, J);
+        );
      ({J1}, J2)
      )
 -- Needs test
@@ -259,12 +263,12 @@ splitEquidimFactors = (I) -> (
      -- at the end, if it doesn't split, return {I}
      I1 := ideal gens gb I;
      for i from 0 to numgens I1 - 1 do (
-	  facs := factors I1_i;
-	  if #facs > 1 then (
-	       split := splitUsingQuotientsBy(I, facs#0#1);
-	       if split =!= null then return(split//toList/splitEquidimFactors//flatten);
-	       )
-	  );
+    facs := factors I1_i;
+    if #facs > 1 then (
+         split := splitUsingQuotientsBy(I, facs#0#1);
+         if split =!= null then return(split//toList/splitEquidimFactors//flatten);
+         )
+    );
      {I}
      )
 -- needs test
@@ -277,12 +281,12 @@ splitEquidimFactorsNEWER = (I,indep,ISF) -> (
      -- at the end, if it doesn't split, return {I}
      I1 := ideal gens gb I;
      for i from 0 to numgens I1 - 1 do (
-	  facs := factors I1_i;
-	  if #facs > 1 then (
-	       split := splitUsingQuotientsBy(I, facs#0#1);
-	       if split =!= null then return(split//toList/splitEquidimFactors//flatten);
-	       )
-	  );
+    facs := factors I1_i;
+    if #facs > 1 then (
+         split := splitUsingQuotientsBy(I, facs#0#1);
+         if split =!= null then return(split//toList/splitEquidimFactors//flatten);
+         )
+    );
      {I}
      )
 
@@ -300,9 +304,9 @@ findNonlinearPurePowers Ideal := (IF) -> (
      -- returns the list of n (= #fiber) polynomials, s.t. i-th one has lead term x_i^(a_i),
      --   where x_i are the fiber variables, and a_i > 1
      select(IF_*, f -> (
-	       t := leadTerm f;
-	       s := support t;
-	       #s === 1 and s#0 != t))
+         t := leadTerm f;
+         s := support t;
+         #s === 1 and s#0 != t))
      )
 
 -- Below, IF is a reduced lex GB for I k(indep)[fiber]
@@ -311,10 +315,10 @@ splitPurePowers = method()
 splitPurePowers Ideal := (IF) -> (
      L := findPurePowers IF;
      for f in L do (
-	  facs := factors f;
-	  if #facs == 1 and facs#0#0 == 1 then continue;
-	  return flatten for fac in facs list splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
-	  );
+    facs := factors f;
+    if #facs == 1 and facs#0#0 == 1 then continue;
+    return flatten for fac in facs list splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
+    );
      {IF}
      )
 -- needs test
@@ -340,9 +344,9 @@ purePowerCoordinateChange Ideal := (IF) -> (
      time facs1 := apply(facs, (mult,h) -> (mult,sub(h, varsList#0 => varsList#0 - F)));
      if #facs1 == 1 and facs1#0#0 == 1 then {IF}
      else for fac in facs1 list (
-     	  time G := fac#1 % L;
-	  time C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
-	  time ideal gens gb (C + ideal otherGens)
+        time G := fac#1 % L;
+    time C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
+    time ideal gens gb (C + ideal otherGens)
        )
      )
 TEST ///
@@ -388,16 +392,16 @@ simplifyIdeal Ideal := (originalI) -> (
      R := ring I;
      H := new MutableList from gens R;
      for x in gens R do (
-	  k := position(I_*, f -> first degree diff(x,f) == 0);
-	  if k === null then continue;
-	  c := leadCoefficient diff(x,I_k);
-	  g := I_k - c*x;  
-	  -- at this point f = I_k = c*x + g, and g does not involve x.
-	  --  (and c is a constant)
-	  p := - 1/c * g;
-	  I = ideal(x) + ideal compress sub(gens I, x=>p);
-	  H#(index x) = x - p;
-	  );
+    k := position(I_*, f -> first degree diff(x,f) == 0);
+    if k === null then continue;
+    c := leadCoefficient diff(x,I_k);
+    g := I_k - c*x;  
+    -- at this point f = I_k = c*x + g, and g does not involve x.
+    --  (and c is a constant)
+    p := - 1/c * g;
+    I = ideal(x) + ideal compress sub(gens I, x=>p);
+    H#(index x) = x - p;
+    );
      (ideal compress gens I, map(R,R,toList H))
      )
 
@@ -473,9 +477,9 @@ factorize(RingElement, Ideal) := (F, I) -> (
      if #facs == 1 and facs#0#0 == 1 then return {(1, F)};
      -- otherwise there is a factorization!
      apply(facs, (n,f) -> (
-	       f1 := last flatten entries gens gb (J + ideal phiInverse f);
-	       (n,f1)
-	       ))
+         f1 := last flatten entries gens gb (J + ideal phiInverse f);
+         (n,f1)
+         ))
      )
 -- needs test
 

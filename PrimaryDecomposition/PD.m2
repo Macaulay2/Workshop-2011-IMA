@@ -210,20 +210,20 @@ splitBy = (I, h) -> (
 -- Needs test
 
 splitUsingQuotientsBy = (I, h) -> (
-     Isat := saturate(I, h);
-     I2 := I : Isat;
-     if Isat == I or Isat == 1 then (
-    return null
-    );
-     if intersect(Isat, I2) == I then (
-    return (Isat, I2);
-    );
-     << "second ideal might introduce non-redundancy" << endl;
-     f := 1_(ring I);
-     while not isSubset(f*Isat, I) do f = f*h;
-     if Isat == I or Isat == 1 then error ("alas, your element "|toString h|" is not a splitting element");
-     if f == 1 then null else (Isat, trim(I + ideal f))
-     )
+    Isat := saturate(I, h);
+    I2 := I : Isat;
+    if Isat == I or Isat == 1 then (
+        return null
+        );    
+    if intersect(Isat, I2) == I then (
+        return (Isat, I2);
+        );
+    << "second ideal might introduce non-redundancy" << endl;
+    f := 1_(ring I);
+    while not isSubset(f*Isat, I) do f = f*h;
+    if Isat == I or Isat == 1 then error ("alas, your element "|toString h|" is not a splitting element");
+    if f == 1 then null else (Isat, trim(I + ideal f))
+    )
 -- Needs test
 
 splitViaIndep = method()
@@ -243,9 +243,9 @@ splitViaIndep Ideal := (I) -> (
      J1 := saturate(I, G);
      J2 := I: J1;
      if intersect(J2,J1) == I then (
-    << "  Yes! Quotient method split the ideal" << endl;
-    return (J1,J2);
-    );
+         << "  Yes! Quotient method split the ideal" << endl;
+         return (J1,J2);
+         );
      << "  No! Need to manually determine the f^ell from lecture" << endl;
      (J1, G)
      )
@@ -391,7 +391,8 @@ purePowerCoordinateChange Ideal := (IF) -> (
 TEST ///
   restart
   debug loadPackage "PD"
-  
+
+  -- this example is one step from the stewart-gough example  
   R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
   J = ideal(r^2-3,
        g_3*r+e_1,
@@ -406,7 +407,17 @@ TEST ///
        4*e_2^2-9*g_1^2-18*g_3^2-9*g_4^2,
        e_1^2-3*g_3^2,
        e_4*g_2*r-e_2*g_4*r,
-       g_1^2*r+g_4^2*r+2*e_3*g_1-4*e_1*g_3,e_4*g_1*r+2*e_3*e_4+3*g_3*g_4,2*e_3*g_1*r+3*g_1^2+12*g_3^2+3*g_4^2,2*e_3*e_4*r+3*e_4*g_1-3*e_1*g_4,2*e_2*e_3*r+3*e_2*g_1-3*e_1*g_2,6*e_3*g_1*g_3-4*e_1*g_3^2+e_4*g_1*g_4-e_1*g_4^2,6*e_2*e_3*g_3+3*g_2*g_3^2+e_2*e_4*g_4,e_1*e_4*g_2-e_1*e_2*g_4,2*e_1*e_3*e_4-3*e_3*g_1*g_4+3*e_1*g_3*g_4,2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
+       g_1^2*r+g_4^2*r+2*e_3*g_1-4*e_1*g_3,
+       e_4*g_1*r+2*e_3*e_4+3*g_3*g_4,
+       2*e_3*g_1*r+3*g_1^2+12*g_3^2+3*g_4^2,
+       2*e_3*e_4*r+3*e_4*g_1-3*e_1*g_4,
+       2*e_2*e_3*r+3*e_2*g_1-3*e_1*g_2,
+       6*e_3*g_1*g_3-4*e_1*g_3^2+e_4*g_1*g_4-e_1*g_4^2,
+       6*e_2*e_3*g_3+3*g_2*g_3^2+e_2*e_4*g_4,
+       e_1*e_4*g_2-e_1*e_2*g_4,
+       2*e_1*e_3*e_4-3*e_3*g_1*g_4+3*e_1*g_3*g_4,
+       2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,
+       2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
   JE = extendIdeal J
   
   findNonlinearPurePowers JE

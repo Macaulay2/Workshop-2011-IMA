@@ -63,7 +63,24 @@ TEST ///
     assert (radicalContainment(I, I^2) === null)
 ///
 
---------------------------------   
+--------------------------------
+-- Factorization ---------------
+--------------------------------
+-- setAmbientField:
+--   input: KR, a ring of the form kk(t)[u] (t and u sets of variables)
+--          RU, kk[u,t] (with some monomial ordering)
+--   consequence: sets information in KR so that
+--     'factors' and 'numerator', 'denominator' work for elemnts of KR 
+--     sets KR.toAmbientField, KR.fromAmbientField
+setAmbientField = method()
+setAmbientField(Ring, Ring) := (KR, RU) -> (
+    -- KR should be of the form kk(t)[u]
+    -- RU should be kk[u, t], with some monomial ordering
+    KR.toAmbientField = map(frac RU,KR);
+    KR.fromAmbientField = (f) -> (if ring f === frac RU then f = numerator f; (map(KR,RU)) f);
+    numerator KR := (f) -> numerator KR.toAmbientField f;
+    denominator KR := (f) -> denominator KR.toAmbientField f;
+    )
 
 -- needs documentation
 factors = method()
@@ -71,7 +88,21 @@ factors RingElement := (F) -> (
     R := ring F;
     facs := if R.?toAmbientField then (
         F = R.toAmbientField F;
-        numerator factor F)
+        numerator factor F
+        )
+    else if isPolynomialRing R and instance(coefficientRing R, FractionField) then (
+        KK := coefficientRing R;
+        A := last KK.baseRings;
+        RU := (coefficientRing A) (monoid[generators R, generators KK, MonomialOrder=>Lex]);
+        setAmbientField(R, RU);
+        F = R.toAmbientField F;
+        numerator factor F
+        )
+    else if instance(R, FractionField) then (
+        -- What to return in this case?
+        -- WORKING ON THIS MES
+        error "still need to handle FractionField case";
+        )
     else factor F;
     facs = apply(#facs, i -> (facs#i#1, (1/leadCoefficient facs#i#0) * facs#i#0 ));
     facs = select(facs, (n,f) -> # support f =!= 0);
@@ -79,6 +110,17 @@ factors RingElement := (F) -> (
     )
 -- need test
 TEST ///
+    restart
+    debug needsPackage "PD"
+    R = (frac(QQ[a,b]))[x,y,z]
+    F = 15 * a * (a*x-y-1/a)^2 * (1/b * x * z - a * y)^2
+    assert(set factors F === set {(2, a^2*x-a*y-1), (2, x*z - a*b*y)})
+    factors F
+    numerator F 
+
+    F = a * (a*x-y-1/a)^2 * (1/b * x * z - a * y)^2
+    factors F 
+    numerator F 
 ///
 
 makeFiberRings = method()
@@ -97,10 +139,7 @@ makeFiberRings(List) := (baseVars) -> (
        --MonomialOrder=>{#fiberVars,#baseVars}]);
    KK := frac((coefficientRing R)[baseVars]);
    KR := KK[fiberVars, MonomialOrder=>Lex];
-   KR.toAmbientField = map(frac RU,KR);
-   KR.fromAmbientField = (f) -> (if ring f === frac RU then f = numerator f; (map(KR,RU)) f);
-   numerator KR := (f) -> numerator KR.toAmbientField f;
-   denominator KR := (f) -> denominator KR.toAmbientField f;
+   setAmbientField(KR, RU);
    (RU, KR)
    )
 -- Needs test

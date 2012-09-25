@@ -12,7 +12,8 @@ newPackage(
 export {
      toAmbientField, 
      fromAmbientField, 
-     factors
+     factors,
+     equidimSplit
      }
 
 ------------------------------
@@ -198,6 +199,116 @@ extendIdeal Ideal := (I) -> (
 -- Needs test
 
 -----------------------
+-- Minimal primes -----
+-- 25 Sep 2012: Frank+Franzi+Mike working on this
+-----------------------
+minprimes = method(Options => {
+        Verbosity => 0,
+        Ideal => null,  -- used in inductive setting
+        "RadicalSoFar" => null -- used in inductive setting
+        })
+minprimes Ideal := opts -> (I) -> (
+    -- possibly do some preprocessing (exactly what to do here requires work
+    -- and a separate function)
+    -- returns
+    -- (List, Ideal)
+    -- where 
+    --   List is: list of minimal primes of I, subject to certain conditions from 'opts'
+    --   Ideal is: intersection of these primes, with opts."RadicalSoFar"
+    indeps := independentSets(I, Limit=>1);
+    basevars := support first indeps;
+    if opts.Verbosity > 0 then 
+        << "  Choosing: " << basevars << endl;
+    (comps, newRadSoFar, reallyDone) :=  minprimesZeroDim(I, basevars, opts);
+    if reallyDone then return (comps, newRadSoFar);
+    -- At this point, we need to compute RHS of the tree
+    -- need I1 at this point.  J2 := I : I1;
+    )
+
+minprimesZeroDim = method (Options => options minprimes)
+minprimesZeroDim(Ideal, List) := opts -> (I, basevars) -> (
+    -- I is an ideal in R, basevars is a list of variables of R
+    -- computes the list of minimal primes of I which dominate basevars.
+    --  except: minimal primes larger than opts#"RadicalSoFar" are thrown out
+    -- Also: if we obtain a set of prime ideals such that
+    --  intersection of these ideals with opts#"RadicalSoFar"
+    --  is equal to opts.Ideal, then we are "really done".
+    -- reallyDoneFlag is false, if not all components of original ideal opts.Ideal have been found.
+    -- return value: 
+    --  (list of primes found,  intersection of these primes with opts#"RadicalSoFar", reallyDoneFlag)
+    (S, SF) := makeFiberRings basevars;
+    IS := sub(I, S);
+    gens gb IS;
+    (ISF, coeffs) := minimalizeOverFrac(IS, SF);
+    G := (factors product coeffs)/last//product;
+    << "  the factors of the flattener: " << netList((factors G)/last) << endl;
+    G = sub(G,ring I);
+    I1 := saturate(I, G);
+    error "debug me";
+    )
+
+equidimSplitOneStep = method(Options => options minprimes)
+equidimSplitOneStep Ideal := opts -> (I) -> (
+    -- return ((I1: equidim ideal, basevars, ISF), I2)
+    -- where 1. intersection of I1 and I2 is I
+    --       1. ISF = minimal GB of I1 kk(basevars)[fibervars]
+    --       2. I1 is equidimensional (zero dim over kk(basevars))
+    --          and so I1 is the contraction of ideal ISF to R
+    --       3. I2 is I:I1.  Note:
+    --          radical(intersection(I1,I2)) = intersection(radical(I1),radical(I2))
+    indeps := independentSets(I, Limit=>1);
+    basevars := support first indeps;
+    if opts.Verbosity > 0 then 
+        << "  Choosing: " << basevars << endl;
+    (S, SF) := makeFiberRings basevars;
+    IS := sub(I, S);
+    gens gb IS;
+    (ISF, coeffs) := minimalizeOverFrac(IS, SF);
+    facs := (factors product coeffs)/last;
+    G := product facs;
+    if opts.Verbosity > 0 then
+        << "  the factors of the flattener: " << netList(facs) << endl;
+    G = sub(G,ring I);
+    I1 := saturate(I, G);
+    I2 := I : I1;
+    ((I1, basevars, ISF), I2)
+    )
+
+equidimSplit = method(Options => options minprimes)
+equidimSplit Ideal := opts -> (I) -> (
+    (L1, I2) := equidimSplitOneStep(I, opts);
+    if I2 == 1
+    then {L1} 
+    else prepend(L1, equidimSplit(I2, opts))
+    )
+
+TEST ///
+    restart
+    debug loadPackage "PD"
+    load "PD/example-adjacentminors.m2"
+    I = adjacentMinorsIdeal(2,3,3,CoefficientRing=>ZZ/32003)
+    comps = {ideal(-b*d+a*e,-c*e+b*f,-c*d+a*f,-e*g+d*h,-b*g+a*h,-f*h+e*i,-f*g+d*i,-c*h+b*i,-c*g+a*i), 
+        ideal(e,b,h), 
+        ideal(e,d,f)}; -- from 'decompose'
+    C = equidimSplit(I, Verbosity=>10)
+    C1 = drop(C, -1)
+    -- It just so happens that the ideals returned by equidimSplit in this example
+    -- are already prime.
+    assert(
+        set(C1/first/(g -> flatten entries gens gb g)) === 
+        set(comps/(g -> flatten entries gens gb g))
+        )
+///
+
+TEST ///
+    restart
+    debug loadPackage "PD"
+    R = ZZ/32003[a,b,c,h]
+    I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
+    C = equidimSplit(I, Verbosity=>10)
+///
+
+-----------------------
 -- Splitting methods --
 -----------------------
 splitBy = (I, h) -> (
@@ -241,7 +352,7 @@ splitViaIndep Ideal := (I) -> (
      << "  the factors of the flattener: " << netList((factors G)/last) << endl;
      G = sub(G,ring I);
      J1 := saturate(I, G);
-     J2 := I: J1;
+     J2 := I : J1;
      if intersect(J2,J1) == I then (
          << "  Yes! Quotient method split the ideal" << endl;
          return (J1,J2);

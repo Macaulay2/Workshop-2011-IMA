@@ -16,7 +16,7 @@ As a subproject, we need to clean up the computation of ideal quotients in M2.
 Files of interest:
 
     PD.m2  -- this is the file we are creating
-    PD/    -- doesn't exisst yet, but should include doc and implementation files for the PD.m2 package
+    PD/    -- should include doc, example and implementation files for the PD.m2 package
 
     PrimDecomposition.m2 -- has code in it that is not yet in PD.m2 (I think)
        -- Also: has explanation of some of singular algorithms, in M2 pseudo-code form.

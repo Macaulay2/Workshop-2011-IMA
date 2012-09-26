@@ -260,6 +260,11 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
     basevars := support first indeps;
     if opts.Verbosity > 0 then 
         << "  Choosing: " << basevars << endl;
+    if #basevars == 0 then (
+        Slex := newRing(ring I, MonomialOrder=>Lex);
+        ISlex := sub(I,Slex);
+        return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_(ring I));
+        );
     (S, SF) := makeFiberRings basevars;
     IS := sub(I, S);
     gens gb IS;

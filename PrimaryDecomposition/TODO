@@ -19,7 +19,17 @@ A list of activities that are required or at least desirable
 * get all of the code running so it is not in disarray
   i.e, for each function in PD.m2:
   ** make sure we like the interface
-  ** document it
+  ** document it and examples
   ** write tests for it
 
+* Homework for 2 Oct 2012:
+  put in tests for equidimSplit, to make sure that the intersection of ideals
+    is equal to the radical
+  put in tests for makeFiberRings, minimalizeOverFrac, factors
+  Franzi: get siphon examples organized, easy to create examples
+  Frank: clean up stewart-eg.m2 file, put into PD directory
+  Mike: first stab at 0-dim min primes, also factorization over towers?
+  All: try it out on various examples
+
+  
   

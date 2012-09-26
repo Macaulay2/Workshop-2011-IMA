@@ -371,40 +371,6 @@ splitViaIndeps = (I) -> (
      )
 -- Needs test
 
-splitViaIndepNEWER = method()
-splitViaIndepNEWER Ideal := (I) -> (
--- documentation needed
-     indeps := independentSets I;
-     indep := support first indeps;
-     << "Number of independent sets: " << #indeps << endl;
-     << "  Choosing: " << indep << endl;
-     (S, SF) := makeFiberRings indep;
-     IS := sub(I, S);
-     gens gb IS;
-     (ISF, coeffs) := minimalizeOverFrac(IS, SF);
-     G := (factors product coeffs)/last//product;
-     << "  the factors of the flattener: " << netList((factors G)/last) << endl;
-     G = sub(G,ring I);
-     J1 := saturate(I, G);
-     J2 := I: J1;
-     if intersect(J2,J1) == I then (
-    << "  Yes! Quotient method split the ideal" << endl;
-    return ((J1, indep, ISF),J2);
-    );
-     << "  No! Need to manually determine the f^ell from lecture" << endl;
-     ((J1, indep, ISF), G)
-     )
-
-splitViaIndepsNEWER = (I) -> (
-     (J1, J2) := splitViaIndepNEWER I;
-     if class J2 === Ideal and J2 != 1 then (
-        (equidims2, J) := splitViaIndepsNEWER J2;
-        return ({J1} | equidims2, J);
-        );
-     ({J1}, J2)
-     )
--- Needs test
-
 splitEquidimFactors = (I) -> (
      -- idea: loop through the gens of I.
      --   if any factors, then try to split the ideal.
@@ -422,23 +388,6 @@ splitEquidimFactors = (I) -> (
      {I}
      )
 -- needs test
-
-splitEquidimFactorsNEWER = (I,indep,ISF) -> (
-     -- idea: loop through the gens of I.
-     --   if any factors, then try to split the ideal.
-     --     if it splits, call recursively on each elem of split, and return joined list.
-     --     if not, continue to the next generator
-     -- at the end, if it doesn't split, return {I}
-     I1 := ideal gens gb I;
-     for i from 0 to numgens I1 - 1 do (
-    facs := factors I1_i;
-    if #facs > 1 then (
-         split := splitUsingQuotientsBy(I, facs#0#1);
-         if split =!= null then return(split//toList/splitEquidimFactors//flatten);
-         )
-    );
-     {I}
-     )
 
 findPurePowers = method()
 findPurePowers Ideal := (IF) -> (
@@ -480,25 +429,25 @@ splitPurePowers Ideal := (IF) -> (
 -- split as r^2-3,x+ry and r^2-3, x-ry.
 purePowerCoordinateChange = method()
 purePowerCoordinateChange Ideal := (IF) -> (
-     purePowers := findNonlinearPurePowers IF;
-     otherGens := toList((set IF_*) - (set purePowers));
-     J := ideal purePowers;
-     L := ideal (J_* / numerator);
-     varsList := purePowers / leadTerm / support // flatten;
-     F := sum apply(drop(varsList,1), x -> (1 + random 10) * x);
-     J1 := sub(J, varsList#0 => varsList#0 + F);
-     L1 := ideal(J1_*/numerator);
-     varsList = apply(varsList, f -> sub(f, ring L1));
-     time facs := factors (eliminate(L1, drop(varsList,1)))_0;
-     F = sub(F,ring L1);
-     time facs1 := apply(facs, (mult,h) -> (mult,sub(h, varsList#0 => varsList#0 - F)));
-     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
-     else for fac in facs1 list (
+    purePowers := findNonlinearPurePowers IF;
+    otherGens := toList((set IF_*) - (set purePowers));
+    J := ideal purePowers;
+    L := ideal (J_* / numerator);
+    varsList := purePowers / leadTerm / support // flatten;
+    F := sum apply(drop(varsList,1), x -> (1 + random 10) * x);
+    J1 := sub(J, varsList#0 => varsList#0 + F);
+    L1 := ideal(J1_*/numerator);
+    varsList = apply(varsList, f -> sub(f, ring L1));
+    time facs := factors (eliminate(L1, drop(varsList,1)))_0;
+    F = sub(F,ring L1);
+    time facs1 := apply(facs, (mult,h) -> (mult,sub(h, varsList#0 => varsList#0 - F)));
+    if #facs1 == 1 and facs1#0#0 == 1 then {IF}
+    else for fac in facs1 list (
         time G := fac#1 % L;
-    time C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
-    time ideal gens gb (C + ideal otherGens)
-       )
-     )
+        time C := ideal first minimalizeOverFrac((ideal G) + L, ring J);
+        time ideal gens gb (C + ideal otherGens)
+        )
+    )
 TEST ///
   restart
   debug loadPackage "PD"

@@ -53,7 +53,7 @@ radicalContainment(Ideal, Ideal) := (I,J) -> (
 
 TEST ///
     restart
-    debug loadPackage "PrimDecomposition"
+    debug loadPackage "PD"
     R = ZZ/32003[a..f]
     F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
     I = ker F
@@ -123,6 +123,48 @@ TEST ///
     factors F 
     numerator F 
 ///
+
+-----------------------------
+-- Redundancy control -------
+-----------------------------
+-- find, if any, an element of I which is NOT in the ideal J.
+-- returns the index x of that element, if any, else returns -1.
+raw  = value Core#"private dictionary"#"raw"
+rawGBContains = value Core#"private dictionary"#"rawGBContains"
+findNonMemberIndex = method()
+findNonMemberIndex(Ideal,Ideal) := (I,J) -> (
+     m := generators I;
+     n := gb J;
+     rawGBContains(raw n, raw m)
+     )
+
+-- The following function removes any elements which are larger than another one.
+-- Each should be tagged with its codimension.  For each pair (L_i, L_j), check containment of GB's
+removeIrredundantPrimes = (L) -> (
+    L = L/(i -> (codim i, i))//sort/last;
+    ML := new MutableList from L;
+    flatten for i from 0 to #ML-1 list (
+        if ML#i === null then continue;
+        for j from i+1 to #ML-1 do (
+            if ML#j === null then continue;
+            if findNonMemberIndex(ML#i, ML#j) === -1 then ML#j = null;
+            );
+        ML#i
+        )
+    )
+
+TEST ///
+    restart
+    debug loadPackage "PD"
+    R = ZZ/32003[a..d]
+    I = monomialCurveIdeal(R,{1,3,4})
+    J = I + ideal(a^5-b^5)
+    assert(findNonMemberIndex(I,J) == -1)-- which (index of)  element of I is not in J
+    assert(findNonMemberIndex(J,I) == 4) -- J_4 is not in I
+    assert(removeIrredundantPrimes {I,J} === {I})
+    assert(removeIrredundantPrimes {J,I} === {I})
+///
+----------------------------
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
@@ -225,6 +267,72 @@ minprimes Ideal := opts -> (I) -> (
     -- need I1 at this point.  J2 := I : I1;
     )
 
+minprimesMES = method (Options => options minprimes)
+minprimesMES Ideal := opts -> (I) -> (
+    R := ring I;
+    radicalSoFar := ideal 1_R;
+    comps1 := {};
+    comps2 := {};
+    J := I;
+    while J != 1 do (
+        if opts.Verbosity > 0 then 
+          << "-- handling " << toString J << endl;
+        (I1set, I2) := equidimSplitOneStep(J, opts);
+        (I1, basevars, ISF) := I1set;
+        D := splitPurePowers ideal ISF;
+        E  := partition(f -> # findNonlinearPurePowers f <= 1, D);
+        if E#?true then
+            comps1 = join(comps1, apply(E#true, i -> {i, basevars}));
+        if E#?false then
+            comps2 = join(comps2, apply(E#false, i -> {i, basevars}));
+        J = I2;
+        );
+    (comps1, comps2)
+    )
+
+{* -- the next two functions were just MES playing around.
+   -- they should probably be ignored or removed.
+   
+minprimes Ideal := opts -> (I) -> (
+    -- this is the top level function
+    -- 1. Check ring of I to see if it can be handled
+    -- 2. Flatten the ring
+    -- 3. if I is a CI, flag this info, to call minprimesEquidim
+    -- 4. if I has polynomials with linear parts, try to split using 
+    --    simplifyIdeal
+    -- 4a. if I is a monomial ideal, call specialized code for that
+    -- 5. possibly replace each f with its square-free part
+    -- 5. possibly do some factorization first
+    --    one way: if fg \in I, then I1 = saturate(I, f), I2 = I:I1, continue.
+    R := ring I;
+    ans := minprimes0(I, "RadicalSoFar" => ideal(1_R), Ideal => I, Verbosity => opts.Verbosity);
+    (resultComponents, newRadSoFar) := ans;
+    -- resultComponents should be a list of prime ideals
+    -- if ring had changed, map everything back
+    resultComponents
+    )
+
+
+minprimes0 = method (Options => options minprimes)
+minprimes0 Ideal := opts -> (I) -> (
+    -- I should be in a nice ring, e.g. a grevlex order ring.  We assume that this is the ring
+    -- in which we should compute saturations, ideal quotients, intersections.
+    indeps := independentSets(I, Limit=>1);
+    basevars := support first indeps;
+    if opts.Verbosity > 0 then 
+        << "  Choosing: " << basevars << endl;
+    (comps, newRadSoFar, reallyDone) :=  minprimesZeroDim(I, basevars, opts);
+    if reallyDone then return (comps, newRadSoFar);
+    -- If not done yet, then what?
+    -- need saturate(I, something).
+    --I1 := saturate(I, something);
+    --I2 := I : I1;
+    --comps2 := minprimes0(I2, "RadicalSoFar" => newRadSoFar, Ideal => opts.
+    comps2 := {};
+    removeIrredundantPrimes join(comps, comps2)
+    )
+*} -- see beginning of comment, two functions above.
+
 minprimesZeroDim = method (Options => options minprimes)
 minprimesZeroDim(Ideal, List) := opts -> (I, basevars) -> (
     -- I is an ideal in R, basevars is a list of variables of R
@@ -310,6 +418,7 @@ TEST ///
     debug loadPackage "PD"
     R = ZZ/32003[a,b,c,h]
     I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
+    minprimesMES(I, Verbosity=>1)
     C = equidimSplit(I, Verbosity=>10)
 ///
 

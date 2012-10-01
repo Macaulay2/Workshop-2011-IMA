@@ -16,3 +16,5 @@ restart
 load "example-nonpappas.m2"
 I = nonPappas QQ
 I = nonPappas (ZZ/32003)
+o3_0
+o3_1

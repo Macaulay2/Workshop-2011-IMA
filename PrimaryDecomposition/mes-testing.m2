@@ -193,6 +193,7 @@ ISSUES:
     -2cd - ae - 2be - h2,
     -d2 - 2ce - ah - 2bh
     "
+  time minprimesMES I
   codim I
 
   time C = equidimSplit I;
@@ -221,6 +222,8 @@ I = ideal"-2hjk + 4ef + bj + ak,
   -4ghj - 4ehl - djl + 2ce + 2ag,
   -2dfj - 2dek + ab,
   -2dgj - 2del + ac"
+
+  time minprimesMES I
 
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
@@ -259,6 +262,9 @@ I = ideal"2tw + 2wy - wz,
   20t2w - 12uwx + 30vwx - 15w2x - 10twy - 8twz + 4wyz,
   4t2w - 6uwx + 12vwx - 6w2x + 2twy - 2wy2 - 2twz + wyz,
   8twx + 8wxy - 4wxz"
+
+  time minprimesMES I
+
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
   E = flatten apply(D, x -> splitPurePowers x)
@@ -292,6 +298,8 @@ I = ideal"2tw + 2wy - wz,
   -54acf - 54adf + a + d,
   adfg + a + d"
 
+  time minprimesMES I
+
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
   E = flatten apply(D, x -> splitPurePowers x)
@@ -317,6 +325,8 @@ I = ideal"2tw + 2wy - wz,
   2bc + 2ad + 2ef + d,
   c2 + 2bd + 2ae + f2 + e,
   2cd + 2be + 2af + f"
+
+  time minprimesMES I
 
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
@@ -355,6 +365,8 @@ I = ideal"2tw + 2wy - wz,
   -e2f2g2hk2-ef2g2h2k2-e2f2g2k2l-2ef2g2hk2l-f2g2h2k2l-ef2g2k2l2
     - f2g2hk2l2 + a2"
 
+  time minprimesMES I
+
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
   E = flatten apply(D, x -> splitPurePowers x)
@@ -381,6 +393,8 @@ I = ideal"2tw + 2wy - wz,
   tx2y + x2yz + x2z2,
   twy2 + ty2z + y2z2,
   t2wx + t2wz + t2z2"
+
+  time minprimesMES I
 
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
@@ -410,6 +424,8 @@ I = ideal"2tw + 2wy - wz,
   c2 + 2bd + 2ae + 2fg + e,
   2cd + 2be + 2af + g2 + f,
   d2 + 2ce + 2bf + 2ag + g"
+
+  time minprimesMES I
 
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
@@ -445,6 +461,8 @@ I = ideal"2tw + 2wy - wz,
     -d2-f2-g2+2dx+2fy+2gz"
 
   I = first simplifyIdeal I
+  time minprimesMES(I, Verbosity=>1)
+
   time C = equidimSplit I;
   D = apply(C, x -> ideal(x_2))
   E = flatten apply(D, x -> splitPurePowers x)

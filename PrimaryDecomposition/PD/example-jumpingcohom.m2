@@ -66,17 +66,41 @@ jumpingLocus(List,List,Ring) := (srcdegree, formdegree,kk) -> (
 end
 
 restart
-load "example-jumpingcohom.m2"
+load "PD/example-jumpingcohom.m2"
+kk = QQ
 kk = ZZ/32003
-jumpingLocus({-3,0},{3,3},kk) -- finishes in singular
-jumpingLocus({-3,3},{3,3},kk) -- finishes in singular
-jumpingLocus({-6,0},{3,3},kk) -- finishes in singular
+I = jumpingLocus({-3,0},{3,3},kk) -- finishes in singular, minprimesMES .28 sec, decompose
+I = jumpingLocus({-3,3},{3,3},kk) -- finishes in singular, finishes using birational maps (see below)
+I = jumpingLocus({-6,0},{3,3},kk) -- finishes in singular, minprimesMES 1.5 sec, decompose takes long
      
-jumpingLocus({-5,1},{3,3},kk)
+I = jumpingLocus({-5,1},{3,3},kk)
 
-jumpingLocus({-6,3},{3,3},kk) -- key one of interest BIG ENOUGH
-jumpingLocus({-4,5},{3,3},kk)  -- doesn't finish in singular BIG ENOUGH
-jumpingLocus({-4,2},{3,3},kk)  -- doesn't finish in singular NOT BIG ENOUGH
+I = jumpingLocus({-6,3},{3,3},kk) -- key one of interest BIG ENOUGH
+I = jumpingLocus({-4,5},{3,3},kk)  -- doesn't finish in singular BIG ENOUGH
+I = jumpingLocus({-4,2},{3,3},kk)  -- doesn't finish in singular NOT BIG ENOUGH
 
-I = jumpingLocus({-5,1},{2,2},kk)
+I = jumpingLocus({-5,1},{2,2},kk) -- finishes in minprimesMES 2.3 sec
 
+-- ignore below, or perhaps remove this, once our decompose code is ready
+C = time minprimesMES I
+netList C_1
+netList C_0
+D = C_0/first/ contractToPolynomialRing/(i -> sub(i, ring I))
+intersect D == I
+time decompose I
+
+-- example 2 above --
+  I = jumpingLocus({-3,3},{3,3},kk) -- finishes in singular, finishes using birational maps
+  -- notes: I is a complete intersection, degree = 16.  Therefore we only need find components that add up to degree 16
+  use ring I
+  I : diff(b_1, I_0) == I
+  I1 = eliminate(I, b_1)
+  I1 : diff(b_2, I1_1) == I1
+  I2 = eliminate(I1, b_2)
+  I2 : diff(b_4, I2_0) == I2
+  I3 = eliminate(I2, b_4)
+  codim I3 == 1
+  numgens I3
+  netList factors I3_0
+  -- I3_0 is absolutely irreducible, and therefore I is prime
+  

@@ -140,10 +140,10 @@ findNonMemberIndex(Ideal,Ideal) := (I,J) -> (
 
 -- The following function removes any elements which are larger than another one.
 -- Each should be tagged with its codimension.  For each pair (L_i, L_j), check containment of GB's
-removeIrredundantPrimes = (L) -> (
+selectMinimalIdeals = (L) -> (
     L = L/(i -> (codim i, i))//sort/last;
     ML := new MutableList from L;
-    flatten for i from 0 to #ML-1 list (
+    for i from 0 to #ML-1 list (
         if ML#i === null then continue;
         for j from i+1 to #ML-1 do (
             if ML#j === null then continue;
@@ -161,8 +161,8 @@ TEST ///
     J = I + ideal(a^5-b^5)
     assert(findNonMemberIndex(I,J) == -1)-- which (index of)  element of I is not in J
     assert(findNonMemberIndex(J,I) == 4) -- J_4 is not in I
-    assert(removeIrredundantPrimes {I,J} === {I})
-    assert(removeIrredundantPrimes {J,I} === {I})
+    assert(selectMinimalIdeals {I,J} === {I})
+    assert(selectMinimalIdeals {J,I} === {I})
 ///
 ----------------------------
 
@@ -271,23 +271,19 @@ minprimesMES = method (Options => options minprimes)
 minprimesMES Ideal := opts -> (I) -> (
     R := ring I;
     radicalSoFar := ideal 1_R;
-    comps1 := {};
-    comps2 := {};
+    comps := {};
     J := I;
     while J != 1 do (
         if opts.Verbosity > 0 then 
           << "-- handling " << toString J << endl;
         (I1set, I2) := equidimSplitOneStep(J, opts);
         (I1, basevars, ISF) := I1set;
-        D := splitPurePowers ideal ISF;
-        E  := partition(f -> # findNonlinearPurePowers f <= 1, D);
-        if E#?true then
-            comps1 = join(comps1, apply(E#true, i -> {i, basevars}));
-        if E#?false then
-            comps2 = join(comps2, apply(E#false, i -> {i, basevars}));
+        --D := splitPurePowers ideal ISF;
+        D := splitLexGB ideal ISF;
+        comps = join(comps, D/splitTower//flatten);
         J = I2;
         );
-    (comps1, comps2)
+    comps
     )
 
 {* -- the next two functions were just MES playing around.
@@ -329,7 +325,7 @@ minprimes0 Ideal := opts -> (I) -> (
     --I2 := I : I1;
     --comps2 := minprimes0(I2, "RadicalSoFar" => newRadSoFar, Ideal => opts.
     comps2 := {};
-    removeIrredundantPrimes join(comps, comps2)
+    selectMinimalIdeals join(comps, comps2)
     )
 *} -- see beginning of comment, two functions above.
 
@@ -503,6 +499,13 @@ splitEquidimFactors = (I) -> (
      )
 -- needs test
 
+hasLinearLeadTerm = method()
+hasLinearLeadTerm RingElement := (f) -> (
+    t := leadTerm f;
+    s := support t;
+    #s === 1 and s#0 == t
+    )
+
 findPurePowers = method()
 findPurePowers Ideal := (IF) -> (
      -- IF is a reduced lex GB for I k(indep)[fiber]
@@ -526,14 +529,65 @@ findNonlinearPurePowers Ideal := (IF) -> (
 -- This function factors the terms that are not linear in a GB for IF and splits the ideal by those factors
 splitPurePowers = method()
 splitPurePowers Ideal := (IF) -> (
-     L := findPurePowers IF;
-     for f in L do (
-    facs := factors f;
-    if #facs == 1 and facs#0#0 == 1 then continue;
-    return flatten for fac in facs list splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
-    );
-     {IF}
-     )
+    L := findPurePowers IF;
+    for f in L do (
+        facs := factors f;
+        if #facs == 1 and facs#0#0 == 1 then continue;
+        return flatten for fac in facs list splitPurePowers (ideal gens gb ((ideal fac#1) + IF));
+        );
+    {IF}
+    )
+
+-- Below, IF is a reduced lex GB for I k(indep)[fiber]
+-- This function factors the terms that are not linear in a GB for IF and splits the ideal by those factors
+splitLexGB = method()
+splitLexGB Ideal := (IF) -> (
+    L := IF_*;
+    for f in L do (
+        facs := factors f;
+        if #facs == 1 and facs#0#0 == 1 then continue;
+        return flatten for fac in facs list splitLexGB (ideal gens gb ((ideal fac#1) + IF));
+        );
+    {IF}
+    )
+
+splitTower = method()
+splitTower Ideal := (IF) -> (
+    -- IF is an ideal in k(basevars)[fibervars] satisfying:
+    --   1. IF is zero-dimensional
+    --   2. IF_* is a lex GB for IF (in ascending order of leadterms)
+    --   3. IF_* only contains (hopefully!) elements whose lead term is a pure power.
+    --   4. each element IF_i is irreducible over the fraction field k(basevars).
+    -- Output: a list of ideals, each one should be a minimal prime of IF.
+    E := partition(hasLinearLeadTerm, IF_*);
+    if not E#?false then return {IF}; -- nothing to do
+    nonlinears := E#false;
+    if #nonlinears <= 1 then return {IF};
+    RF := ring IF;
+    linears := if E#?true then E#true else {}; -- keep for later
+    J := ideal nonlinears;
+    L := ideal (J_* / numerator);
+    R := ring L;
+    varsList := nonlinears / leadTerm / support // flatten;
+    lastVar := varsList#0; -- this is the smallest variable in the monomial order
+    otherVars := drop(varsList, 1); 
+    F := sum apply(otherVars, x -> (1 + random 10) * x);
+    J1 := sub(J, lastVar => lastVar + F);
+    L1 := ideal(J1_*/numerator);
+    lastVar = numerator lastVar;
+    otherVars = otherVars/numerator;
+    time facs := factors (eliminate(L1, otherVars))_0;
+    F = numerator F;
+    time facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
+    if #facs1 == 1 and facs1#0#0 == 1 then {IF}
+    else for fac in facs1 list (
+        time G := fac#1 % L;
+        time C := ideal gens gb(ideal sub(G, RF) + J);
+        if C == 1 then continue;
+        --time C := ideal first minimalizeOverFrac((ideal G) + L, RF);
+        time ideal gens gb (C + ideal linears)
+        )
+    )
 -- needs test
 
 -- Below, IF is a reduced lex GB for I k(indep)[fiber]

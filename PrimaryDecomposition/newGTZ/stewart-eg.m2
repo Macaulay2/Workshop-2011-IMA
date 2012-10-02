@@ -14,12 +14,8 @@ debug loadPackage("PD", Reload=>true)
   equis/codim
   equis/degree  
 
-  equis = first splitViaIndepsNEWER I;
-  equis/first/codim
-  equis/first/degree  
-
-  leaves = flatten(equis/splitEquidimFactorsNEWER)
   leaves = flatten(equis/splitEquidimFactors)
+  -- not always the case!
   intersect leaves == I
 
   leaves = drop(leaves, 1)
@@ -36,7 +32,8 @@ debug loadPackage("PD", Reload=>true)
             B := apply(splitLeaves_j, C -> sub(contractToPolynomialRing C, R));
             A == intersect B))
   
-  J = extendIdeal(leaves_0) -- splits at least into 2 primes (8 points over CC)
+  -- splits at least into 2 primes (8 points over CC)
+  J = extendIdeal(leaves_0) 
   J = ideal(J_0,J_1,J_2)
 
   purePowers = findPurePowers J

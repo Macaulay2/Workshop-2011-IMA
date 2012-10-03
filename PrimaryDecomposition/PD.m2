@@ -10,11 +10,14 @@ newPackage(
         )
 
 export {
-     toAmbientField, 
-     fromAmbientField, 
-     factors,
-     equidimSplit
-     }
+    radicalContainment,
+    toAmbientField, 
+    fromAmbientField, 
+    factors,
+    findNonMemberIndex,
+    selectMinimalIdeals,
+    equidimSplit
+    }
 
 ------------------------------
 -- Radical containment -------
@@ -141,7 +144,7 @@ findNonMemberIndex(Ideal,Ideal) := (I,J) -> (
 -- The following function removes any elements which are larger than another one.
 -- Each should be tagged with its codimension.  For each pair (L_i, L_j), check containment of GB's
 selectMinimalIdeals = (L) -> (
-    L = L/(i -> (codim i, i))//sort/last;
+    L = L/(i -> (codim i, flatten entries gens gb i))//sort/last/ideal;
     ML := new MutableList from L;
     for i from 0 to #ML-1 list (
         if ML#i === null then continue;
@@ -217,6 +220,7 @@ contractToPolynomialRing(Ideal) := (I) -> (
      -- assumes: I is in a ring k(basevars)[fibervars] created with makeFiberRings
      -- returns the intersection of I with k[fibervars,basevars] (also created with makeFiberRing).
      --   note: numerator (and denominator) of element in ring I gives an element in k[fibervars,basevars]
+     if not instance(coefficientRing ring I, FractionField) then return I; -- in this case, we are already contracted!
      newI := I_*/numerator//ideal//trim;
      denoms := I_*/denominator;
      denomList := unique flatten for d in denoms list (factors d)/last;
@@ -252,19 +256,11 @@ minprimes = method(Options => {
 minprimes Ideal := opts -> (I) -> (
     -- possibly do some preprocessing (exactly what to do here requires work
     -- and a separate function)
-    -- returns
-    -- (List, Ideal)
-    -- where 
-    --   List is: list of minimal primes of I, subject to certain conditions from 'opts'
-    --   Ideal is: intersection of these primes, with opts."RadicalSoFar"
-    indeps := independentSets(I, Limit=>1);
-    basevars := support first indeps;
-    if opts.Verbosity > 0 then 
-        << "  Choosing: " << basevars << endl;
-    (comps, newRadSoFar, reallyDone) :=  minprimesZeroDim(I, basevars, opts);
-    if reallyDone then return (comps, newRadSoFar);
-    -- At this point, we need to compute RHS of the tree
-    -- need I1 at this point.  J2 := I : I1;
+    -- returns a list of ideals, the minimal primes of I
+    R := ring I;
+    C := minprimesMES(I, opts);
+    C1 := C/contractToPolynomialRing/(i -> sub(i,R));
+    selectMinimalIdeals C1
     )
 
 minprimesMES = method (Options => options minprimes)
@@ -284,6 +280,15 @@ minprimesMES Ideal := opts -> (I) -> (
         J = I2;
         );
     comps
+    )
+
+checkMinimalPrimes = (I, comps) -> (
+    -- check that the intersection of comps
+    --   is contained in the radical of I
+    -- check that each comp contains I
+    for c in comps do assert isSubset(I, c);
+    J := intersect comps;
+    assert (radicalContainment(J, I) === null);
     )
 
 {* -- the next two functions were just MES playing around.
@@ -366,6 +371,7 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
         << "  Choosing: " << basevars << endl;
     if #basevars == 0 then (
         Slex := newRing(ring I, MonomialOrder=>Lex);
+        numerator Slex := identity;
         ISlex := sub(I,Slex);
         return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_(ring I));
         );

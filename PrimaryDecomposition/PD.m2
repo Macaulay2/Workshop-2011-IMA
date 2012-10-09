@@ -134,25 +134,13 @@ selectMinimalIdeals = (L) -> (
         )
     )
 
-TEST ///
-    restart
-    debug loadPackage "PD"
-    R = ZZ/32003[a..d]
-    I = monomialCurveIdeal(R,{1,3,4})
-    J = I + ideal(a^5-b^5)
-    assert(findNonMemberIndex(I,J) == -1)-- which (index of)  element of I is not in J
-    assert(findNonMemberIndex(J,I) == 4) -- J_4 is not in I
-    assert(selectMinimalIdeals {I,J} === {I})
-    assert(selectMinimalIdeals {J,I} === {I})
-///
-----------------------------
 
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
    -- This function takes an ideal I and a list of variables baseVars as input
    -- and returns a pair of matrices (mons, cs) where mons are the monomials in the ideal
    -- of lead terms of a gb of I, and cs are the coefficients, but with respect to
-   -- a product order kk[fiberVars][baseVars].  See example below for behavior
+   -- a product order kk[fiberVars][baseVars].  See tests for behavior
    if #baseVars == 0 then error "expected at least one variable in the base";
    R := ring baseVars#0;
    if any(baseVars, x -> ring x =!= R) then error "expected all base variables to have the same ring";

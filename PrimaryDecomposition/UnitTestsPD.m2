@@ -76,7 +76,6 @@ TEST ///
   IS = sub(I,S)
   assert( ( ideal 1_SF === ideal first minimalizeOverFrac(IS, SF) ) )
   assert( ( IS  ===  ideal last minimalizeOverFrac(IS, SF) ) )
-
 ///
 
 
@@ -98,7 +97,15 @@ TEST ///
   use S
   J = ideal(d+3*e+c,b-e,a-e,e*h+3*e*c-h^2+h*c+c^2,e^2+3*e*c+c^2)
   assert( J == contractToPolynomialRing I )
+///
 
+TEST ///
+  debug loadPackage "PD"
+  R = QQ[a,b,c,d,e,h]
+  J = ideal(d+3*e+c,b-e,a-e,e*h+3*e*c-h^2+h*c+c^2,e^2+3*e*c+c^2)
+  assert( independentSets J == {h}) 
+  assert( extendIdeal J == ideal(e^4+h*e^3+h^2*e^2+h^3*e+h^4,d+(1/(h))*e^2+2*e+h,c+((-1)/(h))*e^2+e-h,b-e,a-e))
+  -- this is passing for now, but it would not work if we were to change the order of left and right hand side in assertion 
 ///
 
 end 

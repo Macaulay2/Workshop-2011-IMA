@@ -193,7 +193,6 @@ contractToPolynomialRing(Ideal) := (I) -> (
      for f in denomList do Isat = saturate(Isat, f);
      Isat
      )
--- Needs test
 
 extendIdeal = method()
 extendIdeal Ideal := (I) -> (

@@ -54,18 +54,6 @@ radicalContainment(Ideal, Ideal) := (I,J) -> (
     null
     )
 
-TEST ///
-    restart
-    debug loadPackage "PD"
-    R = ZZ/32003[a..f]
-    F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
-    I = ker F
-    J = I^2
-    G = I_0
-    assert radicalContainment(G,J)
-    assert not radicalContainment(G-a^2,J)
-    assert (radicalContainment(I, I^2) === null)
-///
 
 --------------------------------
 -- Factorization ---------------
@@ -113,19 +101,7 @@ factors RingElement := (F) -> (
     if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
     )
 -- need test
-TEST ///
-    restart
-    debug needsPackage "PD"
-    R = (frac(QQ[a,b]))[x,y,z]
-    F = 15 * a * (a*x-y-1/a)^2 * (1/b * x * z - a * y)^2
-    assert(set factors F === set {(2, a^2*x-a*y-1), (2, x*z - a*b*y)})
-    factors F
-    numerator F 
 
-    F = a * (a*x-y-1/a)^2 * (1/b * x * z - a * y)^2
-    factors F 
-    numerator F 
-///
 
 -----------------------------
 -- Redundancy control -------

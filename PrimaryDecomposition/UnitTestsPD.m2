@@ -64,8 +64,8 @@ TEST ///
   I = ideal( a*x + a^2 )
   (S,SF) = makeFiberRings {a}
   IS = sub(I,S)
-  assert( ( ideal 1_SF === ideal first minimalizeOverFrac(IS, SF) ) )
-  assert( ( IS  ===  ideal last minimalizeOverFrac(IS, SF) ) )
+  assert( ( ideal(x+sub(a,SF))  === ideal first minimalizeOverFrac(IS, SF) ) )
+  assert( ( ideal(sub(a,S))  === ideal last minimalizeOverFrac(IS, SF) ) )
 ///
 
 TEST ///
@@ -74,15 +74,31 @@ TEST ///
   I = ideal( a*x + a^2 )
   (S,SF) = makeFiberRings {a,x}
   IS = sub(I,S)
+  assert( ( ideal 1_SF === ideal first minimalizeOverFrac(IS, SF) ) )
+  assert( ( IS  ===  ideal last minimalizeOverFrac(IS, SF) ) )
 
 ///
+
 
 -- for Mike: can we do "assert error" ? 
 TEST ///
   debug loadPackage "PD"
   R = ZZ/32003[a,x]
   I = ideal( a*x + a^2 )
+///
   --(S,SF) = makeFiberRings {}
+
+TEST ///
+  debug loadPackage "PD"
+  R = QQ[a,b,c,d,e,h]
+  (S,SF) = makeFiberRings {c}
+  use SF
+  C = sub(c, coefficientRing SF) 
+  I = ideal(h^4+C*h^3+6*C^2*h^2-4*C^3*h+C^4,e+(1/(11*C^2))*h^3+((-2)/(11*C))*h^2+(1/11)*h+(4*C)/11,d+((-3)/(11*C^2))*h^3+(6/(11*C))*h^2+((-3)/11)*h+(-C)/11,b+(1/(11*C^2))*h^3+((-2)/(11*C))*h^2+(1/11)*h+(4* C)/11,a+(1/(11*C^2))*h^3+((-2)/(11*C))*h^2+(1/11)*h+(4*C)/11)
+  use S
+  J = ideal(d+3*e+c,b-e,a-e,e*h+3*e*c-h^2+h*c+c^2,e^2+3*e*c+c^2)
+  assert( J == contractToPolynomialRing I )
+
 ///
 
 end 

@@ -154,7 +154,6 @@ makeFiberRings(List) := (baseVars) -> (
    setAmbientField(KR, RU);
    (RU, KR)
    )
--- Needs test
 
 minimalizeOverFrac = method()
 minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
@@ -177,7 +176,6 @@ minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
      coeffs := GF/leadCoefficient/phi;
      (flatten entries gens forceGB matrix{GF}, coeffs)
      )
--- Needs test
 
 -- question: What if we want to contract away only some of the basevars, not all of them?  Will this ever
 --           be the case?

@@ -5,11 +5,13 @@ newPackage(
         Authors => {{Name => "", 
                   Email => "", 
                   HomePage => ""}},
-        Headline => "",
-        DebuggingMode => true
+        Headline => "New Primary Decomposition Implementation",
+        DebuggingMode => true,
+        AuxiliaryFiles=>true
         )
 
 export {
+    minprimes,
     radicalContainment,
     toAmbientField, 
     fromAmbientField, 

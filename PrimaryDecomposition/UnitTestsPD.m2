@@ -10,11 +10,11 @@ newPackage(
         DebuggingMode => true
         )
 
-needsPackage "PD"
 export {}
 
 -- radicalContainment
 TEST ///
+    debug needsPackage "PD"
     R = ZZ/32003[a..f]
     F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
     I = ker F
@@ -26,6 +26,7 @@ TEST ///
 ///
 
 TEST ///
+    debug needsPackage "PD"
     R = (frac(QQ[a,b]))[x,y,z]
     F = 15 * a * (a*x-y-1/a)^2 * (1/b * x * z - a * y)^2
     assert(set factors F === set {(2, a^2*x-a*y-1), (2, x*z - a*b*y)})

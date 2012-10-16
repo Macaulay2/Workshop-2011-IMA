@@ -44,3 +44,12 @@ splitTower J
 
 J = first C#1#2
 splitTower J
+netList oo
+
+J = first C#1#3
+splitTower J
+netList oo
+
+J = first C#1#9
+splitTower J
+netList oo

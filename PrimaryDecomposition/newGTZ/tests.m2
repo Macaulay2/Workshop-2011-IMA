@@ -4,34 +4,6 @@ PDTEST ///
 ///
 
 PDTEST ///
-  R = ZZ/32003[a,b,c,d,h]
-  I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
-///
-
-PDTEST ///
-  R = QQ[a,b,c,d,h]
-  I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
-///
-
-PDTEST ///
-  R = QQ[a,b,c,d]
-  I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
-///
-
-PDTEST ///
-  R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
-  p = z^2+1
-  q = z^4+2
-  I = ideal(p^2*q^3, (y-z^3)^3, (x-y*z+z^4)^4)
-///
-
-PDTEST ///
-  -- ST_S/Y x, except that one is ZZ/32003
-  R = QQ[b,s,t,u,v,w,x,y,z];
-  I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
-///
-
-PDTEST ///
   -- 2x2 permanents of generic 3x3 matrix
   R = ZZ/32003[vars(0..8)];
   I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)

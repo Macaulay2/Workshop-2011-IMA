@@ -149,36 +149,37 @@ makeFiberRings(List) := (baseVars) -> (
    baseVars = rsort baseVars;
    RU := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
        --MonomialOrder=>{#fiberVars,#baseVars}]);
-   KK := frac((coefficientRing R)[baseVars]);
-   KR := KK[fiberVars, MonomialOrder=>Lex];
+   KK := frac((coefficientRing R)(monoid [baseVars]));
+   KR := KK (monoid[fiberVars, MonomialOrder=>Lex]);
    setAmbientField(KR, RU);
    (RU, KR)
    )
 
 minimalizeOverFrac = method()
-minimalizeOverFrac(Ideal, Ring) := (I, S) -> (
+minimalizeOverFrac(Ideal, Ring) := (I, SF) -> (
      -- I is an ideal in a ring with an elimination order (maybe Lex)
-     -- S is of the form k(basevars)[fibervars].
-     -- If G is a GB of I, then G S is a GB if I S.
-     -- this function returns a reduced minimal Groebner basis of I S, as a list
-     -- of polynomials (defined over S).
+     -- SF is of the form k(basevars)[fibervars].
+     -- If G is a GB of I, then G SF is a GB if I S.
+     -- this function returns a reduced minimal Groebner basis of I SF, as a list
+     -- of polynomials (defined over SF).
      -- caveat: ring I must have either a Lex order or a product order, compatible with
      --  fibervars >> basevars.
      G := flatten entries gens gb I;
-     phi := map(ring I, S);
+     phi := map(ring I, SF);
      sz := G/size; -- number of monomials per poly, used to choose which elem to take
-     GS := flatten entries sub(gens gb I, S);
+     GS := flatten entries sub(gens gb I, SF);
      minG := flatten entries mingens ideal(GS/leadMonomial);
      GF := for mon in minG list (
-    z := positions(GS, f -> leadMonomial f == mon);
-    i := minPosition (sz_z);
-    GS_(z#i));
+     z := positions(GS, f -> leadMonomial f == mon);
+     i := minPosition (sz_z);
+     GS_(z#i));
      coeffs := GF/leadCoefficient/phi;
      (flatten entries gens forceGB matrix{GF}, coeffs)
      )
 
 -- question: What if we want to contract away only some of the basevars, not all of them?  Will this ever
 --           be the case?
+-- TODO NOTE: the saturate here should be done in the ring R (grevlex)
 contractToPolynomialRing = method()
 contractToPolynomialRing(Ideal) := (I) -> (
      -- assumes: I is in a ring k(basevars)[fibervars] created with makeFiberRings
@@ -205,7 +206,6 @@ extendIdeal Ideal := (I) -> (
      (JSF, coeffs) := minimalizeOverFrac(IS, SF);
      ideal JSF
      )
--- Needs test
 
 -----------------------
 -- Minimal primes -----
@@ -221,13 +221,13 @@ minprimes Ideal := opts -> (I) -> (
     -- and a separate function)
     -- returns a list of ideals, the minimal primes of I
     R := ring I;
-    C := minprimesMES(I, opts);
+    C := minprimesWorker(I, opts);
     C1 := C/contractToPolynomialRing/(i -> sub(i,R));
     selectMinimalIdeals C1
     )
 
-minprimesMES = method (Options => options minprimes)
-minprimesMES Ideal := opts -> (I) -> (
+minprimesWorker = method (Options => options minprimes)
+minprimesWorker Ideal := opts -> (I) -> (
     R := ring I;
     radicalSoFar := ideal 1_R;
     comps := {};
@@ -245,14 +245,6 @@ minprimesMES Ideal := opts -> (I) -> (
     comps
     )
 
-checkMinimalPrimes = (I, comps) -> (
-    -- check that the intersection of comps
-    --   is contained in the radical of I
-    -- check that each comp contains I
-    for c in comps do assert isSubset(I, c);
-    J := intersect comps;
-    assert (radicalContainment(J, I) === null);
-    )
 
 {* -- the next two functions were just MES playing around.
    -- they should probably be ignored or removed.
@@ -383,7 +375,7 @@ TEST ///
     debug loadPackage "PD"
     R = ZZ/32003[a,b,c,h]
     I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
-    minprimesMES(I, Verbosity=>1)
+    minprimesWorker(I, Verbosity=>1)
     C = equidimSplit(I, Verbosity=>10)
 ///
 

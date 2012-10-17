@@ -527,6 +527,7 @@ splitTower Ideal := (IF) -> (
     RF := ring IF;
     linears := if E#?true then E#true else {}; -- keep for later
     J := ideal nonlinears;
+    vecdim := nonlinears/leadTerm/(f -> first degree f)//product;
     L := ideal (J_* / numerator);
     R := ring L;
     varsList := nonlinears / leadTerm / support // flatten;
@@ -537,16 +538,20 @@ splitTower Ideal := (IF) -> (
     L1 := ideal(J1_*/numerator);
     lastVar = numerator lastVar;
     otherVars = otherVars/numerator;
-    time facs := factors (eliminate(L1, otherVars))_0;
+    G := (eliminate(L1, otherVars))_0;
+    completelySplit := degree(lastVar, G) === vecdim;
+    time facs := factors G;
+    print netList facs;
     F = numerator F;
     time facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
-    else for fac in facs1 list (
+    else flatten for fac in facs1 list (
         time G := fac#1 % L;
         time C := ideal gens gb(ideal sub(G, RF) + J);
         if C == 1 then continue;
         --time C := ideal first minimalizeOverFrac((ideal G) + L, RF);
-        time ideal gens gb (C + ideal linears)
+        P := time ideal gens gb (C + ideal linears);
+        if completelySplit then P else flatten splitTower P
         )
     )
 -- needs test
@@ -676,6 +681,23 @@ TEST ///
 -------------------------------------
 -- Factorization over a tower -------
 -------------------------------------
+
+factorOverTower = method()
+factorOverTower(RingElement, List) := (F, L) -> (
+    -- factor F over the field extension defined by L
+    -- input: F, a polynomial in a ring k(basevars)[fibervars]
+    --        L, a list of polynomials, such that L_i has lead term a pure power of a variable
+    --           and this lead term is not a variable
+    --           and L is sorted in decreasing variable index
+    --           and L defines a finite field extension of k(basevars).
+    --        the only variables in 'fibervars' that occur in F should be the lead term variables of L,
+    --           and one other 'x' (which is the support of the lead monomial of F).
+    -- output: a list of (d_i, F_i), such that
+    --   F_i is monic in x,
+    --   F = product F_i ^ d_i
+    --   each F_i is irreducible over L
+    )
+
 -- experimental: not functional
 factorize = method()
 factorize(RingElement, Ideal) := (F, I) -> (

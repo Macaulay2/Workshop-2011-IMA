@@ -186,6 +186,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
+  debug needsPackage "PD"
   R = QQ[a,b,c,d,h]
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
   C = minprimes I
@@ -193,6 +194,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
+  debug needsPackage "PD"
   R = QQ[a,b,c,d]
   I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
   C = minprimes I
@@ -200,15 +202,17 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
+  debug needsPackage "PD"
   R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
   p = z^2+1
   q = z^4+2
   I = ideal(p^2*q^3, (y-z^3)^3, (x-y*z+z^4)^4)
   C = minprimes I
-  checkMinimalPrimes(I, C, "Answer" => decompose)  -- CURRENTLY: BUG in minprimes.  Likely because it is 0-dim
+  checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
 SIMPLETEST ///
+  debug needsPackage "PD"
   -- ST_S/Y x, except that one is ZZ/32003
   R = QQ[b,s,t,u,v,w,x,y,z];
   I = ideal"su - bv, tv - sw, vx - uy, wy - vz"

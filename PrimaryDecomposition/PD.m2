@@ -15,7 +15,8 @@ export {
     radicalContainment, -- test
     factors, -- test
     findNonMemberIndex, -- test
-
+    toAmbientField, -- make as a string so that we dont have to export?
+    fromAmbientField,  -- make as a string so that we dont have to export?
     -- Main functions
     minprimes
     }
@@ -79,6 +80,7 @@ setAmbientField(Ring, Ring) := (KR, RU) -> (
 factors = method()
 factors RingElement := (F) -> (
     R := ring F;
+    if F == 0 then return {(1,F)};
     facs := if R.?toAmbientField then (
         F = R.toAmbientField F;
         numerator factor F
@@ -101,8 +103,6 @@ factors RingElement := (F) -> (
     facs = select(facs, (n,f) -> # support f =!= 0);
     if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
     )
--- need test
-
 
 -----------------------------
 -- Redundancy control -------
@@ -169,11 +169,12 @@ minimalizeOverFrac(Ideal, Ring) := (I, SF) -> (
      GS := flatten entries sub(gens gb I, SF);
      minG := flatten entries mingens ideal(GS/leadMonomial);
      GF := for mon in minG list (
-     z := positions(GS, f -> leadMonomial f == mon);
-     i := minPosition (sz_z);
-     GS_(z#i));
+        z := positions(GS, f -> leadMonomial f == mon);
+        i := minPosition (sz_z);
+        GS_(z#i)
+     );
      coeffs := GF/leadCoefficient/phi;
-     (flatten entries gens forceGB matrix{GF}, coeffs)
+     (flatten entries gens forceGB matrix(SF,{GF}), coeffs)
      )
 
 -- question: What if we want to contract away only some of the basevars, not all of them?  Will this ever
@@ -244,6 +245,165 @@ minprimesWorker Ideal := opts -> (I) -> (
     comps
     )
 
+equidimSplitOneStep = method(Options => options minprimes)
+equidimSplitOneStep Ideal := opts -> (I) -> (
+    -- return ((I1: equidim ideal, basevars, ISF), I2)
+    -- where 1. intersection of I1 and I2 is I
+    --       1. ISF = minimal GB of I1 kk(basevars)[fibervars]
+    --       2. I1 is equidimensional (zero dim over kk(basevars))
+    --          and so I1 is the contraction of ideal ISF to R
+    --       3. I2 is I:I1.  Note:
+    --          radical(intersection(I1,I2)) = intersection(radical(I1),radical(I2))
+    if I == 1 then error "Internal error: Input should not be unit ideal.";
+    indeps := independentSets(I, Limit=>1);
+    basevars := support first indeps;
+    if opts.Verbosity > 0 then 
+        << "  Choosing: " << basevars << endl;
+    if #basevars == 0 then (
+        Slex := newRing(ring I, MonomialOrder=>Lex);
+        numerator Slex := identity;
+        ISlex := sub(I,Slex);
+        return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_(ring I));
+        );
+    (S, SF) := makeFiberRings basevars;
+    IS := sub(I, S);
+    gens gb IS;
+    (ISF, coeffs) := minimalizeOverFrac(IS, SF);
+    if coeffs == {} then ((I,basevars,ISF),ideal {1_(ring I)}) else (
+       facs := (factors product coeffs)/last;
+       G := product facs;
+       if opts.Verbosity > 0 then
+           << "  the factors of the flattener: " << netList(facs) << endl;
+       G = sub(G,ring I);
+       I1 := saturate(I, G);
+       I2 := I : I1;
+       ((I1, basevars, ISF), I2)
+    ))
+
+-----------------------
+-- Splitting methods --
+-----------------------
+
+-- Below, IF is a reduced lex GB for I k(indep)[fiber]
+-- This function factors the terms that are not linear in a GB for IF and splits the ideal by those factors
+-- This function returns the empty list if I is the unit ideal.
+splitLexGB = method()
+splitLexGB Ideal := (IF) -> (
+    L := IF_*;
+    for f in L do (
+        facs := factors f;
+        if #facs == 1 and facs#0#0 == 1 then continue;
+        return flatten for fac in facs list splitLexGB (ideal gens gb ((ideal fac#1) + IF));
+        );
+    {IF}
+    )
+
+-- needs documentation
+hasLinearLeadTerm = method()
+hasLinearLeadTerm RingElement := (f) -> (
+    t := leadTerm f;
+    s := support t;
+    #s === 1 and s#0 == t
+    )
+
+splitTower = method()
+splitTower Ideal := (IF) -> (
+    -- IF is an ideal in k(basevars)[fibervars] satisfying:
+    --   1. IF is zero-dimensional
+    --   2. IF_* is a lex GB for IF (in ascending order of leadterms)
+    --   3. IF_* only contains (hopefully!) elements whose lead term is a pure power.
+    --   4. each element IF_i is irreducible over the fraction field k(basevars).
+    -- Output: a list of ideals, each one should be a minimal prime of IF.
+    E := partition(hasLinearLeadTerm, IF_*);
+    if not E#?false then return {IF}; -- nothing to do
+    nonlinears := E#false;
+    if #nonlinears <= 1 then return {IF};
+    RF := ring IF;
+    linears := if E#?true then E#true else {}; -- keep for later
+    J := ideal nonlinears;
+    vecdim := nonlinears/leadTerm/(f -> first degree f)//product;
+    L := ideal (J_* / numerator);
+    R := ring L;
+    varsList := nonlinears / leadTerm / support // flatten;
+    lastVar := varsList#0; -- this is the smallest variable in the monomial order
+    otherVars := drop(varsList, 1); 
+    F := sum apply(otherVars, x -> (1 + random 10) * x);
+    J1 := sub(J, lastVar => lastVar + F);
+    L1 := ideal(J1_*/numerator);
+    lastVar = numerator lastVar;
+    otherVars = otherVars/numerator;
+    G := (eliminate(L1, otherVars))_0;
+    completelySplit := degree(lastVar, G) === vecdim;
+    time facs := factors G;
+    print netList facs;
+    F = numerator F;
+    time facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
+    if #facs1 == 1 and facs1#0#0 == 1 then {IF}
+    else flatten for fac in facs1 list (
+        time G := fac#1 % L;
+        time C := ideal gens gb(ideal sub(G, RF) + J);
+        if C == 1 then continue;
+        --time C := ideal first minimalizeOverFrac((ideal G) + L, RF);
+        P := time ideal gens gb (C + ideal linears);
+        if completelySplit then P else flatten splitTower P
+        )
+    )
+
+----------------------------------------------------
+-- "Remove" polynomials which occur as variables ---
+----------------------------------------------------
+-- Input: ideal I in a polynomial ring
+-- Output: (J:Ideal, F:RingMap)
+--   where F:R-->R is a ring map s.t. F J == I
+--   and J has the polynomials defining a variable x as linear, has  the corresp poly = x.
+simplifyIdeal = method()
+simplifyIdeal Ideal := (originalI) -> (
+     -- input: ideal I in a polynomial ring R
+     -- output: (J, phi), J is an ideal in the same ring
+     --                   phi : R --> R
+     -- such that the only generators of J which are linear in a variable are themselves 
+     -- variables, and phi J == I
+     I := originalI;
+     R := ring I;
+     H := new MutableList from gens R;
+     for x in gens R do (
+    k := position(I_*, f -> first degree diff(x,f) == 0);
+    if k === null then continue;
+    c := leadCoefficient diff(x,I_k);
+    g := I_k - c*x;  
+    -- at this point f = I_k = c*x + g, and g does not involve x.
+    --  (and c is a constant)
+    p := - 1/c * g;
+    I = ideal(x) + ideal compress sub(gens I, x=>p);
+    H#(index x) = x - p;
+    );
+     (ideal compress gens I, map(R,R,toList H))
+     )
+
+
+beginDocumentation()
+
+doc ///
+Key
+  PD
+Headline
+  Primary Decomposition
+Description
+  Text
+    Describe the package here.
+  Example
+Caveat
+SeeAlso
+///
+
+end
+
+restart
+loadPackage "PD"
+
+----------------------------------------------------------------------------
+-- code below here is not needed for most recent implementation of minprimes
+----------------------------------------------------------------------------
 
 {* -- the next two functions were just MES playing around.
    -- they should probably be ignored or removed.
@@ -310,39 +470,6 @@ minprimesZeroDim(Ideal, List) := opts -> (I, basevars) -> (
     error "debug me";
     )
 
-equidimSplitOneStep = method(Options => options minprimes)
-equidimSplitOneStep Ideal := opts -> (I) -> (
-    -- return ((I1: equidim ideal, basevars, ISF), I2)
-    -- where 1. intersection of I1 and I2 is I
-    --       1. ISF = minimal GB of I1 kk(basevars)[fibervars]
-    --       2. I1 is equidimensional (zero dim over kk(basevars))
-    --          and so I1 is the contraction of ideal ISF to R
-    --       3. I2 is I:I1.  Note:
-    --          radical(intersection(I1,I2)) = intersection(radical(I1),radical(I2))
-    indeps := independentSets(I, Limit=>1);
-    basevars := support first indeps;
-    if opts.Verbosity > 0 then 
-        << "  Choosing: " << basevars << endl;
-    if #basevars == 0 then (
-        Slex := newRing(ring I, MonomialOrder=>Lex);
-        numerator Slex := identity;
-        ISlex := sub(I,Slex);
-        return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_(ring I));
-        );
-    (S, SF) := makeFiberRings basevars;
-    IS := sub(I, S);
-    gens gb IS;
-    (ISF, coeffs) := minimalizeOverFrac(IS, SF);
-    facs := (factors product coeffs)/last;
-    G := product facs;
-    if opts.Verbosity > 0 then
-        << "  the factors of the flattener: " << netList(facs) << endl;
-    G = sub(G,ring I);
-    I1 := saturate(I, G);
-    I2 := I : I1;
-    ((I1, basevars, ISF), I2)
-    )
-
 equidimSplit = method(Options => options minprimes)
 equidimSplit Ideal := opts -> (I) -> (
     (L1, I2) := equidimSplitOneStep(I, opts);
@@ -378,9 +505,6 @@ TEST ///
     C = equidimSplit(I, Verbosity=>10)
 ///
 
------------------------
--- Splitting methods --
------------------------
 splitBy = (I, h) -> (
      Isat := saturate(I, h);
      f := 1_(ring I);
@@ -407,9 +531,9 @@ splitUsingQuotientsBy = (I, h) -> (
     )
 -- Needs test
 
+-- documentation needed
 splitViaIndep = method()
 splitViaIndep Ideal := (I) -> (
--- documentation needed
      indeps := independentSets I;
      indep := support first indeps;
      << "Number of independent sets: " << #indeps << endl;
@@ -458,7 +582,6 @@ splitEquidimFactors = (I) -> (
      {I}
      )
 -- needs test
-
 hasLinearLeadTerm = method()
 hasLinearLeadTerm RingElement := (f) -> (
     t := leadTerm f;
@@ -497,63 +620,6 @@ splitPurePowers Ideal := (IF) -> (
         );
     {IF}
     )
-
--- Below, IF is a reduced lex GB for I k(indep)[fiber]
--- This function factors the terms that are not linear in a GB for IF and splits the ideal by those factors
-splitLexGB = method()
-splitLexGB Ideal := (IF) -> (
-    L := IF_*;
-    for f in L do (
-        facs := factors f;
-        if #facs == 1 and facs#0#0 == 1 then continue;
-        return flatten for fac in facs list splitLexGB (ideal gens gb ((ideal fac#1) + IF));
-        );
-    {IF}
-    )
-
-splitTower = method()
-splitTower Ideal := (IF) -> (
-    -- IF is an ideal in k(basevars)[fibervars] satisfying:
-    --   1. IF is zero-dimensional
-    --   2. IF_* is a lex GB for IF (in ascending order of leadterms)
-    --   3. IF_* only contains (hopefully!) elements whose lead term is a pure power.
-    --   4. each element IF_i is irreducible over the fraction field k(basevars).
-    -- Output: a list of ideals, each one should be a minimal prime of IF.
-    E := partition(hasLinearLeadTerm, IF_*);
-    if not E#?false then return {IF}; -- nothing to do
-    nonlinears := E#false;
-    if #nonlinears <= 1 then return {IF};
-    RF := ring IF;
-    linears := if E#?true then E#true else {}; -- keep for later
-    J := ideal nonlinears;
-    vecdim := nonlinears/leadTerm/(f -> first degree f)//product;
-    L := ideal (J_* / numerator);
-    R := ring L;
-    varsList := nonlinears / leadTerm / support // flatten;
-    lastVar := varsList#0; -- this is the smallest variable in the monomial order
-    otherVars := drop(varsList, 1); 
-    F := sum apply(otherVars, x -> (1 + random 10) * x);
-    J1 := sub(J, lastVar => lastVar + F);
-    L1 := ideal(J1_*/numerator);
-    lastVar = numerator lastVar;
-    otherVars = otherVars/numerator;
-    G := (eliminate(L1, otherVars))_0;
-    completelySplit := degree(lastVar, G) === vecdim;
-    time facs := factors G;
-    print netList facs;
-    F = numerator F;
-    time facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
-    if #facs1 == 1 and facs1#0#0 == 1 then {IF}
-    else flatten for fac in facs1 list (
-        time G := fac#1 % L;
-        time C := ideal gens gb(ideal sub(G, RF) + J);
-        if C == 1 then continue;
-        --time C := ideal first minimalizeOverFrac((ideal G) + L, RF);
-        P := time ideal gens gb (C + ideal linears);
-        if completelySplit then P else flatten splitTower P
-        )
-    )
--- needs test
 
 -- Below, IF is a reduced lex GB for I k(indep)[fiber]
 -- In this function, the polynomials themselves are irreducible over the field if not considered as a whole,
@@ -616,65 +682,6 @@ TEST ///
   findNonlinearPurePowers JE
   gbTrace = 3
   newJEs = purePowerCoordinateChange JE
-///
-----------------------------------------------------
--- "Remove" polynomials which occur as variables ---
-----------------------------------------------------
--- Input: ideal I in a polynomial ring
--- Output: (J:Ideal, F:RingMap)
---   where F:R-->R is a ring map s.t. F J == I
---   and J has the polynomials defining a variable x as linear, has  the corresp poly = x.
-simplifyIdeal = method()
-simplifyIdeal Ideal := (originalI) -> (
-     -- input: ideal I in a polynomial ring R
-     -- output: (J, phi), J is an ideal in the same ring
-     --                   phi : R --> R
-     -- such that the only generators of J which are linear in a variable are themselves 
-     -- variables, and phi J == I
-     I := originalI;
-     R := ring I;
-     H := new MutableList from gens R;
-     for x in gens R do (
-    k := position(I_*, f -> first degree diff(x,f) == 0);
-    if k === null then continue;
-    c := leadCoefficient diff(x,I_k);
-    g := I_k - c*x;  
-    -- at this point f = I_k = c*x + g, and g does not involve x.
-    --  (and c is a constant)
-    p := - 1/c * g;
-    I = ideal(x) + ideal compress sub(gens I, x=>p);
-    H#(index x) = x - p;
-    );
-     (ideal compress gens I, map(R,R,toList H))
-     )
-
-TEST ///
-  restart
-  debug loadPackage "PrimDecomposition"
-  R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
-  I = ideal"
-    -ab-ad+2ah,
-    ad-bd-cf-2ah+2bh+2ck,
-    ab-ad-2bh+2dh-2ck+2fk+2gl,
-    ac-2cs-at+2bt,
-    ac-cs-2at+bt,
-    -d-3s+4u,
-    -f-3t+4v,
-    -g+4w,
-    -a+2x,
-    -b2-c2+2bx+2cy,
-    -d2-f2-g2+2dx+2fy+2gz"
-  (J,phi) = simplifyIdeal I
-  J1 = ideal gens phi J
-  assert(I == J1)
-  codim I
-  time CJ = splitEquidimFactors J;
-  time CI = splitEquidimFactors I;
-  assert(intersect CJ == J)
-  assert(intersect CI == I)
-  ans1 = CJ/(i -> flatten entries gens gb  phi i)
-  ans2 = CI/(i -> flatten entries gens gb i)
-  assert(ans1 === ans2)
 ///
 
 -------------------------------------
@@ -742,23 +749,3 @@ factorize(RingElement, Ideal) := (F, I) -> (
          ))
      )
 -- needs test
-
-beginDocumentation()
-
-doc ///
-Key
-  PD
-Headline
-  Primary Decomposition
-Description
-  Text
-    Describe the package here.
-  Example
-Caveat
-SeeAlso
-///
-
-end
-
-restart
-loadPackage "PD"

@@ -12,7 +12,7 @@ newPackage(
 
 export {checkMinimalPrimes}
 
-debug needsPackage "PD"
+needsPackage "PD"
 
 checkMinimalPrimes = method(Options => {"Answer" => null, "CheckPrimality" => false})
 checkMinimalPrimes(Ideal, List) := opts -> (I, C1) -> (
@@ -38,9 +38,12 @@ SIMPLETEST = (str) -> TEST str
 -- These are slower tests, that we will eventually run explicitly
 BENCHMARK = (str) -> TEST str
 
+-- These are the tests that are too slow to run often
+TOODAMNSLOW = (str) -> null
+
 -- radicalContainment
 TEST ///
-    debug needsPackage "PD"
+    needsPackage "PD"
     R = ZZ/32003[a..f]
     F = map(R,R,symmetricPower(2,matrix{{a,b,c}}))
     I = ker F
@@ -52,7 +55,7 @@ TEST ///
 ///
 
 TEST ///
-    debug needsPackage "PD"
+    needsPackage "PD"
     R = (frac(QQ[a,b]))[x,y,z]
     F = 15 * a * (a*x-y-1/a)^2 * (1/b * x * z - a * y)^2
     assert(set factors F === set {(2, a^2*x-a*y-1), (2, x*z - a*b*y)})
@@ -63,11 +66,18 @@ TEST ///
 ///
 
 TEST ///
-    debug needsPackage "PD"
+    needsPackage "PD"
     R = QQ[a,b,x,y,z]
     F = 15 * a * (a*x-y-a^2)^2 * (b^2 * x * z - a * y)^2
     assert(set factors F === set {(1,a), (2, -a*x+y+a^2), (2, b^2*x*z - a*y)})
     --assert(numerator F == F) -- this would fail at the moment.  Should it be made to work?
+///
+
+TEST ///
+    needsPackage "PD"
+    R = QQ[a,b]
+    assert (factors 0_R == {(1,0_R)})
+    assert (factors 1_R == {})
 ///
 
 TEST ///
@@ -152,8 +162,98 @@ TEST ///
   assert( Je == ideal(e^4+h*e^3+h^2*e^2+h^3*e+h^4,d+(1/(h))*e^2+2*e+h,c+((-1)/(h))*e^2+e-h,b-e,a-e))
 ///
 
-BENCHMARK ///
+TEST ///
   debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,h]
+  I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
+  (part1,I2) = equidimSplitOneStep I;
+  (I1, basevars, ISF) = part1;
+  assert (I1 == ideal(b+d,a+c,c^2*d^2-h^4))
+  assert (ring I1 === R)
+  assert (ring I2 === R)
+  assert (all (basevars, x -> ring x === R))
+  assert (basevars == {c, h})
+  assert (I2 == ideal(b+d,a+c,c^2-d^2,d^4-h^4))
+  use ring first ISF
+  use coefficientRing ring first ISF
+  assert (ISF == {d^2+(-h^4)/(c^2), b+d, a+c})
+///
+
+TEST ///
+  -- boundary cases for equidimSplitOneStep
+  debug needsPackage "PD"
+  R = QQ[x,y]
+  I = ideal{0_R}
+  (part1,I2) = equidimSplitOneStep I;
+  (I1, basevars, ISF) = part1;
+  
+  J = ideal{1_R}
+  assert try equidimSplitOneStep J else true;
+///
+
+TEST ///
+  debug needsPackage "PD"
+  R = QQ[a,b,c,d]
+  I = ideal {a*b,a*c,a^2*d,b^2*c,b*d,c^2*d^2}
+  -- redundant ideals in list; can we avoid this?
+  Isplits = splitLexGB I
+  assert (unique Isplits == {ideal(d,c,b), ideal(c,b,a), ideal(d,b,a), ideal(d,c,a)})
+///
+
+TEST ///
+  -- make a better (more complicated) test (without simply using output)
+  debug needsPackage "PD"
+  R = (frac (QQ[c]))[a, b, d, e, h]
+  use coefficientRing R
+  I = ideal{h^20+122*c^5*h^15-122*c^10*h^10-c^15*h^5, e*h^10-c^5*e*h^5+((-1)/(55*c^4))*h^15+((2*c)/5)*h^10+((-21*c^6)/55)*h^5, e^4*h^5-c^5*e^4+2*c*e^3*h^5-2*c^6*e^3+c^2*e^2*h^5-c^7*e^2+(3/(55*c^6))*h^15+(34/(5*c))*h^10+((-377*c^4)/55)*h^5, e^7+3*c*e^6+c^2*e^5+((-4)/(c))*e^3*h^5+4*c^4*e^3-4*e^2*h^5+3*c^5*e^2-3*c*e*h^5+((-12)/(55*c^8))*h^15+((-131)/(5*c^3))*h^10+((1398*c^2)/55)*h^5, d*h^15+122*c^5*d*h^10-122*c^10*d*h^5-c^15*d-c^8*e^3*h^5+c^13*e^3-2*c^9*e^2*h^5+2*c^14*e^2-c^10*e*h^5+c^15*e+((8*c)/55)*h^15+((89*c^6)/5)*h^10+((-987*c^11)/55)*h^5, d*e*h^5-c^5*d*e+((-1)/(55*c^4))*d*h^10+((2*c)/5)*d*h^5+((-21*c^6)/55)*d+((-21)/(55*c))*e^3*h^5+((21*c^4)/55)*e^3+((-42)/55)*e^2*h^5+((42*c^5)/55)*e^2+((-21*c)/55)*e*h^5+((21*c^6)/55)*e+(168/(3025*c^8))*h^15+(1869/(275*c^3))*h^10+((-20727*c^2)/3025)*h^5, d*e^2+3*c*d*e+c^2*d+((-1)/(c^2))*e^5+((-3)/(c))*e^4+(3/(c^5))*e^3*h^5-4*e^3+(3/(c^4))*e^2*h^5-3*c*e^2+(1/(c^3))*e*h^5-c^2*e+((-6)/(55*c^12))*h^15+((-68)/(5*c^7))*h^10+(754/(55*c^2))*h^5, d^2+d*e+(3/(275*c^9))*d*h^10+(34/(25*c^4))*d*h^5+((173*c)/275)*d+(7/(5*c^4))*e^6+(18/(5*c^3))*e^5+((-1)/(c^2))*e^4+(1603/(275*c^6))*e^3*h^5+((-2153)/(275*c))*e^3+(1446/(275*c^5))*e^2*h^5+((-1446)/275)*e^2+((-487)/(275*c^4))*e*h^5+((-173*c)/275)*e+(981/(15125*c^13))*h^15+(10123/(1375*c^8))*h^10+((-166784)/(15125*c^3))*h^5, b*h^5-c^5*b+d*h^5-c^5*d+((-1)/(2*c^2))*e^3*h^5+((c^3)/2)*e^3+((-3)/(2*c))*e^2*h^5+((3*c^4)/2)*e^2-e*h^5+c^5*e+((-1)/(22*c^9))*h^15+((-11)/(2*c^4))*h^10+((61*c)/11)*h^5, b*e-c*b+(3/(275*c^9))*d*h^10+(34/(25*c^4))*d*h^5+((-377*c)/275)*d+((-3)/(5*c^4))*e^6+((-7)/(5*c^3))*e^5+((-872)/(275*c^6))*e^3*h^5+(597/(275*c))*e^3+((-479)/(275*c^5))*e^2*h^5+(754/275)*e^2+((-212)/(275*c^4))*e*h^5+((377*c)/275)*e+((-1219)/(15125*c^13))*h^15+((-12977)/(1375*c^8))*h^10+(165141/(15125*c^3))*h^5, b*d-c*b-c*d+((-4)/(5*c^4))*e^6+((-11)/(5*c^3))*e^5+((-29)/(10*c^6))*e^3*h^5+(39/(10*c))*e^3+((-5)/(2*c^5))*e^2*h^5+(7/2)*e^2+((-1)/(5*c^4))*e*h^5+c*e+((-1)/(10*c^13))*h^15+((-119)/(10*c^8))*h^10+(66/(5*c^3))*h^5, b^2+3*c*b+((-6)/(275*c^9))*d*h^10+((-68)/(25*c^4))*d*h^5+((754*c)/275)*d+(2/(c^4))*e^6+(5/(c^3))*e^5+(5083/(550*c^6))*e^3*h^5+((-4533)/(550*c))*e^3+(3291/(550*c^5))*e^2*h^5+((-4391)/550)*e^2+(479/(275*c^4))*e*h^5+((-754*c)/275)*e+(7901/(30250*c^13))*h^15+(84633/(2750*c^8))*h^10+((-529932)/(15125*c^3))*h^5, a+b+d+e+c}
+  Isplits = splitLexGB I
+  assert ( Isplits == {ideal(h-c,e-c,d-c,a+b+3*c,b^2+3*c*b+c^2), ideal(h-c,d-c,b-c,a+e+3*c,e^2+3*c*e+c^2), ideal(h-c,a+b+d+e+c,d*e+c*b+c*d+c*e+c^2,d^2-4*b*e-2*e^2+2*c*b+4*c*d-c*e,b*d+2*b*e+e^2-c*b-2*c*d-c^2,b^2+c*b+c*d+c*e+c^2,e^3+3*c*e^2-3*c^2*b-c^2*d,b*e^2-c*e^2+2*c^2*b+c^2*d+c^2*e+c^3), ideal(h,e,d,b,a+c), ideal(h,e+c,d,b,a), ideal(h,e,d,b,a+c), ideal(h,e+c,d,b,a), ideal(e-h,b+d+2*h+c,a-h,h^2+3*c*h+c^2,d^2+2*d*h+c*d+8*c*h+3*c^2), ideal(b+d+2*e+c,a-e,e*h+(1/2)*h^2+((-3*c)/2)*e+((c)/2)*h+(-c^2)/2,e^2+3*c*e+c^2,d^2+2*d*e+c*d+8*c*e+3*c^2,h^3+((-5*c)/2)*h^2+((-11*c^2)/2)*e+((-c^2)/2)*h+(-5*c^3)/2), ideal(e-c,d-c,a+b+3*c,b^2+3*c*b+c^2,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(d-c,b-c,a+e+3*c,e^2+3*c*e+c^2,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(a+b+d+e+c,d*e+c*b+c*d+c*e+c^2,d^2-4*b*e-2*e^2+2*c*b+4*c*d-c*e,b*d+2*b*e+e^2-c*b-2*c*d-c^2,b^2+c*b+c*d+c*e+c^2,e^3+3*c*e^2-3*c^2*b-c^2*d,b*e^2-c*e^2+2*c^2*b+c^2*d+c^2*e+c^3,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(b+d+2*e+c,a-e,e*h-h^2+3*c*e+c*h+c^2,e^2+3*c*e+c^2,d^2+2*d*e+c*d+8*c*e+3*c^2,h^3-2*c*h^2+11*c^2*e+c^2*h+4*c^3)})
+///
+
+TEST ///
+  debug needsPackage "PD"
+  R = QQ[x,y]
+  I = ideal{0_R}
+  assert (splitLexGB I == {I})
+  
+  J = ideal{1_R}
+  assert (splitLexGB J == {})
+///
+
+TEST ///
+  -- hasLinearLeadTerm
+///
+
+TEST ///
+  -- splitTower
+///
+
+TEST ///
+  debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  I = ideal"
+    -ab-ad+2ah,
+    ad-bd-cf-2ah+2bh+2ck,
+    ab-ad-2bh+2dh-2ck+2fk+2gl,
+    ac-2cs-at+2bt,
+    ac-cs-2at+bt,
+    -d-3s+4u,
+    -f-3t+4v,
+    -g+4w,
+    -a+2x,
+    -b2-c2+2bx+2cy,
+    -d2-f2-g2+2dx+2fy+2gz"
+  (J,phi) = simplifyIdeal I
+  J1 = ideal gens phi J
+  assert(I == J1)
+///
+
+-------------------------------------
+--- Primary Decomposition tests below
+-------------------------------------
+
+BENCHMARK ///
+  needsPackage "PD"
   Q = ZZ/32003[a,b,c,d]
   -- 3 random cubics in R
   I = ideal(-840*a^3-7687*a^2*b+9625*a*b^2-3820*b^3-10392*a^2*c-13100*a*b*c-11362*b^2*c-7463*a*c^2-11288*b*c^2+1417*c^3-14802*a^2*d-7804*a*b*d+5834*b^2*d-10186*a*c*d-11900*b*c*
@@ -171,7 +271,7 @@ BENCHMARK ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[a,b,c,h]
   I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
   C = minprimes I;
@@ -179,7 +279,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[a,b,c,d,h]
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
   C = minprimes I
@@ -187,7 +287,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = QQ[a,b,c,d,h]
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
   C = minprimes I
@@ -195,7 +295,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = QQ[a,b,c,d]
   I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
   C = minprimes I
@@ -203,7 +303,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
   p = z^2+1
   q = z^4+2
@@ -213,7 +313,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   -- ST_S/Y x, except that one is ZZ/32003
   R = QQ[b,s,t,u,v,w,x,y,z];
   I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
@@ -222,7 +322,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = QQ[vars(0..8)];
   I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
   C = minprimes I
@@ -230,7 +330,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = QQ[vars(0..8),MonomialOrder=>Lex];
   I = ideal(b*d+a*e,c*d+a*f,c*e+b*f,b*g+a*h,c*g+a*i,c*h+b*i,e*g+d*h,f*g+d*i,f*h+e*i)
   C = minprimes I
@@ -238,7 +338,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[x,y,z];
   I = ideal"
     x2yz + xy2z + xyz2 + xyz + xy + xz + yz,
@@ -249,7 +349,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[x,y,z,t]
   I = ideal(
     t^10-x,
@@ -268,7 +368,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --chemistry: a chemical process in glass melting (DGP set) 9 variables
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[a,b,c,d,e,f,g,h,j];
   I = ideal"
@@ -285,7 +385,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --horrocks (DGP) related to the Horrock bundle on P5 x
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[a,b,c,d,e,f];
   I = ideal"2adef + 3be2f - cef2,         4ad2f + 5bdef + cdf2,         2abdf + 3b2ef - bcf2,                     4a2df + 5abef + acf2,
@@ -303,7 +403,7 @@ SIMPLETEST ///
 
 SIMPLETEST ///
   --square of a generic 3x3 matrix (DGP, from POSSO)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[vars(0..8)]
   I = ideal (genericMatrix(R,3,3))^2
@@ -314,7 +414,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --shimoyama-yokoyama example I8 (DGP)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = QQ
   R = kk[b,c,d,e,f,g,h,j,k,l];
   I = ideal( 
@@ -334,7 +434,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --riemenschneider (DGP) related to deformations of quotient singularities
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = QQ
   R = kk[p,q,s,t,u,v,w,x,y,z];
   I = ideal"
@@ -353,7 +453,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2 x
   --sy-j: shimoyama-yokoyama example J (DGP) 3 variables (J_S/Y) x
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[x,y,z];
   I = ideal"
@@ -375,7 +475,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --roczen (DGP) related to classification of singularities (Marko) x
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[a,b,c,d,e,f,g,h,k,o];
   I = ideal "o+1,k4+k,hk,h4+h,gk,gh,g3+h3+k3+1,fk,f4+f,eh,ef,f3h3+e3k3+e3+f3+h3+k3+1,e3g+f3g+g,e4+e,dh3+dk3+d,dg,df,de,
@@ -387,7 +487,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --macaulay (DGP, from an older M2 tutorial)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = QQ
   R = kk[a,b,c,d]
   I = ideal"
@@ -409,7 +509,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --becker-niermann (DGP)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[x,y,z];
   I = ideal"
@@ -423,7 +523,7 @@ SIMPLETEST ///
 SIMPLETEST ///
 --from ExampleIdeals/DGP.m2
 --caprasse4 (DGP, from POSSO)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = QQ
   R = kk[x,y,z,t];
   I = ideal"
@@ -437,7 +537,7 @@ SIMPLETEST ///
 
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   -- decompose DNF over QQ.  Coeffs probably too nasty
   R = kk[b,c,d,e]
@@ -458,7 +558,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --moeller (DGP)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = QQ
   R = kk[a,b,c,d,u,v,w,x];
   I = ideal"
@@ -476,7 +576,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --buchberger (DGP, from POSSO)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[a,b,c,d,x,y,z,t];
   I = ideal"
@@ -491,7 +591,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --lanconelli (DGP, from POSSO)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   R = kk[a,b,c,d,e,f,g,h,j,k,l];
   I = ideal"
@@ -507,7 +607,7 @@ SIMPLETEST ///
 SIMPLETEST ///
   --from ExampleIdeals/DGP.m2
   --wang2 (DGP)
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = QQ
   R = kk[t,x,y,z];
   I = ideal"
@@ -522,7 +622,7 @@ SIMPLETEST ///
 -- from slower-tests.m2 --
 --------------------------
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = QQ[a,b,c,d,e,h]
   I = ideal(
      a+b+c+d+e,
@@ -535,7 +635,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,h]
   I = ideal(
      a+b+c+d+e,
@@ -547,10 +647,10 @@ SIMPLETEST ///
    checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
-SIMPLETEST ///
+TOODAMNSLOW ///
   -- UNKNOWN - Runs for a very long time on built in version, as well as the 'decompose' version.
   -- The GeneralPosition one does indeed run a lot faster though
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l,MonomialOrder=>Lex]
     R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
   I = ideal "-2hjk + 4ef + bj + ak,
@@ -567,7 +667,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[x,y,z,t,MonomialOrder=>Lex]
   I = ideal(
      y^2*z+2*x*y*t-2*x-z,
@@ -578,8 +678,8 @@ SIMPLETEST ///
   checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
-BENCHMARK ///
-  debug needsPackage "PD"
+TOODAMNSLOW ///
+  needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
   R = ZZ/32003[a,b,c,d,e,f,h]
   I = ideal(
@@ -594,7 +694,7 @@ BENCHMARK ///
 ///
 
 BENCHMARK ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
   I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f
           ,e*g*j+8001*c*j^2+e^2*l,d*g*j+d*e*l+16001*a*c,e*f*j+8001*b*j^2+e^2*k,d*f*j+d*e*k+16001*a*b,d*e*j-a*h*j-16001*a^2,d*e^2-a*e*h-8001*a*d*j,d*g*k*l-c*h*k*l-d*f*l^2+b*h*l^2-2*c*f*g+2*b*g^2-16001
@@ -622,7 +722,7 @@ BENCHMARK ///
 
 BENCHMARK ///
   --from ExampleIdeals/DGP.m2
-  debug needsPackage "PD"
+  needsPackage "PD"
   kk = ZZ/32003
   --butcher (DGP) (up to a change of coordinates, this appears to be Bu_S/Y (Wang2)) x
   R = kk[a,b,c,d,e,f,g,h];
@@ -667,6 +767,7 @@ BENCHMARK  ///
     jn + mq,
     gp + a
     "
+  -- our routine should be performing simplifyIdeal from the start, if necessary
   time C = minprimes I -- 1.14 sec
   time C1 = decompose I -- .14 sec
   checkMinimalPrimes(I, C, "Answer" => decompose)
@@ -677,7 +778,7 @@ BENCHMARK  ///
 
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --schwarz (DGP) constructing idempotents in group theory x
@@ -694,8 +795,8 @@ SIMPLETEST ///
 ///
 
 
-TEST ///
-  debug needsPackage "PD"
+TOODAMNSLOW ///
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --dejong (DGP) related to the base space of a semi-universal deformation
@@ -713,7 +814,7 @@ TEST ///
 
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --gerdt (DGP, from POSSO)
@@ -740,7 +841,7 @@ SIMPLETEST ///
 
 
 SIMPLETEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --mikro (DGP) from analyzing analog circuits
@@ -761,8 +862,8 @@ SIMPLETEST ///
 ///
 
 
-TEST ///
-  debug needsPackage "PD"
+TOODAMNSLOW ///
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --amrhein (DGP)
@@ -781,7 +882,7 @@ TEST ///
 ///
 
 TEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/5
   --huneke (DGP)
@@ -797,7 +898,7 @@ TEST ///
 ///
 
 TEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --wang1 (DGP)
@@ -822,7 +923,7 @@ TEST ///
 ///
 
 TEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --siebert (DGP)
@@ -837,7 +938,7 @@ TEST ///
 ///
 
 TEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --amrheim2 (DGP)
@@ -855,7 +956,7 @@ TEST ///
 ///
 
 TEST ///
-  debug needsPackage "PD"
+  needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/3
   --huneke2 (not in published DGP) -- over ZZ/3 is real test
@@ -869,10 +970,8 @@ TEST ///
   checkMinimalPrimes(I, C, "Answer" => decompose) -- immediate
 ///
 
-
-
-BENCHMARK ///
-  debug needsPackage "PD"
+TOODAMNSLOW ///
+  needsPackage "PD"
   -- DGP Wang
   R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"

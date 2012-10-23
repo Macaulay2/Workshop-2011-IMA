@@ -11,14 +11,13 @@ newPackage(
         )
 
 export {
-    minprimes,
-    radicalContainment,
-    toAmbientField, 
-    fromAmbientField, 
-    factors,
-    findNonMemberIndex,
-    selectMinimalIdeals,
-    equidimSplit
+    -- Support routines
+    radicalContainment, -- test
+    factors, -- test
+    findNonMemberIndex, -- test
+
+    -- Main functions
+    minprimes
     }
 
 ------------------------------

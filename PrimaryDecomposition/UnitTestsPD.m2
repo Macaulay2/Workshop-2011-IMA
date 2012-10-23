@@ -518,6 +518,109 @@ SIMPLETEST ///
   checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
+--------------------------
+-- from slower-tests.m2 --
+--------------------------
+SIMPLETEST ///
+  debug needsPackage "PD"
+  R = QQ[a,b,c,d,e,h]
+  I = ideal(
+     a+b+c+d+e,
+	 d*e+c*d+b*c+a*e+a*b,
+	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
+	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
+	 a*b*c*d*e-h^5)
+   time C = minprimes I
+   checkMinimalPrimes(I, C, "Answer" => decompose)
+///
+
+SIMPLETEST ///
+  debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,e,h]
+  I = ideal(
+     a+b+c+d+e,
+	 d*e+c*d+b*c+a*e+a*b,
+	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
+	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
+	 a*b*c*d*e-h^5)
+   time C = minprimes I
+   checkMinimalPrimes(I, C, "Answer" => decompose)
+///
+
+SIMPLETEST ///
+  -- UNKNOWN - Runs for a very long time on built in version, as well as the 'decompose' version.
+  -- The GeneralPosition one does indeed run a lot faster though
+  debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l,MonomialOrder=>Lex]
+    R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
+  I = ideal "-2hjk + 4ef + bj + ak,
+           -2hjl + 4eg + cj + al,
+           -4fhj - 4ehk - djk + 2be + 2af,
+           -4ghj - 4ehl - djl + 2ce + 2ag,
+           -2dfj - 2dek + ab,
+           -2dgj - 2del + ac"
+   time C = minprimes I
+   assert(intersect C == I)
+   --checkMinimalPrimes(I, C, "CheckPrimality" => true) -- takes WAY too long to use as a test
+   --checkMinimalPrimes(I, C, "Answer" => decompose) -- takes too long to use as a test
+   assert false -- need to put some actual tests in here
+///
+
+SIMPLETEST ///
+  debug needsPackage "PD"
+  R = ZZ/32003[x,y,z,t,MonomialOrder=>Lex]
+  I = ideal(
+     y^2*z+2*x*y*t-2*x-z,
+     -x^3*z+4*x*y^2*z+4*x^2*y*t+2*y^3*t+4*x^2-10*y^2+4*x*z-10*y*t+2,
+     2*y*z*t+x*t^2-x-2*z,
+     -x*z^3+4*y*z^2*t+4*x*z*t^2+2*y*t^3+4*x*z+4*z^2-10*y*t-10*t^2+2)
+  time C = minprimes I
+  checkMinimalPrimes(I, C, "Answer" => decompose)
+///
+
+BENCHMARK ///
+  debug needsPackage "PD"
+  --- UNKNOWN - Takes a very long time.
+  R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
+  R = ZZ/32003[a,b,c,d,e,f,h]
+  I = ideal(
+         a+b+c+d+e+f,
+	 a*b+b*c+c*d+d*e+e*f+a*f,
+	 a*b*c+b*c*d+c*d*e+d*e*f+e*f*a+f*a*b,
+	 a*b*c*d+b*c*d*e+c*d*e*f+d*e*f*a+e*f*a*b+f*a*b*c,
+	 a*b*c*d*e+b*c*d*e*f+c*d*e*f*a+d*e*f*a*b+e*f*a*b*c+f*a*b*c*d,
+	 a*b*c*d*e*f-h^6)
+  time C = minprimes I -- STILL SLOW
+///
+
+BENCHMARK ///
+  debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
+  I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f
+          ,e*g*j+8001*c*j^2+e^2*l,d*g*j+d*e*l+16001*a*c,e*f*j+8001*b*j^2+e^2*k,d*f*j+d*e*k+16001*a*b,d*e*j-a*h*j-16001*a^2,d*e^2-a*e*h-8001*a*d*j,d*g*k*l-c*h*k*l-d*f*l^2+b*h*l^2-2*c*f*g+2*b*g^2-16001
+       	  *c^2*k+16001*b*c*l,d*g*k^2-c*h*k^2-d*f*k*l+b*h*k*l-2*c*f^2+2*b*f*g-16001*b*c*k+16001*b^2*l,d*g^2*k-c*g*h*k-d*f*g*l+c*f*h*l-8001*c*d*k*l+8001*b*d*l^2+16001*c^2*f-16001*b*c*g,d*f*g*k-b*g*h*k-
+       	  8001*c*d*k^2-d*f^2*l+b*f*h*l+8001*b*d*k*l+16001*b*c*f-16001*b^2*g,c*f*g*k-b*g^2*k-8001*c^2*k^2-c*f^2*l+b*f*g*l-16001*b*c*k*l-8001*b^2*l^2,e^2*g*k+8001*c*e*j*k-e^2*f*l-8001*b*e*j*l,d*g*h*l^2
+       	  -c*h^2*l^2-8001*d^2*l^3+2*d*g^3-2*c*g^2*h+16000*c*d*g*l+c^2*h*l-8001*c^3,d*f*h*l^2-b*h^2*l^2-8001*d^2*k*l^2+2*d*f*g^2-2*b*g^2*h+16001*c*d*g*k+16001*c*d*f*l+16001*b*d*g*l+b*c*h*l-8001*b*c^2,
+       	  d*f*h*k*l-b*h^2*k*l-8001*d^2*k^2*l+2*d*f^2*g-2*b*f*g*h+16001*c*d*f*k+16001*b*d*g*k-16001*b*c*h*k+16001*b*d*f*l-16001*b^2*h*l-8001*b^2*c,d*f*h*k^2-b*h^2*k^2-8001*d^2*k^3+2*d*f^3-2*b*f^2*h+
+       	  16000*b*d*f*k+b^2*h*k-8001*b^3)
+  time C = minprimes I
+  assert(#C == 1)
+  assert(C#0 == I)
+  -- TODO: check that I is really prime here
+  
+  -- here is an independent check that I is prime:
+  I : (j*l) == I
+  I1 = eliminate(I, h)
+  codim I1
+  I1_0
+  I : e == I
+  I1 = eliminate(I, {h,b,j})
+  codim I1
+  -- this I1 is irreducible over the field, of codim 1, and is birational to I, therefore I is prime    
+///
+
+
+-- above are from slower-tests.m2 --
 end
 
 -- 

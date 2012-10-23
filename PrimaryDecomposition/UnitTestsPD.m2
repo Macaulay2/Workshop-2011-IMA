@@ -580,7 +580,6 @@ SIMPLETEST ///
 
 BENCHMARK ///
   debug needsPackage "PD"
-  --- UNKNOWN - Takes a very long time.
   R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
   R = ZZ/32003[a,b,c,d,e,f,h]
   I = ideal(
@@ -591,6 +590,7 @@ BENCHMARK ///
 	 a*b*c*d*e+b*c*d*e*f+c*d*e*f*a+d*e*f*a*b+e*f*a*b*c+f*a*b*c*d,
 	 a*b*c*d*e*f-h^6)
   time C = minprimes I -- STILL SLOW
+  assert false
 ///
 
 BENCHMARK ///
@@ -606,16 +606,17 @@ BENCHMARK ///
   time C = minprimes I
   assert(#C == 1)
   assert(C#0 == I)
-  -- TODO: check that I is really prime here
   
   -- here is an independent check that I is prime:
-  I : (j*l) == I
+  assert(I : (j*l) == I)
   I1 = eliminate(I, h)
-  codim I1
-  I1_0
-  I : e == I
+  assert (codim I1 == 3)
+  assert(I : e == I)
   I1 = eliminate(I, {h,b,j})
-  codim I1
+  assert(codim I1 == 1)
+  facs = factors I1_0
+  assert (#facs == 1)
+  assert (facs#0#0 == 1)
   -- this I1 is irreducible over the field, of codim 1, and is birational to I, therefore I is prime    
 ///
 
@@ -693,7 +694,7 @@ SIMPLETEST ///
 ///
 
 
-BENCHMARK ///
+TEST ///
   debug needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
@@ -760,7 +761,7 @@ SIMPLETEST ///
 ///
 
 
-BENCHMARK ///
+TEST ///
   debug needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
@@ -776,6 +777,7 @@ BENCHMARK ///
   time C = minprimes I
   --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO slow here
   -- TODO: need to be able to check this answer
+  assert false
 ///
 
 TEST ///
@@ -852,7 +854,7 @@ TEST ///
   --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO long here.  TODO: need to test this one
 ///
 
-BENCHMARK ///
+TEST ///
   debug needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/3
@@ -885,7 +887,7 @@ BENCHMARK ///
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
-  time C = minprimes I -- takes a while
+  time C = minprimes I -- takes a while  NEEDS WORK TOO SLOW
   time decompose I -- .74 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) 
 ///

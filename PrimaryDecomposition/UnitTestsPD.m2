@@ -619,6 +619,78 @@ BENCHMARK ///
   -- this I1 is irreducible over the field, of codim 1, and is birational to I, therefore I is prime    
 ///
 
+BENCHMARK ///
+  --from ExampleIdeals/DGP.m2
+  debug needsPackage "PD"
+  kk = ZZ/32003
+  --butcher (DGP) (up to a change of coordinates, this appears to be Bu_S/Y (Wang2)) x
+  R = kk[a,b,c,d,e,f,g,h];
+  I = ideal"
+    a + c + d - e - h,
+    2df + 2cg + 2eh - 2h2 - h - 1,
+    3df2 + 3cg2 - 3eh2 + 3h3 + 3h2 - e + 4h,
+    6bdg - 6eh2 + 6h3 - 3eh + 6h2 - e + 4h,
+    4df3 + 4cg3 + 4eh3 - 4h4 - 6h3 + 4eh - 10h2 - h - 1,
+    8bdfg + 8eh3 - 8h4 + 4eh2 - 12h3 + 4eh - 14h2 - 3h - 1,
+    12bdg2 + 12eh3 - 12h4 + 12eh2 - 18h3 + 8eh - 14h2 - h - 1,
+    -24eh3 + 24h4 - 24eh2 + 36h3 - 8eh + 26h2 + 7h + 1"
+  time C = minprimes I -- 4 seconds -- why so slow?
+  time C1 = decompose I -- .12 sec
+  checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is much faster on this one
+///
+
+BENCHMARK  ///
+  debug needsPackage "PD"
+  --from ExampleIdeals/DGP.m2
+  kk = ZZ/101
+  --gonnet (DGP) (I think this is: Go_S/Y, with change of coordinates) x
+  R = kk[a,b,c,d,e,f,g,h,j,k,l,m,n,o,p,q,s];
+  I = ideal "
+    ag,
+    gj + am + np + q,
+    bl,
+    nq,
+    bg + bk + al + lo + lp + b + c,
+    ag + ak + jl + bm + bn + go + ko + gp + kp + lq + a + d + f + h + o + p,
+    gj + jk + am + an + mo + no + mp + np + gq + kq + e + j + q + s - 1,
+    jm + jn + mq + nq,
+    jn + mq + 2nq,
+    gj + am + 2an + no + np + 2gq + kq + q + s,
+    2ag + ak + bn + go + gp + lq + a + d,
+    bg + al,
+    an + gq,
+    2jm + jn + mq,
+    gj + jk + am + mo + 2mp + np + e + 2j + q,
+    jl + bm + gp + kp + a + f + o + 2p,
+    lp + b,
+    jn + mq,
+    gp + a
+    "
+  time C = minprimes I -- 1.14 sec
+  time C1 = decompose I -- .14 sec
+  checkMinimalPrimes(I, C, "Answer" => decompose)
+  
+  time simplifyIdeal I
+  time C2 = minprimes first oo -- .16 sec
+///
+
+
+SIMPLETEST ///
+  debug needsPackage "PD"
+  --from ExampleIdeals/DGP.m2
+  kk = ZZ/101
+  --schwarz (DGP) constructing idempotents in group theory x
+  R = kk[a,b,c,d,e,h];
+  I = ideal"
+    -ab - b2 - 2de - 2ch,
+    -ac - 2bc - e2 - 2dh,
+    -c2 - ad - 2bd - 2eh,
+    -2cd - ae - 2be - h2,
+    -d2 - 2ce - ah - 2bh
+    "
+  time C = minprimes I
+  checkMinimalPrimes(I, C, "Answer" => decompose) 
+///
 
 -- above are from slower-tests.m2 --
 end

@@ -38,7 +38,7 @@ SIMPLETEST = (str) -> TEST str
 -- These are slower tests, that we will eventually run explicitly
 BENCHMARK = (str) -> TEST str
 
--- These are the tests that are too slow to run often
+-- These are the tests that are too slow to run on a regular basis
 TOODAMNSLOW = (str) -> null
 
 -- radicalContainment
@@ -128,8 +128,8 @@ TEST ///
   I = ideal( a*x + a^2 )
   (S,SF) = makeFiberRings {a,x}
   IS = sub(I,S)
-  assert( ( ideal 1_SF === ideal first minimalizeOverFrac(IS, SF) ) )
-  assert( ( IS  ===  ideal last minimalizeOverFrac(IS, SF) ) )
+  assert((ideal 1_SF === ideal first minimalizeOverFrac(IS, SF) ) )
+  assert((IS  ===  ideal last minimalizeOverFrac(IS, SF) ) )
 ///
 
 TEST ///
@@ -186,7 +186,6 @@ TEST ///
   I = ideal{0_R}
   (part1,I2) = equidimSplitOneStep I;
   (I1, basevars, ISF) = part1;
-  
   J = ideal{1_R}
   assert try equidimSplitOneStep J else true;
 ///
@@ -201,13 +200,13 @@ TEST ///
 ///
 
 TEST ///
-  -- make a better (more complicated) test (without simply using output)
+  -- make a better (more complicated?) test (without simply using old output)
   debug needsPackage "PD"
   R = (frac (QQ[c]))[a, b, d, e, h]
   use coefficientRing R
   I = ideal{h^20+122*c^5*h^15-122*c^10*h^10-c^15*h^5, e*h^10-c^5*e*h^5+((-1)/(55*c^4))*h^15+((2*c)/5)*h^10+((-21*c^6)/55)*h^5, e^4*h^5-c^5*e^4+2*c*e^3*h^5-2*c^6*e^3+c^2*e^2*h^5-c^7*e^2+(3/(55*c^6))*h^15+(34/(5*c))*h^10+((-377*c^4)/55)*h^5, e^7+3*c*e^6+c^2*e^5+((-4)/(c))*e^3*h^5+4*c^4*e^3-4*e^2*h^5+3*c^5*e^2-3*c*e*h^5+((-12)/(55*c^8))*h^15+((-131)/(5*c^3))*h^10+((1398*c^2)/55)*h^5, d*h^15+122*c^5*d*h^10-122*c^10*d*h^5-c^15*d-c^8*e^3*h^5+c^13*e^3-2*c^9*e^2*h^5+2*c^14*e^2-c^10*e*h^5+c^15*e+((8*c)/55)*h^15+((89*c^6)/5)*h^10+((-987*c^11)/55)*h^5, d*e*h^5-c^5*d*e+((-1)/(55*c^4))*d*h^10+((2*c)/5)*d*h^5+((-21*c^6)/55)*d+((-21)/(55*c))*e^3*h^5+((21*c^4)/55)*e^3+((-42)/55)*e^2*h^5+((42*c^5)/55)*e^2+((-21*c)/55)*e*h^5+((21*c^6)/55)*e+(168/(3025*c^8))*h^15+(1869/(275*c^3))*h^10+((-20727*c^2)/3025)*h^5, d*e^2+3*c*d*e+c^2*d+((-1)/(c^2))*e^5+((-3)/(c))*e^4+(3/(c^5))*e^3*h^5-4*e^3+(3/(c^4))*e^2*h^5-3*c*e^2+(1/(c^3))*e*h^5-c^2*e+((-6)/(55*c^12))*h^15+((-68)/(5*c^7))*h^10+(754/(55*c^2))*h^5, d^2+d*e+(3/(275*c^9))*d*h^10+(34/(25*c^4))*d*h^5+((173*c)/275)*d+(7/(5*c^4))*e^6+(18/(5*c^3))*e^5+((-1)/(c^2))*e^4+(1603/(275*c^6))*e^3*h^5+((-2153)/(275*c))*e^3+(1446/(275*c^5))*e^2*h^5+((-1446)/275)*e^2+((-487)/(275*c^4))*e*h^5+((-173*c)/275)*e+(981/(15125*c^13))*h^15+(10123/(1375*c^8))*h^10+((-166784)/(15125*c^3))*h^5, b*h^5-c^5*b+d*h^5-c^5*d+((-1)/(2*c^2))*e^3*h^5+((c^3)/2)*e^3+((-3)/(2*c))*e^2*h^5+((3*c^4)/2)*e^2-e*h^5+c^5*e+((-1)/(22*c^9))*h^15+((-11)/(2*c^4))*h^10+((61*c)/11)*h^5, b*e-c*b+(3/(275*c^9))*d*h^10+(34/(25*c^4))*d*h^5+((-377*c)/275)*d+((-3)/(5*c^4))*e^6+((-7)/(5*c^3))*e^5+((-872)/(275*c^6))*e^3*h^5+(597/(275*c))*e^3+((-479)/(275*c^5))*e^2*h^5+(754/275)*e^2+((-212)/(275*c^4))*e*h^5+((377*c)/275)*e+((-1219)/(15125*c^13))*h^15+((-12977)/(1375*c^8))*h^10+(165141/(15125*c^3))*h^5, b*d-c*b-c*d+((-4)/(5*c^4))*e^6+((-11)/(5*c^3))*e^5+((-29)/(10*c^6))*e^3*h^5+(39/(10*c))*e^3+((-5)/(2*c^5))*e^2*h^5+(7/2)*e^2+((-1)/(5*c^4))*e*h^5+c*e+((-1)/(10*c^13))*h^15+((-119)/(10*c^8))*h^10+(66/(5*c^3))*h^5, b^2+3*c*b+((-6)/(275*c^9))*d*h^10+((-68)/(25*c^4))*d*h^5+((754*c)/275)*d+(2/(c^4))*e^6+(5/(c^3))*e^5+(5083/(550*c^6))*e^3*h^5+((-4533)/(550*c))*e^3+(3291/(550*c^5))*e^2*h^5+((-4391)/550)*e^2+(479/(275*c^4))*e*h^5+((-754*c)/275)*e+(7901/(30250*c^13))*h^15+(84633/(2750*c^8))*h^10+((-529932)/(15125*c^3))*h^5, a+b+d+e+c}
   Isplits = splitLexGB I
-  assert ( Isplits == {ideal(h-c,e-c,d-c,a+b+3*c,b^2+3*c*b+c^2), ideal(h-c,d-c,b-c,a+e+3*c,e^2+3*c*e+c^2), ideal(h-c,a+b+d+e+c,d*e+c*b+c*d+c*e+c^2,d^2-4*b*e-2*e^2+2*c*b+4*c*d-c*e,b*d+2*b*e+e^2-c*b-2*c*d-c^2,b^2+c*b+c*d+c*e+c^2,e^3+3*c*e^2-3*c^2*b-c^2*d,b*e^2-c*e^2+2*c^2*b+c^2*d+c^2*e+c^3), ideal(h,e,d,b,a+c), ideal(h,e+c,d,b,a), ideal(h,e,d,b,a+c), ideal(h,e+c,d,b,a), ideal(e-h,b+d+2*h+c,a-h,h^2+3*c*h+c^2,d^2+2*d*h+c*d+8*c*h+3*c^2), ideal(b+d+2*e+c,a-e,e*h+(1/2)*h^2+((-3*c)/2)*e+((c)/2)*h+(-c^2)/2,e^2+3*c*e+c^2,d^2+2*d*e+c*d+8*c*e+3*c^2,h^3+((-5*c)/2)*h^2+((-11*c^2)/2)*e+((-c^2)/2)*h+(-5*c^3)/2), ideal(e-c,d-c,a+b+3*c,b^2+3*c*b+c^2,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(d-c,b-c,a+e+3*c,e^2+3*c*e+c^2,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(a+b+d+e+c,d*e+c*b+c*d+c*e+c^2,d^2-4*b*e-2*e^2+2*c*b+4*c*d-c*e,b*d+2*b*e+e^2-c*b-2*c*d-c^2,b^2+c*b+c*d+c*e+c^2,e^3+3*c*e^2-3*c^2*b-c^2*d,b*e^2-c*e^2+2*c^2*b+c^2*d+c^2*e+c^3,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(b+d+2*e+c,a-e,e*h-h^2+3*c*e+c*h+c^2,e^2+3*c*e+c^2,d^2+2*d*e+c*d+8*c*e+3*c^2,h^3-2*c*h^2+11*c^2*e+c^2*h+4*c^3)})
+  assert (Isplits == {ideal(h-c,e-c,d-c,a+b+3*c,b^2+3*c*b+c^2), ideal(h-c,d-c,b-c,a+e+3*c,e^2+3*c*e+c^2), ideal(h-c,a+b+d+e+c,d*e+c*b+c*d+c*e+c^2,d^2-4*b*e-2*e^2+2*c*b+4*c*d-c*e,b*d+2*b*e+e^2-c*b-2*c*d-c^2,b^2+c*b+c*d+c*e+c^2,e^3+3*c*e^2-3*c^2*b-c^2*d,b*e^2-c*e^2+2*c^2*b+c^2*d+c^2*e+c^3), ideal(h,e,d,b,a+c), ideal(h,e+c,d,b,a), ideal(h,e,d,b,a+c), ideal(h,e+c,d,b,a), ideal(e-h,b+d+2*h+c,a-h,h^2+3*c*h+c^2,d^2+2*d*h+c*d+8*c*h+3*c^2), ideal(b+d+2*e+c,a-e,e*h+(1/2)*h^2+((-3*c)/2)*e+((c)/2)*h+(-c^2)/2,e^2+3*c*e+c^2,d^2+2*d*e+c*d+8*c*e+3*c^2,h^3+((-5*c)/2)*h^2+((-11*c^2)/2)*e+((-c^2)/2)*h+(-5*c^3)/2), ideal(e-c,d-c,a+b+3*c,b^2+3*c*b+c^2,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(d-c,b-c,a+e+3*c,e^2+3*c*e+c^2,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(a+b+d+e+c,d*e+c*b+c*d+c*e+c^2,d^2-4*b*e-2*e^2+2*c*b+4*c*d-c*e,b*d+2*b*e+e^2-c*b-2*c*d-c^2,b^2+c*b+c*d+c*e+c^2,e^3+3*c*e^2-3*c^2*b-c^2*d,b*e^2-c*e^2+2*c^2*b+c^2*d+c^2*e+c^3,h^4+c*h^3+c^2*h^2+c^3*h+c^4), ideal(b+d+2*e+c,a-e,e*h-h^2+3*c*e+c*h+c^2,e^2+3*c*e+c^2,d^2+2*d*e+c*d+8*c*e+3*c^2,h^3-2*c*h^2+11*c^2*e+c^2*h+4*c^3)})
 ///
 
 TEST ///
@@ -215,17 +214,37 @@ TEST ///
   R = QQ[x,y]
   I = ideal{0_R}
   assert (splitLexGB I == {I})
-  
   J = ideal{1_R}
   assert (splitLexGB J == {})
 ///
 
 TEST ///
-  -- hasLinearLeadTerm
+  debug needsPackage "PD"
+  R = QQ[x,y,z,MonomialOrder=>Lex]
+  f = x^2+y^2+z^2
+  g = x + y^2
+  assert not hasLinearLeadTerm f
+  assert hasLinearLeadTerm g
+  assert not hasLinearLeadTerm 0_R
+  assert not hasLinearLeadTerm 1_R
 ///
 
 TEST ///
-  -- splitTower
+  -- again, find a better test that is not simply comparing against old return values?
+  debug needsPackage "PD"
+  R = QQ[a,b,c,d,e,h]
+  (S,SF) = makeFiberRings {c}
+  use SF
+  use coefficientRing SF
+  J =ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e^4+c*e^3+c^2*e^2+c^3*e+c^4,d+((-1)/(c^2))*e^3,b+((-1)/(c))*e^2,a+(1/(c^2))*e^3+(1/(c))*e^2+e+c)
+  assert (splitTower J == {ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+((-1)/(c))*h^2,d-h,b+(1/(c^2))*h^3+(1/(c))*h^2+h+c,a+((-1)/(c^2))*h^3), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e-h,d+((-1)/(c^2))*h^3,b+((-1)/(c))*h^2,a+(1/(c^2))*h^3+(1/(c))*h^2+h+c), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+((-1)/(c^2))*h^3,d+(1/(c^2))*h^3+(1/(c))*h^2+h+c,b-h,a+((-1)/(c))*h^2), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+(1/(c^2))*h^3+(1/(c))*h^2+h+c,d+((-1)/(c))*h^2,b+((-1)/(c^2))*h^3,a-h)})
+///
+
+TEST ///
+  debug needsPackage "PD"
+  R = QQ[a,b,c,d,e,h]
+  assert (splitTower ideal 1_R == {ideal 1_R})
+  assert (splitTower ideal 0_R == {ideal 0_R})  
 ///
 
 TEST ///
@@ -999,5 +1018,4 @@ end
 restart
 loadPackage "UnitTestsPD"
 check "UnitTestsPD"
-
 

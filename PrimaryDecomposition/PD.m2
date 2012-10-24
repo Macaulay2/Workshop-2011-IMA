@@ -199,7 +199,7 @@ extendIdeal = method()
 extendIdeal Ideal := (I) -> (
      -- I is an ideal
      -- returns an ideal whose elements are a reduced GB of I k(indepset)[fibervars]
-     indep := support first independentSets I;
+     indep := support first independentSets(I, Limit=>1);
      (S,SF) := makeFiberRings indep;
      IS := sub(I, S);
      time gens gb IS;
@@ -239,7 +239,7 @@ minprimesWorker Ideal := opts -> (I) -> (
         (I1, basevars, ISF) := I1set;
         --D := splitPurePowers ideal ISF;
         D := splitLexGB ideal ISF;
-        comps = join(comps, D/splitTower//flatten);
+        comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten);
         J = I2;
         );
     comps
@@ -298,7 +298,7 @@ splitLexGB Ideal := (IF) -> (
     {IF}
     )
 
--- needs documentation
+-- This function determines whether or not the lead term of the input polynomial is linear
 hasLinearLeadTerm = method()
 hasLinearLeadTerm RingElement := (f) -> (
     t := leadTerm f;
@@ -306,8 +306,8 @@ hasLinearLeadTerm RingElement := (f) -> (
     #s === 1 and s#0 == t
     )
 
-splitTower = method()
-splitTower Ideal := (IF) -> (
+splitTower = method(Options => options minprimes)
+splitTower Ideal := opts -> (IF) -> (
     -- IF is an ideal in k(basevars)[fibervars] satisfying:
     --   1. IF is zero-dimensional
     --   2. IF_* is a lex GB for IF (in ascending order of leadterms)
@@ -334,17 +334,17 @@ splitTower Ideal := (IF) -> (
     otherVars = otherVars/numerator;
     G := (eliminate(L1, otherVars))_0;
     completelySplit := degree(lastVar, G) === vecdim;
-    time facs := factors G;
-    print netList facs;
+    facs := factors G;
+    if opts.Verbosity > 0 then print netList facs;
     F = numerator F;
-    time facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
+    facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
     else flatten for fac in facs1 list (
-        time G := fac#1 % L;
-        time C := ideal gens gb(ideal sub(G, RF) + J);
+        G := fac#1 % L;
+        C := ideal gens gb(ideal sub(G, RF) + J);
         if C == 1 then continue;
         --time C := ideal first minimalizeOverFrac((ideal G) + L, RF);
-        P := time ideal gens gb (C + ideal linears);
+        P := ideal gens gb (C + ideal linears);
         if completelySplit then P else flatten splitTower P
         )
     )

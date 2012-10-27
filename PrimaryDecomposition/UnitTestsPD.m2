@@ -96,7 +96,8 @@ TEST ///
   R = ZZ/32003[a,b,c,d,e,f,g,h]
   (S,SF) = makeFiberRings {c}
   -- TODO NOTE: S whould contain ringmaps S-->R, R-->S, S-->SF,
-  --  note: SF-->S we have numerator, denominator
+  --          : Frank has done this now.  They are all stashed in S.
+  --  note: for SF-->S we have numerator, denominator
   assert ( first sort gens S == c ) 
   assert ( not member(c, gens SF) ) 
   use SF
@@ -1005,7 +1006,7 @@ TOODAMNSLOW ///
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
-  time C = minprimes I -- takes a while  NEEDS WORK TOO SLOW
+  time C = minprimes I -- takes a while  NEEDS WORK TOO DAMN SLOW
   time decompose I -- .74 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) 
 ///
@@ -1014,7 +1015,6 @@ TOODAMNSLOW ///
 end
 
 -- 
-
 restart
 loadPackage "UnitTestsPD"
 check "UnitTestsPD"

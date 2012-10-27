@@ -56,7 +56,6 @@ radicalContainment(Ideal, Ideal) := (I,J) -> (
     null
     )
 
-
 --------------------------------
 -- Factorization ---------------
 --------------------------------
@@ -146,53 +145,61 @@ makeFiberRings(List) := (baseVars) -> (
    allVars := set gens R;
    fiberVars := rsort toList(allVars - set baseVars);
    baseVars = rsort baseVars;
-   RU := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
+   S := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
        --MonomialOrder=>{#fiberVars,#baseVars}]);
    KK := frac((coefficientRing R)(monoid [baseVars]));
-   KR := KK (monoid[fiberVars, MonomialOrder=>Lex]);
-   setAmbientField(KR, RU);
-   (RU, KR)
+   SF := KK (monoid[fiberVars, MonomialOrder=>Lex]);
+   S#cache = new CacheTable;
+   S.cache#"StoSF" = map(SF,S,sub(vars S,SF));
+   S.cache#"StoR" = map(R,S,sub(vars S,R));
+   S.cache#"RtoS" = map(S,R,sub(vars R,S));
+   setAmbientField(SF, S);
+   (S, SF)
    )
 
 minimalizeOverFrac = method()
 minimalizeOverFrac(Ideal, Ring) := (I, SF) -> (
-     -- I is an ideal in a ring with an elimination order (maybe Lex)
-     -- SF is of the form k(basevars)[fibervars].
-     -- If G is a GB of I, then G SF is a GB if I S.
-     -- this function returns a reduced minimal Groebner basis of I SF, as a list
-     -- of polynomials (defined over SF).
-     -- caveat: ring I must have either a Lex order or a product order, compatible with
-     --  fibervars >> basevars.
+     -- Input:  I is an ideal in a ring with an elimination order (maybe Lex)
+     --         SF is of the form k(basevars)[fibervars].
+     --         If G is a GB of I, then G SF is a GB if I S.
+     -- Output: A reduced minimal Groebner basis of I SF, as a list
+     --         of polynomials (defined over SF).
+     -- Caveat: ring I must have either a lex order or a product order, compatible with
+     --  fibervars >> basevars, and must have been created with makeFiberRings
+     S := ring I;
      G := flatten entries gens gb I;
-     phi := map(ring I, SF);
+     phi := S.cache#"StoSF";
+     psi := map(S,SF);
      sz := G/size; -- number of monomials per poly, used to choose which elem to take
-     GS := flatten entries sub(gens gb I, SF);
+     GS := flatten entries phi gens gb I;
      minG := flatten entries mingens ideal(GS/leadMonomial);
      GF := for mon in minG list (
         z := positions(GS, f -> leadMonomial f == mon);
         i := minPosition (sz_z);
         GS_(z#i)
      );
-     coeffs := GF/leadCoefficient/phi;
+     -- QUESTION : Do we really wany 'numerator' here instead of psi?
+     coeffs := GF/leadCoefficient/psi;
      (flatten entries gens forceGB matrix(SF,{GF}), coeffs)
      )
 
--- question: What if we want to contract away only some of the basevars, not all of them?  Will this ever
+-- Question: What if we want to contract away only some of the basevars, not all of them?  Will this ever
 --           be the case?
 -- TODO NOTE: the saturate here should be done in the ring R (grevlex)
-contractToPolynomialRing = method()
-contractToPolynomialRing(Ideal) := (I) -> (
+contractToPolynomialRing = method(Options => {Verbosity => 0})
+contractToPolynomialRing(Ideal) := opts -> (I) -> (
      -- assumes: I is in a ring k(basevars)[fibervars] created with makeFiberRings
      -- returns the intersection of I with k[fibervars,basevars] (also created with makeFiberRing).
      --   note: numerator (and denominator) of element in ring I gives an element in k[fibervars,basevars]
      if not instance(coefficientRing ring I, FractionField) then return I; -- in this case, we are already contracted!
      newI := I_*/numerator//ideal//trim;
+     S := ring newI;
      denoms := I_*/denominator;
      denomList := unique flatten for d in denoms list (factors d)/last;
-     << "denoms = " << denoms << " and denomList = " << denomList << endl;
-     Isat := newI;
-     for f in denomList do Isat = saturate(Isat, f);
-     Isat
+     if opts.Verbosity > 0 then << "denoms = " << denoms << " and denomList = " << denomList << endl;
+     Isat := S.cache#"StoR" newI;
+     for f in denomList do Isat = saturate(Isat, S.cache#"StoR" f);
+     S.cache#"RtoS" Isat
      )
 
 extendIdeal = method()
@@ -201,7 +208,7 @@ extendIdeal Ideal := (I) -> (
      -- returns an ideal whose elements are a reduced GB of I k(indepset)[fibervars]
      indep := support first independentSets(I, Limit=>1);
      (S,SF) := makeFiberRings indep;
-     IS := sub(I, S);
+     IS := S.cache#"RtoS" I;
      time gens gb IS;
      (JSF, coeffs) := minimalizeOverFrac(IS, SF);
      ideal JSF
@@ -222,7 +229,7 @@ minprimes Ideal := opts -> (I) -> (
     -- returns a list of ideals, the minimal primes of I
     R := ring I;
     C := minprimesWorker(I, opts);
-    C1 := C/contractToPolynomialRing/(i -> sub(i,R));
+    C1 := C/(c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity))/(i -> (ring i).cache#"StoR" i);
     selectMinimalIdeals C1
     )
 
@@ -255,26 +262,33 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
     --       3. I2 is I:I1.  Note:
     --          radical(intersection(I1,I2)) = intersection(radical(I1),radical(I2))
     if I == 1 then error "Internal error: Input should not be unit ideal.";
+    R := ring I;
     indeps := independentSets(I, Limit=>1);
     basevars := support first indeps;
     if opts.Verbosity > 0 then 
         << "  Choosing: " << basevars << endl;
+    -- COMMENT FROM FRANK: I feel like we should do the below in a similar manner to the
+    --                     general case, and allow makeFiberRings to handle empty basevars.
     if #basevars == 0 then (
-        Slex := newRing(ring I, MonomialOrder=>Lex);
+        Slex := newRing(R, MonomialOrder=>Lex);
+        Slex#cache = new CacheTable;
+        Slex.cache#"RtoS" = map(Slex,R,sub(vars R,Slex));
+        Slex.cache#"StoR" = map(R,Slex,sub(vars Slex,R));
+        Slex.cache#"StoSF" = identity;
         numerator Slex := identity;
-        ISlex := sub(I,Slex);
-        return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_(ring I));
+        ISlex := Slex.cache#"RtoS" I;
+        return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_R);
         );
     (S, SF) := makeFiberRings basevars;
-    IS := sub(I, S);
+    IS := S.cache#"RtoS" I;
     gens gb IS;
     (ISF, coeffs) := minimalizeOverFrac(IS, SF);
-    if coeffs == {} then ((I,basevars,ISF),ideal {1_(ring I)}) else (
+    if coeffs == {} then ((I,basevars,ISF),ideal {1_R}) else (
        facs := (factors product coeffs)/last;
        G := product facs;
        if opts.Verbosity > 0 then
            << "  the factors of the flattener: " << netList(facs) << endl;
-       G = sub(G,ring I);
+       G = S.cache#"StoR" G;
        I1 := saturate(I, G);
        I2 := I : I1;
        ((I1, basevars, ISF), I2)

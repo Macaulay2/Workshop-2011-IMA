@@ -13,8 +13,11 @@ nonPappas = (kk) -> (
 end
 
 restart
-load "example-nonpappas.m2"
+load "PD/example-nonpappas.m2"
+needsPackage "PD"
 I = nonPappas QQ
 I = nonPappas (ZZ/32003)
-o3_0
-o3_1
+-- attack by factorization preprocessing
+time gens gb I
+select(I_*, f -> size f <= 2)
+time minprimes I

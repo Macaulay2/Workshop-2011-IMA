@@ -67,17 +67,25 @@ end
 
 restart
 load "PD/example-jumpingcohom.m2"
+needsPackage "PD"
 kk = QQ
 kk = ZZ/32003
 I = jumpingLocus({-3,0},{3,3},kk) -- finishes in singular, minprimesMES .28 sec, decompose
+time minprimes I
 I = jumpingLocus({-3,3},{3,3},kk) -- finishes in singular, finishes using birational maps (see below)
+time minprimes I
 I = jumpingLocus({-6,0},{3,3},kk) -- finishes in singular, minprimesMES 1.5 sec, decompose takes long
+time minprimes I
      
 I = jumpingLocus({-5,1},{3,3},kk)
+time minprimes I
 
 I = jumpingLocus({-6,3},{3,3},kk) -- key one of interest BIG ENOUGH
+time minprimes I
 I = jumpingLocus({-4,5},{3,3},kk)  -- doesn't finish in singular BIG ENOUGH
+time minprimes I
 I = jumpingLocus({-4,2},{3,3},kk)  -- doesn't finish in singular NOT BIG ENOUGH
+time minprimes I
 
 I = jumpingLocus({-5,1},{2,2},kk) -- finishes in minprimesMES 2.3 sec
 

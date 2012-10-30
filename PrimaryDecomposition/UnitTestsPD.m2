@@ -787,13 +787,13 @@ BENCHMARK  ///
     jn + mq,
     gp + a
     "
-  -- our routine should be performing simplifyIdeal from the start, if necessary
   time C = minprimes I -- 1.14 sec
   time C1 = decompose I -- .14 sec
   checkMinimalPrimes(I, C, "Answer" => decompose)
   
-  time simplifyIdeal I
-  time C2 = minprimes first oo -- .16 sec
+  -- it does simplifyIdeal before the work of minprimes now.
+  --time simplifyIdeal I
+  --time C2 = minprimes first oo -- .16 sec
 ///
 
 

@@ -228,9 +228,13 @@ minprimes Ideal := opts -> (I) -> (
     -- and a separate function)
     -- returns a list of ideals, the minimal primes of I
     R := ring I;
-    C := minprimesWorker(I, opts);
+    J := I;
+    phi := identity;
+    doSimplifyIdeal := any(apply(gens R, x -> any(I_*, f -> first degree diff(x,f) == 0)), identity);
+    if doSimplifyIdeal then (J,phi) = simplifyIdeal I;
+    C := minprimesWorker(J, opts);
     C1 := C/(c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity))/(i -> (ring i).cache#"StoR" i);
-    selectMinimalIdeals C1
+    (selectMinimalIdeals C1) / phi
     )
 
 minprimesWorker = method (Options => options minprimes)

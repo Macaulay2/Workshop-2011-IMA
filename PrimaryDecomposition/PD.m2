@@ -214,12 +214,29 @@ extendIdeal Ideal := (I) -> (
      ideal JSF
      )
 
+squarefreeGenerators = method()
+squarefreeGenerators (ZZ,Ideal) := (n,I) -> (
+   madeChanges := false;
+   J := ideal for g in I_* list (
+              if size g > n then g
+              else (
+                gfacs := factors g;
+                if #gfacs > 1 or gfacs#0#0 > 1 then (
+                  madeChanges = true;
+                  gfacs / last // product
+                )
+                else g
+              )
+              );
+   if madeChanges then J else I
+)
 -----------------------
 -- Minimal primes -----
 -- 25 Sep 2012: Frank+Franzi+Mike working on this
 -----------------------
 minprimes = method(Options => {
         Verbosity => 0,
+        "SquarefreeFactorSize" => 1,
         Ideal => null,  -- used in inductive setting
         "RadicalSoFar" => null -- used in inductive setting
         })
@@ -228,13 +245,17 @@ minprimes Ideal := opts -> (I) -> (
     -- and a separate function)
     -- returns a list of ideals, the minimal primes of I
     R := ring I;
-    J := I;
+    --- pre-processing of ideals
+    J := squarefreeGenerators(opts#"SquarefreeFactorSize",I);
     phi := identity;
-    doSimplifyIdeal := any(apply(gens R, x -> any(I_*, f -> first degree diff(x,f) == 0)), identity);
+    doSimplifyIdeal := any(gens R, x -> any(I_*, f -> first degree diff(x,f) == 0));
     if doSimplifyIdeal then (J,phi) = simplifyIdeal I;
+    --- compute minimal primes of the processed ideals
     C := minprimesWorker(J, opts);
-    C1 := C/(c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity))/(i -> (ring i).cache#"StoR" i);
-    (selectMinimalIdeals C1) / phi
+    C1 := C / (c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity));
+    C2 := C1 / (i -> (ring i).cache#"StoR" i);
+    --- post-processing of ideals
+    (selectMinimalIdeals C2) / phi
     )
 
 minprimesWorker = method (Options => options minprimes)
@@ -243,6 +264,7 @@ minprimesWorker Ideal := opts -> (I) -> (
     radicalSoFar := ideal 1_R;
     comps := {};
     J := I;
+    loopCount := 1;
     while J != 1 do (
         if opts.Verbosity > 0 then 
           << "-- handling " << toString J << endl;
@@ -252,6 +274,7 @@ minprimesWorker Ideal := opts -> (I) -> (
         D := splitLexGB ideal ISF;
         comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten);
         J = I2;
+        loopCount = loopCount + 1;
         );
     comps
     )
@@ -294,7 +317,7 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
            << "  the factors of the flattener: " << netList(facs) << endl;
        G = S.cache#"StoR" G;
        I1 := saturate(I, G);
-       I2 := I : I1;
+       I2 := trim (I : I1);
        ((I1, basevars, ISF), I2)
     ))
 

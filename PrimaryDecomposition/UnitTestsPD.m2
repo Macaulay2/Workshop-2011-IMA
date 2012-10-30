@@ -377,9 +377,9 @@ SIMPLETEST ///
     t^8-z)
   C = minprimes I
   -- decompose fails miserably here.
-  checkMinimalPrimes(I, C, "CheckPrimality" => true)
-  -- singular says I is prime, so we check that here
+  -- checkMinimalPrimes(I, C, "CheckPrimality" => true) -- too slow!
   assert (I == first C)
+  assert (#C === 1)
   -- it's a bit strange though, since minprimes returns a seemingly
   -- different ideal, but if you check I == first C, you get true
   -- even though they look very different.
@@ -1016,7 +1016,6 @@ end
 
 -- 
 restart
-installPackage "PD"
-loadPackage "UnitTestsPD"
+needsPackage "UnitTestsPD"
 check "UnitTestsPD"
      

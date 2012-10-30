@@ -332,12 +332,12 @@ splitTower Ideal := opts -> (IF) -> (
     if not E#?false then return {IF}; -- nothing to do
     nonlinears := E#false;
     if #nonlinears <= 1 then return {IF};
-    RF := ring IF;
+    SF := ring IF;
     linears := if E#?true then E#true else {}; -- keep for later
     J := ideal nonlinears;
     vecdim := nonlinears/leadTerm/(f -> first degree f)//product;
     L := ideal (J_* / numerator);
-    R := ring L;
+    S := ring L;
     varsList := nonlinears / leadTerm / support // flatten;
     lastVar := varsList#0; -- this is the smallest variable in the monomial order
     otherVars := drop(varsList, 1); 
@@ -355,9 +355,9 @@ splitTower Ideal := opts -> (IF) -> (
     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
     else flatten for fac in facs1 list (
         G := fac#1 % L;
-        C := ideal gens gb(ideal sub(G, RF) + J);
+        C := ideal gens gb(ideal S.cache#"StoSF" G + J);
         if C == 1 then continue;
-        --time C := ideal first minimalizeOverFrac((ideal G) + L, RF);
+        --time C := ideal first minimalizeOverFrac((ideal G) + L, SF);
         P := ideal gens gb (C + ideal linears);
         if completelySplit then P else flatten splitTower P
         )
@@ -377,22 +377,22 @@ simplifyIdeal Ideal := (originalI) -> (
      --                   phi : R --> R
      -- such that the only generators of J which are linear in a variable are themselves 
      -- variables, and phi J == I
-     I := originalI;
-     R := ring I;
-     H := new MutableList from gens R;
-     for x in gens R do (
-    k := position(I_*, f -> first degree diff(x,f) == 0);
-    if k === null then continue;
-    c := leadCoefficient diff(x,I_k);
-    g := I_k - c*x;  
-    -- at this point f = I_k = c*x + g, and g does not involve x.
-    --  (and c is a constant)
-    p := - 1/c * g;
-    I = ideal(x) + ideal compress sub(gens I, x=>p);
-    H#(index x) = x - p;
-    );
-     (ideal compress gens I, map(R,R,toList H))
-     )
+   I := originalI;
+   R := ring I;
+   H := new MutableList from gens R;
+   for x in gens R do (
+     k := position(I_*, f -> first degree diff(x,f) == 0);
+     if k === null then continue;
+     c := leadCoefficient diff(x,I_k);
+     g := I_k - c*x;  
+     -- at this point f = I_k = c*x + g, and g does not involve x.
+     --  (and c is a constant)
+     p := - 1/c * g;
+     I = ideal(x) + ideal compress sub(gens I, x=>p);
+     H#(index x) = x - p;
+   );
+   (ideal compress gens I, map(R,R,toList H))
+)
 
 
 beginDocumentation()

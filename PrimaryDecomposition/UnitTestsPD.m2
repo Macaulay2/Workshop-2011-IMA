@@ -1016,6 +1016,7 @@ end
 
 -- 
 restart
+installPackage "PD"
 loadPackage "UnitTestsPD"
 check "UnitTestsPD"
-
+     

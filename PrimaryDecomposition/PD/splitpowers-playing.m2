@@ -5,7 +5,7 @@ restart
 debug loadPackage("PD", Reload=>true)
 load "PD/example-stewart-gough.m2"
 I
-C = time minprimesMES I;
+C = time minprimes I;
 #C#0
 #C#1  -- 10 components, which we need to split further
 J = first C#1#1

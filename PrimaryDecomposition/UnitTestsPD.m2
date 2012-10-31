@@ -1012,6 +1012,40 @@ TOODAMNSLOW ///
 ///
 
 -- above are from slower-tests.m2 --
+
+TEST ///
+  restart
+  debug loadPackage "PD"
+
+  -- this example is one step from the stewart-gough example  
+  R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
+  J = ideal(r^2-3,
+       g_3*r+e_1,
+       e_1*r+3*g_3,
+       e_4*g_3-e_3*g_4,
+       g_2^2-3*g_3^2,
+       e_3*g_2-e_2*g_3,
+       e_2*g_2-3*e_3*g_3,
+       e_1*g_1+4*e_3*g_3+e_4*g_4,
+       2*e_4^2+9*g_1^2+24*g_3^2+9*g_4^2,
+       4*e_3^2-3*g_1^2-6*g_3^2-3*g_4^2,
+       4*e_2^2-9*g_1^2-18*g_3^2-9*g_4^2,
+       e_1^2-3*g_3^2,
+       e_4*g_2*r-e_2*g_4*r,
+       g_1^2*r+g_4^2*r+2*e_3*g_1-4*e_1*g_3,
+       e_4*g_1*r+2*e_3*e_4+3*g_3*g_4,
+       2*e_3*g_1*r+3*g_1^2+12*g_3^2+3*g_4^2,
+       2*e_3*e_4*r+3*e_4*g_1-3*e_1*g_4,
+       2*e_2*e_3*r+3*e_2*g_1-3*e_1*g_2,
+       6*e_3*g_1*g_3-4*e_1*g_3^2+e_4*g_1*g_4-e_1*g_4^2,
+       6*e_2*e_3*g_3+3*g_2*g_3^2+e_2*e_4*g_4,
+       e_1*e_4*g_2-e_1*e_2*g_4,
+       2*e_1*e_3*e_4-3*e_3*g_1*g_4+3*e_1*g_3*g_4,
+       2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,
+       2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
+  minprimes J
+///
+
 end
 
 -- 

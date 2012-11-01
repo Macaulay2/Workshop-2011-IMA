@@ -36,6 +36,9 @@ makeTower(Ring, List) := (R, extensions) -> (
      rawTowerQuotientRing(R1, extensions1)
      )
 
+toTower = method()
+toTower(RawRing, RingElement) := (R,f) -> rawTowerTranslatePoly(R, raw f)
+
 modpGCD = method()
 modpGCD(RingElement, RingElement, List) := (F,G, extensions) -> (
      R := makeTower(ring F, extensions);
@@ -51,9 +54,8 @@ TEST ///
 A = ZZ/32003[g_2, g_3, r, MonomialOrder=>Lex]
 F = g_2^8+8*g_2^7*g_3+8*g_2^7*r+28*g_2^6*g_3^2+56*g_2^6*g_3*r+28*g_2^6*r^2-10736*g_2^6+56*g_2^5*g_3^3+168*g_2^5*g_3^2*r+168*g_2^5*g_3*r^2-410*g_2^5*g_3+56*g_2^5*r^3-410*g_2^5*r+169*g_2^5+70*g_2^4*g_3^4+280*g_2^4*g_3^3*r+420*g_2^4*g_3^2*r^2-1025*g_2^4*g_3^2+280*g_2^4*g_3*r^3-2050*g_2^4*g_3*r+845*g_2^4*g_3+70*g_2^4*r^4-1025*g_2^4*r^2+845*g_2^4*r-15883*g_2^4+56*g_2^3*g_3^5+280*g_2^3*g_3^4*r+560*g_2^3*g_3^3*r^2+9301*g_2^3*g_3^3+560*g_2^3*g_3^2*r^3-4100*g_2^3*g_3^2*r+1690*g_2^3*g_3^2+280*g_2^3*g_3*r^4-4100*g_2^3*g_3*r^2+3380*g_2^3*g_3*r+474*g_2^3*g_3+56*g_2^3*r^5+9301*g_2^3*r^3+1690*g_2^3*r^2+474*g_2^3*r-11129*g_2^3+28*g_2^2*g_3^6+168*g_2^2*g_3^5*r+420*g_2^2*g_3^4*r^2-1025*g_2^2*g_3^4+560*g_2^2*g_3^3*r^3-4100*g_2^2*g_3^3*r+1690*g_2^2*g_3^3+420*g_2^2*g_3^2*r^4-6150*g_2^2*g_3^2*r^2+5070*g_2^2*g_3^2*r+711*g_2^2*g_3^2+168*g_2^2*g_3*r^5-4100*g_2^2*g_3*r^3+5070*g_2^2*g_3*r^2+1422*g_2^2*g_3*r-1384*g_2^2*g_3+28*g_2^2*r^6-1025*g_2^2*r^4+1690*g_2^2*r^3+711*g_2^2*r^2-1384*g_2^2*r+1268*g_2^2+8*g_2*g_3^7+56*g_2*g_3^6*r+168*g_2*g_3^5*r^2-410*g_2*g_3^5+280*g_2*g_3^4*r^3-2050*g_2*g_3^4*r+845*g_2*g_3^4+280*g_2*g_3^3*r^4-4100*g_2*g_3^3*r^2+3380*g_2*g_3^3*r+474*g_2*g_3^3+168*g_2*g_3^2*r^5-4100*g_2*g_3^2*r^3+5070*g_2*g_3^2*r^2+1422*g_2*g_3^2*r-1384*g_2*g_3^2+56*g_2*g_3*r^6-2050*g_2*g_3*r^4+3380*g_2*g_3*r^3+1422*g_2*g_3*r^2-2768*g_2*g_3*r+2536*g_2*g_3+8*g_2*r^7-410*g_2*r^5+845*g_2*r^4+474*g_2*r^3-1384*g_2*r^2+2536*g_2*r-3350*g_2+g_3^8+8*g_3^7*r+28*g_3^6*r^2-10736*g_3^6+56*g_3^5*r^3-410*g_3^5*r+169*g_3^5+70*g_3^4*r^4-1025*g_3^4*r^2+845*g_3^4*r-15883*g_3^4+56*g_3^3*r^5+9301*g_3^3*r^3+1690*g_3^3*r^2+474*g_3^3*r-11129*g_3^3+28*g_3^2*r^6-1025*g_3^2*r^4+1690*g_3^2*r^3+711*g_3^2*r^2-1384*g_3^2*r+1268*g_3^2+8*g_3*r^7-410*g_3*r^5+845*g_3*r^4+474*g_3*r^3-1384*g_3*r^2+2536*g_3*r-3350*g_3+r^8-10736*r^6+169*r^5-15883*r^4-11129*r^3+1268*r^2-3350*r+8128
 G = g_2^2-3*g_3^2
-exts = {r^2-3, g_3^4+14661*g_3^2-57}
-L  = ideal(F,G) + ideal(exts)
-gens gb L
+r^2-3, g_3^4+14661*g_3^2-57
+
 T = makeTower(A, {r^2-3, g_3^4+14661*g_3^2-57})
 debug Core
 F = rawTowerTranslatePoly(T, raw F)
@@ -72,6 +74,53 @@ modpGCDCoefficients(RingElement, RingElement, List) := (F,G, extensions) -> (
      	  (poly toString H, poly toString u, poly toString v)
 	  )
      )
+
+TEST ///
+  restart
+  debug needsPackage "ModularGCD"
+  A = ZZ/32003[x, a, MonomialOrder=>Lex]
+  extensions = {a^3-a-1};
+  B = A/(ideal extensions)
+  F = ((x^2-a*x-(a^2-1))^20 * (x-a)^3 )
+  G = ((x^2-a*x-(a^2-1)) * (x+a)^3 )
+  assert(modpGCD(F,G,extensions) == (x^2-a*x-(a^2-1)))
+  
+  -- this works also over A.  It probably should not work over both rings!
+  A = ZZ/32003[x, a, MonomialOrder=>Lex]
+  extensions = {a^3-a-1};
+  F = ((x^2-a*x-(a^2-1))^7 * (x-a)^3 ) % (ideal extensions)
+  G = ((x^2-a*x-(a^2-1)) * (x+a)^3 ) % (ideal extensions)
+  assert(modpGCD(F,G,extensions) == (x^2-a*x-(a^2-1)))
+///
+
+
+TEST ///
+  restart
+  debug needsPackage "ModularGCD"
+  A = ZZ/32003[x, a, b, MonomialOrder=>Lex]
+  B = makeTower(A, {b^2-3, a^2-b-1})
+  (B_0 + B_1)^2 + B_2
+  F = toTower(B, (x - b^2 - a)*(x - a - b))
+  G = toTower(B, (x - b^2 - a)*(x - a + b))
+  F*G
+  debug Core
+  rawGCD(F,G) -- gcd is not functional for extensions...
+///
+
+TEST ///
+  A = ZZ/32003[g_2, g_3, r, MonomialOrder=>Lex]
+  F = g_2^8+8*g_2^7*g_3+8*g_2^7*r+28*g_2^6*g_3^2+56*g_2^6*g_3*r+28*g_2^6*r^2-10736*g_2^6+56*g_2^5*g_3^3+168*g_2^5*g_3^2*r+168*g_2^5*g_3*r^2-410*g_2^5*g_3+56*g_2^5*r^3-410*g_2^5*r+169*g_2^5+70*g_2^4*g_3^4+280*g_2^4*g_3^3*r+420*g_2^4*g_3^2*r^2-1025*g_2^4*g_3^2+280*g_2^4*g_3*r^3-2050*g_2^4*g_3*r+845*g_2^4*g_3+70*g_2^4*r^4-1025*g_2^4*r^2+845*g_2^4*r-15883*g_2^4+56*g_2^3*g_3^5+280*g_2^3*g_3^4*r+560*g_2^3*g_3^3*r^2+9301*g_2^3*g_3^3+560*g_2^3*g_3^2*r^3-4100*g_2^3*g_3^2*r+1690*g_2^3*g_3^2+280*g_2^3*g_3*r^4-4100*g_2^3*g_3*r^2+3380*g_2^3*g_3*r+474*g_2^3*g_3+56*g_2^3*r^5+9301*g_2^3*r^3+1690*g_2^3*r^2+474*g_2^3*r-11129*g_2^3+28*g_2^2*g_3^6+168*g_2^2*g_3^5*r+420*g_2^2*g_3^4*r^2-1025*g_2^2*g_3^4+560*g_2^2*g_3^3*r^3-4100*g_2^2*g_3^3*r+1690*g_2^2*g_3^3+420*g_2^2*g_3^2*r^4-6150*g_2^2*g_3^2*r^2+5070*g_2^2*g_3^2*r+711*g_2^2*g_3^2+168*g_2^2*g_3*r^5-4100*g_2^2*g_3*r^3+5070*g_2^2*g_3*r^2+1422*g_2^2*g_3*r-1384*g_2^2*g_3+28*g_2^2*r^6-1025*g_2^2*r^4+1690*g_2^2*r^3+711*g_2^2*r^2-1384*g_2^2*r+1268*g_2^2+8*g_2*g_3^7+56*g_2*g_3^6*r+168*g_2*g_3^5*r^2-410*g_2*g_3^5+280*g_2*g_3^4*r^3-2050*g_2*g_3^4*r+845*g_2*g_3^4+280*g_2*g_3^3*r^4-4100*g_2*g_3^3*r^2+3380*g_2*g_3^3*r+474*g_2*g_3^3+168*g_2*g_3^2*r^5-4100*g_2*g_3^2*r^3+5070*g_2*g_3^2*r^2+1422*g_2*g_3^2*r-1384*g_2*g_3^2+56*g_2*g_3*r^6-2050*g_2*g_3*r^4+3380*g_2*g_3*r^3+1422*g_2*g_3*r^2-2768*g_2*g_3*r+2536*g_2*g_3+8*g_2*r^7-410*g_2*r^5+845*g_2*r^4+474*g_2*r^3-1384*g_2*r^2+2536*g_2*r-3350*g_2+g_3^8+8*g_3^7*r+28*g_3^6*r^2-10736*g_3^6+56*g_3^5*r^3-410*g_3^5*r+169*g_3^5+70*g_3^4*r^4-1025*g_3^4*r^2+845*g_3^4*r-15883*g_3^4+56*g_3^3*r^5+9301*g_3^3*r^3+1690*g_3^3*r^2+474*g_3^3*r-11129*g_3^3+28*g_3^2*r^6-1025*g_3^2*r^4+1690*g_3^2*r^3+711*g_3^2*r^2-1384*g_3^2*r+1268*g_3^2+8*g_3*r^7-410*g_3*r^5+845*g_3*r^4+474*g_3*r^3-1384*g_3*r^2+2536*g_3*r-3350*g_3+r^8-10736*r^6+169*r^5-15883*r^4-11129*r^3+1268*r^2-3350*r+8128
+  G = g_2^2-3*g_3^2
+  exts = {r^2-3, g_3^4+14661*g_3^2-57}
+  L  = ideal(F,G) + ideal(exts)
+  gens gb L
+  T = makeTower(A, {r^2-3, g_3^4+14661*g_3^2-57})
+  debug Core
+  F = rawTowerTranslatePoly(T, raw F)
+  G = rawTowerTranslatePoly(T, raw G)
+  rawGCD(F,G) -- should should be g_2 + r*g_3, or g_2 - r*g_3.  -- RIGHT NOW, this FAILS...
+///
+
 ----------------------------------------
 
 getZZRing = (RQ) -> (
@@ -163,8 +212,11 @@ load "ModularGCD.m2"
   f1 = reduceMod(F, 11)
   f2 = reduceMod(F, 13)
   (g,r) = integerCRA((f1,11),(f2,13))
+  assert(f1 == reduceMod(sub(g,RK), 11))
+  assert(f2 == reduceMod(sub(g,RK), 13))
   (g,r) = integerCRA((reduceMod(F, 32003), 32003), (g,r))
-  integerRationalReconstruction (g,r)
+  H = integerRationalReconstruction (g,r)
+  assert(sub(H, RK) == F)
 ///
 
 polyCRA = method()
@@ -194,6 +246,31 @@ polyCRA(Sequence, Sequence, RingElement, ZZ) := (F,G,t,p) -> (
      (mnsG, cfsG) := coefficients(g, Monomials=>mons, Variables=>othervars);
      T := local T;
      Rt := ZZ/p[T];
+     toRt := map(Rt, R, for f in gens R list if f == t then Rt_0 else 0_Rt);
+     fromRt := map(R,Rt, {t});
+     cfsF = flatten entries toRt cfsF;
+     cfsG = flatten entries toRt cfsG;
+     newcoeffs := for i from 0 to #cfsF - 1 list (
+	  {fromRt first polyCRA(cfsF#i, cfsG#i, toRt m, toRt n)}
+	  );
+     ((mnsF * matrix newcoeffs)_(0,0), fromRt(toRt m* toRt n))
+     )
+
+polyCRA(Sequence, Sequence, RingElement) := (F,G,t) -> (
+     -- F should be (f(t), m(t)), G = (g(t), n(t)).
+     -- construct h(t) (mod m(t)*n(t)) s.t. h == f mod m, h == g mod n.
+     -- All variables except t are considered coefficients.
+     (f,m) := F;
+     (g,n) := G;
+     R := ring f;
+     othervars := toList(set gens R - set{t});
+     monF := set flatten entries monomials(f, Variables=>othervars);
+     monG := set flatten entries monomials(g, Variables=>othervars);
+     mons := toList(monF + monG);
+     (mnsF, cfsF) := coefficients(f, Monomials=>mons, Variables=>othervars);
+     (mnsG, cfsG) := coefficients(g, Monomials=>mons, Variables=>othervars);
+     if not R#?"polyCRARing" then (T := local T; R#"polyCRARing" = (coefficientRing R)[T];);
+     Rt := R#"polyCRARing";
      toRt := map(Rt, R, for f in gens R list if f == t then Rt_0 else 0_Rt);
      fromRt := map(R,Rt, {t});
      cfsF = flatten entries toRt cfsF;
@@ -265,6 +342,29 @@ polyRationalReconstruction(RingElement, RingElement, RingElement, ZZ) := (F, t, 
 	  if ans === null then return null;
 	  ans);
      -- now find lcm of the denoms
+     newdenom := newpairs/last//lcm;
+     newnumers := apply(newpairs, (numer, denom) -> {(newdenom//denom) * numer});
+     ((mons * fromRt matrix newnumers)_(0,0), fromRt newdenom)
+     )
+
+polyRationalReconstruction(RingElement, RingElement, RingElement) := (F, t, mt) -> (
+     -- F should be a poly in R = ZZ/p[vars]
+     -- t is one of the vars
+     -- mt is a poly in t, coeffs in ZZ/p, but mt is in R.
+     -- output is (G, denom), G and denom are in ZZ[all vars], but denom only involves t.
+     R := ring F;
+     othervars := toList(set gens R - set{t});
+     (mons, cfs) := coefficients(F, Variables=>othervars);
+     if not R#?"polyCRARing" then (T := local T; R#"polyCRARing" = (coefficientRing R)[T];);
+     Rt := R#"polyCRARing";
+     toRt := map(Rt, R, for f in gens R list if f == t then Rt_0 else 0_Rt);
+     fromRt := map(R,Rt, {t});
+     cfs = flatten entries toRt cfs;
+     newpairs := for i from 0 to #cfs - 1 list (
+	  ans := rationalFunctionReconstruction(cfs#i, toRt mt);
+	  checkRatRecon(cfs#i, toRt mt, ans);
+	  if ans === null then return null;
+	  ans);     -- now find lcm of the denoms
      newdenom := newpairs/last//lcm;
      newnumers := apply(newpairs, (numer, denom) -> {(newdenom//denom) * numer});
      ((mons * fromRt matrix newnumers)_(0,0), fromRt newdenom)

@@ -1050,6 +1050,7 @@ end
 
 -- 
 restart
+installPackage "PD"
 needsPackage "UnitTestsPD"
 check "UnitTestsPD"
      

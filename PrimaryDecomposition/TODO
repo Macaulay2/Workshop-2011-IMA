@@ -31,5 +31,14 @@ A list of activities that are required or at least desirable
   Mike: first stab at 0-dim min primes, also factorization over towers?
   All: try it out on various examples
 
-  
+* 6 Nov 2012 Notes:
+  * looked at stewart-gough example that took ~15 (or actually 30) seconds to splitTower.
+    Used the rationalReconstruction and modular gcd code to find the factor in ~1 second.
+    TODO: This needs to be put into a function for other situations when the dimension
+          is small, since ratRecon is slow for large dimension ideals. (i.e. strategy
+          option).  The example is in gbRatRecon.m2.
+  * Looked at the siphon example, and how the code in FactorizingGB handled the second
+    test.  It finishes with that code, but does not with ours.  Noticed simplifyIdeal
+    is a bit slow and needs to be sped up.
+  * Other things still to do:  equidimSplitOneStep needs work (also a bit slow).
   

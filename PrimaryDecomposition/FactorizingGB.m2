@@ -207,9 +207,13 @@ TEST ///
 ///
 
 TEST ///
+  restart
+  needsPackage "FactorizingGB"
+  needsPackage "PD"
   R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
   I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
-  p1 = minAss I1;
+  p1  = time minAss I1
+  p1' = time minprimes I1  
   p1 = sort apply(p1, P -> flatten entries gens gb P );
   D1 = decompose I1;
   D1 = sort apply(D1, i -> flatten entries gens gb i );  

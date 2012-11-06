@@ -379,10 +379,11 @@ splitTower Ideal := opts -> (IF) -> (
     if opts.Verbosity > 0 then print netList facs;
     F = numerator F;
     facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
+    error "debug me";
     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
     else flatten for fac in facs1 list (
         G := fac#1 % L;
-        C := ideal gens gb(ideal S.cache#"StoSF" G + J);
+        C := time ideal gens gb(ideal S.cache#"StoSF" G + J);
         if C == 1 then continue;
         --time C := ideal first minimalizeOverFrac((ideal G) + L, SF);
         P := ideal gens gb (C + ideal linears);

@@ -170,6 +170,10 @@ integerRationalReconstruction(RingElement, ZZ) := (F,m) -> (
      new RQ from rawRingElementRatConversion(raw F, m, raw RQ)
      )
 
+integerRationalReconstruction(Ideal, ZZ) := (I,m) -> (
+   ideal apply(I_*, f -> integerRationalReconstruction(f,m))
+)
+
 reduceMod = method()
 reduceMod(RingElement, ZZ) := (F, m) -> (
      -- F should be in frac(ZZ[vars]), or in QQ[vars] or in ZZ[vars]

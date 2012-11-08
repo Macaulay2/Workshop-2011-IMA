@@ -132,7 +132,6 @@ selectMinimalIdeals = (L) -> (
         )
     )
 
-
 makeFiberRings = method()
 makeFiberRings(List) := (baseVars) -> (
    -- This function takes an ideal I and a list of variables baseVars as input
@@ -151,6 +150,7 @@ makeFiberRings(List) := (baseVars) -> (
    SF := KK (monoid[fiberVars, MonomialOrder=>Lex]);
    S#cache = new CacheTable;
    S.cache#"StoSF" = map(SF,S,sub(vars S,SF));
+   S.cache#"SFtoS" = map(S,SF,sub(vars SF,S));
    S.cache#"StoR" = map(R,S,sub(vars S,R));
    S.cache#"RtoS" = map(S,R,sub(vars R,S));
    setAmbientField(SF, S);
@@ -302,6 +302,7 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
         Slex.cache#"RtoS" = map(Slex,R,sub(vars R,Slex));
         Slex.cache#"StoR" = map(R,Slex,sub(vars Slex,R));
         Slex.cache#"StoSF" = identity;
+        Slex.cache#"SFtoS" = identity;
         numerator Slex := identity;
         ISlex := Slex.cache#"RtoS" I;
         return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_R);
@@ -379,7 +380,6 @@ splitTower Ideal := opts -> (IF) -> (
     if opts.Verbosity > 0 then print netList facs;
     F = numerator F;
     facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - F)));
-    error "debug me";
     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
     else flatten for fac in facs1 list (
         G := fac#1 % L;

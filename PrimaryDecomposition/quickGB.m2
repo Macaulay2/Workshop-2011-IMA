@@ -50,6 +50,15 @@ computeGB Ideal := (I) -> (
 )
 
 TEST ///
+restart
+R = QQ(monoid[e_1, e_2, e_3, g_2, g_3, g_4, r, e_4, g_1, Degrees => {9:1}, Heft => {1}, MonomialOrder => VerticalList{MonomialSize => 32, Lex => 9, Position => Up}, DegreeRank => 1])
+L = ideal(100*g_2^2+140*g_2*g_4+20*g_2*r+49*g_4^2+14*g_4*r+r^2-3,9*g_4^4+12*g_4^2*e_4^2+9*g_4^2*g_1^2+4*e_4^4+18*e_4^2*g_1^2,32*g_2^3*e_4*g_1+24*g_2^2*g_4^3+16*g_2^2*g_4*e_4^2+24*g_2^2*g_4*g_1^2+36*g_2*g_4^2*e_4*g_1+8*g_2*e_4^3*g_1+36*g_2*e_4*g_1^3-12*g_4^3*e_4^2+27*g_4^3*g_1^2-8*g_4*e_4^4-30*g_4*e_4^2*g_1^2+27*g_4*g_1^4)
+gbTrace = 3
+eliminate(L,{g_4,g_2})
+-- compute eliminate with computeGB?
+///
+
+TEST ///
 -- ordinary lex
 R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l, MonomialOrder=>Lex]
 I = ideal(h*j*l-2*e*g+16001*c*j+16001*a*l,h*j*k-2*e*f+16001*b*j+16001*a*k,h*j^2+2*e^2+16001*a*j,d*j^2+2*a*e,g*h*j+e*h*l+8001*d*j*l+16001*c*e+16001*a*g,f*h*j+e*h*k+8001*d*j*k+16001*b*e+16001*a*f

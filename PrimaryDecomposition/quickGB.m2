@@ -49,13 +49,77 @@ computeGB Ideal := (I) -> (
   fastGB
 )
 
+getIndices = (R,v) -> unique apply(v, index)
+
+isFlatPolynomialRing := (R) -> (
+  -- R should be a ring
+  -- determines if R is a poly ring over ZZ or a field
+  kk := coefficientRing R;
+  isPolynomialRing R and (kk === ZZ or isField kk)
+)
+
+eliminationRing = (elimvars, R) -> (
+     -- input: R: flat polynomial ring
+     --        elimvars: list of integer indices of vars to eliminate
+     --        homog:Boolean: whether to add another variable for homogenization
+     -- output: (F:R-->S, G:S-->R), where S is the new ring
+     -- S is the same as R, except that the variables have been permuted, the 
+     -- names of the variables are private, and the monomial ordering is an elim order.
+     -- If R is a WeylAlgebra, homogenized Weyl algebra, skew commutative ring, or poly
+     -- ring, then S will be the same, with the correct multiplication and grading
+     keepvars := sort toList(set(0..numgens R-1) - set elimvars);
+     perm := join(elimvars,keepvars);
+     invperm := inversePermutation perm;
+     vars := (options R).Variables;
+     degs := (options R).Degrees;
+     weyl := (options R).WeylAlgebra;
+     skew := (options R).SkewCommutative;
+     degs = degs_perm;
+     vars = vars_perm;
+     M := monoid [vars,MonomialOrder=>Eliminate(#elimvars), Degrees=>degs, 
+	  WeylAlgebra => weyl, SkewCommutative => skew, MonomialSize=>16];
+     k := coefficientRing R;
+     R1 := k M;
+     toR1 := map(R1,R,apply(invperm,i->R1_i));
+     toR := map(R,R1,apply(perm,i->R_i));
+     (toR1,toR)
+     )
+
+quickEliminate = method()
+quickEliminate (List,Ideal) := (v,I) -> (
+   R := ring I;
+   -- if R is a quotient ring, then give error
+   if not isFlatPolynomialRing R then
+     error "expected a polynomial ring over ZZ or a field";
+   if #v === 0 then return I;
+   if not all(v, x -> class x === R) then error "expected a list of elements in the ring of the ideal";
+   varlist := getIndices(ring I,v);
+   quickEliminate1(varlist, I)
+)
+
+quickEliminate (Ideal,List) := (I,v) -> quickEliminate(v,I)
+
+quickEliminate1 = (elimindices,I) -> (
+   -- at this point, I is an ideal in a flat ring, 
+   -- and elimindices represents the variables
+   -- to eliminate.
+   (toR1,toR) := eliminationRing(elimindices,ring I);
+   J := toR1 I;
+   if isHomogeneous I then
+      (cokernel generators J).cache.poincare = poincare cokernel generators I;
+   ideal mingens ideal toR selectInSubring(1,generators computeGB J)
+)
+
 TEST ///
 restart
+load "quickGB.m2"
 R = QQ(monoid[e_1, e_2, e_3, g_2, g_3, g_4, r, e_4, g_1, Degrees => {9:1}, Heft => {1}, MonomialOrder => VerticalList{MonomialSize => 32, Lex => 9, Position => Up}, DegreeRank => 1])
-L = ideal(100*g_2^2+140*g_2*g_4+20*g_2*r+49*g_4^2+14*g_4*r+r^2-3,9*g_4^4+12*g_4^2*e_4^2+9*g_4^2*g_1^2+4*e_4^4+18*e_4^2*g_1^2,32*g_2^3*e_4*g_1+24*g_2^2*g_4^3+16*g_2^2*g_4*e_4^2+24*g_2^2*g_4*g_1^2+36*g_2*g_4^2*e_4*g_1+8*g_2*e_4^3*g_1+36*g_2*e_4*g_1^3-12*g_4^3*e_4^2+27*g_4^3*g_1^2-8*g_4*e_4^4-30*g_4*e_4^2*g_1^2+27*g_4*g_1^4)
+L = ideal(g_2^2+20*g_2*g_4+2*g_2*r+100*g_4^2+20*g_4*r+r^2-3,9*g_4^4+12*g_4^2*e_4^2+9*g_4^2*g_1^2+4*e_4^4+18*e_4^2*g_1^2,32*g_2^3*e_4*g_1+24*g_2^2*g_4^3+16*g_2^2*g_4*e_4^2+24*g_2^2*g_4*g_1^2+36*g_2*g_4^2*e_4*g_1+8*g_2*e_4^3*g_1+36*g_2*e_4*g_1^3-12*g_4^3*e_4^2+27*g_4^3*g_1^2-8*g_4*e_4^4-30*g_4*e_4^2*g_1^2+27*g_4*g_1^4)
 gbTrace = 3
-eliminate(L,{g_4,g_2})
--- compute eliminate with computeGB?
+-- this takes ~70 seconds!  Can we make it even faster with modular gbs?
+time quickEliminate({g_2,g_4},L);
+-- this takes about 30 minutes!
+time eliminate({g_2,g_4},L);
 ///
 
 TEST ///

@@ -1,4 +1,5 @@
 needsPackage "ModularGCD"
+needs "quickGB.m2"
 
 gbRationalReconstruction = method()
 gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
@@ -17,9 +18,11 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
   (G,newTotal) := (null,totalLoopCount);
   usedCoords := set {};
   totalLoops := 0;
+  subLoops := 0;
+  -- need to rewrite the loop.  ratresult is never reset.
   while ratResult === null do (
     loopCount = loopCount+1;
-    -- this next three lines ensure we do not pick the same specialization twice for a coordinate
+    -- the next three lines ensure we do not pick the same specialization twice for a coordinate
     a := random kk;
     while member(a,usedCoords) do a = random kk;
     usedCoords = usedCoords + set {a};
@@ -27,7 +30,8 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
     (G,subLoops) = gbRationalReconstruction(randMap L,paramList);
     totalLoops = totalLoops + subLoops;
     if loopG === null then (loopG, loopE) = (G,evalVar-a) else (
-       -- Frank: I am getting errors here.  On rare occasion, loopG will not have the same size as G.
+       -- Frank: I am getting errors here;  on occasion, loopG will be shorter than G
+       -- and thus the loopG#i command will fail.  Not sure why???
        H := for i from 0 to #G-1 list (
           polyCRA((loopG#i,loopE), (G#i,evalVar-a), evalVar)
        );
@@ -140,7 +144,9 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     lastVar = numerator lastVar;
     otherVars = otherVars/numerator;
     -- use quickGB here? The f^2*g example below really bogs down at this stage.
-    G := (eliminate(L1, otherVars))_0;
+    -- as of now, we use quickGB if the base field is not a fraction field.
+    time G := if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
+    --time G := (eliminate(L1, otherVars))_0;
     completelySplit := degree(lastVar, G) === vecdim;
     facs := factors G;
     if opts.Verbosity > 0 then print netList facs;
@@ -171,6 +177,8 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
                       if not completelySplit then error "err";
                       if completelySplit then C else flatten factorIrredZeroDimensionalTower C
                    );
+         -- if we made it all the way through facs1, then we are done.  Else, we may use
+         -- the previous computations to determine the missing last factor.
          if j == #facs1 then retVal
          else (
             lastFactor := lastIrred // newFacs;
@@ -221,17 +229,16 @@ end
   m2 = g_4^4+((4*e_4^2+3*g_1^2)/3)*g_4^2+(4*e_4^4+18*e_4^2*g_1^2)/9
   m3 = g_2^2+(9/8)*g_4^2+(2*e_4^2+9*g_1^2)/8
   f = g_2+(3/(4*e_4*g_1))*g_4^3+((2*e_4^2+3*g_1^2)/(4*e_4*g_1))*g_4
-  g = g_2+((-3)/(4*e_4*g_1))*g_4^3+((-2*e_4^2-3*g_1^2)/(4*e_4*g_1))*g_4
+  h = g_2+((-3)/(4*e_4*g_1))*g_4^3+((-2*e_4^2-3*g_1^2)/(4*e_4*g_1))*g_4
   m4 = f^2 % m2
-  m4' = f^2*g % m2
+  m4' = f^2*h % m2
   L1 = ideal {m1}
   L2 = ideal {m1,m2}
   -- this is from the stewart-gough platform
   L3 = ideal {m1,m2,m3}
-  -- these are slight alterations that could occur
+  -- these are slight alterations on this example that could occur
   L4 = ideal {m1,m2,m4}
   L4' = ideal {m1,m2,m4'}
-  gbTrace = 3
   time factorIrredZeroDimensionalTower L3
   -- this one doesn't work since the last element is a square, so the trick used to find the last factor
   -- doesn't factor this element.  So some more checking needs to be done

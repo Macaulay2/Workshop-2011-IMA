@@ -4,21 +4,21 @@ needs "quickGB.m2"
 gbRationalReconstruction = method()
 gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
   -- Input: An ideal L in a ring A over a finite field, and a list of variables paramList that are to be inverted
-  -- Output: A Groebner basis of L in the polynomial ring over a fraction field with the variables
+  -- Output: A list of elements that form a Groebner basis of L in the polynomial ring over a fraction field with the variables
   --         in paramList inverted
   A := ring L;
   kk := coefficientRing A;
   if #paramList === 0 then return (flatten entries gens gb L,1);
   
   evalVar := first paramList;
-  paramList = drop(paramList,1);
+  newParamList := drop(paramList,1);
   ratResult := null;
   (loopG,loopE) := (null,null);
   loopCount := 0;
-  (G,newTotal) := (null,totalLoopCount);
   usedCoords := set {};
   totalLoops := 0;
-  subLoops := 0;
+  H := {};
+  numBadEvals := 0;
   -- need to rewrite the loop.  ratresult is never reset.
   while ratResult === null do (
     loopCount = loopCount+1;
@@ -27,12 +27,18 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
     while member(a,usedCoords) do a = random kk;
     usedCoords = usedCoords + set {a};
     randMap := map(A,A,{evalVar => a});
-    (G,subLoops) = gbRationalReconstruction(randMap L,paramList);
+    (G,subLoops) := gbRationalReconstruction(randMap L,newParamList);
     totalLoops = totalLoops + subLoops;
+    -- this code block handles the case when the ideal of lead terms varies by the specialization chosen.
+    -- In this case, we should ignore the new value.  If we keep getting bad specializations,
+    -- then the initial specialization is probably the bad one, so we reset the loop.
+    -- Ask Mike to make sure this is the right thing to do.
+    if loopG =!= null and (G / leadTerm != loopG / leadTerm) then (
+       numBadEvals = numBadEvals + 1;
+       if numBadEvals > 5 then (loopG,loopE) = (null,null) else continue;
+    );
     if loopG === null then (loopG, loopE) = (G,evalVar-a) else (
-       -- Frank: I am getting errors here;  on occasion, loopG will be shorter than G
-       -- and thus the loopG#i command will fail.  Not sure why???
-       H := for i from 0 to #G-1 list (
+       H = for i from 0 to #G-1 list (
           polyCRA((loopG#i,loopE), (G#i,evalVar-a), evalVar)
        );
        loopG = H / first;
@@ -52,7 +58,9 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
 
 integerContent = method()
 integerContent RingElement := f -> (
-  (terms f) / leadCoefficient / denominator / factor / toList // flatten / toList / first // unique
+  coeffs := (terms f) / leadCoefficient;
+  join ( coeffs / denominator / factor / toList // flatten / toList / first // unique,
+         coeffs / numerator / factor / toList // flatten / toList / first // unique)
 )
 
 integerContent Ideal := I -> (
@@ -145,7 +153,7 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     otherVars = otherVars/numerator;
     -- use quickGB here? The f^2*g example below really bogs down at this stage.
     -- as of now, we use quickGB if the base field is not a fraction field.
-    time G := if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
+    G := if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
     --time G := (eliminate(L1, otherVars))_0;
     completelySplit := degree(lastVar, G) === vecdim;
     facs := factors G;
@@ -239,11 +247,14 @@ end
   -- these are slight alterations on this example that could occur
   L4 = ideal {m1,m2,m4}
   L4' = ideal {m1,m2,m4'}
-  time factorIrredZeroDimensionalTower L3
+  -- if you run this command enough times, an error occurs in the gbRationalReconstruction code
+  -- because G and loopG are different lengths.
+  -- I let this run for a long while and it never failed an assert.
+  apply(1..1000, i -> (time C := factorIrredZeroDimensionalTower L3; assert(intersect C == L3)))
   -- this one doesn't work since the last element is a square, so the trick used to find the last factor
   -- doesn't factor this element.  So some more checking needs to be done
   time factorIrredZeroDimensionalTower L4
-  -- eliminate is too damn slow!
+  -- eliminate is too damn slow, so I wrote quickEliminate that uses the Hilbert hint trick.
   time factorIrredZeroDimensionalTower L4'
 ----
 

@@ -711,6 +711,7 @@ TOODAMNSLOW ///
 	 a*b*c*d+b*c*d*e+c*d*e*f+d*e*f*a+e*f*a*b+f*a*b*c,
 	 a*b*c*d*e+b*c*d*e*f+c*d*e*f*a+d*e*f*a*b+e*f*a*b*c+f*a*b*c*d,
 	 a*b*c*d*e*f-h^6)
+  -- this slow due to equidimSplitOneStep 'trim (I:I1)' line
   time C = minprimes I -- STILL SLOW
   assert false
 ///
@@ -995,7 +996,7 @@ TEST ///
 TOODAMNSLOW ///
   needsPackage "PD"
   -- DGP Wang
-  R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  R = QQ[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"
     -ab-ad+2ah,
     ad-bd-cf-2ah+2bh+2ck,
@@ -1008,6 +1009,7 @@ TOODAMNSLOW ///
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
+  -- too much time being spent in equidimSplitOneStep again, 'gens gb IS' line
   time C = minprimes I -- takes a while  NEEDS WORK TOO DAMN SLOW
   time decompose I -- .74 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) 

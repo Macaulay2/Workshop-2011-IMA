@@ -2,8 +2,35 @@
 -- This one is not reduced.
   restart
   debug needsPackage "PD"
+  needsPackage "UnitTestsPD"
   R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
   I = ideal(r^2-3,e_1*g_1+e_2*g_2+e_3*g_3+e_4*g_4, (2/3)*e_1^2+(2/3)*e_3^2-(1/3)*r*e_3*g_1-g_1^2-r*e_4*g_2-g_2^2+(1/3)*r*e_1*g_3-g_3^2+r*e_2*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2-(1/3)*r*e_2*e_3+(1/6)*e_3^2-(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2+(1/2)*e_1*g_2-(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3-(3/2)*e_4*g_3-g_3^2+(1/2)*r*e_2*g_4+(3/2)*e_3*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2+(1/3)*r*e_2*e_3+(1/6)*e_3^2+(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2-(1/2)*e_1*g_2+(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3-(3/2)*e_4*g_3-g_3^2-(1/2)*r*e_2*g_4+(3/2)*e_3*g_4-g_4^2, (2/3)*e_1^2+(2/3)*e_3^2-(1/3)*r*e_3*g_1-g_1^2+r*e_4*g_2-g_2^2+(1/3)*r*e_1*g_3-g_3^2-r*e_2*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2-(1/3)*r*e_2*e_3+(1/6)*e_3^2-(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2+(1/2)*e_1*g_2+(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3+(3/2)*e_4*g_3-g_3^2-(1/2)*r*e_2*g_4-(3/2)*e_3*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2+(1/3)*r*e_2*e_3+(1/6)*e_3^2+(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2-(1/2)*e_1*g_2-(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3+(3/2)*e_4*g_3-g_3^2+(1/2)*r*e_2*g_4-(3/2)*e_3*g_4-g_4^2)
+  time C = minprimes I
+  radI = intersect C;
+  -- this is correct - 17 components
+  checkMinimalPrimes(I,C)
+  -- playing with factoring the generators of the GB of I
+  
+  time C1 = facGB ideal gens gb I
+  C' = flatten (C1 / minprimes);
+  -- Fails.  There are only 12 components when splitting using facGB.
+  checkMinimalPrimes(I,C')
+  
+  Igb = flatten entries gens gb I
+  (fac,facs) = findElementThatFactors Igb  
+  time I1 = I : facs#0
+  time I2 = I : I1
+  
+  (fac,facs) = findElementThatFactors I1_*  
+  time I11 = I1 : facs#0
+  time I12 = I1 : I11
+  time minprimes I11;
+  
+  time C1 = minprimes I1;
+  time C2 = minprimes I2;
+  
+  
+  -- on 11/13, 16.75 seconds on Frank's office machine
   time C = minprimes(I)
   D
   D / (j -> time splitTower(j,opts));

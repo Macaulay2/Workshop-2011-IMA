@@ -57,6 +57,8 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
 
 integerContent = method()
 integerContent RingElement := f -> (
+  -- f is expected to be in a polynomial ring QQ[x_1..x_n]
+  -- TODO: rewrite this to use lcms rather than factor
   coeffs := (terms f) / leadCoefficient;
   join ( coeffs / denominator / factor / toList // flatten / toList / first // unique,
          coeffs / numerator / factor / toList // flatten / toList / first // unique)
@@ -76,6 +78,7 @@ modPFracGB (Ideal,List) := opts -> (I, baseVars) -> (
   S := ring I;
   SZ := ZZ(monoid S);
   intCont := integerContent I;
+  -- check using lcm and divisions
   validPrimes := random toList (set primesList - set intCont);
   
   i := 0;
@@ -151,6 +154,7 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     lastVar = numerator lastVar;
     otherVars = otherVars/numerator;
     -- as of now, we use quickGB if the base field is not a fraction field.
+    -- use modPFracGB here too? 
     G := if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
     --time G := (eliminate(L1, otherVars))_0;
     completelySplit := degree(lastVar, G) === vecdim;
@@ -186,6 +190,7 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
          else (
             lastFactor := lastIrred // newFacs;
             lastComp := ideal gens gb ((S.cache#"StoSF" L) + lastFactor);
+            -- TODO: Check for completelySplit here too.
             append(retVal, lastComp)
         )
     )
@@ -196,7 +201,7 @@ end
 -- Testing modPFracGB
   restart
   debug needsPackage "PD"
-  load "gbRatRecon.m2"
+  --load "gbRatRecon.m2"
   needsPackage "ModularGCD"
   Q = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
   (S,SF) = makeFiberRings {e_4,g_1}
@@ -208,7 +213,9 @@ end
   facModL = -221169825*g_2*g_4^3*e_4^3*g_1-1205128125*g_2*g_4^3*e_4^2*g_1^2+51993540*g_2*g_4^3*e_4^2-(566678025/16)*g_2*g_4^3*e_4*g_1^3+224957250*g_2*g_4^3*e_4*g_1+(66344535/2)*g_2*g_4^3*g_1^2-1713960*g_2*g_4^3-1409400*g_2*g_4^2*r*e_4^4+343947465*g_2*g_4^2*r*e_4^3*g_1+244310100*g_2*g_4^2*r*e_4^2*g_1^2-12556800*g_2*g_4^2*r*e_4^2+(1313107605/16)*g_2*g_4^2*r*e_4*g_1^3-3134700*g_2*g_4^2*r*e_4*g_1-(62964225/8)*g_2*g_4^2*r*g_1^4-2856600*g_2*g_4^2*r*g_1^2-147446550*g_2*g_4*e_4^5*g_1-160683750*g_2*g_4*e_4^4*g_1^2+34662360*g_2*g_4*e_4^4-(5496968475/8)*g_2*g_4*e_4^3*g_1^3+75386700*g_2*g_4*e_4^3*g_1-723076875*g_2*g_4*e_4^2*g_1^4+191254545*g_2*g_4*e_4^2*g_1^2-1142640*g_2*g_4*e_4^2-(1700034075/16)*g_2*g_4*e_4*g_1^5+178556400*g_2*g_4*e_4*g_1^3-2916000*g_2*g_4*e_4*g_1+(246024675/8)*g_2*g_4*g_1^4-856980*g_2*g_4*g_1^2-939600*g_2*r*e_4^6+166514310*g_2*r*e_4^5*g_1+47190600*g_2*r*e_4^4*g_1^2-8371200*g_2*r*e_4^4+(6032293695/8)*g_2*r*e_4^3*g_1^3-1713960*g_2*r*e_4^3*g_1+231384600*g_2*r*e_4^2*g_1^4-37670400*g_2*r*e_4^2*g_1^2+(340006815/16)*g_2*r*e_4*g_1^5-7712820*g_2*r*e_4*g_1^3-47088000*g_4^3*r*e_4^4-86762100*g_4^3*r*e_4^3*g_1+(2097971685/4)*g_4^3*r*e_4^2*g_1^2+281880*g_4^3*r*e_4^2+(2839579425/16)*g_4^3*r*e_4*g_1^3-26824500*g_4^3*r*e_4*g_1+(1020020445/64)*g_4^3*r*g_1^4-5784615*g_4^3*r*g_1^2-321367500*g_4^2*e_4^5*g_1+(1105849125/2)*g_4^2*e_4^4*g_1^2+37292400*g_4^2*e_4^4+(3133333125/2)*g_4^2*e_4^3*g_1^3-136563390*g_4^2*e_4^3*g_1+(2833390125/32)*g_4^2*e_4^2*g_1^4-314235450*g_4^2*e_4^2*g_1^2+1458000*g_4^2*e_4^2-(776780955/16)*g_4^2*e_4*g_1^3+2142450*g_4^2*e_4*g_1-31392000*g_4*r*e_4^6-56432000*g_4*r*e_4^5*g_1-(82747035/2)*g_4*r*e_4^4*g_1^2+187920*g_4*r*e_4^4-(1702051125/8)*g_4*r*e_4^3*g_1^3-5326200*g_4*r*e_4^3*g_1+(14497565085/32)*g_4*r*e_4^2*g_1^4-439830*g_4*r*e_4^2*g_1^2+(2965507875/16)*g_4*r*e_4*g_1^5-23967900*g_4*r*e_4*g_1^3+(1020020445/64)*g_4*r*g_1^6-5784615*g_4*r*g_1^4-214245000*e_4^7*g_1+221169825*e_4^6*g_1^2+24861600*e_4^6-723076875*e_4^5*g_1^3-56379900*e_4^5*g_1+(16490905425/16)*e_4^4*g_1^4+52358400*e_4^4*g_1^2+972000*e_4^4+(2169230625/2)*e_4^3*g_1^5-(2111684625/8)*e_4^3*g_1^3+285660*e_4^3*g_1+(5100102225/32)*e_4^2*g_1^6-267834600*e_4^2*g_1^4+4374000*e_4^2*g_1^2-(738074025/16)*e_4*g_1^5+1285470*e_4*g_1^3
   L1 = ideal{m1,m2,m3,fac}
   L2 = ideal{m1,m2,m3,facModL}
-
+  
+  modPFracGB(L1,{e_4,g_1})
+ 
   -- huge difference in time in this example!
   time L1gbFrac1 = forceGB gens sub(modPFracGB(L1,{e_4,g_1}),SF)
   time L1gbFrac2 = gb (sub(L1,SF))
@@ -222,7 +229,6 @@ end
 -- Testing factorIrredZeroDimensionalTower
   restart
   debug needsPackage "PD"
-  load "gbRatRecon.m2"
   needsPackage "ModularGCD"
   Q = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
   (S,SF) = makeFiberRings {e_4,g_1}
@@ -245,7 +251,7 @@ end
   -- if you run this command enough times, an error occurs in the gbRationalReconstruction code
   -- because G and loopG are different lengths.
   -- I let this run for a long while and it never failed an assert.
-  apply(1..1000, i -> (time C := factorIrredZeroDimensionalTower L3; assert(intersect C == L3)))
+  time factorIrredZeroDimensionalTower L3
   -- this one doesn't work since the last element is a square, so the trick used to find the last factor
   -- doesn't factor this element.  So some more checking needs to be done
   time factorIrredZeroDimensionalTower L4

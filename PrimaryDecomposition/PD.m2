@@ -105,6 +105,74 @@ factors RingElement := (F) -> (
     if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
     )
 
+findElementThatFactors = method()
+findElementThatFactors List := L -> (
+    -- sort L by number of terms first?
+    for f in L do (
+      -- don't try to factor a large polynomial?
+      facs := factors f;
+      if #facs > 1 or (#facs == 1 and facs#0#0 > 1) then return (f,facs/last);
+    );
+    (null, {})
+    )
+
+-- this code was taken from FactorizingGB.m2
+facGB0 = method(Options => {"UseColon"=>true})
+facGB0(Ideal, Set) := opts -> (I, nonzeros) -> (
+    -- returns a pair (P:List, L:List)
+    --  where : P is a list of ideals, that have no factorization left.
+    --  and     L is a list of (J:ideal, nonz: nonzeros), 
+    --  where J is an ideal containing I, and nonz is a set of monic polynomials, which 
+    --  are not in the resulting min primes
+    (f, facs) := findElementThatFactors I_*; -- chooses a generator of I that factors
+    if #facs == 0 then ( 
+        --<< "no elements found that factor" << endl; << "ideal is " << toString I << endl; 
+        return ((I, nonzeros), {})
+        );
+    prev := set{};
+    nonzeroFacs := toList(set facs - nonzeros);
+    L := for g in nonzeroFacs list (
+          --if member(g, nonzeros) then continue;
+          -- colon or sum?
+          J := null;
+          if opts#"UseColon" then (
+             -- TODO: Find the components that are missing when using colons!
+             J = saturate(I, f // g);
+             I = (I : J);
+          )
+          else (
+             J = (ideal(g) + I);
+             J = trim ideal apply(J_*, f -> (
+                 product toList (set ((factors f)/last) - nonzeros)
+             ));
+          );
+          result := (J, nonzeros + prev);
+          prev = prev + set{g};
+          if numgens J === 1 and J_0 == 1 then continue else result
+    );
+    ({}, L)
+)
+
+facGB = method(Options=>{Limit=>infinity, "UseColon"=>true})
+facGB Ideal := opts -> (J) -> (
+    C := {};
+    L := {(J,set{})};
+    i := 0;
+    while i < opts.Limit and #L > 0 do (
+        L2 := flatten for j in L list (
+            (C1,L1) := facGB0(j,"UseColon"=>opts#"UseColon");
+            if C1 =!= {} then C = append(C, C1);
+            L1
+        );
+        L = L2;
+        << "number: " << (i, #C, #L) << endl;
+        --<< "C = " << netList C << endl;
+        --<< "L = " << netList L << endl;
+        i = i+1;
+    );
+    (C, L)     
+)
+
 -----------------------------
 -- Redundancy control -------
 -----------------------------

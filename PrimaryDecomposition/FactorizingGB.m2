@@ -107,6 +107,7 @@ facGB0(Ideal, Set) := (I, nonzeros) -> (
     prev := set{};
     L := for g in toList(set facs - nonzeros) list (
           --if member(g, nonzeros) then continue;
+          -- colon or sum?
           J := (ideal(g) + I);
           J = trim ideal apply(J_*, f -> (
               product toList (set ((factors f)/last) - nonzeros)
@@ -215,7 +216,7 @@ TEST ///
   p1  = time minAss I1
   p1' = time minprimes I1  
   p1 = sort apply(p1, P -> flatten entries gens gb P );
-  D1 = decompose I1;
+  D1 = time decompose I1;
   D1 = sort apply(D1, i -> flatten entries gens gb i );  
   assert(p1 === D1)
 ///

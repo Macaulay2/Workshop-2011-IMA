@@ -49,8 +49,7 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
        if retVal === null then break;
        first retVal
     );
-    if #rrLoopG == #loopG then (
-	 << "(totalLoopCount,loopCount,paramList) : " << (totalLoops,loopCount,#paramList) << endl;
+    if #rrLoopG == #loopG then (	 << "(totalLoopCount,loopCount,paramList) : " << (totalLoops,loopCount,#paramList) << endl;
 	 return (rrLoopG,totalLoops);
     )
   );
@@ -151,7 +150,6 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     L1 := ideal(IF1_*/numerator);
     lastVar = numerator lastVar;
     otherVars = otherVars/numerator;
-    -- use quickGB here? The f^2*g example below really bogs down at this stage.
     -- as of now, we use quickGB if the base field is not a fraction field.
     G := if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
     --time G := (eliminate(L1, otherVars))_0;
@@ -170,23 +168,20 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     else if #facs1 == 1 and facs1#0#0 == 1 then {IF}
     else (
          j := 0;
-         -- Note that the second condition forces the 'last factor' trick to not occur,
-         -- since we need to be able to find the square roots mod the previous terms
-         -- for example, if F is a power of a single irreducible, then we can't use the (nonexistent)
-         -- previous factors found to find the irreducible.
+         -- Note that the second condition forces the 'last factor' trick to not occur
+         -- in case the polynomial is, for example, a pure power of an irreducible.
          retVal := flatten while (j <= #facs1 - 2 or (j == #facs1-1 and facs1#j#0 > 1)) list (
-                      -- Note we are ignoring multiplicity here.  Will include it later.
-                      fac = facs1#j;
+                      -- Note we are ignoring multiplicity here.  Will include it later when doing primary components
+                      fac := facs1#j;
                       j = j + 1;
                       G = fac#1 % L;
                       C := ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
                       if C == 1 then continue;
                       newFacs = newFacs * (first toList (set C_* - set IF_*))^(fac#0);
-                      if not completelySplit then error "err";
                       if completelySplit then C else flatten factorIrredZeroDimensionalTower C
                    );
          -- if we made it all the way through facs1, then we are done.  Else, we may use
-         -- the previous computations to determine the missing last factor.
+         -- the previous computations to determine the final factor
          if j == #facs1 then retVal
          else (
             lastFactor := lastIrred // newFacs;

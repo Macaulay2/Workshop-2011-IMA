@@ -10,6 +10,8 @@ newPackage(
         AuxiliaryFiles=>true
         )
 
+needs "gbRatRecon.m2"
+
 export {
     -- Support routines
     radicalContainment, -- test
@@ -272,7 +274,10 @@ minprimesWorker Ideal := opts -> (I) -> (
         (I1, basevars, ISF) := I1set;
         --D := splitPurePowers ideal ISF;
         D := splitLexGB ideal ISF;
-        comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten);
+        --comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten); -- old splitTower
+        -- is there a way to use the polyCRA trick in nonzero characteristic?
+        if char ring I != 0 then comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten)
+          else comps = join(comps, (apply(D, j -> factorIrredZeroDimensionalTower(j,Verbosity=>opts.Verbosity))) // flatten);
         J = I2;
         loopCount = loopCount + 1;
         );

@@ -238,7 +238,9 @@ TEST ///
   use SF
   use coefficientRing SF
   J =ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e^4+c*e^3+c^2*e^2+c^3*e+c^4,d+((-1)/(c^2))*e^3,b+((-1)/(c))*e^2,a+(1/(c^2))*e^3+(1/(c))*e^2+e+c)
-  assert (splitTower J == {ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+((-1)/(c))*h^2,d-h,b+(1/(c^2))*h^3+(1/(c))*h^2+h+c,a+((-1)/(c^2))*h^3), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e-h,d+((-1)/(c^2))*h^3,b+((-1)/(c))*h^2,a+(1/(c^2))*h^3+(1/(c))*h^2+h+c), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+((-1)/(c^2))*h^3,d+(1/(c^2))*h^3+(1/(c))*h^2+h+c,b-h,a+((-1)/(c))*h^2), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+(1/(c^2))*h^3+(1/(c))*h^2+h+c,d+((-1)/(c))*h^2,b+((-1)/(c^2))*h^3,a-h)})
+  answer = {ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+((-1)/(c))*h^2,d-h,b+(1/(c^2))*h^3+(1/(c))*h^2+h+c,a+((-1)/(c^2))*h^3), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e-h,d+((-1)/(c^2))*h^3,b+((-1)/(c))*h^2,a+(1/(c^2))*h^3+(1/(c))*h^2+h+c), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+((-1)/(c^2))*h^3,d+(1/(c^2))*h^3+(1/(c))*h^2+h+c,b-h,a+((-1)/(c))*h^2), ideal(h^4+c*h^3+c^2*h^2+c^3*h+c^4,e+(1/(c^2))*h^3+(1/(c))*h^2+h+c,d+((-1)/(c))*h^2,b+((-1)/(c^2))*h^3,a-h)};
+  -- on rare occasion, this fails.  Does this have to do with a bad specialization again?
+  assert (splitTower J == answer)
 ///
 
 TEST ///
@@ -1053,4 +1055,3 @@ restart
 installPackage "PD"
 needsPackage "UnitTestsPD"
 check "UnitTestsPD"
-     

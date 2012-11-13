@@ -49,6 +49,8 @@ computeGB Ideal := (I) -> (
   fastGB
 )
 
+-- just a function to get the indices of the variables
+-- we are eliminating
 getIndices = (R,v) -> unique apply(v, index)
 
 isFlatPolynomialRing := (R) -> (

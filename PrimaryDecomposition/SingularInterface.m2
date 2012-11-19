@@ -11,8 +11,18 @@ newPackage(
 
 export {
     toSingular, -- monomial order, ring, polynomial, ideal, matrix, list, what else?
-    toSingularMO
+    toSingularMO,
+    wallTime,
+    wallTiming
     }
+
+wallTime = Command (() -> value get "!date +%s")
+wallTiming = f -> (
+    a := wallTime(); 
+    r := f(); 
+    b := wallTime();  
+    << "wall time : " << b-a << " seconds" << endl;
+    r);
 
 -- Code here
 
@@ -170,6 +180,56 @@ debug loadPackage "SingularInterface"
   D1 = D/(i -> flatten entries gens gb i)//set
   assert(C1 === D1)
 ///
+
+TEST ///
+  restart
+  needsPackage "PD"
+  debug needsPackage "SingularInterface"
+  Q = ZZ/32003[a,b,c,d]
+  -- 3 random cubics in R
+  I = ideal(-840*a^3-7687*a^2*b+9625*a*b^2-3820*b^3-10392*a^2*c-13100*a*b*c-11362*b^2*c-7463*a*c^2-11288*b*c^2+1417*c^3-14802*a^2*d-7804*a*b*d+5834*b^2*d-10186*a*c*d-11900*b*c*
+     d+5062*c^2*d+14848*a*d^2+1270*b*d^2+4670*c*d^2+14589*d^3,6046*a^3-1565*a^2*b-10455*a*b^2+13719*b^3+9618*a^2*c+4969*a*b*c+14049*b^2*c+7621*a*c^2-15861*b*c^2-11905*c^3-
+     13456*a^2*d+2029*a*b*d+8067*b^2*d-10420*a*c*d-14441*b*c*d-13965*c^2*d-3634*a*d^2-4035*b*d^2+350*c*d^2-8942*d^3,-12512*a^3-11973*a^2*b-8963*a*b^2-12001*b^3-10663*a^2*c-
+     7202*a*b*c+9856*b^2*c-7955*a*c^2-8818*b*c^2+398*c^3+4259*a^2*d+13332*a*b*d+1576*b^2*d+3008*a*c*d+2588*b*c*d-6135*c^2*d-5311*a*d^2+6731*b*d^2-13991*c*d^2-9315*d^3)
+  time C1 = minprimes I;
+  D1 = singularMinAss I;
+  C2 = C1/(i -> flatten entries gens gb i)//set
+  D2 = D1/(i -> flatten entries gens gb i)//set
+  assert(C2 === D2)
+///
+
+TEST ///
+  restart
+  debug needsPackage "PD"
+  debug needsPackage "SingularInterface"
+  R = QQ[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  I = ideal"
+    -ab-ad+2ah,
+    ad-bd-cf-2ah+2bh+2ck,
+    ab-ad-2bh+2dh-2ck+2fk+2gl,
+    ac-2cs-at+2bt,
+    ac-cs-2at+bt,
+    -d-3s+4u,
+    -f-3t+4v,
+    -g+4w,
+    -a+2x,
+    -b2-c2+2bx+2cy,
+    -d2-f2-g2+2dx+2fy+2gz"
+
+    time J = first simplifyIdeal I
+    time birationalSplit I
+///
+
+TEST ///
+  restart
+  debug needsPackage "PD"
+  debug needsPackage "SingularInterface"
+  R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
+  I = ideal(r^2-3,e_1*g_1+e_2*g_2+e_3*g_3+e_4*g_4, (2/3)*e_1^2+(2/3)*e_3^2-(1/3)*r*e_3*g_1-g_1^2-r*e_4*g_2-g_2^2+(1/3)*r*e_1*g_3-g_3^2+r*e_2*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2-(1/3)*r*e_2*e_3+(1/6)*e_3^2-(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2+(1/2)*e_1*g_2-(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3-(3/2)*e_4*g_3-g_3^2+(1/2)*r*e_2*g_4+(3/2)*e_3*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2+(1/3)*r*e_2*e_3+(1/6)*e_3^2+(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2-(1/2)*e_1*g_2+(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3-(3/2)*e_4*g_3-g_3^2-(1/2)*r*e_2*g_4+(3/2)*e_3*g_4-g_4^2, (2/3)*e_1^2+(2/3)*e_3^2-(1/3)*r*e_3*g_1-g_1^2+r*e_4*g_2-g_2^2+(1/3)*r*e_1*g_3-g_3^2-r*e_2*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2-(1/3)*r*e_2*e_3+(1/6)*e_3^2-(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2+(1/2)*e_1*g_2+(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3+(3/2)*e_4*g_3-g_3^2-(1/2)*r*e_2*g_4-(3/2)*e_3*g_4-g_4^2, (2/3)*e_1^2+(1/2)*e_2^2+(1/3)*r*e_2*e_3+(1/6)*e_3^2+(1/2)*e_2*g_1+(1/6)*r*e_3*g_1-g_1^2-(1/2)*e_1*g_2-(1/2)*r*e_4*g_2-g_2^2-(1/6)*r*e_1*g_3+(3/2)*e_4*g_3-g_3^2+(1/2)*r*e_2*g_4-(3/2)*e_3*g_4-g_4^2)
+  R1 = QQ[vars(0..numgens R-1)]
+  I1 = sub(I, vars R1)
+  time C1 = minprimes I1; -- 17.7 sec
+  D1 = singularMinAss I1; -- at 45 minutes, was using 650 MB.,  3hr19m using 1.68 GB, killed after 3hr30m
 
 doc ///
 Key

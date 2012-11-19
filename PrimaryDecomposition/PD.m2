@@ -172,6 +172,80 @@ facGB Ideal := opts -> (J) -> (
     );
     (C, L)     
 )
+-----------------------------
+-- Birational reduction -----
+-----------------------------
+splitBy = (I, h) -> (
+     if h == 1 then return null;
+     Isat := saturate(I, h);
+     if Isat == I then return null;
+     I2 := I : Isat;
+     (Isat, I2)
+     )
+removeNull = (L) -> select(L, x -> x =!= null)
+linears = (x,I) -> (
+    removeNull for f in I_* list (
+        g := contract(x,f);
+        if g == 0 then continue;
+        if contract(x,g) != 0 then continue;
+        (x, 1/(leadCoefficient g) * g, f))
+    )
+findBirationalPoly = (x,I) -> (
+    M := linears(x,I);
+    if #M === 0 then null
+    else (
+        M1 := sort apply(M, m -> (size m#1, first degree m#1, m));
+        last first M1
+        )
+    )
+findGoodBirationalPoly = (I) -> (
+    M := removeNull for x in gens ring I list (
+        findBirationalPoly(x,I)
+        );
+    M = sort apply(M, m -> (size m#1, first degree m#1, m));
+    if #M === 0 then null else last first M
+    )
+birationalSplit0 = (I, birats, nzds) -> (
+      -- I is an ideal
+      -- birats is a list of (x, g, xg+f), where xg+f is in the original ideal, but x does not occur in I
+      if I == 1 then error "got a bad ideal";
+      m := findGoodBirationalPoly I;
+      if m === null then return null;
+      splitt := if member(m#1, nzds) then null else splitBy(I,m#1);
+      if splitt === null then (
+          -- in this case, m#1 is a nonzerodivisor
+          -- we eliminate m#0
+          J := if m#1 == 1 then (
+                  trim ideal ((gens I) % m#2)
+                  ) 
+               else 
+                  eliminate(I, m#0);
+          {(J, append(birats, m), unique append(nzds, m#1))}
+          )
+      else (
+          (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.  The second?  Who knows?
+          if J1 == 1 then (
+              g := m#1//factors/last//product;
+              if g == 1 then error "also a bad error";
+              {(I + ideal g, birats, nzds)}
+              )
+          else 
+              {(J1, birats, unique append(nzds, m#1)), (J2, birats, nzds)}
+          )
+    )
+birationalSplit = method()
+birationalSplit Ideal := (I) -> (
+    COMPS := birationalSplit0(I, {}, {});
+    ANS := {};
+    stepper := () -> (
+        comp := COMPS#0; 
+        COMPS = drop(COMPS,1); 
+        newcomp := birationalSplit0 comp; 
+        if newcomp === null 
+        then ANS = append(ANS, comp)
+        else COMPS = join(COMPS, newcomp));
+    while #COMPS > 0 do stepper();
+    ANS)
 
 -----------------------------
 -- Redundancy control -------
@@ -363,6 +437,7 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
     --          radical(intersection(I1,I2)) = intersection(radical(I1),radical(I2))
     if I == 1 then error "Internal error: Input should not be unit ideal.";
     R := ring I;
+    hf := if isHomogeneous I then poincare I else null;
     indeps := independentSets(I, Limit=>1);
     basevars := support first indeps;
     if opts.Verbosity > 0 then 
@@ -382,7 +457,8 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
         );
     (S, SF) := makeFiberRings basevars;
     IS := S.cache#"RtoS" I;
-    gens gb IS;
+    time if hf =!= null then gb(IS, Hilbert=>hf) else gb IS;
+    --gens gb IS;
     (ISF, coeffs) := minimalizeOverFrac(IS, SF);
     if coeffs == {} then ((I,basevars,ISF),ideal {1_R}) else (
        facs := (factors product coeffs)/last;

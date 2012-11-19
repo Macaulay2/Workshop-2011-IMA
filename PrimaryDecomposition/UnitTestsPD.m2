@@ -1018,6 +1018,18 @@ TOODAMNSLOW ///
 -- above are from slower-tests.m2 --
 
 TEST ///
+  needsPackage "PD"
+  R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
+  I = ideal(r^2-3,e_2^2-3*e_3^2,e_1^2+6*e_3^2+e_4^2)
+  time minprimes I  -- 17.93 sec, Mike's rMBP, 19 Nov 2012
+  time decompose I  -- .01 sec!!
+   
+  R1 = QQ[support I]
+  I1 = sub(I,R1)
+  time minprimes I1  -- .27 sec, Mike's rMBP, 19 Nov 2012
+///
+
+TEST ///
   restart
   debug loadPackage "PD"
 

@@ -1018,14 +1018,13 @@ TOODAMNSLOW ///
 -- above are from slower-tests.m2 --
 
 TEST ///
-restart
   debug needsPackage "PD"
   R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
   I = trim ideal(0_R)
   minprimes I
   
-  minprimesWorker I
-  equidimSplitOneStep I -- still gives a ring in R
+  --minprimesWorker I
+  --equidimSplitOneStep I -- still gives a ring in R
 ///
 
 TEST ///
@@ -1073,10 +1072,37 @@ TEST ///
   minprimes J
 ///
 
+TEST ///
+-- These tests are in place until we write 
+  needsPackage "PD"
+  R1 = ZZ/101[a..d]/a^2
+  assert(minprimes ideal(a*d) === {ideal(a)})
+  R2 = ZZ[a..d]
+  assert try minprimes (ideal(a*d)) else true
+  R3 = ZZ
+  assert try minprimes (ideal(0_ZZ)) else true
+  assert try minprimes (ideal(5_ZZ)) else true
+  R4 = (frac R2)[x,y,z]
+  assert try minprimes(ideal(a*x)) else true
+  
+  R5 = QQ[a..d]/(a^2+b^2)
+  C = minprimes ideal(0_R5)
+  assert (numgens C#0 === 0)
+///
+
+TEST ///
+needsPackage "PD"
+-- what about over GF?
+  kk = GF(9, Variable=>a)
+  R = kk[x,y,z,w]
+  I = ideal(x^2-x-a)
+  minprimes I  
+  factor I_0
+///
 end
 
 -- 
 restart
-installPackage "PD"
+--installPackage "PD"
 needsPackage "UnitTestsPD"
 check "UnitTestsPD"

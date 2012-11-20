@@ -391,11 +391,24 @@ minprimes = method(Options => {
         "RadicalSoFar" => null -- used in inductive setting
         })
 minprimes Ideal := opts -> (I) -> (
-    -- possibly do some preprocessing (exactly what to do here requires work
-    -- and a separate function)
     -- returns a list of ideals, the minimal primes of I
-    R := ring I;
-    --- pre-processing of ideals
+    A := ring I;
+    (I',F) := flattenRing I; -- F is not needed
+    R := ring I';
+    if not isPolynomialRing R then error "expected ideal in a polynomial ring or a quotient of one";
+    psi := map(A, R, generators(A, CoefficientRing => coefficientRing R));
+    backToOriginalRing := if R === A then 
+            identity 
+         else (J) -> trim psi J;
+    I = I';
+    if not isCommutative R then
+      error "expected commutative polynomial ring";
+    kk := coefficientRing R;
+    if kk =!= QQ and not instance(kk,QuotientRing) and not instance(kk, GaloisField) then
+      error "expected base field to be QQ or ZZ/p or GF(q)";
+    if I == 0 then return {if A === R then I else ideal map(A^1,A^0,0)};
+    -- note: at this point, R is the ring of I, and R is a polynomial ring over a prime field
+    --- pre-processing of ideals:
     J := squarefreeGenerators(opts#"SquarefreeFactorSize",I);
     phi := identity;
     doSimplifyIdeal := any(gens R, x -> any(I_*, f -> first degree diff(x,f) == 0));
@@ -405,7 +418,7 @@ minprimes Ideal := opts -> (I) -> (
     C1 := C / (c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity));
     C2 := C1 / (i -> (ring i).cache#"StoR" i);
     --- post-processing of ideals
-    (selectMinimalIdeals C2) / phi
+    (selectMinimalIdeals C2) / phi / backToOriginalRing
     )
 
 minprimesWorker = method (Options => options minprimes)

@@ -85,6 +85,7 @@ modPFracGB (Ideal,List) := opts -> (I, baseVars) -> (
   reconTally := new MutableHashTable;
   continueLoop := true;
   IpRatReconQ := null;
+  baseVars = toList((set support I) * (set baseVars)); -- we only need to consider variables which actually occur in gens of I
   while #reconTally == 0 or reconTally#(IpRatReconQ_*) < opts#"NumSameRecons" do (
     p := validPrimes_i;
     Sp := (ZZ/p)(monoid S);

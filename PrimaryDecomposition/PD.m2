@@ -176,6 +176,12 @@ facGB Ideal := opts -> (J) -> (
 -- Birational reduction -----
 -----------------------------
 splitBy = (I, h) -> (
+     -- I is an ideal in a poly ring
+     -- h is an element in the same ring
+     -- computes (I1,I2), where I1 = saturate(I,h), I2=I:I1
+     -- except it returns null in some cases:
+     --   h == 1, or
+     --   I1 == I
      if h == 1 then return null;
      Isat := saturate(I, h);
      if Isat == I then return null;

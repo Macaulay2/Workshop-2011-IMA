@@ -1018,6 +1018,17 @@ TOODAMNSLOW ///
 -- above are from slower-tests.m2 --
 
 TEST ///
+restart
+  debug needsPackage "PD"
+  R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
+  I = trim ideal(0_R)
+  minprimes I
+  
+  minprimesWorker I
+  equidimSplitOneStep I -- still gives a ring in R
+///
+
+TEST ///
   needsPackage "PD"
   R = QQ[e_1, e_2, e_3, e_4, g_1, g_2, g_3, g_4, r]
   I = ideal(r^2-3,e_2^2-3*e_3^2,e_1^2+6*e_3^2+e_4^2)

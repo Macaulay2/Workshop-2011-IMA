@@ -105,6 +105,7 @@ factors RingElement := (F) -> (
     if R.?toAmbientField then apply(facs, (r,g) -> (r, R.fromAmbientField g)) else facs
     )
 
+-- this code was taken from FactorizingGB.m2
 findElementThatFactors = method()
 findElementThatFactors List := L -> (
     -- sort L by number of terms first?
@@ -116,7 +117,6 @@ findElementThatFactors List := L -> (
     (null, {})
     )
 
--- this code was taken from FactorizingGB.m2
 facGB0 = method(Options => {"UseColon"=>true})
 facGB0(Ideal, Set) := opts -> (I, nonzeros) -> (
     -- returns a pair (P:List, L:List)
@@ -131,14 +131,18 @@ facGB0(Ideal, Set) := opts -> (I, nonzeros) -> (
         );
     prev := set{};
     nonzeroFacs := toList(set facs - nonzeros);
+    if #nonzeroFacs == 1 and nonzeroFacs#0 != f then return ({},{(trim(ideal nonzeroFacs#0 + I),nonzeros)});
     L := for g in nonzeroFacs list (
-          --if member(g, nonzeros) then continue;
           -- colon or sum?
           J := null;
           if opts#"UseColon" then (
              -- TODO: Find the components that are missing when using colons!
-             J = saturate(I, f // g);
-             I = (I : J);
+             --J = saturate(I, f // g);
+             --I = (I:J)
+             J1 := saturate(I,g);
+             J2 := (I:J1);
+             J = J2;
+             I = J1;
           )
           else (
              J = (ideal(g) + I);
@@ -164,6 +168,7 @@ facGB Ideal := opts -> (J) -> (
             if C1 =!= {} then C = append(C, C1);
             L1
         );
+        --error "err";
         L = L2;
         << "number: " << (i, #C, #L) << endl;
         --<< "C = " << netList C << endl;
@@ -172,6 +177,39 @@ facGB Ideal := opts -> (J) -> (
     );
     (C, L)     
 )
+
+removeRedundants = (L) -> (
+     -- L is a list of pairs (Ideal,sepSet)
+     -- where sepSet is a set of monic polynomials
+   H := partition(pair -> codim pair#0, L);
+   codims := sort keys H;
+   goodComps := {};
+   compsToCheck := flatten for c in codims list H#c;
+   for p in compsToCheck do (
+       if all(goodComps, pair -> not isSubset(pair#0, p#0)) then (
+            -- << codim p#0 << " " << flush;
+            satI := p#0;
+            for s in toList p#1 do satI = ideal gens gb trim saturate(satI, s);
+            goodComps = append( goodComps, (satI, {}));
+	     )
+	 );
+   goodComps
+   )
+
+factorizationSplit = method(Options=>options facGB)
+factorizationSplit(Ideal) := opts -> I -> (
+  time facD1 := first facGB(I,opts);
+  time sortedFacD1 := sort apply(facD1, pair -> (
+    flatten entries gens gb first pair, last pair ) );
+  sortedFacD1 = sortedFacD1/(pair -> (ideal pair#0, pair#1)); 
+  time irredFacD1 := removeRedundants sortedFacD1; 
+  time irredFacD2 := removeRedundants irredFacD1;
+  irredFacD2 / first
+  )
+
+
+--- end code taken from FactorizingGB
+
 -----------------------------
 -- Birational reduction -----
 -----------------------------
@@ -364,8 +402,9 @@ extendIdeal Ideal := (I) -> (
      ideal JSF
      )
 
-squarefreeGenerators = method()
-squarefreeGenerators (ZZ,Ideal) := (n,I) -> (
+squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
+squarefreeGenerators Ideal := opts -> I -> (
+   n := opts#"SquarefreeFactorSize";
    madeChanges := false;
    J := ideal for g in I_* list (
               if size g > n then g
@@ -388,7 +427,11 @@ minprimes = method(Options => {
         Verbosity => 0,
         "SquarefreeFactorSize" => 1,
         Ideal => null,  -- used in inductive setting
-        "RadicalSoFar" => null -- used in inductive setting
+        "RadicalSoFar" => null, -- used in inductive setting
+        "SimplifyIdeal" => true, -- TODO: Change to a more descriptive name
+        "FactorizationSplit" => false, -- Perform the factorization split in preprocessing
+        "FactorizationLimit" => infinity, -- Limit of splitting in factorization split
+        "UseColon" => true -- Use colon method in factorization split function
         })
 minprimes Ideal := opts -> (I) -> (
     -- returns a list of ideals, the minimal primes of I
@@ -409,12 +452,14 @@ minprimes Ideal := opts -> (I) -> (
     if I == 0 then return {if A === R then I else ideal map(A^1,A^0,0)};
     -- note: at this point, R is the ring of I, and R is a polynomial ring over a prime field
     --- pre-processing of ideals:
-    J := squarefreeGenerators(opts#"SquarefreeFactorSize",I);
+    J := squarefreeGenerators(I, "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize");
     phi := identity;
-    doSimplifyIdeal := any(gens R, x -> any(I_*, f -> first degree diff(x,f) == 0));
-    if doSimplifyIdeal then (J,phi) = simplifyIdeal I;
+    -- TODO: do simplify ideal before or after factorizingSplit?
+    doSimplifyIdeal := opts#"SimplifyIdeal" and any(gens R, x -> any(J_*, f -> first degree diff(x,f) == 0));
+    if doSimplifyIdeal then (J,phi) = simplifyIdeal J;
+    Js := if opts#"FactorizationSplit" then factorizationSplit J else {J}; -- TODO: Pass options from minprimes along to factorizingSplit
     --- compute minimal primes of the processed ideals
-    C := minprimesWorker(J, opts);
+    C := flatten for j in Js list minprimesWorker(j, opts);
     C1 := C / (c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity));
     C2 := C1 / (i -> (ring i).cache#"StoR" i);
     --- post-processing of ideals

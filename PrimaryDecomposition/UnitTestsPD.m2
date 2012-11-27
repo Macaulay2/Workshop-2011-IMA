@@ -1,4 +1,3 @@
-
 newPackage(
         "UnitTestsPD",
         Version => "0.1", 
@@ -10,7 +9,7 @@ newPackage(
         DebuggingMode => true
         )
 
-export {checkMinimalPrimes}
+export {checkMinimalPrimes, wallTime, wallTiming}
 
 needsPackage "PD"
 
@@ -30,6 +29,14 @@ checkMinimalPrimes(Ideal, List) := opts -> (I, C1) -> (
         assert(set1 === set2);
         );
     )
+
+wallTime = Command (() -> value get "!date +%s")
+wallTiming = f -> (
+    a := wallTime(); 
+    r := f(); 
+    b := wallTime();  
+    << "wall time : " << b-a << " seconds" << endl;
+    r);
 
 -- SIMPLETEST checks the results with the original decompose function
 -- but this should only be run on examples that 'decompose' can do quickly  
@@ -1099,10 +1106,40 @@ needsPackage "PD"
   minprimes I  
   factor I_0
 ///
+
+-- factorizationSplit test
+TEST ///
+  -- TODO : Turn this into a test.
+  restart
+  debug needsPackage "PD"
+  needsPackage "UnitTestsPD"
+  R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
+  I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
+  facGB0(I1, set {})
+  facGB I1
+  J = ideal(K,G,D^2,A*D,j*m-m*t,d*m-f*m,j^2-j*t,d*f-f^2,f^2*j*k-m*r)
+  facGB0(J, set {})
+  facGB0(J, set {}, "UseColon"=>false)
+  p1  = time factorizationSplit(I1)
+  p1  = time factorizationSplit(I1, "UseColon"=>false)
+  p1' = time minprimes I1  
+  isSubset(set p1, set p1')
+  (set p1') - (set p1)
+  checkMinimalPrimes(I1,p1')
+  -- uhoh!
+  checkMinimalPrimes(I1,p1)
+  p1 = sort apply(p1, P -> flatten entries gens gb P );
+  D1 = time decompose I1;
+  D1 = sort apply(D1, i -> flatten entries gens gb i );  
+  assert(p1 === D1)
+///
+
+
 end
 
 -- 
 restart
 --installPackage "PD"
 needsPackage "UnitTestsPD"
-check "UnitTestsPD"
+wallTiming (() -> check "UnitTestsPD")
+--- On Frank's office machine, 11/27/2012 : 95 seconds

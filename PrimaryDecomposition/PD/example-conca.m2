@@ -33,3 +33,16 @@ selectMinimalIdeals oo
 time C/(c0 -> trim saturate((ideal c0#1) + c0#0))
 C_1
 time C/(c0 -> product c0#2)
+
+minprimesViaBirationalSplit = method()
+minprimesViaBirationalSplit Ideal := (I) -> (
+    C := birationalSplit I;
+    L := for c0 in C list (
+            f := product c0#2; -- the flattener to consider
+            B := ideal(c0#1/last); -- the "fractions"
+            -- now we need to split co#0 up first, if possible:
+            C1 := if co#0 == 0 then {c0#0}
+            C1 := minprimes c0#0
+        );
+    L
+    )

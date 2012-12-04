@@ -117,7 +117,30 @@ findElementThatFactors List := L -> (
     (null, {})
     )
 
-facGB0 = method(Options => {"UseColon"=>true})
+facGB = method(Options=>{"FactorizationDepth"=>infinity,
+                         "UseColon"=>true,
+                         "FactorizationLimit"=>infinity})
+facGB Ideal := opts -> (J) -> (
+    C := {};
+    L := {(J,set{})};
+    i := 0;
+    while i < opts#"FactorizationDepth" and #L > 0 do (
+        L2 := flatten for j in L list (
+            (C1,L1) := facGB0(j,opts);
+            if C1 =!= {} then C = append(C, C1);
+            L1
+        );
+        --error "err";
+        L = L2;
+        << "number: " << (i, #C, #L) << endl;
+        --<< "C = " << netList C << endl;
+        --<< "L = " << netList L << endl;
+        i = i+1;
+    );
+    (C, L)     
+)
+
+facGB0 = method(Options => options facGB)
 facGB0(Ideal, Set) := opts -> (I, nonzeros) -> (
     -- returns a pair (P:List, L:List)
     --  where : P is a list of ideals, that have no factorization left.
@@ -137,12 +160,8 @@ facGB0(Ideal, Set) := opts -> (I, nonzeros) -> (
           J := null;
           if opts#"UseColon" then (
              -- TODO: Find the components that are missing when using colons!
-             --J = saturate(I, f // g);
-             --I = (I:J)
-             J1 := saturate(I,g);
-             J2 := (I:J1);
-             J = J2;
-             I = J1;
+             --       This process will miss any component for which g is in I for all g.
+             J = I:(f // g);
           )
           else (
              J = (ideal(g) + I);
@@ -157,26 +176,6 @@ facGB0(Ideal, Set) := opts -> (I, nonzeros) -> (
     ({}, L)
 )
 
-facGB = method(Options=>{Limit=>infinity, "UseColon"=>true})
-facGB Ideal := opts -> (J) -> (
-    C := {};
-    L := {(J,set{})};
-    i := 0;
-    while i < opts.Limit and #L > 0 do (
-        L2 := flatten for j in L list (
-            (C1,L1) := facGB0(j,"UseColon"=>opts#"UseColon");
-            if C1 =!= {} then C = append(C, C1);
-            L1
-        );
-        --error "err";
-        L = L2;
-        << "number: " << (i, #C, #L) << endl;
-        --<< "C = " << netList C << endl;
-        --<< "L = " << netList L << endl;
-        i = i+1;
-    );
-    (C, L)     
-)
 
 removeRedundants = (L) -> (
      -- L is a list of pairs (Ideal,sepSet)
@@ -397,7 +396,7 @@ extendIdeal Ideal := (I) -> (
      indep := support first independentSets(I, Limit=>1);
      (S,SF) := makeFiberRings indep;
      IS := S.cache#"RtoS" I;
-     time gens gb IS;
+     gens gb IS;
      (JSF, coeffs) := minimalizeOverFrac(IS, SF);
      ideal JSF
      )
@@ -430,7 +429,8 @@ minprimes = method(Options => {
         "RadicalSoFar" => null, -- used in inductive setting
         "SimplifyIdeal" => true, -- TODO: Change to a more descriptive name
         "FactorizationSplit" => false, -- Perform the factorization split in preprocessing
-        "FactorizationLimit" => infinity, -- Limit of splitting in factorization split
+        "FactorizationDepth" => infinity, -- Limit of splitting in factorization split
+        "FactorizationLimit" => 100, -- Limit of number of terms to try and factor
         "UseColon" => true -- Use colon method in factorization split function
         })
 minprimes Ideal := opts -> (I) -> (
@@ -451,17 +451,26 @@ minprimes Ideal := opts -> (I) -> (
       error "expected base field to be QQ or ZZ/p or GF(q)";
     if I == 0 then return {if A === R then I else ideal map(A^1,A^0,0)};
     -- note: at this point, R is the ring of I, and R is a polynomial ring over a prime field
-    --- pre-processing of ideals:
-    J := squarefreeGenerators(I, "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize");
     phi := identity;
+    
+    -- pre-processing of ideals:
+    J := squarefreeGenerators(I, "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize");
     -- TODO: do simplify ideal before or after factorizingSplit?
     doSimplifyIdeal := opts#"SimplifyIdeal" and any(gens R, x -> any(J_*, f -> first degree diff(x,f) == 0));
     if doSimplifyIdeal then (J,phi) = simplifyIdeal J;
-    Js := if opts#"FactorizationSplit" then factorizationSplit J else {J}; -- TODO: Pass options from minprimes along to factorizingSplit
-    --- compute minimal primes of the processed ideals
+    Js := if opts#"FactorizationSplit"
+        then factorizationSplit(J,
+                               "FactorizationDepth"=>opts#"FactorizationDepth",
+                               "UseColon"=>opts#"UseColon",
+                               "FactorizationLimit"=>opts#"FactorizationLimit"
+                               )
+        else {J};
+
+    -- compute minimal primes of the processed ideals
     C := flatten for j in Js list minprimesWorker(j, opts);
     C1 := C / (c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity));
     C2 := C1 / (i -> (ring i).cache#"StoR" i);
+
     --- post-processing of ideals
     (selectMinimalIdeals C2) / phi / backToOriginalRing
     )
@@ -521,7 +530,7 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
         );
     (S, SF) := makeFiberRings basevars;
     IS := S.cache#"RtoS" I;
-    time if hf =!= null then gb(IS, Hilbert=>hf) else gb IS;
+    if hf =!= null then gb(IS, Hilbert=>hf) else gb IS;
     --gens gb IS;
     (ISF, coeffs) := minimalizeOverFrac(IS, SF);
     if coeffs == {} then ((I,basevars,ISF),ideal {1_R}) else (
@@ -596,7 +605,7 @@ splitTower Ideal := opts -> (IF) -> (
     if #facs1 == 1 and facs1#0#0 == 1 then {IF}
     else flatten for fac in facs1 list (
         G := fac#1 % L;
-        C := time ideal gens gb(ideal S.cache#"StoSF" G + J);
+        C := ideal gens gb(ideal S.cache#"StoSF" G + J);
         if C == 1 then continue;
         --time C := ideal first minimalizeOverFrac((ideal G) + L, SF);
         P := ideal gens gb (C + ideal linears);
@@ -621,6 +630,7 @@ simplifyIdeal Ideal := (originalI) -> (
    I := originalI;
    R := ring I;
    H := new MutableList from gens R;
+   imageList := new MutableList from gens R;
    for x in gens R do (
      k := position(I_*, f -> first degree diff(x,f) == 0);
      if k === null then continue;
@@ -629,12 +639,16 @@ simplifyIdeal Ideal := (originalI) -> (
      -- at this point f = I_k = c*x + g, and g does not involve x.
      --  (and c is a constant)
      p := - 1/c * g;
+     n := index x;
+     --imageList#n = p;
+     --subMap := map(R,R,toList imageList);
      I = ideal(x) + ideal compress sub(gens I, x=>p);
-     H#(index x) = x - p;
+     --I = ideal(x) + ideal compress subMap gens I;
+     --imageList#n = x;
+     H#n = x - p;
    );
    (ideal compress gens I, map(R,R,toList H))
 )
-
 
 beginDocumentation()
 

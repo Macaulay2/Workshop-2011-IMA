@@ -257,7 +257,12 @@ TEST ///
   assert (splitTower ideal 0_R == {ideal 0_R})  
 ///
 
+----------------------------------------------------------
+-- Tests of routines for birationalSplit, simplifyIdeal --
+----------------------------------------------------------
+
 TEST ///
+restart
   debug needsPackage "PD"
   R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"
@@ -276,6 +281,57 @@ TEST ///
   J1 = ideal gens phi J
   assert(I == J1)
 ///
+
+TEST ///
+restart
+  debug needsPackage "PD"
+  R = QQ[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  F = -a+2*x
+  assert(
+    makeLinearElement(a,F) 
+      === (a, 1_R, a-2*x)
+    )
+
+  assert(makeLinearElement(x,F) === (x, 1_R, x -1/2 * a))
+  assert(makeLinearElement(a, a^2-b) === null)
+  assert(makeLinearElement(a, b^2-c) === null)
+  assert(makeLinearElement(a, a^100) === null)
+  assert(makeLinearElement(a, a+a^100) === null)
+  assert(makeLinearElement(a,a) === (a,1_R,a))
+///
+
+TEST ///
+restart
+  debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  I = ideal"
+    -ab-ad+2ah,
+    ad-bd-cf-2ah+2bh+2ck,
+    ab-ad-2bh+2dh-2ck+2fk+2gl,
+    ac-2cs-at+2bt,
+    ac-cs-2at+bt,
+    -d-3s+4u,
+    -f-3t+4v,
+    -g+4w,
+    -a+2x,
+    -b2-c2+2bx+2cy,
+    -d2-f2-g2+2dx+2fy+2gz"
+  (J,phi) = simplifyIdeal2 I
+  J1 = ideal gens phi J
+  assert(I == J1)
+  
+  (J1, phi1) = simplifyIdeal I
+///
+
+TEST ///
+restart
+  debug needsPackage "PD"
+  R = ZZ/101[a,b,c]
+  I = ideal(a-b^2, b^2-c^2+a^2)
+  simplifyIdeal2 I
+  simplifyIdeal I  
+///
+
 
 -------------------------------------
 --- Primary Decomposition tests below
@@ -1144,8 +1200,9 @@ TEST ///
   
   -- simplifyIdeal takes too long!
   -- Takes about .8 seconds on Frank's Machine 12/4/2012
-  time p1 / simplifyIdeal
-  
+  time p1 / simplifyIdeal;
+  time p1 / simplifyIdeal2;  
+
   p1  = time factorizationSplit(I1, "UseColon"=>false)
   p1' = time minprimes I1  
   (set p1') - (set p1)
@@ -1184,3 +1241,4 @@ restart
 needsPackage "UnitTestsPD"
 wallTiming (() -> check "UnitTestsPD")
 --- On Frank's office machine, 11/27/2012 : 95 seconds
+--- on Mike's rMBP, 12/7/2012: 70 seconds

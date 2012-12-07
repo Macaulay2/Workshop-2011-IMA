@@ -20,8 +20,25 @@ export {
     toAmbientField, -- make as a string so that we dont have to export?
     fromAmbientField,  -- make as a string so that we dont have to export?
     -- Main functions
-    minprimes
+    minprimes,
+    AnnotatedIdeal,
+    NonzeroDivisors,
+    nzds
     }
+
+minprimes = method(Options => {
+        Verbosity => 0,
+        "SquarefreeFactorSize" => 1,
+        Ideal => null,  -- used in inductive setting
+        "RadicalSoFar" => null, -- used in inductive setting
+        "SimplifyIdeal" => true, -- TODO: Change to a more descriptive name
+        "FactorizationSplit" => false, -- Perform the factorization split in preprocessing
+        "FactorizationDepth" => infinity, -- Limit of splitting in factorization split
+        "FactorizationLimit" => 100, -- Limit of number of terms to try and factor
+        "UseColon" => true -- Use colon method in factorization split function
+        })
+
+load (PD#"source directory"|"PD/annotated-ideals.m2")
 
 ------------------------------
 -- Radical containment -------
@@ -226,13 +243,40 @@ splitBy = (I, h) -> (
      (Isat, I2)
      )
 removeNull = (L) -> select(L, x -> x =!= null)
-linears = (x,I) -> (
-    removeNull for f in I_* list (
-        g := contract(x,f);
-        if g == 0 then continue;
-        if contract(x,g) != 0 then continue;
-        (x, 1/(leadCoefficient g) * g, f))
+makeLinearElement = (x,f) -> (
+    -- x is a variable
+    -- f is a polynomial
+    -- returns null if f is not linear as a polynomial in x
+    -- otherwise returns
+    -- (x, g, f1),
+    --    where f1 = xg-h, 
+    --   g and h do not involve x, and g is monic
+    g := contract(x,f);
+    if g == 0 then return null;
+    if contract(x,g) != 0 then return null;
+    c := leadCoefficient g;
+    f = 1/c * f;
+    g = 1/c * g;
+    --h := x*g-f;
+    (x, g, f)
     )
+
+replaceVariable = (I, m) -> (
+    -- reduce by x-p, p doesn't involve x, but x might not be the lead term of x-p.
+    if leadTerm m#2 === m#0
+    then ideal compress ((gens I) % m#2)
+    else ideal compress sub(gens I, m#0 => m#0 * m#1 - m#2)
+    )
+eliminateLinear = (I, m) -> (
+    -- I is an ideal
+    -- m is a list as returned by makeLinearElement
+    -- returns the ideal with I eliminated
+    if m#1 == 1 
+    then replaceVariable(I,m)
+    else eliminate(I, m#0)
+    )
+
+linears = (x,I) -> I_* / (F -> makeLinearElement(x,F)) // removeNull
 findBirationalPoly = (x,I) -> (
     M := linears(x,I);
     if #M === 0 then null
@@ -242,6 +286,8 @@ findBirationalPoly = (x,I) -> (
         )
     )
 findGoodBirationalPoly = (I) -> (
+    -- given an ideal I, returns either null or a tuple (x, g, f)
+    -- (see makeLinearElement for a description of these items)
     M := removeNull for x in gens ring I list (
         findBirationalPoly(x,I)
         );
@@ -249,8 +295,18 @@ findGoodBirationalPoly = (I) -> (
     if #M === 0 then null else last first M
     )
 birationalSplit0 = (I, birats, nzds) -> (
-      -- I is an ideal
-      -- birats is a list of (x, g, xg+f), where xg+f is in the original ideal, but x does not occur in I
+      -- input:
+      --   I is an ideal
+      --   birats is a list of (x, g, xg-h), where xg-h is in the original ideal, but x does not occur in I
+      --   nzds is a list of known non-zerodivisors of I
+      -- returns:
+      --   either null,
+      --   or a list of:
+      --     (I', birats', nzds')
+      -- note: a triple (I,birats, nzds) represents the following ideal:
+      --  saturate(I + ideal(birats/last), product nzds), although we should only need
+      -- to saturate with the elements birats/(m -> m#1).
+      -- BUT: I has a set of generators not involving any of the variables birats/first.
       if I == 1 then error "got a bad ideal";
       m := findGoodBirationalPoly I;
       if m === null then return null;
@@ -258,17 +314,13 @@ birationalSplit0 = (I, birats, nzds) -> (
       if splitt === null then (
           -- in this case, m#1 is a nonzerodivisor
           -- we eliminate m#0
-          J := if m#1 == 1 then (
-                  trim ideal ((gens I) % m#2)
-                  ) 
-               else 
-                  eliminate(I, m#0);
+          J := eliminateLinear(I, m);
           {(J, append(birats, m), unique append(nzds, m#1))}
           )
       else (
           (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.  The second?  Who knows?
           if J1 == 1 then (
-              g := m#1//factors/last//product;
+              g := m#1//factors/last//product; -- squarefree part of m#1
               if g == 1 then error "also a bad error";
               {(I + ideal g, birats, nzds)}
               )
@@ -279,6 +331,7 @@ birationalSplit0 = (I, birats, nzds) -> (
 birationalSplit = method()
 birationalSplit Ideal := (I) -> (
     COMPS := birationalSplit0(I, {}, {});
+    if COMPS === null then return null;
     ANS := {};
     stepper := () -> (
         comp := COMPS#0; 
@@ -422,17 +475,6 @@ squarefreeGenerators Ideal := opts -> I -> (
 -- Minimal primes -----
 -- 25 Sep 2012: Frank+Franzi+Mike working on this
 -----------------------
-minprimes = method(Options => {
-        Verbosity => 0,
-        "SquarefreeFactorSize" => 1,
-        Ideal => null,  -- used in inductive setting
-        "RadicalSoFar" => null, -- used in inductive setting
-        "SimplifyIdeal" => true, -- TODO: Change to a more descriptive name
-        "FactorizationSplit" => false, -- Perform the factorization split in preprocessing
-        "FactorizationDepth" => infinity, -- Limit of splitting in factorization split
-        "FactorizationLimit" => 100, -- Limit of number of terms to try and factor
-        "UseColon" => true -- Use colon method in factorization split function
-        })
 minprimes Ideal := opts -> (I) -> (
     -- returns a list of ideals, the minimal primes of I
     A := ring I;
@@ -650,6 +692,32 @@ simplifyIdeal Ideal := (originalI) -> (
    (ideal compress gens I, map(R,R,toList H))
 )
 
+-------------------------------------------------------------
+-- Mike's test code for dealing with splitting of an ideal --
+-------------------------------------------------------------
+
+simplifyIdeal2 = method()
+simplifyIdeal2 Ideal := (I) -> (
+     -- input: ideal I in a polynomial ring R
+--   R := ring I;
+--   linears := {}; -- list of (x, f=xg-h, monic(g)), where g and h do not involve x, and g is a constant
+   linears := for x in gens ring I list (
+     k := position(I_*, f -> first degree contract(x,f) == 0);
+     if k === null then continue;
+     m := makeLinearElement(x, I_k);
+     I = replaceVariable(I,m);
+     m);
+--     f := I_k;
+--     c := contract(x,f); -- c is a constant here
+--     h := 1/(leadCoefficient c) * (c*x - f);
+--     I = replaceVariable(I,x,h);
+--     linears = append(linears, (x, x-h, 1_R));
+--   );
+   (I, linears)
+)
+
+
+-------------------------------------------------------------
 beginDocumentation()
 
 doc ///

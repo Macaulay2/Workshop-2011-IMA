@@ -31,7 +31,12 @@ time minprimes I
 I = adjacentMinorsIdeal(2,3,7,CoefficientRing=>ZZ/32003)
 time minprimes I
 I = adjacentMinorsIdeal(2,3,8,CoefficientRing=>ZZ/32003)
-time minprimes I
+  -- 7 Dec 2012:
+  time minprimesViaBirationalSplit I;
+     -- used 22.6325 seconds
+  time minprimes I;
+  time decompose I;  -- killed after short period of time
+  
 I = adjacentMinorsIdeal(2,3,9,CoefficientRing=>ZZ/32003)
 time minprimes I
 I = adjacentMinorsIdeal(2,3,10,CoefficientRing=>ZZ/32003)

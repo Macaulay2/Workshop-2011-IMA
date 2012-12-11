@@ -375,6 +375,12 @@ SIMPLETEST ///
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
   C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///
@@ -383,6 +389,12 @@ SIMPLETEST ///
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
   C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///
@@ -391,6 +403,12 @@ SIMPLETEST ///
   I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
   C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///
@@ -401,6 +419,12 @@ SIMPLETEST ///
   I = ideal(p^2*q^3, (y-z^3)^3, (x-y*z+z^4)^4)
   C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///
@@ -411,6 +435,12 @@ SIMPLETEST ///
   I = ideal(p^2*q^3, (y-z^3)^3, (x-y*z+z^4)^4)
   C = minprimes(I, "FactorizationSplit"=>true)
   checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///
@@ -629,6 +659,12 @@ SIMPLETEST ///
     -2x2y+xy4+yz4-3"
   C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///

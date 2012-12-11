@@ -42,3 +42,29 @@ A list of activities that are required or at least desirable
     is a bit slow and needs to be sped up.
   * Other things still to do:  equidimSplitOneStep needs work (also a bit slow).
   
+* 11 Dec 2012 Notes/Todo:
+  * fix equidimSplitOneStep to handle #basevars == 0 case directly and robustly:
+    i.e.: makeFiberRings should handle #basevar = 0 (i.e. make sure the Slex.cache has the correct
+    ring maps/maps in)
+  * fix the bug: UseColon => true.  This is most likely a math bug
+  * make a new version of minprimes that carries AnnotatedIdeal's around, doesn't use old simplifyIdeal.
+  * let's not forget: IdealSoFar strategy, which we have not considered in our code yet.
+  * unify Groebner basis computation under ratrecon so that computations over ZZ/p are also fast.
+    two tricks to remember: compute GB of the grevlex and use this to compute GB of lex
+                            modular code and reconstruction
+                            use homogenization and Hilbert functions
+    idea: make these play together
+
+  * how to use AnnotatedIdeals.  first idea: each "node" (AnnotatedIdeal) has
+    extra info we have several routines that simplify or split an
+    AnnotatedIdeal.  minprimes function will somehow put these together, until
+    it can prove that we have all prime ideals, or that we have the final
+    answer.
+    splitIdeal(AnnotatedIdeal, options)
+      ==> (List of completed AnnotatedIdeal's: these are prime, List of AnnotatedIdeal's not known to be prime)
+
+    splitIdeal via: IndependentSets
+    splitIdeal via: Factorization
+    splitIdeal via: Birational
+    splitIdeal via: LinearPolynomials (e.g. like simplifyIdeal)
+      splitIdeal(I,Split=> LinearPolynomials) ==> ({}, {annotatedIdeal I})

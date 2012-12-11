@@ -16,7 +16,7 @@ end
 
 restart
 load "PD/example-adjacentminors.m2"
-needsPackage "PD"
+debug needsPackage "PD"
 I = adjacentMinorsIdeal(2,3,3,CoefficientRing=>ZZ/32003)
 minprimes I
 primaryDecomposition I
@@ -32,11 +32,20 @@ I = adjacentMinorsIdeal(2,3,7,CoefficientRing=>ZZ/32003)
 time minprimes I
 I = adjacentMinorsIdeal(2,3,8,CoefficientRing=>ZZ/32003)
   -- 7 Dec 2012:
-  time minprimesViaBirationalSplit I;
+  time minprimesViaBirationalSplit I; -- 57 components
      -- used 22.6325 seconds
   time minprimes I;
   time decompose I;  -- killed after short period of time
-  
+  time (
+    C = factorizationSplit(ideal gens gb I, "UseColon"=>false);
+    D = C/(x -> time minprimes x);
+    selectMinimalIdeals flatten D
+    ) -- 81 sec
+  time (  -- oops: this one only returns 10 ideals!  Which is correct?!
+    C = factorizationSplit(ideal gens gb I, "UseColon"=>true);
+    D = C/(x -> time minprimes x);
+    selectMinimalIdeals flatten D
+    )
 I = adjacentMinorsIdeal(2,3,9,CoefficientRing=>ZZ/32003)
 time minprimes I
 I = adjacentMinorsIdeal(2,3,10,CoefficientRing=>ZZ/32003)

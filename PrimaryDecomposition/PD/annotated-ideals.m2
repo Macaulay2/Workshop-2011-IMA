@@ -1,6 +1,23 @@
 -- part of PD.m2, uses code from there too
 
 AnnotatedIdeal = new Type of MutableHashTable
+-- fields of this type:
+--  A.Ideal
+--  A.Linear
+--  A.NonzeroDivisors
+--  A.BirationalSplitCompleted this exists means: birational split failed to split the ideal
+--  A.LinearSplitCompleted: if this field exists, then no linear polys in the ideal
+
+-- An "annotated ideal" is a tuple (I, L, NZ)
+-- where I is an ideal (in a subset of the variables)
+-- L is a list of (x, g, f), where 
+--   x is a variable (not appearing in I at all)
+--   g is a poly not involving x
+--     g is  monic
+--   f = xg-h is in the original ideal (leadTerm f is not nec leadTerm(xg))
+-- NZ: list of known nonzero-divisors "need more detail here"
+-- This ideal represents I', where
+-- I' = saturate(I + ideal (L/last), product of L/(s -> s#1)).
 
 annotatedIdeal = method()
 annotatedIdeal(Ideal, List, List) := (I, linears, nzds) -> (
@@ -15,7 +32,11 @@ annotatedIdeal(Ideal, List, List) := (I, linears, nzds) -> (
     nzds1 := nzds/factors//flatten;
     nzds2 := select(nzds1, g -> #g > 0);
     nzds3 := nzds2 / last // unique;
-    new AnnotatedIdeal from {symbol Ideal => I, symbol Linear => linears, symbol NonzeroDivisors => nzds3}
+    new AnnotatedIdeal from {
+        symbol Ideal => I, 
+        symbol Linear => linears, 
+        symbol NonzeroDivisors => nzds3
+        }
     )
 
 annotatedIdeal Ideal := (I) -> (
@@ -26,7 +47,9 @@ annotatedIdeal Ideal := (I) -> (
          m := makeLinearElement(x, I_k);
          I = replaceVariable(I,m);
          m);
-     annotatedIdeal(I, linears, {})
+     newI := annotatedIdeal(I, linears, {});
+     if #linears === 0 then newI.LinearSplitCompleted = true;
+     newI
      )
 
 net AnnotatedIdeal := (I) -> (
@@ -54,6 +77,76 @@ isPrime AnnotatedIdeal := (I) -> (
 
 nzds = method()
 nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
+------------------------------------------------------------
+-- splitIdeal code
+splitIdeal = method(Options => {Strategy=>null})
+  -- possible Strategy values:
+  --  Linear, Birational, IndependentSet, Factorization, CharacteristicSets
+
+splitFunction = new MutableHashTable
+-- each function should like like this:
+-- splitFunction#MyStrategy = (I, opts) -> ...
+    -- I is an AnnotatedIdeal
+    -- opts is from options of splitIdeal
+    -- return value is triple (wasSimplified, I1s, I2s), where
+    --   wasSimplified: Boolean,
+    --   I1s is a list of AnnotatedIdeal's, known to be prime
+    --   I2s is a list of AnnotatedIdeal's, primality unknown
+
+
+splitFunction#Linear = (I, opts) -> (
+    J := I.Ideal;
+    linears := for x in gens ring J list (
+        k := position(J_*, f -> first degree contract(x,f) == 0);
+        if k === null then continue;
+        m := makeLinearElement(x, J_k);
+        J = replaceVariable(J,m);
+        m);
+    newJ := if #linears === 0 then 
+              I 
+            else
+              annotatedIdeal(J, join(I.Linear, linears), I.NonzeroDivisors);
+    (#linears > 0, {}, {newJ})
+    )
+
+splitFunction#Birational = (I, opts) -> (
+      if I.Ideal == 1 then error "got a bad ideal";
+      m := findGoodBirationalPoly I.Ideal;
+        -- either null or a list {x, g, f=xg-h}, with f in ideal
+      if m === null then return (false, {}, {I});
+      splitt := if member(m#1, I.NonzeroDivisors) then null else splitBy(I.Ideal,m#1);
+      if splitt === null then (
+          -- in this case, m#1 is a nonzerodivisor
+          -- we eliminate m#0
+          J := eliminateLinear(I.Ideal, m);
+          newI := annotatedIdeal(J, 
+                                 append(I.Linear, m), 
+                                 unique append(I.NonzeroDivisors, m#1));
+          -- if we wanted to, we could also place newI onto the "prime" list
+          -- if newI.Ideal is generatedby one irreducible element
+          return if J == 0 then (true, {newI}, {}) else (true, {}, {newI})
+          );
+
+      (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.
+      if J1 == 1 then (
+          -- i.e. m#1 is in the radical of I.Ideal
+          g := m#1//factors/last//product; -- squarefree part of m#1
+          if g == 1 then error "also a bad error";
+          newI = annotatedIdeal(I.Ideal + ideal g, I.Linear, I.NonzeroDivisors);
+          return if newI.Ideal == 0 then (true, {newI}, {}) else (true, {}, {newI})
+          );
+
+      (true, 
+       {}, 
+       {annotatedIdeal(J1, I.Linear, unique append(I.NonzeroDivisors, m#1)), 
+           annotatedIdeal(J2, I.Linear, I.NonzeroDivisors)}
+       )
+    )
+
+splitIdeal Ideal := (opts) -> (I) -> splitIdeal(annotatedIdeal(I,{},{}), opts)
+splitIdeal AnnotatedIdeal := (opts) -> (I) -> splitFunction#(opts.Strategy)(I,opts)
+
+------------------------------------------------------------
 
 minprimesViaBirationalSplit = method()
 minprimesViaBirationalSplit Ideal := (I) -> (
@@ -85,3 +178,6 @@ D =  C/annotatedIdeal
 D/isPrime
 D/ideal
 minprimes D_0
+(z1,z2) = equidimSplitOneStep I1
+z1
+z2

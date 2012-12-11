@@ -332,6 +332,41 @@ restart
   simplifyIdeal I  
 ///
 
+-------------------------------------
+-- splitIdeal tests -----------------
+-------------------------------------
+TEST ///
+restart
+  debug needsPackage "PD"
+  R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  I = ideal"
+    -ab-ad+2ah,
+    ad-bd-cf-2ah+2bh+2ck,
+    ab-ad-2bh+2dh-2ck+2fk+2gl,
+    ac-2cs-at+2bt,
+    ac-cs-2at+bt,
+    -d-3s+4u,
+    -f-3t+4v,
+    -g+4w,
+    -a+2x,
+    -b2-c2+2bx+2cy,
+    -d2-f2-g2+2dx+2fy+2gz"
+   I1 = splitIdeal(I, Strategy=>Linear)
+   I2 = splitIdeal(I1#2#0, Strategy=>Linear)
+   J = first last I1
+   (didwork, primes, todo) = splitIdeal(J, Strategy=>Birational)
+   todo = todo/(a -> splitIdeal(a, Strategy=>Linear))//flatten
+   #todo
+   todo#1
+   splitIdeal(todo#1#2#0, Strategy=>Birational)
+   didwork
+   primes
+   todo#0
+   todo/(a -> splitIdeal(a, Strategy=>Birational))
+
+   L = flatten oo
+///
+
 
 -------------------------------------
 --- Primary Decomposition tests below

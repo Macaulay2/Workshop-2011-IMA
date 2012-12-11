@@ -23,7 +23,15 @@ export {
     minprimes,
     AnnotatedIdeal,
     NonzeroDivisors,
-    nzds
+    nzds,
+    
+    splitIdeal,
+    Birational,  -- Strategy option for splitIdeal.  Exported now for simplicity
+    IndependentSet,
+    Factorization,
+    CharacteristicSets,
+    LinearSplitCompleted, -- internal symbols for AnnotatedIdeal
+    BirationalSplitCompleted
     }
 
 minprimes = method(Options => {

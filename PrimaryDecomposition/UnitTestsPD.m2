@@ -361,27 +361,12 @@ SIMPLETEST ///
   I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
   C = minprimes I;
   checkMinimalPrimes(I, C, "Answer" => decompose)
-///
-SIMPLETEST /// -- UseColon => false
-  needsPackage "PD"
-  R = ZZ/32003[a,b,c,h]
-  I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
-  C = minprimes( I, "UseColon" => false);
-  checkMinimalPrimes(I, C, "Answer" => decompose)
-///
-SIMPLETEST /// SimplifyIdeal => false
-  needsPackage "PD"
-  R = ZZ/32003[a,b,c,h]
-  I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
-  C = minprimes( I, "SimplifyIdeal" => false);
-  checkMinimalPrimes(I, C, "Answer" => decompose)
-///
-SIMPLETEST /// SimplifyIdeal => false
-  needsPackage "PD"
-  R = ZZ/32003[a,b,c,h]
-  I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
-  C = minprimes( I, "FactorizationSplit" => true );
-  checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
 ///
 
 SIMPLETEST ///

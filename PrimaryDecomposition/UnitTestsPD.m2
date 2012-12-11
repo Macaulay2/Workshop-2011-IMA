@@ -362,6 +362,27 @@ SIMPLETEST ///
   C = minprimes I;
   checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
+SIMPLETEST /// -- UseColon => false
+  needsPackage "PD"
+  R = ZZ/32003[a,b,c,h]
+  I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
+  C = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C, "Answer" => decompose)
+///
+SIMPLETEST /// SimplifyIdeal => false
+  needsPackage "PD"
+  R = ZZ/32003[a,b,c,h]
+  I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
+  C = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C, "Answer" => decompose)
+///
+SIMPLETEST /// SimplifyIdeal => false
+  needsPackage "PD"
+  R = ZZ/32003[a,b,c,h]
+  I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
+  C = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C, "Answer" => decompose)
+///
 
 SIMPLETEST ///
   needsPackage "PD"
@@ -1226,7 +1247,7 @@ TOODAMNSLOW ///
   R1 = QQ[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,MonomialSize => 8]
   I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, k*z-z^2, m*w-w^2, j^2-j*t, d*f-f^2, p*y*M-p^2, k*w*M-w^2, j*r*M-j*t, I*J*L-J^2, B*H*L-H^2, A*E*L-E^2, b*C*L-C^2, b*B*L-b^2, t*x*L-x^2, a*u*L-a^2, m*q*L-q^2, d*g*L-g^2, o*J*K-J^2, k*s*K-K^2, i*B*H-H^2, l*F*G-G^2, v*D*F-D^2, e*z*F-z^2, r*y*F-r^2, f*s*F-f^2, j*p*F-j*t, o*D*E-E^2, r*s*D-D^2, b*i*C-C^2, s*v*y-v^2, i*j*x-x^2, i*q*w-q^2, a*o*u-a^2, i*k*r-r^2, f*g*o-g^2, h*i*n-h^2, e*i*l-l^2, c*h*i-h^2, y^2*M^2-p^2, r^2*M^2-j*t, k^2*M^2-w^2, I^2*L^2-J^2, B^2*L^2-b^2, A^2*L^2-E^2, t^2*L^2-x^2, m^2*L^2-q^2, d^2*L^2-g^2, y^2*F^2-r^2, v^2*F^2-D^2, s^2*F^2-f^2, p^2*F^2-j*t, l^2*F^2-G^2, e^2*F^2-z^2, i^2*B^2-H^2, s^2*y^2-v^2, o^2*u^2-a^2, r^2*s^2-D^2, k^2*s^2-K^2, i^2*k^2-r^2, e^2*i^2-l^2, c^2*i^2-h^2, b^2*i^2-C^2)
 
-  -- This took 2 mins on Frank's machine on 12/4/2012
+  -- This took 2 mins on Frank's machine on 12/4/2012'
   time p1 = factorizationSplit(I1, "UseColon"=>false)
   -- TODO: Play with factorization depth in this example?
 

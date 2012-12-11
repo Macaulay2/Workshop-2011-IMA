@@ -352,6 +352,16 @@ restart
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
    I1 = splitIdeal(I, Strategy=>Linear)
+   I2 = splitIdeal(I1, Strategy=>Linear)
+   I3 = splitIdeal(I2, Strategy=>Linear)
+   I3 = splitIdeal(I2, Strategy=>Birational)
+   (I2primes, I2nonprimes) = I2
+   I2primes
+
+   
+   first I2   
+   class I2
+   I1a = splitIdeal(I1, Strategy=>Linear)
    I2 = splitIdeal(I1#2#0, Strategy=>Linear)
    J = first last I1
    (didwork, primes, todo) = splitIdeal(J, Strategy=>Birational)

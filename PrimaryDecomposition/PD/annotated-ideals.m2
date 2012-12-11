@@ -95,6 +95,7 @@ splitFunction = new MutableHashTable
 
 
 splitFunction#Linear = (I, opts) -> (
+    if I.?LinearSplitCompleted then return ({},{I});
     J := I.Ideal;
     linears := for x in gens ring J list (
         k := position(J_*, f -> first degree contract(x,f) == 0);
@@ -102,18 +103,24 @@ splitFunction#Linear = (I, opts) -> (
         m := makeLinearElement(x, J_k);
         J = replaceVariable(J,m);
         m);
-    newJ := if #linears === 0 then 
+    newJ := if #linears === 0 then (
+              I.LinearSplitCompleted = true;
               I 
+              )
             else
               annotatedIdeal(J, join(I.Linear, linears), I.NonzeroDivisors);
-    (#linears > 0, {}, {newJ})
+    ({}, {newJ})
     )
 
 splitFunction#Birational = (I, opts) -> (
+      if I.?BirationalSplitCompleted then return ({},{I});
       if I.Ideal == 1 then error "got a bad ideal";
       m := findGoodBirationalPoly I.Ideal;
         -- either null or a list {x, g, f=xg-h}, with f in ideal
-      if m === null then return (false, {}, {I});
+      if m === null then (
+          I.BirationalSplitCompleted = true;
+          return if isPrime I === "YES" then ({I},{}) else ({},{I});
+          );
       splitt := if member(m#1, I.NonzeroDivisors) then null else splitBy(I.Ideal,m#1);
       if splitt === null then (
           -- in this case, m#1 is a nonzerodivisor
@@ -124,7 +131,7 @@ splitFunction#Birational = (I, opts) -> (
                                  unique append(I.NonzeroDivisors, m#1));
           -- if we wanted to, we could also place newI onto the "prime" list
           -- if newI.Ideal is generatedby one irreducible element
-          return if J == 0 then (true, {newI}, {}) else (true, {}, {newI})
+          return if isPrime newI === "YES" then ({newI},{}) else ({},{newI});
           );
 
       (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.
@@ -133,11 +140,10 @@ splitFunction#Birational = (I, opts) -> (
           g := m#1//factors/last//product; -- squarefree part of m#1
           if g == 1 then error "also a bad error";
           newI = annotatedIdeal(I.Ideal + ideal g, I.Linear, I.NonzeroDivisors);
-          return if newI.Ideal == 0 then (true, {newI}, {}) else (true, {}, {newI})
+          return if isPrime newI === "YES" then ({newI},{}) else ({},{newI});
           );
 
-      (true, 
-       {}, 
+      ({},
        {annotatedIdeal(J1, I.Linear, unique append(I.NonzeroDivisors, m#1)), 
            annotatedIdeal(J2, I.Linear, I.NonzeroDivisors)}
        )
@@ -145,6 +151,13 @@ splitFunction#Birational = (I, opts) -> (
 
 splitIdeal Ideal := (opts) -> (I) -> splitIdeal(annotatedIdeal(I,{},{}), opts)
 splitIdeal AnnotatedIdeal := (opts) -> (I) -> splitFunction#(opts.Strategy)(I,opts)
+splitIdeal(List,List) := opts -> (L1,L2) -> (
+    newL2 := L2/(x -> splitIdeal(x,opts));
+    knownPrimes := join(L1, flatten(newL2/first));
+    notknownPrimes := flatten(newL2/last);
+    (knownPrimes, notknownPrimes)
+    )
+splitIdeal List := opts -> (L) -> splitIdeal({},L,opts)
 
 ------------------------------------------------------------
 

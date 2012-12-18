@@ -353,8 +353,15 @@ restart
     -d2-f2-g2+2dx+2fy+2gz"
    I1 = splitIdeal(I, Strategy=>Linear)
    I2 = splitIdeal(I1, Strategy=>Linear)
-   I3 = splitIdeal(I2, Strategy=>Linear)
    I3 = splitIdeal(I2, Strategy=>Birational)
+   I4 = splitIdeal(I3, Strategy=>Linear)
+   I5 = splitIdeal(I4, Strategy=>Linear)
+   I6 = splitIdeal(I5, Strategy=>Birational)
+   I7 = splitIdeal(I6, Strategy=>Birational)
+   I8 = splitIdeal(I7, Strategy=>Birational)
+   (last I8)/(a -> a.?BirationalSplitCompleted)
+   I8 = splitIdeal(I8, Strategy=>Birational)
+   (last I8)/(a -> a.?BirationalSplitCompleted)
    (I2primes, I2nonprimes) = I2
    I2primes
 

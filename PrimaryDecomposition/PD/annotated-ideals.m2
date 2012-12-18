@@ -19,23 +19,29 @@ AnnotatedIdeal = new Type of MutableHashTable
 -- This ideal represents I', where
 -- I' = saturate(I + ideal (L/last), product of L/(s -> s#1)).
 
+monicUniqueFactors = polyList -> (
+    polyList1 := polyList/factors//flatten;
+    polyList2 := select(polyList1, g -> #g > 0);
+    polyList2 / last // unique
+)
+
 annotatedIdeal = method()
-annotatedIdeal(Ideal, List, List) := (I, linears, nzds) -> (
+annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
     -- I is an ideal
     -- linears is a list of LinearElement's (x, g, f), where 
     --   f = xg-h is in the ideal, 
     --   g and h don't involve x
     --   and g is monic over the base field
     -- nzds is a list of polynomials which are nzds's of the associated ideal
+    -- inverted is a list of elements such that we ignore the minimal primes
+    --   that contain any of these elements
     -- The associated ideal is:
-    --   saturate(I + ideal(linears/last), product nzds)
-    nzds1 := nzds/factors//flatten;
-    nzds2 := select(nzds1, g -> #g > 0);
-    nzds3 := nzds2 / last // unique;
+    --   saturate(I + ideal(linears/last), product unique join((linears / (x -> x#1)),inverted))
     new AnnotatedIdeal from {
         symbol Ideal => I, 
         symbol Linear => linears, 
-        symbol NonzeroDivisors => nzds3
+        symbol NonzeroDivisors => monicUniqueFactors nzds,
+        symbol Inverted => monicUniqueFactors inverted
         }
     )
 
@@ -47,7 +53,7 @@ annotatedIdeal Ideal := (I) -> (
          m := makeLinearElement(x, I_k);
          I = replaceVariable(I,m);
          m);
-     newI := annotatedIdeal(I, linears, {});
+     newI := annotatedIdeal(I, linears, {}, {});
      if #linears === 0 then newI.LinearSplitCompleted = true;
      newI
      )
@@ -61,7 +67,8 @@ net AnnotatedIdeal := (I) -> (
 ring AnnotatedIdeal := (I) -> ring I.Ideal
 
 ideal AnnotatedIdeal := (I) -> (
-    F := product I.NonzeroDivisors;
+    --F := product I.NonzeroDivisors;
+    F := product unique join(I.Linear / (x -> x#1),I.Inverted);
     I1 := ideal(I.Linear/last);
     I2 := I.Ideal;
     I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
@@ -79,20 +86,30 @@ nzds = method()
 nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
 ------------------------------------------------------------
 -- splitIdeal code
-splitIdeal = method(Options => {Strategy=>null})
+splitIdeal = method(Options => {Strategy=>null, Verbosity=>1})
   -- possible Strategy values:
-  --  Linear, Birational, IndependentSet, Factorization, CharacteristicSets
+  --  Linear     -- Eliminates variables where a generator is of the form x - g
+                 -- for g not containing x
+  --  Birational         -- Tries to eliminates variables where a generator is of
+                         -- the form g*x - h for g,h not containing x.
+                         -- If g is a nzd mod I, this eliminates x.  Else,
+                         -- if g is in the radical of I, add in g to I and return
+                         -- else, split with g as: (sat(I,g), (I:sat(I,g)))
+  --  Minprimes          -- Mostly for testing(?) Apply minprimes to the annotated ideal
+                         -- and keep track of annotated information
+  --  IndependentSet     -- Find an independent set (annotate this), find a flattener,
+                         -- and split using flattener
+  --  Factorization -
+  --  CharacteristicSets -
 
 splitFunction = new MutableHashTable
 -- each function should like like this:
 -- splitFunction#MyStrategy = (I, opts) -> ...
     -- I is an AnnotatedIdeal
     -- opts is from options of splitIdeal
-    -- return value is triple (wasSimplified, I1s, I2s), where
-    --   wasSimplified: Boolean,
+    -- return value is tuple (I1s, I2s), where
     --   I1s is a list of AnnotatedIdeal's, known to be prime
     --   I2s is a list of AnnotatedIdeal's, primality unknown
-
 
 splitFunction#Linear = (I, opts) -> (
     if I.?LinearSplitCompleted then return ({},{I});
@@ -108,7 +125,7 @@ splitFunction#Linear = (I, opts) -> (
               I 
               )
             else
-              annotatedIdeal(J, join(I.Linear, linears), I.NonzeroDivisors);
+              annotatedIdeal(J, join(I.Linear, linears), I.NonzeroDivisors, I.Inverted);
     ({}, {newJ})
     )
 
@@ -128,7 +145,8 @@ splitFunction#Birational = (I, opts) -> (
           J := eliminateLinear(I.Ideal, m);
           newI := annotatedIdeal(J, 
                                  append(I.Linear, m), 
-                                 unique append(I.NonzeroDivisors, m#1));
+                                 unique append(I.NonzeroDivisors, m#1),
+                                 I.Inverted);
           -- if we wanted to, we could also place newI onto the "prime" list
           -- if newI.Ideal is generatedby one irreducible element
           return if isPrime newI === "YES" then ({newI},{}) else ({},{newI});
@@ -139,44 +157,101 @@ splitFunction#Birational = (I, opts) -> (
           -- i.e. m#1 is in the radical of I.Ideal
           g := m#1//factors/last//product; -- squarefree part of m#1
           if g == 1 then error "also a bad error";
-          newI = annotatedIdeal(I.Ideal + ideal g, I.Linear, I.NonzeroDivisors);
+          newI = annotatedIdeal(I.Ideal + ideal g, I.Linear, I.NonzeroDivisors, I.Inverted);
           return if isPrime newI === "YES" then ({newI},{}) else ({},{newI});
           );
 
       ({},
-       {annotatedIdeal(J1, I.Linear, unique append(I.NonzeroDivisors, m#1)), 
-           annotatedIdeal(J2, I.Linear, I.NonzeroDivisors)}
+       {annotatedIdeal(J1, I.Linear, unique append(I.NonzeroDivisors, m#1), I.Inverted), 
+           annotatedIdeal(J2, I.Linear, I.NonzeroDivisors, I.Inverted)}
        )
     )
 
-splitIdeal Ideal := (opts) -> (I) -> splitIdeal(annotatedIdeal(I,{},{}), opts)
-splitIdeal AnnotatedIdeal := (opts) -> (I) -> splitFunction#(opts.Strategy)(I,opts)
+splitFunction#Factorization = (I,opts) -> (
+    if I.?FactorizationSplitCompleted then return ({},{I});
+    J := I.Ideal;
+    --- originally taken from facGB0 in PD.m2 -- 12/18/2012
+    (f, facs) := findElementThatFactors J_*; -- chooses a generator of I that factors
+    if #facs == 0 then ( 
+        --<< "no elements found that factor" << endl; << "ideal is " << toString I << endl; 
+        I.FactorizationSplitCompleted = true;
+        if #(J_*) == 1 then (
+            I.isPrime = "YES";
+            return ({I},{})
+        )
+        else
+           return ({},{I});
+        );
+    nonzeros := set I.Inverted;
+    prev := set{};
+    nonzeroFacs := toList(set facs - nonzeros);
+    if #nonzeroFacs == 1 and nonzeroFacs#0 != f then
+       return ({},{annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
+                                  I.Linear,
+                                  I.NonzeroDivisors,
+                                  I.Inverted)});
+    L := for g in nonzeroFacs list (
+          -- colon or sum?
+          -- Try and fix UseColon?  May not be fixable...
+          {*if opts#"UseColon" then (
+          --   -- TODO: Find the components that are missing when using colons!
+          --   --       This process will miss any component for which g is in I for all g.
+          --   J = I:(f // g);
+          *}
+          J = (ideal(g) + I.Ideal);
+          J = trim ideal apply(J_*, f -> (
+                product toList (set ((factors f)/last) - nonzeros)
+              ));
+          result := annotatedIdeal(J, I.Linear, I.NonzeroDivisors, toList (nonzeros + prev));
+          prev = prev + set{g};
+          if numgens J === 1 and J_0 == 1 then continue else result
+    );
+    ({}, L)
+)
+
+splitFunction#Minprimes = (I,opts) -> (
+   if isPrime I === "YES" then return ({I},{});
+   minPrimesList := minprimes I.Ideal; --get options to work here 
+   annotatedMPList := minPrimesList / (x -> (
+                                  newI := annotatedIdeal(x,
+                                              I.Linear,
+                                              I.NonzeroDivisors,
+                                              I.Inverted);
+                                  newI.isPrime = "YES";
+                                  newI));
+   (annotatedMPList,{})              
+)
+
+splitIdeal Ideal := (opts) -> (I) -> splitIdeal(annotatedIdeal(I,{},{},{}), opts)
+splitIdeal AnnotatedIdeal := (opts) -> (I) -> splitIdeal({},{I},opts)
+--splitIdeal(List,List) := opts -> (L1,L2) -> (
+--    newL2 := L2/(x -> splitIdeal(x,opts));
+--    knownPrimes := join(L1, flatten(newL2/first));
+--    notknownPrimes := flatten(newL2/last);
+--    (knownPrimes, notknownPrimes)
+--    )
 splitIdeal(List,List) := opts -> (L1,L2) -> (
-    newL2 := L2/(x -> splitIdeal(x,opts));
-    knownPrimes := join(L1, flatten(newL2/first));
-    notknownPrimes := flatten(newL2/last);
-    (knownPrimes, notknownPrimes)
-    )
+    strat := opts.Strategy;
+    if not instance (strat,List) then strat = {strat};
+    while #strat > 0 and #L2 > 0 do (
+       if opts.Verbosity > 0 then
+          << "Splitting using strategy " << first strat << endl;
+       newL2 := L2/(x -> splitFunction#(first strat)(x,opts));
+       strat = drop(strat,1);
+       knownPrimes := join(L1, flatten(newL2/first));
+       notknownPrimes := flatten(newL2/last);
+       if opts.Verbosity > 0 then (
+          << "  Known as primes : " << #knownPrimes << endl;
+          << "  Not known as primes : " << #notknownPrimes << endl;
+       );
+       (L1,L2) = (knownPrimes, notknownPrimes);
+    );
+    (L1,L2)
+)
 splitIdeal List := opts -> (L) -> splitIdeal({},L,opts)
 
 ------------------------------------------------------------
 
-minprimesViaBirationalSplit = method()
-minprimesViaBirationalSplit Ideal := (I) -> (
-    time C := birationalSplit I;
-    D := C/annotatedIdeal;
-    E := D/minprimes//flatten;
-    F := E/ideal;
-    G := F//selectMinimalIdeals;
-    G
-    )
-
-minprimes AnnotatedIdeal := opts -> (I) -> (
-    C := minprimes I.Ideal;
-    C / (x -> (
-            xa := annotatedIdeal x;
-            annotatedIdeal(xa.Ideal, join(I.Linear, xa.Linear), I.NonzeroDivisors)))
-    )
 end
 restart
 debug needsPackage "PD"

@@ -23,6 +23,7 @@ export {
     minprimes,
     AnnotatedIdeal,
     NonzeroDivisors,
+    Inverted,
     nzds,
     
     splitIdeal,
@@ -30,8 +31,10 @@ export {
     IndependentSet,
     Factorization,
     CharacteristicSets,
+    Minprimes,
     LinearSplitCompleted, -- internal symbols for AnnotatedIdeal
-    BirationalSplitCompleted
+    BirationalSplitCompleted,
+    FactorizationSplitCompleted
     }
 
 minprimes = method(Options => {
@@ -243,10 +246,10 @@ splitBy = (I, h) -> (
      -- computes (I1,I2), where I1 = saturate(I,h), I2=I:I1
      -- except it returns null in some cases:
      --   h == 1, or
-     --   I1 == I
+     --   I1 == I (in which case, h is a NZD mod I)
      if h == 1 then return null;
      Isat := saturate(I, h);
-     if Isat == I then return null;
+     if Isat == I then return null; -- in this case, h is a NZD mod I
      I2 := I : Isat;
      (Isat, I2)
      )

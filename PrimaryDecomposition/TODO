@@ -68,3 +68,11 @@ A list of activities that are required or at least desirable
     splitIdeal via: Birational
     splitIdeal via: LinearPolynomials (e.g. like simplifyIdeal)
       splitIdeal(I,Split=> LinearPolynomials) ==> ({}, {annotatedIdeal I})
+
+* 18 Dec 2012 Notes/Todo
+   * Implemented splitIdeal strategies for Factorization, and made it work with
+     lists of Strategies, rather than a single strategy.
+   * Still todo: move independent sets splitting to splitIdeal.
+   * Make sure we are using NonzeroDivisors and Inverted elements intelligently and correctly
+   * Definitely need to figure out a strategy for applying these strategies. (meta-strategy!)
+   * Write a 'getStrategy' routine to determine the next strategy to split wrt.

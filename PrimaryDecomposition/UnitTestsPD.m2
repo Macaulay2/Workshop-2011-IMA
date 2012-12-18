@@ -336,8 +336,9 @@ restart
 -- splitIdeal tests -----------------
 -------------------------------------
 TEST ///
-restart
+  restart
   debug needsPackage "PD"
+  needsPackage "UnitTestsPD"
   R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"
     -ab-ad+2ah,
@@ -351,20 +352,33 @@ restart
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
-   I1 = splitIdeal(I, Strategy=>Linear)
-   I2 = splitIdeal(I1, Strategy=>Linear)
-   I3 = splitIdeal(I2, Strategy=>Birational)
-   I4 = splitIdeal(I3, Strategy=>Linear)
-   I5 = splitIdeal(I4, Strategy=>Linear)
-   I6 = splitIdeal(I5, Strategy=>Birational)
-   I7 = splitIdeal(I6, Strategy=>Birational)
-   I8 = splitIdeal(I7, Strategy=>Birational)
+
+   J = time splitIdeal(I, Strategy=>splice{2:Linear,10:Birational});
+   time primesJ = (first J) / ideal
+   checkMinimalPrimes(I, primesJ, "Answer"=>decompose)
+   
+   J = time splitIdeal(I, Strategy=>splice{2:Linear,5:Factorization,2:Linear,6:Birational,1:Factorization});
+   time primesJ = (first J) / ideal
+   checkMinimalPrimes(I, primesJ, "Answer"=>decompose)
+   
+   I1 = time splitIdeal(I, Strategy=>Linear);
+   I2 = time splitIdeal(I1, Strategy=>Linear);
+   I3 = time splitIdeal(I2, Strategy=>Birational);
+   I4 = time splitIdeal(I3, Strategy=>Linear);
+   I5 = time splitIdeal(I4, Strategy=>Linear);
+   I6 = time splitIdeal(I5, Strategy=>Birational);
+   I7 = time splitIdeal(I6, Strategy=>Birational);
+   I8 = time splitIdeal(I7, Strategy=>Birational);
+   I9 = time splitIdeal(I8, Strategy=>Linear);
+   mpI9 = time splitIdeal(I9, Strategy=>Minprimes);
    (last I8)/(a -> a.?BirationalSplitCompleted)
-   I8 = splitIdeal(I8, Strategy=>Birational)
-   (last I8)/(a -> a.?BirationalSplitCompleted)
+   I9 = splitIdeal(I8, Strategy=>Birational)
+   (last I9)/(a -> a.?BirationalSplitCompleted)
+   I10 = splitIdeal(I9, Strategy=>Birational)
+   (last I10)/(a -> a.?BirationalSplitCompleted)
+   I11 = splitIdeal(I10, Strategy=>Linear)
    (I2primes, I2nonprimes) = I2
    I2primes
-
    
    first I2   
    class I2

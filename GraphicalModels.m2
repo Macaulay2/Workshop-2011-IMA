@@ -93,7 +93,7 @@ bayesBall = (A,C,G) -> (
      down := new MutableHashTable from apply(V, k-> k=>false);
      top :=  new MutableHashTable from apply(V, k-> k=>false);
      bottom := new MutableHashTable from apply(V, k-> k=>false);
-     vqueue := toList A;
+     vqueue := new MutableList from toList A; -- toList A;
      -- Now initialize vqueue, set blocked
      scan(vqueue, a -> up#a = true);
      scan(toList C, c -> blocked#c = true);

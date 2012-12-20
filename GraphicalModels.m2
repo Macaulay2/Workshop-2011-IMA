@@ -2016,7 +2016,7 @@ doc///
        which should be a gaussianRing created with a mixed graph
    Outputs
      :Matrix
-       the $n \times{} n$ covariance matrix of the noise variables in the Gaussian graphical model.
+       the $n \times{} n$ covariance matrix of the noise variables in the Gaussian graphical model of a mixed graph.
    Description 
     
      Text
@@ -2601,7 +2601,7 @@ doc///
    Description 
      Text
        This symmetric matrix has entries $k_{(i,i)}$ along the diagonal
-       adn entry $k_{(i,j)}$ in the $(i,j)$ position if there is an edge from i to j, and a zero otherwise.
+       and entry $k_{(i,j)}$ in the $(i,j)$ position if there is an edge  between i and j, and a zero otherwise.
 
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})

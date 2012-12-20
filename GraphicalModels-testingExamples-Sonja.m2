@@ -94,7 +94,7 @@ gaussianVanishingIdeal(R,G) --demonstrating the error message. :)
 G = graph({{a,b},{b,c},{c,d},{d,a}})
 R=gaussianRing G 
 I=conditionalIndependenceIdeal (R,G)
-
+globalMarkv(G)
 ------------------------------------------------------------
 ---gaussianMatrices:
 --needs to be able to only take as input only a ring R and a set of CI statements S, 
@@ -368,3 +368,9 @@ help position
 pos(d,5)
 n=#d
 apply(1..n,i-> pos(shuffle,i) )
+
+R = gaussianRing 5
+vars R
+S = {{set{set{1},set{3}},set{2,5}}}
+S = { {{1},{3},{2,5}}}
+conditionalIndependenceIdeal(R,S)

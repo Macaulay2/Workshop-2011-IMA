@@ -86,7 +86,7 @@ numberOfEliminationVariables = local numberOfEliminationVariables
 --------------------------------------------
 
 bayesBall = (A,C,G) -> (
-     V := sort vertices G;
+     V := vertices G; -- it was: sort vertices G;
      visited := new MutableHashTable from apply(V, k-> k=>false);
      blocked :=  new MutableHashTable from apply(V, k-> k=>false);
      up :=  new MutableHashTable from apply(V, k-> k=>false);
@@ -1184,7 +1184,7 @@ doc ///
       Seth Sullivant, Kelli Talaska and Jan Draisma, "Trek separation for Gaussian graphical models", 
       Annals of Statistics 38 no.3 (2010) 1665--1685. 
           
-      The package also contains some procedures to solve the identifiability problem for 
+      The package also contains procedures to solve the identifiability problem for 
       Gaussian graphical models as described in the paper: 
       Luis D. Garcia-Puente, Sarah Spielvogel and Seth Sullivant, {\em Identifying causal effects with computer algebra}, 
       Proceedings of the $26^{th}$ Conference of Uncertainty in Artificial Intelligence.
@@ -1201,9 +1201,9 @@ doc ///
        netList pack(2,I_*)     
        
     Text
-      Sometimes an ideal can be simplified by changing variables.  Very often, 
-      by using @TO marginMap@
-      such ideals can be transformed to binomial ideals.  This is the case here.
+      Sometimes an ideal can be simplified by changing variables. For example, conditional independence ideals are often
+      transformed to binomial ideals by using @TO marginMap@.
+      This is the case here.
       
     Example
        F = marginMap (1,R)        
@@ -1226,7 +1226,8 @@ doc ///
     Example
       G = mixedGraph (digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
       R = gaussianRing G
-      J = trekIdeal (R,G) 
+      J = trekIdeal (R,G); 
+      J / print;
       
     Text
       The following ideal corresponds to a set of conditional statements of 5 Gaussian random variables.
@@ -1234,7 +1235,8 @@ doc ///
     Example
       R=gaussianRing 5
       S={{{1},{2},{3,4}}, {{2,3},{1},{5}}}
-      I=conditionalIndependenceIdeal (R,S)    
+      I=conditionalIndependenceIdeal (R,S);
+      I / print;    
       
     Text
       The following people have generously contributed their time and effort to this project:  
@@ -1462,13 +1464,14 @@ doc ///
       Further $F$ in the identity on all other indeterminates, that is, 
       $ F(p_{u_1,u_2,\dots, j,\dots,u_n}) = p_{u_1,u_2,\dots, j,\dots,u_n} $, for all $j\geq 2$.
       
-    Example
+    Example   
       F = marginMap(1,markovRing(3,2));
+      compactMatrixForm =false;
       transpose F.matrix
       
     Text
       This linear transformation simplifies ideals and/or polynomials involving 
-      $ p_{u_1,u_2,..., +,...,u_n} $. In some cases, the resulting ideals are toric 
+      $ p_{u_1,u_2,..., +,...,u_n} $. Sometimes, the resulting ideals are toric 
       ideals as the example below shows. For more details 
       see the paper "Algebraic Geometry of Bayesian Networks" by Garcia, Stillman, and
       Sturmfels.
@@ -1478,11 +1481,11 @@ doc ///
       R = markovRing (2,2,2,2)
       S = globalMarkov G
       I = conditionalIndependenceIdeal (R,S);
-      I / print	
+      I / print;	
       F = marginMap(1,R);
       transpose F.matrix
       J = F I;  
-      J / print
+      J / print;
       
   SeeAlso
     hiddenMap 
@@ -1516,7 +1519,7 @@ doc ///
       R = markovRing (3,2)
       F = marginMap(1,R) 
       G = inverseMarginMap(1,R)
-      vars R
+      gens R
       F*G -- we see that the composition is the identity map:
       
   SeeAlso
@@ -1552,6 +1555,7 @@ doc ///
      
     Example  
       F = hiddenMap(1,markovRing(2,3,2));
+      compactMatrixForm =false;
       transpose F.matrix 
       
     Text  
@@ -1564,12 +1568,12 @@ doc ///
       G = digraph  {{1,{}},{2,{}},{3,{}},{4,{1,2,3}}}
       R = markovRing (2,2,3,2)
       I = discreteVanishingIdeal (R,G);
-      I / print
+      I / print;
       S = markovRing(2,2,3)
       F = hiddenMap(4,R);
       transpose F.matrix
       J = preimage (F, I);
-      J / print
+      J / print;
       
   SeeAlso
     marginMap
@@ -1684,15 +1688,15 @@ doc ///
       coefficientRing R2
       
     Text
-      The indeterminates are labeled with the letter ''p'' suggesting probability distributions. However, sometimes
-      it might be useful to create a new ring where the indeterminates are labeled different (for example, 
+      The indeterminates are labeled with the letter ''p'' suggesting probability distributions. However,
+      it is useful to be able to create a new ring where the indeterminates are labeled different (for example, 
       they may represent marginal probabilities). This can be accomplished
       with the @TO VariableName@ option.
       
     Example
       d=(1,2);
       markovRing (d,VariableName => q);
-      vars oo 
+      gens oo 
    
     Text
       The routines @TO conditionalIndependenceIdeal@, @TO discreteVanishingIdeal@, @TO hiddenMap@, 
@@ -1737,14 +1741,14 @@ doc ///
       @ofClass Symbol@ or @ofClass String@
   Description
     Text
-      The indeterminates in the polynomial ring made by markovRing are labeled with the letter ''p'' suggesting probability distributions. 
-      However, sometimes it might be useful to create a new ring where the indeterminates are labeled different (for example, 
-      they may represent marginal probabilities). 
+      The indeterminates in the polynomial ring made by markovRing are labeled with the letter ''p'' suggesting 
+      probability distributions. However, it is useful to be able to create a new ring where the indeterminates are 
+      labeled different (for example, they may represent marginal probabilities). 
  
     Example
       d=(1,2);
       markovRing (d,VariableName => q);
-      vars oo 
+      gens oo 
 
 ///
 
@@ -1789,6 +1793,7 @@ doc ///
       VarNames = {a,b,c,d}
       S = {{{a},{c},{d}}}
       R = markovRing (4:2)
+      compactMatrixForm =false;
       markovMatrices (R,S,VarNames) 
       
     Text
@@ -1841,6 +1846,7 @@ doc ///
     Example
       R = gaussianRing 5;
       gens R
+      compactMatrixForm =false;
       covarianceMatrix R
       
     Text
@@ -1854,16 +1860,19 @@ doc ///
       undirectedEdgesMatrix R
 
     Text
-      The function works with an undirected graph as follows.
+      The function works with a directed graph as follows.
 
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
       R = gaussianRing G;
 
     Text
-      For mixed graphs, there is a variable $l_{(i,j)}$ for
-      each directed edge i->j, a variable $p_{(i,i)}$ for each node i, and a variable $p_{(i,j)}$ 
-      for each bidirected edge i<->j.  gaussianRing of a mixed graph assumes that the
+      This function also accepts as input a mixed graph. In this case, the ring contains the usual indeterminates associated to the 
+      covariance matrix of the model. But it is also generated by two new lists of indeterminates. For each  directed edge $i \to j$ 
+      in the mixed graph there is an indeterminate, denoted by default $l_{(i,j)}$, corresponding to the associated direct causal effect parameter in the model. 
+      For each  bidirected edge $i$<->$j$ there is an indeterminate, denoted by default $p_{(i,j)}$, corresponding to the associated noise parameter. Finally,
+      for each node $i$, there is an indeterminate $p_{(i,i)}$. 
+      gaussianRing of a mixed graph assumes that the
       undirected part of the graph is empty.
 
     Example
@@ -1925,11 +1934,12 @@ doc///
      Text
        This method displays a list of matrices whose minors generate the  Gaussian 
        conditional independence ideal.  It is called as a subroutine in @TO conditionalIndependenceIdeal@
-       but some people might find it useful to explicitly have these matrices.
+       but it is useful to list these matrices explicitly.
 
      Example
        R = gaussianRing 4;
        Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
+       compactMatrixForm =false;
        gaussianMatrices(R,Stmts)
 
    SeeAlso
@@ -1954,14 +1964,18 @@ doc///
        which should be a gaussianRing
    Outputs
      :Matrix
-       the $n \times{} n$ covariance matrix  where n is the number of random
-       variables in the Gaussian graphical model.  If the gaussianRing was created
-       using a graph, $n$ will be the number of vertices of the graph.
+       the $n \times{} n$ covariance matrix of the Gaussian graphical model.  
    Description 
+   
      Text
-       If this function is called without a graph G, it is assumed that R is the gauss ring of a directed acyclic graph.
+       This method returns the $n \times{} n$ covariance matrix of the Gaussian graphical model
+       where $n$ is the number of random
+       variables in the model.  If the gaussianRing was created
+       using a graph, $n$ will be the number of vertices of the graph.
+       If this function is called without a graph G, it is assumed that R is the gaussianRing of a directed acyclic graph.
 
      Example
+       compactMatrixForm =false;
        covarianceMatrix gaussianRing 4
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
        R = gaussianRing G
@@ -1972,7 +1986,7 @@ doc///
 
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
-       R = gaussianRing G 
+       R = gaussianRing G
        S = covarianceMatrix R      
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
@@ -2002,12 +2016,20 @@ doc///
        which should be a gaussianRing created with a mixed graph
    Outputs
      :Matrix
-       the n x n symmetric matrix of indeterminates where we have $p_{(i,i)}$ for each vertex i, 
-       $p_{(i,j)}$ if there is a bidirected edge between i and j, and 0 otherwise.
+       the $n \times{} n$ covariance matrix of the noise variables in the Gaussian graphical model.
    Description 
+    
+     Text
+       This method returns the $n \times{} n$ covariance matrix of the noise variables in the Gaussian graphical model.
+       The diagonal in this matrix consists of the indeterminates  $p_{(i,i)}$. Each off-diagonal entry is zero unless 
+       there is a bidirected edge between i and j in which case the corresponding entry in the matrix is the ideterminate
+       $p_{(i,j)}$. The documentation of @TO gaussianRing@ 
+       further describes these indeterminates.
+       
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
+       compactMatrixForm =false;
        bidirectedEdgesMatrix R
 
    SeeAlso
@@ -2034,16 +2056,20 @@ doc///
        which should be a gaussianRing created with a mixed graph
    Outputs
      :Matrix
-       the n x n matrix of indeterminates where we have $l_{(i,j)}$ in the $(i,j)$ 
-       position
-       if there is a directed edge $i \to j$, and 0 otherwise.
+       the $n \times{} n$ matrix of direct causal effect indeterminates. 
    Description 
      Text
-       Note that this matrix is NOT symmetric in the symbols.
+       This method returns the  $n \times{} n$ matrix of direct causal effect indeterminates. 
+       This matrix has the parameter $l_{(i,j)}$ in the $(i,j)$ position
+       if there is a directed edge $i \to j$, and 0 otherwise.
+       The documentation of @TO gaussianRing@ 
+       further describes these indeterminates.
+       Note that this matrix is not symmetric.
 
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,d}},bigraph {{a,d}})
        R = gaussianRing G
+       compactMatrixForm =false;
        directedEdgesMatrix R
 
      Text
@@ -2098,6 +2124,7 @@ doc///
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        R = gaussianRing G
+       compactMatrixForm =false;
        S = covarianceMatrix(R)
        L = directedEdgesMatrix(R)
        W = bidirectedEdgesMatrix(R)       
@@ -2353,9 +2380,9 @@ doc ///
       
     Example
       R = gaussianRing 4
-      vars R
+      gens R
       Rnew=gaussianRing(4,sVariableName => "t")
-      vars Rnew
+      gens Rnew
 ///
 
 doc ///
@@ -2454,10 +2481,11 @@ doc ///
 
     Example 
       R = gaussianRing graph({{a,b},{b,c},{c,d},{a,d}})
+      compactMatrixForm =false;
       undirectedEdgesMatrix R
-      vars R
+      gens R
       Rnew = gaussianRing( graph({{a,b},{b,c},{c,d},{a,d}}), kVariableName => kappa)
-      vars Rnew
+      gens Rnew
 ///
 
 --------------------------------------------
@@ -2496,8 +2524,8 @@ doc///
       G = graph {{1,2},{2,3},{3,4},{4,1}}
       D = digraph {{1,{}},{2,{1}},{3,{1}},{4,{2,3}}}
       R = markovRing (2,2,2,2)
-      conditionalIndependenceIdeal (R, globalMarkov(G)) / print
-      conditionalIndependenceIdeal (R, localMarkov(D)) / print
+      conditionalIndependenceIdeal (R, globalMarkov(G)) / print;
+      conditionalIndependenceIdeal (R, localMarkov(D)) / print;
        
     Text    
        The following example is an independence ideal of a Gaussian graphical model.
@@ -2505,7 +2533,7 @@ doc///
     Example
       G = graph {{a,b},{b,c},{c,d},{d,a}}
       R=gaussianRing G
-      conditionalIndependenceIdeal (R,globalMarkov(G))  / print 
+      conditionalIndependenceIdeal (R,globalMarkov(G))  / print; 
         
     Text
       For Gaussian models, 	
@@ -2516,7 +2544,7 @@ doc///
     Example
       G = graph({{1,2},{2,3},{3,4},{4,1}})  
       R=gaussianRing 4
-      conditionalIndependenceIdeal (R, globalMarkov G)  / print   
+      conditionalIndependenceIdeal (R, globalMarkov G)  / print;   
       
     Text
       This method also accepts as input arbitrary lists of independent statements that may not 
@@ -2525,7 +2553,7 @@ doc///
     Example
       R=gaussianRing 5
       S={{{1},{2},{3,4}}, {{2,3},{1},{5}}}
-      conditionalIndependenceIdeal (R,S) / print
+      conditionalIndependenceIdeal (R,S) / print;
 
     Text
       For general discrete independence models (not necessarily arising from a graph), conditionalIndependenceIdeal requires one of the 
@@ -2541,7 +2569,7 @@ doc///
       R = markovRing (2,2,2,2)
       VarNames = {c,d,e,f}
       Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
-      conditionalIndependenceIdeal(R,Stmts,VarNames)	/ print  
+      conditionalIndependenceIdeal(R,Stmts,VarNames)	/ print;  
       
   SeeAlso
     discreteVanishingIdeal
@@ -2578,6 +2606,7 @@ doc///
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G
+       compactMatrixForm =false;
        K = undirectedEdgesMatrix(R)
    SeeAlso
      gaussianRing
@@ -2614,7 +2643,7 @@ doc ///
        G = graph({{a,b},{b,c},{c,d},{a,d}})
        R = gaussianRing G 
        J = gaussianVanishingIdeal(R); 
-       ideal mingens J / print
+       ideal mingens J / print;
 
      Text
        This method works for graphs, digraphs and mixedgraphs

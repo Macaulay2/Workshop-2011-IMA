@@ -11,10 +11,12 @@ check "GraphicalModels"
 uninstallPackage "Graphs"
 installPackage ("Graphs", RemakeAllDocumentation=>true)
 
-
+loadPackage "GraphicalModels"
 
 viewHelp "GraphicalModels"
 
+
+printWidth = 0; 
 ------------------------------------------------------------
 ---gaussianRing:
 gaussianRing 3 

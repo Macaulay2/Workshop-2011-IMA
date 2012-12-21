@@ -1245,7 +1245,7 @@ doc ///
       
       Shaowei Lin<@HREF"http://math.berkeley.edu/~shaowei/"@>,
       
-      David Murrugarra<@HREF"http://www.math.vt.edu/people/davidmur/Home.html"@>.
+      David Murrugarra<@HREF"http://people.math.gatech.edu/~davidmur/Home.html"@>.
       
   Caveat
      This package requires Graphs.m2, as a consequence it can do computations with graphs

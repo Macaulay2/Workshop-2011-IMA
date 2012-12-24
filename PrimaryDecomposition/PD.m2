@@ -384,29 +384,47 @@ selectMinimalIdeals = (L) -> (
     )
 
 makeFiberRings = method()
-makeFiberRings(List) := (baseVars) -> (
-   -- This function takes an ideal I and a list of variables baseVars as input
+
+makeFiberRings List := baseVars -> if #baseVars == 0 then error "Expected at least one variable in the base" else makeFiberRings(baseVars,ring (baseVars#0))
+
+makeFiberRings(List,Ring) := (baseVars,R) -> (
+   -- This function takes a (possibly empty) list of variables baseVars as input
    -- and returns a pair of matrices (mons, cs) where mons are the monomials in the ideal
    -- of lead terms of a gb of I, and cs are the coefficients, but with respect to
    -- a product order kk[fiberVars][baseVars].  See tests for behavior
-   if #baseVars == 0 then error "expected at least one variable in the base";
-   R := ring baseVars#0;
-   if any(baseVars, x -> ring x =!= R) then error "expected all base variables to have the same ring";
-   allVars := set gens R;
-   fiberVars := rsort toList(allVars - set baseVars);
-   baseVars = rsort baseVars;
-   S := (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
-       --MonomialOrder=>{#fiberVars,#baseVars}]);
-   KK := frac((coefficientRing R)(monoid [baseVars]));
-   SF := KK (monoid[fiberVars, MonomialOrder=>Lex]);
-   S#cache = new CacheTable;
-   S.cache#"StoSF" = map(SF,S,sub(vars S,SF));
-   S.cache#"SFtoS" = map(S,SF,sub(vars SF,S));
-   S.cache#"StoR" = map(R,S,sub(vars S,R));
-   S.cache#"RtoS" = map(S,R,sub(vars R,S));
-   setAmbientField(SF, S);
-   (S, SF)
+   -- If basevars does happen to be empty, then the original ring with Lex order is returned.
+   local S;
+   if #baseVars == 0 then (
+        -- in this case, we are not inverting any variables.  So, S = SF, and S just has the lex
+        -- order.
+        S = newRing(R, MonomialOrder=>Lex);
+        S#cache = new CacheTable;
+        S.cache#"RtoS" = map(S,R,sub(vars R,S));
+        S.cache#"StoR" = map(R,S,sub(vars S,R));
+        S.cache#"StoSF" = identity;
+        S.cache#"SFtoS" = identity;
+        numerator S := identity;
+        (S,S)
    )
+   else
+   (
+      if any(baseVars, x -> ring x =!= R) then error "expected all base variables to have the same ring";
+      allVars := set gens R;
+      fiberVars := rsort toList(allVars - set baseVars);
+      baseVars = rsort baseVars;
+      S = (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
+          --MonomialOrder=>{#fiberVars,#baseVars}]);
+      KK := frac((coefficientRing R)(monoid [baseVars]));
+      SF := KK (monoid[fiberVars, MonomialOrder=>Lex]);
+      S#cache = new CacheTable;
+      S.cache#"StoSF" = map(SF,S,sub(vars S,SF));
+      S.cache#"SFtoS" = map(S,SF,sub(vars SF,S));
+      S.cache#"StoR" = map(R,S,sub(vars S,R));
+      S.cache#"RtoS" = map(S,R,sub(vars R,S));
+      setAmbientField(SF, S);
+      (S, SF)
+   )
+)
 
 minimalizeOverFrac = method()
 minimalizeOverFrac(Ideal, Ring) := (I, SF) -> (
@@ -420,7 +438,7 @@ minimalizeOverFrac(Ideal, Ring) := (I, SF) -> (
      S := ring I;
      G := flatten entries gens gb I;
      phi := S.cache#"StoSF";
-     psi := map(S,SF);
+     psi := S.cache#"SFtoS";
      sz := G/size; -- number of monomials per poly, used to choose which elem to take
      GS := flatten entries phi gens gb I;
      minG := flatten entries mingens ideal(GS/leadMonomial);
@@ -568,21 +586,11 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
     basevars := support first indeps;
     if opts.Verbosity > 0 then 
         << "  Choosing: " << basevars << endl;
-    -- COMMENT FROM FRANK: I feel like we should do the below in a similar manner to the
-    --                     general case, and allow makeFiberRings to handle empty basevars.
-    if #basevars == 0 then (
-        Slex := newRing(R, MonomialOrder=>Lex);
-        Slex#cache = new CacheTable;
-        Slex.cache#"RtoS" = map(Slex,R,sub(vars R,Slex));
-        Slex.cache#"StoR" = map(R,Slex,sub(vars Slex,R));
-        Slex.cache#"StoSF" = identity;
-        Slex.cache#"SFtoS" = identity;
-        numerator Slex := identity;
-        ISlex := Slex.cache#"RtoS" I;
-        return ((I, {}, (ideal gens gb ISlex)_*), ideal 1_R);
-        );
-    (S, SF) := makeFiberRings basevars;
+    (S, SF) := makeFiberRings(basevars,R);
     IS := S.cache#"RtoS" I;
+    -- if basevars is empty, then return I, but put in the lex ring.
+    if #basevars == 0 then return ((I, {}, (ideal gens gb IS)_*), ideal 1_R);
+    -- otherwise compute over the fraction field.
     if hf =!= null then gb(IS, Hilbert=>hf) else gb IS;
     --gens gb IS;
     (ISF, coeffs) := minimalizeOverFrac(IS, SF);

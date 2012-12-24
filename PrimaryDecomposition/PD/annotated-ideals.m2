@@ -253,9 +253,9 @@ splitIdeal List := opts -> (L) -> splitIdeal({},L,opts)
 ------------------------------------------------------------
 
 end
+
 restart
 debug needsPackage "PD"
-
   R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
   I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
 time  minprimesViaBirationalSplit I1;

@@ -385,16 +385,16 @@ selectMinimalIdeals = (L) -> (
 
 makeFiberRings = method()
 
-makeFiberRings List := baseVars -> if #baseVars == 0 then error "Expected at least one variable in the base" else makeFiberRings(baseVars,ring (baseVars#0))
+makeFiberRings List := basevars -> if #basevars == 0 then error "Expected at least one variable in the base" else makeFiberRings(basevars,ring (basevars#0))
 
-makeFiberRings(List,Ring) := (baseVars,R) -> (
-   -- This function takes a (possibly empty) list of variables baseVars as input
+makeFiberRings(List,Ring) := (basevars,R) -> (
+   -- This function takes a (possibly empty) list of variables basevars as input
    -- and returns a pair of matrices (mons, cs) where mons are the monomials in the ideal
    -- of lead terms of a gb of I, and cs are the coefficients, but with respect to
-   -- a product order kk[fiberVars][baseVars].  See tests for behavior
+   -- a product order kk[fiberVars][basevars].  See tests for behavior
    -- If basevars does happen to be empty, then the original ring with Lex order is returned.
    local S;
-   if #baseVars == 0 then (
+   if #basevars == 0 then (
         -- in this case, we are not inverting any variables.  So, S = SF, and S just has the lex
         -- order.
         S = newRing(R, MonomialOrder=>Lex);
@@ -408,13 +408,13 @@ makeFiberRings(List,Ring) := (baseVars,R) -> (
    )
    else
    (
-      if any(baseVars, x -> ring x =!= R) then error "expected all base variables to have the same ring";
+      if any(basevars, x -> ring x =!= R) then error "expected all base variables to have the same ring";
       allVars := set gens R;
-      fiberVars := rsort toList(allVars - set baseVars);
-      baseVars = rsort baseVars;
-      S = (coefficientRing R) monoid([fiberVars,baseVars,MonomialOrder=>Lex]);
-          --MonomialOrder=>{#fiberVars,#baseVars}]);
-      KK := frac((coefficientRing R)(monoid [baseVars]));
+      fiberVars := rsort toList(allVars - set basevars);
+      basevars = rsort basevars;
+      S = (coefficientRing R) monoid([fiberVars,basevars,MonomialOrder=>Lex]);
+          --MonomialOrder=>{#fiberVars,#basevars}]);
+      KK := frac((coefficientRing R)(monoid [basevars]));
       SF := KK (monoid[fiberVars, MonomialOrder=>Lex]);
       S#cache = new CacheTable;
       S.cache#"StoSF" = map(SF,S,sub(vars S,SF));
@@ -549,7 +549,6 @@ minprimes Ideal := opts -> (I) -> (
 minprimesWorker = method (Options => options minprimes)
 minprimesWorker Ideal := opts -> (I) -> (
     R := ring I;
-    radicalSoFar := ideal 1_R;
     comps := {};
     J := I;
     loopCount := 1;

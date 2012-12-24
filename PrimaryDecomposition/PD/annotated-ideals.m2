@@ -4,9 +4,11 @@ AnnotatedIdeal = new Type of MutableHashTable
 -- fields of this type:
 --  A.Ideal
 --  A.Linear
+--  A.Inverted
 --  A.NonzeroDivisors
 --  A.BirationalSplitCompleted this exists means: birational split failed to split the ideal
 --  A.LinearSplitCompleted: if this field exists, then no linear polys in the ideal
+--  A.FactorizationSplitCompleted: if this field exists, then no poly gens of I factor
 
 -- An "annotated ideal" is a tuple (I, L, NZ)
 -- where I is an ideal (in a subset of the variables)
@@ -15,7 +17,7 @@ AnnotatedIdeal = new Type of MutableHashTable
 --   g is a poly not involving x
 --     g is  monic
 --   f = xg-h is in the original ideal (leadTerm f is not nec leadTerm(xg))
--- NZ: list of known nonzero-divisors "need more detail here"
+-- NZ: list of known nonzero-divisors *need more detail here of how they are used*
 -- This ideal represents I', where
 -- I' = saturate(I + ideal (L/last), product of L/(s -> s#1)).
 
@@ -207,6 +209,45 @@ splitFunction#Factorization = (I,opts) -> (
           if numgens J === 1 and J_0 == 1 then continue else result
     );
     ({}, L)
+)
+
+splitFunction#IndependentSets = (I,opts) -> (
+    -- what do we need to stash in the answer from independentSets?
+    -- does this really belong in the annotated ideal framework?
+    -- work in progress 12/24/2012 Frank
+    -- create two annotated ideals:
+    --   J1 : 
+    if isPrime I === "YES" then return ({I},{});
+    J := I.Ideal;
+    if J == 1 then error "Internal error: Input should not be unit ideal.";
+    R := ring J;
+    hf := if isHomogeneous J then poincare J else null;
+    indeps := independentSets(J, Limit=>1);
+    basevars := support first indeps;
+    if opts.Verbosity > 0 then 
+        << "  Choosing: " << basevars << endl;
+    (S, SF) := makeFiberRings(basevars,R);
+    JS := S.cache#"RtoS" J;
+    -- if basevars is empty, then return I, but put in the lex ring.
+    -- return value not correct form yet
+    if #basevars == 0 then return ((J, {}, (ideal gens gb JS)_*), ideal 1_R);
+    -- otherwise compute over the fraction field.
+    if hf =!= null then gb(JS, Hilbert=>hf) else gb JS;
+    --gens gb IS;
+    (JSF, coeffs) := minimalizeOverFrac(JS, SF);
+    if coeffs == {} then ((J,basevars,JSF),ideal {1_R}) else (
+       facs := (factors product coeffs)/last;
+       G := product facs;
+       if opts.Verbosity > 0 then
+           << "  the factors of the flattener: " << netList(facs) << endl;
+       G = S.cache#"StoR" G;
+       -- is this what we want to be doing just yet?
+       -- more intelligent flattener?
+       J1 := saturate(J, G);
+       J2 := trim (J : J1);
+       -- return value not correct form yet
+       ((J1, basevars, JSF), J2)
+    )
 )
 
 splitFunction#Minprimes = (I,opts) -> (

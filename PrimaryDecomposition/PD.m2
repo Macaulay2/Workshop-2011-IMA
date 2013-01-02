@@ -25,7 +25,6 @@ export {
     NonzeroDivisors,
     Inverted,
     nzds,
-    
     splitIdeal,
     Birational,  -- Strategy option for splitIdeal.  Exported now for simplicity
     IndependentSet,

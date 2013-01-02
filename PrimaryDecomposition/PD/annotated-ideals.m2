@@ -211,10 +211,10 @@ splitFunction#Factorization = (I,opts) -> (
     ({}, L)
 )
 
-splitFunction#IndependentSets = (I,opts) -> (
+splitFunction#IndependentSet = (I,opts) -> (
     -- what do we need to stash in the answer from independentSets?
     -- does this really belong in the annotated ideal framework?
-    -- work in progress 12/24/2012 Frank
+    -- WORK IN PROGRESS 12/24/2012 Frank
     -- create two annotated ideals:
     --   J1 : 
     if isPrime I === "YES" then return ({I},{});

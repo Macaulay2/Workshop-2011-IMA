@@ -76,3 +76,13 @@ A list of activities that are required or at least desirable
    * Make sure we are using NonzeroDivisors and Inverted elements intelligently and correctly
    * Definitely need to figure out a strategy for applying these strategies. (meta-strategy!)
    * Write a 'getStrategy' routine to determine the next strategy to split wrt.
+
+* 3 Jan 2013 Notes/Todo
+   * Need to implement meta-strategies.  Perhaps give an ordering of strategies to give precendence on which to try first.
+   * use ideal-so-far
+   * find better birational polynomials to split with - make sure the last element in the tuple is 'reasonable'
+   * minimalizeOverFrac to handle empty basevars
+   * gb rat recon throughout? Engine?
+   * trivial cases in splitFunction (zero and unit ideal)
+   * SplitTower in annotated ideal
+   * Make splittower work for a list of polynomials, rather than an ideal

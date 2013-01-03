@@ -24,6 +24,8 @@ export {
     AnnotatedIdeal,
     NonzeroDivisors,
     Inverted,
+    FiberInfo,
+    LexGBOverBase,
     nzds,
     splitIdeal,
     Birational,  -- Strategy option for splitIdeal.  Exported now for simplicity
@@ -33,7 +35,8 @@ export {
     Minprimes,
     LinearSplitCompleted, -- internal symbols for AnnotatedIdeal
     BirationalSplitCompleted,
-    FactorizationSplitCompleted
+    FactorizationSplitCompleted,
+    SquarefreeCompleted
     }
 
 minprimes = method(Options => {
@@ -47,6 +50,8 @@ minprimes = method(Options => {
         "FactorizationLimit" => 100, -- Limit of number of terms to try and factor
         "UseColon" => true -- Use colon method in factorization split function
         })
+
+squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
 
 load (PD#"source directory"|"PD/annotated-ideals.m2")
 
@@ -482,7 +487,6 @@ extendIdeal Ideal := (I) -> (
      ideal JSF
      )
 
-squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
 squarefreeGenerators Ideal := opts -> I -> (
    n := opts#"SquarefreeFactorSize";
    madeChanges := false;

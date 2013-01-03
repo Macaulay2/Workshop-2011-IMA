@@ -6,9 +6,15 @@ AnnotatedIdeal = new Type of MutableHashTable
 --  A.Linear
 --  A.Inverted
 --  A.NonzeroDivisors
+------- IndependentSet Flags : The existence of the following two flags also implies the
+-------                        ideal is equidimensional
+--  A.FiberInfo   This is a triple (basevars,S,SF) where S,SF are returned from makeFiberRings
+--  A.LexGBOverBase  GB of ISF over SF
+------- Finished Flags
 --  A.BirationalSplitCompleted this exists means: birational split failed to split the ideal
 --  A.LinearSplitCompleted: if this field exists, then no linear polys in the ideal
 --  A.FactorizationSplitCompleted: if this field exists, then no poly gens of I factor
+--  A.SquarefreeCompleted: All generators are squarefree
 
 -- An "annotated ideal" is a tuple (I, L, NZ)
 -- where I is an ideal (in a subset of the variables)
@@ -78,17 +84,67 @@ ideal AnnotatedIdeal := (I) -> (
     )
 
 isPrime AnnotatedIdeal := (I) -> (
-    if not I.?isPrime then (I.isPrime = 
-        if numgens I.Ideal == 0 then "YES" else "UNKNOWN"
-        );
+    if not I.?isPrime or I.isPrime === "UNKNOWN" then (
+        I.isPrime = if numgens I.Ideal == 0 then "YES" else
+                    if I.?FactorizationSplitCompleted and numgens I.Ideal == 1 then "YES" else
+                    "UNKNOWN";
+       );
     I.isPrime
     )
+
+partitionPrimes = method()
+partitionPrimes List := Is -> (
+   P := partition(I -> isPrime I === "YES",Is);
+   -- have to check to see if there are any true/false at all before '#'
+   (if P#?true then P#true else {},if P#?false then P#false else {})
+)
+
+partitionPrimes AnnotatedIdeal := I -> partitionPrimes {I}
+
+--- this is so that we can add in generators to I and keep track of
+--- how the annotation changes
+AnnotatedIdeal + Ideal := (I,J) -> (
+   annotatedIdeal(J + I.Ideal,
+                  I.Linear,  -- 'linear' generators
+                  {},        -- clear out nonzerodivisor list
+                  unique join(I.NonzeroDivisors,I.Inverted)) -- move nonzerodivisors to inverted list
+)
+
+trim AnnotatedIdeal := opts -> I -> (
+    I.Ideal = trim I.Ideal;
+    I
+)
+
+squarefreeGenerators AnnotatedIdeal := opts -> I -> (
+   if I.?SquarefreeCompleted then return I; 
+   nonzeros := set I.Inverted;
+   J := I.Ideal;
+   n := opts#"SquarefreeFactorSize";
+   madeChanges := false;
+   J1 := ideal for g in J_* list (
+              if size g > n then g
+              else (
+                nonzeroFacs := set ((factors g) / last) - nonzeros;
+                h := product toList nonzeroFacs;
+                if g != h then madeChanges = true;
+                h
+              )
+         );
+   if madeChanges then
+      -- note that the NonzeroDivisor list is empty below since elements
+      -- can become zerodivisors when removing powers of generators
+      annotatedIdeal(J1,I.Linear,{},unique join(I.NonzeroDivisors,I.Inverted))
+   else 
+      I
+)
 
 nzds = method()
 nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
 ------------------------------------------------------------
 -- splitIdeal code
-splitIdeal = method(Options => {Strategy=>null, Verbosity=>1})
+splitIdeal = method(Options => {Strategy=>null,
+                                Verbosity=>1,
+                                "SquarefreeFactorSize" => 1})
   -- possible Strategy values:
   --  Linear     -- Eliminates variables where a generator is of the form x - g
                  -- for g not containing x
@@ -114,7 +170,7 @@ splitFunction = new MutableHashTable
     --   I2s is a list of AnnotatedIdeal's, primality unknown
 
 splitFunction#Linear = (I, opts) -> (
-    if I.?LinearSplitCompleted then return ({},{I});
+    if I.?LinearSplitCompleted then return partitionPrimes I;
     J := I.Ideal;
     linears := for x in gens ring J list (
         k := position(J_*, f -> first degree contract(x,f) == 0);
@@ -128,17 +184,17 @@ splitFunction#Linear = (I, opts) -> (
               )
             else
               annotatedIdeal(J, join(I.Linear, linears), I.NonzeroDivisors, I.Inverted);
-    ({}, {newJ})
+    partitionPrimes newJ
     )
 
 splitFunction#Birational = (I, opts) -> (
-      if I.?BirationalSplitCompleted then return ({},{I});
+      if I.?BirationalSplitCompleted then return partitionPrimes I;
       if I.Ideal == 1 then error "got a bad ideal";
       m := findGoodBirationalPoly I.Ideal;
         -- either null or a list {x, g, f=xg-h}, with f in ideal
       if m === null then (
           I.BirationalSplitCompleted = true;
-          return if isPrime I === "YES" then ({I},{}) else ({},{I});
+          return partitionPrimes I;
           );
       splitt := if member(m#1, I.NonzeroDivisors) then null else splitBy(I.Ideal,m#1);
       if splitt === null then (
@@ -151,7 +207,7 @@ splitFunction#Birational = (I, opts) -> (
                                  I.Inverted);
           -- if we wanted to, we could also place newI onto the "prime" list
           -- if newI.Ideal is generatedby one irreducible element
-          return if isPrime newI === "YES" then ({newI},{}) else ({},{newI});
+          return partitionPrimes newI;
           );
 
       (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.
@@ -160,38 +216,32 @@ splitFunction#Birational = (I, opts) -> (
           g := m#1//factors/last//product; -- squarefree part of m#1
           if g == 1 then error "also a bad error";
           newI = annotatedIdeal(I.Ideal + ideal g, I.Linear, I.NonzeroDivisors, I.Inverted);
-          return if isPrime newI === "YES" then ({newI},{}) else ({},{newI});
+          return partitionPrimes newI;
           );
 
-      ({},
-       {annotatedIdeal(J1, I.Linear, unique append(I.NonzeroDivisors, m#1), I.Inverted), 
-           annotatedIdeal(J2, I.Linear, I.NonzeroDivisors, I.Inverted)}
-       )
+      partitionPrimes {annotatedIdeal(J1, I.Linear, unique append(I.NonzeroDivisors, m#1), I.Inverted), 
+                       annotatedIdeal(J2, I.Linear, I.NonzeroDivisors, I.Inverted)}
     )
 
+
 splitFunction#Factorization = (I,opts) -> (
-    if I.?FactorizationSplitCompleted then return ({},{I});
+    if I.?FactorizationSplitCompleted then return partitionPrimes I;
     J := I.Ideal;
     --- originally taken from facGB0 in PD.m2 -- 12/18/2012
     (f, facs) := findElementThatFactors J_*; -- chooses a generator of I that factors
     if #facs == 0 then ( 
         --<< "no elements found that factor" << endl; << "ideal is " << toString I << endl; 
         I.FactorizationSplitCompleted = true;
-        if #(J_*) == 1 then (
-            I.isPrime = "YES";
-            return ({I},{})
-        )
-        else
-           return ({},{I});
-        );
+        return partitionPrimes I;
+    );
     nonzeros := set I.Inverted;
     prev := set{};
     nonzeroFacs := toList(set facs - nonzeros);
     if #nonzeroFacs == 1 and nonzeroFacs#0 != f then
-       return ({},{annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
-                                  I.Linear,
-                                  I.NonzeroDivisors,
-                                  I.Inverted)});
+       return partitionPrimes {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
+                                              I.Linear,
+                                              I.NonzeroDivisors,
+                                              I.Inverted)};
     L := for g in nonzeroFacs list (
           -- colon or sum?
           -- Try and fix UseColon?  May not be fixable...
@@ -200,15 +250,19 @@ splitFunction#Factorization = (I,opts) -> (
           --   --       This process will miss any component for which g is in I for all g.
           --   J = I:(f // g);
           *}
+          {*
           J = (ideal(g) + I.Ideal);
           J = trim ideal apply(J_*, f -> (
                 product toList (set ((factors f)/last) - nonzeros)
               ));
-          result := annotatedIdeal(J, I.Linear, I.NonzeroDivisors, toList (nonzeros + prev));
+          *}
+          J = I + ideal(g);
+          J = trim squarefreeGenerators(J,"SquarefreeFactorSize" => opts#"SquarefreeFactorSize");
+          J.Inverted = toList (set(J.Inverted) + prev);
           prev = prev + set{g};
-          if numgens J === 1 and J_0 == 1 then continue else result
+          if numgens J.Ideal === 1 and J.Ideal_0 == 1 then continue else J
     );
-    ({}, L)
+    partitionPrimes L
 )
 
 splitFunction#IndependentSet = (I,opts) -> (
@@ -216,8 +270,8 @@ splitFunction#IndependentSet = (I,opts) -> (
     -- does this really belong in the annotated ideal framework?
     -- WORK IN PROGRESS 12/24/2012 Frank
     -- create two annotated ideals:
-    --   J1 : 
     if isPrime I === "YES" then return ({I},{});
+    if I.?FiberInfo then return partitionPrimes I;
     J := I.Ideal;
     if J == 1 then error "Internal error: Input should not be unit ideal.";
     R := ring J;
@@ -230,23 +284,37 @@ splitFunction#IndependentSet = (I,opts) -> (
     JS := S.cache#"RtoS" J;
     -- if basevars is empty, then return I, but put in the lex ring.
     -- return value not correct form yet
-    if #basevars == 0 then return ((J, {}, (ideal gens gb JS)_*), ideal 1_R);
+    if #basevars == 0 then (
+        I.FiberInfo = ({},S,SF);
+        I.LexGBOverBase = (ideal gens gb JS)_*;
+        return partitionPrimes I
+    );
     -- otherwise compute over the fraction field.
     if hf =!= null then gb(JS, Hilbert=>hf) else gb JS;
     --gens gb IS;
     (JSF, coeffs) := minimalizeOverFrac(JS, SF);
-    if coeffs == {} then ((J,basevars,JSF),ideal {1_R}) else (
+    if coeffs == {} then (
+        I.FiberInfo = (basevars,S,SF);
+        I.LexGBOverBase = JSF;
+        return partitionPrimes I
+    )
+    else (
        facs := (factors product coeffs)/last;
        G := product facs;
        if opts.Verbosity > 0 then
            << "  the factors of the flattener: " << netList(facs) << endl;
        G = S.cache#"StoR" G;
-       -- is this what we want to be doing just yet?
-       -- more intelligent flattener?
        J1 := saturate(J, G);
-       J2 := trim (J : J1);
-       -- return value not correct form yet
-       ((J1, basevars, JSF), J2)
+       J1ann := annotatedIdeal(J1,I.Linear,unique join(I.NonzeroDivisors,facs),I.Inverted);
+       J1ann.FiberInfo = (basevars,S,SF);
+       J1ann.LexGBOverBase = JSF;
+       if J1 == J then
+          partitionPrimes J1ann
+       else (
+          J2 := trim (J : J1);
+          J2ann := annotatedIdeal(J2,I.Linear,I.NonzeroDivisors,I.Inverted);
+          partitionPrimes {J1ann,J2ann}
+       )
     )
 )
 

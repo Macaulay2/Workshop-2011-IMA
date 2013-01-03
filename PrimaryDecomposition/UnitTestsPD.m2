@@ -339,7 +339,9 @@ TEST ///
   restart
   debug needsPackage "PD"
   needsPackage "UnitTestsPD"
-  R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  kk = QQ
+  kk = ZZ/32003
+  R = kk[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"
     -ab-ad+2ah,
     ad-bd-cf-2ah+2bh+2ck,
@@ -360,6 +362,8 @@ TEST ///
    J = time splitIdeal(I, Strategy=>splice{2:Linear,5:Factorization,2:Linear,6:Birational,1:Factorization});
    time primesJ = (first J) / ideal
    checkMinimalPrimes(I, primesJ, "Answer"=>decompose)
+   
+   J = time splitIdeal(I, Strategy=>splice{2:Linear,5:Factorization,2:Linear,6:Birational,1:IndependentSet,1:Factorization});
    
    I1 = time splitIdeal(I, Strategy=>Linear);
    I2 = time splitIdeal(I1, Strategy=>Linear);

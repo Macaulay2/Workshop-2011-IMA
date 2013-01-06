@@ -75,10 +75,11 @@ modPFracGB (Ideal,List) := opts -> (I, baseVars) -> (
   -- Input: An ideal I over a polynomial ring defined over QQ, and a list baseVars of variables
   --        which will be inverted
   -- Output: A gb of I over the polynomial ring over the fraction field with baseVars inverted
+
   S := ring I;
   SZ := ZZ(monoid S);
-  intCont := integerContent I;
-  -- check using lcm and divisions
+  intCont := if char ring I == 0 then integerContent I else {};
+  -- TODO: check using lcm and divisions instead, not my 'content'
   validPrimes := random toList (set primesList - set intCont);
   
   i := 0;
@@ -87,28 +88,71 @@ modPFracGB (Ideal,List) := opts -> (I, baseVars) -> (
   IpRatReconQ := null;
   baseVars = toList((set support I) * (set baseVars)); -- we only need to consider variables which actually occur in gens of I
   while #reconTally == 0 or reconTally#(IpRatReconQ_*) < opts#"NumSameRecons" do (
-    p := validPrimes_i;
-    Sp := (ZZ/p)(monoid S);
-    phi := map(Sp,S);
-    Ip := phi I;
-    IpRatRecon := ideal first gbRationalReconstruction(Ip,baseVars / phi);
-    IpRatReconQ = integerRationalReconstruction(sub(IpRatRecon,SZ),p);
+    if char ring I != 0 then (   -- if nonzero char, just do rational reconstruction over Zp.
+       IpRatReconQ = ideal first gbRationalReconstruction(I,baseVars);
+    )
+    else (  -- otherwise, reconstruct over Zp, then do integer reconstruction
+       p := validPrimes_i;
+       Sp := (ZZ/p)(monoid S);
+       phi := map(Sp,S);
+       Ip := phi I;
+       IpRatRecon := ideal first gbRationalReconstruction(Ip,baseVars / phi);
+       IpRatReconQ = integerRationalReconstruction(sub(IpRatRecon,SZ),p);
+       i = i + 1;
+    );
     if reconTally#?(IpRatReconQ_*) then reconTally#(IpRatReconQ_*) = reconTally#(IpRatReconQ_*) + 1 else reconTally#(IpRatReconQ_*) = 1;
   );
-  -- should I forceGB here?
   sub(IpRatReconQ,S)
 )
 
-factorIrredZeroDimensionalTower = method(Options => {Verbosity => 0})
-factorIrredZeroDimensionalTower Ideal := opts -> IF -> (
-    -- Input  : IF is an ideal of k(basevars)[fibervars] and should be in a ring returned by makeFiberRings
+--- not sure if the below should return a list of sequences or a list of lists
+--- a few commands to make cartesian product of lists easier (and faster than using toList and set!)
+List ** List := (xs,ys) -> flatten for y in ys list apply(xs, x -> {x,y})
+-- compose all functions in a list
+composeList := fs -> if #fs == 0 then identity else (first fs) @@ (composeList drop(fs,1))
+-- takes the iterated cartesian product of a List of Lists.  Care is taken
+-- to avoid flattening all the way, since the original list may be a list of lists.
+cartProdList = method()
+cartProdList List := xss -> (
+    if #xss < 2 then return xss;
+    if #xss == 2 then return (first xss) ** (last xss); 
+    xsLengths := xss / length / (i -> toList(0..(i-1)));
+    indexList := fold(xsLengths, (as,bs) -> (as ** bs) / flatten);
+    apply(indexList, l -> apply(#l, i -> xss#i#(l#i)))
+)
+
+factorListToIdeal = method()
+factorListToIdeal List := facs -> ideal gens gb ideal apply(facs, p -> (p#1)^(p#0))
+
+idealToFactorList = method()
+idealToFactorList Ideal := I -> flatten (I_* / factors / (l -> l / toList))
+
+factorTower = method(Options => {Verbosity => 0,
+                                 "SplitIrred" => false, -- this option tells the function to try and split the irreducibles further mod the 'earlier' irreducibles
+                                 "Minprimes" => true}) -- this option clears out all powers of irreducibles on input
+factorTower List := opts -> polyList -> (
+   polyFacList := for f in polyList list ((factors f) / toList);
+   splitFacList := cartProdList polyFacList;
+   -- the below command removes all multiplicity information on the input if the Minprimes option is set
+   -- At the moment, I can't seem to get it working without having Minprimes => true yet.
+   if opts#"Minprimes" then splitFacList = apply(splitFacList, l -> apply(l, p -> {1,p#1}));
+   -- if the user doesn't want to try and split modulo the irreducibles, return
+   if not opts#"SplitIrred" then return splitFacList;
+   -- before calling factorIrredTower, do I need to make sure the ideal is zero dimensional over the base field? Ignore for now.
+   flatten apply(splitFacList, facs -> factorIrredTower(facs,opts))
+)
+factorTower Ideal := opts -> I -> factorTower(I_*,opts) / factorListToIdeal
+
+factorIrredTower = method(Options => options factorTower)
+factorIrredTower List := opts -> polyList -> (
+    -- Input  : IF = factorListToIdeal polyList is an ideal of k(basevars)[fibervars] and should be in a ring returned by makeFiberRings
     --          IF should satisfy:
     --            1. IF is zero-dimensional
     --            2. IF_* is a lex GB for IF (in ascending order of leadterms)
     --            3. IF_* only contains (hopefully!) elements whose lead term is a pure power.
-    --            4. each element IF_i is irreducible over the fraction field k(basevars).
+    --            4. polyList is a list of lists whose first entry is a power, and whose last entry is an irreducible over k(vasevars)
 
-    -- Output : A list of ideals.  The intersection of the ideals is IF, and for each ideal IF_j in the
+    -- Output : A list of lists.  The intersection of the ideals generated by each list is IF, and for each ideal IF_j in the
     --          list, IF_j = (f_1,...,f_k) where (after ignoring linear terms that are removed and then reinserted)
     --               f_1 is an irreducible monic polynomial in k(basevars)[x_1] (where x_1 is the
     --                 least variable of fibervars that did not appear linearly in IF)
@@ -118,31 +162,30 @@ factorIrredZeroDimensionalTower Ideal := opts -> IF -> (
     --               f_k is an irreducible monic polynomial in k(basevars)[x_1,...,x_k]/(f_1,...,f_{k-1})
 
     -- partition the generators into linear and nonlinear terms
-    E := partition(hasLinearLeadTerm, IF_*);
+    E := partition(p -> hasLinearLeadTerm(p#1 // leadCoefficient p#1), polyList);
     -- nothing to do, all linear generators
-    if not E#?false then return {IF};
+    if not E#?false then return {polyList};
     nonlinears := E#false;
-    if #nonlinears <= 1 then return {IF};
-    SF := ring IF;
+    if #nonlinears <= 1 then return {polyList};
     -- keep for later - we will take them out of the computation and reinsert them.
     linears := if E#?true then E#true else {};
 
     -- here, we are using that nonlinears_0 is irreducible over the fraction field.
-    retVal := {ideal nonlinears_0};
+    retVal := {{nonlinears_0}};
     for i from 1 to #nonlinears - 1 do (
-       retVal = flatten apply(retVal, K -> factorIrredZeroDimensionalTowerWorker(ideal gens gb (K + nonlinears_i), opts));
+       retVal = flatten apply(retVal, K -> factorIrredTowerWorker(K | {nonlinears_i}, opts));
     );
-    retVal / (C -> ideal gens gb (C + ideal linears))
+    retVal / (C -> linears | C)
 )
+factorIrredTower Ideal := opts -> I -> (factorIrredTower idealToFactorList I_*) / factorListToIdeal
 
-factorIrredZeroDimensionalTowerWorker = method(Options => {Verbosity => 0})
-factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
-
+factorIrredTowerWorker = method(Options => options factorTower)
+factorIrredTowerWorker List := opts -> polyList -> (
     -- this is the worker function for the above function.  It assumes everything
     -- assumed above, as well as that the generators of the input form a 'chain' of irreducibles
     -- except for the last element.
-    -- this is the vector space dimension of the extension of k(basevars) that this ideal gives
-    vecdim := (IF_*)/leadTerm/(f -> first degree f)//product;
+    vecdim := polyList/(p -> (first degree leadTerm p#1) * p#0)//product;  -- the vector space dimension of the extension of k(basevars) that the irred ideal gives
+    IF := factorListToIdeal polyList;
     L := ideal (IF_* / numerator);
     S := ring L;
     SF := ring IF;
@@ -155,9 +198,8 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     lastVar = numerator lastVar;
     otherVars = otherVars/numerator;
     -- as of now, we use quickGB if the base field is not a fraction field.
-    -- use modPFracGB here too? 
-    G := if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
-    --time G := (eliminate(L1, otherVars))_0;
+    -- use modPFracGB here too perhaps?
+    G := time if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
     completelySplit := degree(lastVar, G) === vecdim;
     facs := factors G;
     if opts.Verbosity > 0 then print netList facs;
@@ -169,35 +211,79 @@ factorIrredZeroDimensionalTowerWorker Ideal := opts -> IF -> (
     facs1 = (sort apply(#facs1, i -> (first degree facs1#i#1,facs1#i))) / last;
     -- select the factors which are nonunits of SF
     facs1 = select(facs1, f -> not isUnit(S.cache#"StoSF" f#1));
-    if #facs1 == 0 then {IF}
-    else if #facs1 == 1 and facs1#0#0 == 1 then {IF}
+    if #facs1 == 0 then {polyList}
+    else if (#facs1 == 1 and facs1#0#0 == 1) or (#facs1 == 1 and not opts#"Minprimes") then {polyList}
     else (
          j := 0;
          -- Note that the second condition forces the 'last factor' trick to not occur
-         -- in case the polynomial is, for example, a pure power of an irreducible.
+         -- in case the polynomial is, for example, a pure power of an irreducible (modulo the earlier polynomials, of course)
          retVal := flatten while (j <= #facs1 - 2 or (j == #facs1-1 and facs1#j#0 > 1)) list (
-                      -- Note we are ignoring multiplicity here.  Will include it later when doing primary components
                       fac := facs1#j;
                       j = j + 1;
-                      G = fac#1 % L;
-                      C := ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
+                      G = if opts#"Minprimes" then (fac#1) % L else (fac#1)^(fac#0) % L;
+                      --- It seems that G may be zero if you have powers of irreducibles.
+                      --- I don't really understand why.  It's breaking some examples...
+                      if G == 0 then error "Internal error.  Tried to add in zero element to ideal in factorTower.";
+                      C := time ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
                       if C == 1 then continue;
                       newFacs = newFacs * (first toList (set C_* - set IF_*))^(fac#0);
-                      if completelySplit then C else flatten factorIrredZeroDimensionalTower C
+                      if completelySplit then {idealToFactorList C} else factorIrredTower idealToFactorList C
                    );
          -- if we made it all the way through facs1, then we are done.  Else, we may use
          -- the previous computations to determine the final factor
          if j == #facs1 then retVal
          else (
             lastFactor := lastIrred // newFacs;
-            lastComp := ideal gens gb ((S.cache#"StoSF" L) + lastFactor);
+            lastComp := flatten ((flatten entries gens gb ((S.cache#"StoSF" L) + lastFactor)) / factors / (l -> l / toList));
             -- TODO: Check for completelySplit here too.
-            append(retVal, lastComp)
+            if completelySplit then append(retVal, lastComp) else join(retVal,factorIrredTower lastComp)
         )
     )
-    )
+)
 
 end
+
+--- making sure the cartesian product stuff is working
+restart
+debug needsPackage "PD"
+needsPackage "ModularGCD"
+X = toList (0..1);
+X = X ** X
+time cartProdList {X,X};
+#oo
+time cartProdList {X,X,X};
+#oo
+time cartProdList {X,X,X,X};
+#oo
+time cartProdList {X,X,X,X,X};
+#oo
+
+--- a very baby example for factorTower
+restart
+debug needsPackage "PD"
+R = QQ[s,r]
+(S,SF) = makeFiberRings({},R)
+use S
+f = r^2-3
+g = s^2+5*s+22/4
+factorTower {f^2,f*g}
+factorTower({f,g},"SplitIrred"=>true)
+factorTower(ideal {f,g}, "SplitIrred"=>true)
+factorTower({f^2,g},"SplitIrred"=>true)
+factorTower(ideal {f^2,g},"SplitIrred"=>true)
+factorTower({f^2,g^2},"SplitIrred"=>true)
+
+--- another
+restart
+debug needsPackage "PD"
+R = QQ[z,y]
+(S,SF) = makeFiberRings({},R)
+use S
+f = z^2+1
+g = y^3+3*y^2*z-3*y-z
+-- we have a problem!
+factorTower({f,g},"SplitIrred"=>true, "Minprimes"=>true)
+splitTower ideal {f,g}
 
 -- Testing modPFracGB
   restart
@@ -238,6 +324,10 @@ end
   m1 = r^2-3
   m2 = g_4^4+((4*e_4^2+3*g_1^2)/3)*g_4^2+(4*e_4^4+18*e_4^2*g_1^2)/9
   m3 = g_2^2+(9/8)*g_4^2+(2*e_4^2+9*g_1^2)/8
+  testList = {m1^2,m2,m3}
+  factorTower(testList,"SplitIrred"=>true)
+  testList2 = {m1,m2,m3}
+  factorTower(testList2,"SplitIrred"=>true)
   f = g_2+(3/(4*e_4*g_1))*g_4^3+((2*e_4^2+3*g_1^2)/(4*e_4*g_1))*g_4
   h = g_2+((-3)/(4*e_4*g_1))*g_4^3+((-2*e_4^2-3*g_1^2)/(4*e_4*g_1))*g_4
   m4 = f^2 % m2
@@ -252,12 +342,11 @@ end
   -- if you run this command enough times, an error occurs in the gbRationalReconstruction code
   -- because G and loopG are different lengths.
   -- I let this run for a long while and it never failed an assert.
-  time factorIrredZeroDimensionalTower L3
-  -- this one doesn't work since the last element is a square, so the trick used to find the last factor
-  -- doesn't factor this element.  So some more checking needs to be done
-  time factorIrredZeroDimensionalTower L4
+  time factorTower L3
+  -- change to the last element is a square
+  time factorTower(L4,"SplitIrred"=>true)
   -- eliminate is too damn slow, so I wrote quickEliminate that uses the Hilbert hint trick.
-  time factorIrredZeroDimensionalTower L4'
+  time factorTower L4'
 ----
 
 --- baby example

@@ -564,8 +564,9 @@ minprimesWorker Ideal := opts -> (I) -> (
         D := splitLexGB ideal ISF;
         --comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten); -- old splitTower
         -- is there a way to use the polyCRA trick in nonzero characteristic?
-        if char ring I != 0 then comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten)
-          else comps = join(comps, (apply(D, j -> factorIrredZeroDimensionalTower(j,Verbosity=>opts.Verbosity))) // flatten);
+        --if char ring I != 0 then comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten)
+        --  else comps = join(comps, (apply(D, j -> factorTower(j,Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true))) // flatten);
+        comps = join(comps, (apply(D, j -> factorTower(j,Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true))) // flatten);
         J = I2;
         loopCount = loopCount + 1;
         );

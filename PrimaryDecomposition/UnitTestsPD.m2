@@ -408,7 +408,8 @@ TEST ///
 -------------------------------------
 
 BENCHMARK ///
-  needsPackage "PD"
+  debug needsPackage "PD"
+  debug needsPackage "UnitTestsPD"
   Q = ZZ/32003[a,b,c,d]
   -- 3 random cubics in R
   I = ideal(-840*a^3-7687*a^2*b+9625*a*b^2-3820*b^3-10392*a^2*c-13100*a*b*c-11362*b^2*c-7463*a*c^2-11288*b*c^2+1417*c^3-14802*a^2*d-7804*a*b*d+5834*b^2*d-10186*a*c*d-11900*b*c*
@@ -427,6 +428,7 @@ BENCHMARK ///
 
 SIMPLETEST ///
   needsPackage "PD"
+  needsPackage "UnitTestsPD"
   R = ZZ/32003[a,b,c,h]
   I = ideal(a+b+c,a*b+b*c+a*c,a*b*c-h^3)
   C = minprimes I;
@@ -483,6 +485,20 @@ SIMPLETEST ///
 
 SIMPLETEST ///
   needsPackage "PD"
+  R = ZZ/32003[a,b,c,d]
+  I = ideal(a^2-b^2,a*b*c-d^3,b*d^2-a*c^2)
+  C = minprimes I
+  checkMinimalPrimes(I, C, "Answer" => decompose)
+  C1 = minprimes( I, "UseColon" => false);
+  checkMinimalPrimes(I, C1, "Answer" => decompose)
+  C2 = minprimes( I, "SimplifyIdeal" => false);
+  checkMinimalPrimes(I, C2, "Answer" => decompose)
+  C3 = minprimes( I, "FactorizationSplit" => true );
+  checkMinimalPrimes(I, C3, "Answer" => decompose)
+///
+
+SIMPLETEST ///
+  needsPackage "PD"
   R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
   p = z^2+1
   q = z^4+2
@@ -498,6 +514,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
+  -- This is Broken!!!  Problem in gbRatRecon
   needsPackage "PD"
   R = ZZ/32003[x,y,z,MonomialOrder=>Lex]
   p = z^2+1
@@ -1116,7 +1133,9 @@ TEST ///
 ///
 
 TEST ///
+  restart
   needsPackage "PD"
+  needsPackage "UnitTestsPD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --wang1 (DGP)

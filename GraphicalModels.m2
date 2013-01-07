@@ -2024,7 +2024,7 @@ doc///
        The diagonal in this matrix consists of the indeterminates  $p_{(i,i)}$. Each off-diagonal entry is zero unless 
        there is a bidirected edge between i and j in which case the corresponding entry in the matrix is the ideterminate
        $p_{(i,j)}$. The documentation of @TO gaussianRing@ 
-       further describes these indeterminates.
+       further describes the indeterminates $p_{(i,j)}$.
        
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
@@ -2062,9 +2062,9 @@ doc///
        This method returns the  $n \times{} n$ matrix of direct causal effect indeterminates. 
        This matrix has the parameter $l_{(i,j)}$ in the $(i,j)$ position
        if there is a directed edge $i \to j$, and 0 otherwise.
-       The documentation of @TO gaussianRing@ 
-       further describes these indeterminates.
        Note that this matrix is not symmetric.
+       The documentation of @TO gaussianRing@ 
+       further describes the indeterminates $l_{(i,j)}$.
 
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,d}},bigraph {{a,d}})
@@ -2602,6 +2602,8 @@ doc///
      Text
        This symmetric matrix has entries $k_{(i,i)}$ along the diagonal
        and entry $k_{(i,j)}$ in the $(i,j)$ position if there is an edge  between i and j, and a zero otherwise.
+       The documentation of @TO gaussianRing@ 
+       further describes the indeterminates $k_{(i,j)}$.
 
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})

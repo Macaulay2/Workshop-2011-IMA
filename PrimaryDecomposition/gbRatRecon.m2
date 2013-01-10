@@ -211,8 +211,9 @@ factorIrredTowerWorker List := opts -> polyList -> (
     facs1 = (sort apply(#facs1, i -> (first degree facs1#i#1,facs1#i))) / last;
     -- select the factors which are nonunits of SF
     facs1 = select(facs1, f -> not isUnit(S.cache#"StoSF" f#1));
+    --- need to alter this to handle primary case - not sure how to get power of irreducible from the factor efficiently 
     if #facs1 == 0 then {polyList}
-    else if (#facs1 == 1 and facs1#0#0 == 1) or (#facs1 == 1 and not opts#"Minprimes") then {polyList}
+    else if (#facs1 == 1 and facs1#0#0 == 1) then {polyList}
     else (
          j := 0;
          -- Note that the second condition forces the 'last factor' trick to not occur
@@ -220,14 +221,16 @@ factorIrredTowerWorker List := opts -> polyList -> (
          retVal := flatten while (j <= #facs1 - 2 or (j == #facs1-1 and facs1#j#0 > 1)) list (
                       fac := facs1#j;
                       j = j + 1;
-                      G = if opts#"Minprimes" then (fac#1) % L else (fac#1)^(fac#0) % L;
-                      --- It seems that G may be zero if you have powers of irreducibles.
-                      --- I don't really understand why.  It's breaking some examples...
+                      G = (fac#1) % L;
                       if G == 0 then error "Internal error.  Tried to add in zero element to ideal in factorTower.";
                       C := time ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
                       if C == 1 then continue;
                       newFacs = newFacs * (first toList (set C_* - set IF_*))^(fac#0);
-                      if completelySplit then {idealToFactorList C} else factorIrredTower idealToFactorList C
+                      -- now we need to put the power of the new irreducible in, if it exists (and if minprimes is not set)
+                      -- TODO: Prove that this power is correct?
+                      C = idealToFactorList C;
+                      C = drop(C,-1) | {{if opts#"Minprimes" then 1 else fac#0,(last C)#1}};
+                      if completelySplit then {C} else factorIrredTower C
                    );
          -- if we made it all the way through facs1, then we are done.  Else, we may use
          -- the previous computations to determine the final factor
@@ -261,17 +264,16 @@ time cartProdList {X,X,X,X,X};
 --- a very baby example for factorTower
 restart
 debug needsPackage "PD"
-R = QQ[s,r]
+R = QQ[r,s]
 (S,SF) = makeFiberRings({},R)
 use S
 f = r^2-3
 g = s^2+5*s+22/4
-factorTower {f^2,f*g}
 factorTower({f,g},"SplitIrred"=>true)
-factorTower(ideal {f,g}, "SplitIrred"=>true)
-factorTower({f^2,g},"SplitIrred"=>true)
-factorTower(ideal {f^2,g},"SplitIrred"=>true)
-factorTower({f^2,g^2},"SplitIrred"=>true)
+factorTower({f^2,g},"SplitIrred"=>true, "Minprimes"=>false)
+gbTrace = 3
+-- problem here, caught in an infinite loop.
+factorTower({f^2,g^2},"SplitIrred"=>true, "Minprimes"=>false)
 
 --- another
 restart

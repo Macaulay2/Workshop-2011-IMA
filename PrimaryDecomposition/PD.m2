@@ -22,6 +22,7 @@ export {
     -- Main functions
     minprimes,
     AnnotatedIdeal,
+    Linears,
     NonzeroDivisors,
     Inverted,
     FiberInfo,
@@ -33,10 +34,7 @@ export {
     Factorization,
     CharacteristicSets,
     Minprimes,
-    LinearSplitCompleted, -- internal symbols for AnnotatedIdeal
-    BirationalSplitCompleted,
-    FactorizationSplitCompleted,
-    SquarefreeCompleted
+    Squarefree
     }
 
 minprimes = method(Options => {

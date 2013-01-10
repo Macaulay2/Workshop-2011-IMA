@@ -179,7 +179,7 @@ splitFunction = new MutableHashTable
     --   I2s is a list of AnnotatedIdeal's, primality unknown
 
 splitFunction#Linear = (I, opts) -> (
-    if I.?Linear then return partitionPrimes I;
+    if I.?Linear then return {I};
     J := I.Ideal;
     linears := for x in gens ring J list (
         k := position(J_*, f -> first degree contract(x,f) == 0);
@@ -193,17 +193,17 @@ splitFunction#Linear = (I, opts) -> (
             )
             else
               annotatedIdeal(J, join(I.Linears, linears), I.NonzeroDivisors, I.Inverted);
-    partitionPrimes newJ
+    {newJ}
     )
 
 splitFunction#Birational = (I, opts) -> (
-      if I.?Birational then return partitionPrimes I;
+      if I.?Birational then return {I};
       if I.Ideal == 1 then error "got a bad ideal";
       m := findGoodBirationalPoly I.Ideal;
         -- either null or a list {x, g, f=xg-h}, with f in ideal
       if m === null then (
           I.Birational = true;
-          return partitionPrimes I;
+          return {I};
           );
       splitt := if member(m#1, I.NonzeroDivisors) then null else splitBy(I.Ideal,m#1);
       if splitt === null then (
@@ -216,7 +216,7 @@ splitFunction#Birational = (I, opts) -> (
                                  I.Inverted);
           -- if we wanted to, we could also place newI onto the "prime" list
           -- if newI.Ideal is generatedby one irreducible element
-          return partitionPrimes newI;
+          return {newI};
           );
 
       (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.
@@ -225,32 +225,32 @@ splitFunction#Birational = (I, opts) -> (
           g := m#1//factors/last//product; -- squarefree part of m#1
           if g == 1 then error "also a bad error";
           newI = annotatedIdeal(I.Ideal + ideal g, I.Linears, I.NonzeroDivisors, I.Inverted);
-          return partitionPrimes newI;
+          return {newI};
           );
 
-      partitionPrimes {annotatedIdeal(J1, I.Linears, unique append(I.NonzeroDivisors, m#1), I.Inverted), 
-                       annotatedIdeal(J2, I.Linears, I.NonzeroDivisors, I.Inverted)}
+      {annotatedIdeal(J1, I.Linears, unique append(I.NonzeroDivisors, m#1), I.Inverted), 
+       annotatedIdeal(J2, I.Linears, I.NonzeroDivisors, I.Inverted)}
     )
 
 
 splitFunction#Factorization = (I,opts) -> (
-    if I.?Factorization then return partitionPrimes I;
+    if I.?Factorization then return {I};
     J := I.Ideal;
     --- originally taken from facGB0 in PD.m2 -- 12/18/2012
     (f, facs) := findElementThatFactors J_*; -- chooses a generator of I that factors
     if #facs == 0 then ( 
         --<< "no elements found that factor" << endl; << "ideal is " << toString I << endl; 
         I.Factorization = true;
-        return partitionPrimes I;
+        return {I};
     );
     nonzeros := set I.Inverted;
     prev := set{};
     nonzeroFacs := toList(set facs - nonzeros);
     if #nonzeroFacs == 1 and nonzeroFacs#0 != f then
-       return partitionPrimes {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
-                                              I.Linears,
-                                              I.NonzeroDivisors,
-                                              I.Inverted)};
+       return {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
+                              I.Linears,
+                              I.NonzeroDivisors,
+                              I.Inverted)};
     L := for g in nonzeroFacs list (
           -- colon or sum?
           -- Try and fix UseColon?  May not be fixable...
@@ -271,15 +271,15 @@ splitFunction#Factorization = (I,opts) -> (
           prev = prev + set{g};
           if numgens J.Ideal === 1 and J.Ideal_0 == 1 then continue else J
     );
-    partitionPrimes L
+    L
 )
 
 splitFunction#IndependentSet = (I,opts) -> (
     -- what do we need to stash in the answer from independentSets?
     -- does this really belong in the annotated ideal framework?
     -- create two annotated ideals:
-    if isPrime I === "YES" then return ({I},{});
-    if I.?FiberInfo then return partitionPrimes I;
+    if isPrime I === "YES" then return {I};
+    if I.?FiberInfo then return {I};
     J := I.Ideal;
     if J == 1 then error "Internal error: Input should not be unit ideal.";
     R := ring J;
@@ -295,7 +295,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     if #basevars == 0 then (
         I.FiberInfo = ({},S,SF);
         I.LexGBOverBase = (ideal gens gb JS)_*;
-        return partitionPrimes I
+        return {I};
     );
     -- otherwise compute over the fraction field.
     if hf =!= null then gb(JS, Hilbert=>hf) else gb JS;
@@ -304,7 +304,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     if coeffs == {} then (
         I.FiberInfo = (basevars,S,SF);
         I.LexGBOverBase = JSF;
-        return partitionPrimes I
+        {I}
     )
     else (
        facs := (factors product coeffs)/last;
@@ -317,17 +317,17 @@ splitFunction#IndependentSet = (I,opts) -> (
        J1ann.FiberInfo = (basevars,S,SF);
        J1ann.LexGBOverBase = JSF;
        if J1 == J then
-          partitionPrimes J1ann
+          {J1ann}
        else (
           J2 := trim (J : J1);
           J2ann := annotatedIdeal(J2,I.Linears,I.NonzeroDivisors,I.Inverted);
-          partitionPrimes {J1ann,J2ann}
+          {J1ann,J2ann}
        )
     )
 )
 
 splitFunction#Minprimes = (I,opts) -> (
-   if isPrime I === "YES" then return ({I},{});
+   if isPrime I === "YES" then return {I};
    minPrimesList := minprimes I.Ideal; --get options to work here 
    annotatedMPList := minPrimesList / (x -> (
                                   newI := annotatedIdeal(x,
@@ -336,7 +336,7 @@ splitFunction#Minprimes = (I,opts) -> (
                                               I.Inverted);
                                   newI.isPrime = "YES";
                                   newI));
-   (annotatedMPList,{})              
+   annotatedMPList
 )
 
 splitIdeal Ideal := (opts) -> (I) -> splitIdeal(annotatedIdeal(I,{},{},{}), opts)
@@ -355,7 +355,7 @@ splitIdeal(List,List) := opts -> (L1,L2) -> (
     while #strat > 0 and #L2 > 0 do (
        if opts.Verbosity > 0 then
           << "Splitting using strategy " << first strat << endl;
-       newL2 := L2/(x -> splitFunction#(first strat)(x,opts));
+       newL2 := L2/(x -> partitionPrimes splitFunction#(first strat)(x,opts));
        strat = drop(strat,1);
        knownPrimes := join(L1, flatten(newL2/first));
        notknownPrimes := flatten(newL2/last);

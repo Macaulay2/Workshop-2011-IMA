@@ -354,7 +354,19 @@ TEST ///
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
-
+   
+   J = time splitUntil(I,infinity,Linear);
+   J' = time splitUntil(J,infinity,Birational);
+   checkMinimalPrimes(I,J' / ideal, "Answer"=>decompose);
+   
+   J = time splitIdeal(I, Strategy=>splice{2:Linear});
+   J' = time splitUntil(I,infinity,Linear);
+   J'' = time splitUntil(J',infinity,Birational);
+   checkMinimalPrimes(I,J'' / ideal, "Answer"=>decompose);
+   
+   J = time splitIdeal2(I,Strategy=>{Linear,Birational});
+   checkMinimalPrimes(I,J / ideal, "Answer"=>decompose);
+   
    J = time splitIdeal(I, Strategy=>splice{2:Linear,10:Birational});
    time primesJ = (first J) / ideal
    checkMinimalPrimes(I, primesJ, "Answer"=>decompose)

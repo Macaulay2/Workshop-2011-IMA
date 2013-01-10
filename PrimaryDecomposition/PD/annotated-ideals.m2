@@ -106,9 +106,7 @@ partitionPrimes List := Is -> (
 partitionPrimes AnnotatedIdeal := I -> partitionPrimes {I}
 
 flagIsPrime = method()
-flagIsPrime List := Is -> Is / isPrime
-
-flagIsPrime AnnotatedIdeal := I -> flagIsPrime {I}
+flagIsPrime AnnotatedIdeal := I -> (isPrime I; I)
 
 --- this is so that we can add in generators to I and keep track of
 --- how the annotation changes
@@ -339,53 +337,53 @@ splitFunction#Minprimes = (I,opts) -> (
    annotatedMPList
 )
 
-splitIdeal Ideal := (opts) -> (I) -> splitIdeal(annotatedIdeal(I,{},{},{}), opts)
-splitIdeal AnnotatedIdeal := (opts) -> (I) -> splitIdeal({},{I},opts)
---splitIdeal(List,List) := opts -> (L1,L2) -> (
---    newL2 := L2/(x -> splitIdeal(x,opts));
---    knownPrimes := join(L1, flatten(newL2/first));
---    notknownPrimes := flatten(newL2/last);
---    (knownPrimes, notknownPrimes)
---    )
-splitIdeal(List,List) := opts -> (L1,L2) -> (
-    -- L1 is a list of annotated ideals known to be prime
-    -- L2 is a list of annotated ideals not known to be prime
-    strat := opts.Strategy;
-    if not instance (strat,List) then strat = {strat};
-    while #strat > 0 and #L2 > 0 do (
-       if opts.Verbosity > 0 then
-          << "Splitting using strategy " << first strat << endl;
-       newL2 := L2/(x -> partitionPrimes splitFunction#(first strat)(x,opts));
-       strat = drop(strat,1);
-       knownPrimes := join(L1, flatten(newL2/first));
-       notknownPrimes := flatten(newL2/last);
-       if opts.Verbosity > 0 then (
-          << "  Known as primes : " << #knownPrimes << endl;
-          << "  Not known as primes : " << #notknownPrimes << endl;
-       );
-       (L1,L2) = (knownPrimes, notknownPrimes);
-    );
-    (L1,L2)
-)
-splitIdeal List := opts -> (L) -> splitIdeal({},L,opts)
+isStrategyDone = method()
+isStrategyDone (List,Symbol) := (L,strat) -> all(L, I -> I#?strat)
 
 splitUntil = method(Options => options splitIdeal)
-splitUntil (AnnotatedIdeal,ZZ,Symbol) := 
-splitUntil (AnnotatedIdeal,InfiniteNumber,Symbol) := opts -> (I,n,strat) -> (
-   i := 0;
-   done := false;
-   
-)
 
-composeUntil = (f,n) -> (L,opts) -> (
+splitUntil (Ideal,Symbol,ZZ) := 
+splitUntil (Ideal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
+   splitUntil(annotatedIdeal(I,{},{},{}), strat,n,opts)
+
+splitUntil (AnnotatedIdeal,Symbol,ZZ) := 
+splitUntil (AnnotatedIdeal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
+   splitUntil({I},strat,n,opts)
+
+splitUntil (List,Symbol,ZZ) := 
+splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
    i := 0;
-   retVal := L;
-   done := false;
-   while i < n and not done do (
-      (done,retVal) = f(retVal,opts);
+   primeList := {};
+   loopList := L;
+   while i < n and not isStrategyDone(loopList,strat) do (
+      loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
+      if opts.Verbosity > 0 then (
+          knownPrimes := #select(loopList, I -> isPrime I === "YES");
+          notknownPrimes := #loopList - knownPrimes;
+          << "  Known as primes : " << knownPrimes << endl;
+          << "  Not known as primes : " << notknownPrimes << endl;
+      );
       i = i + 1;
    );
-   retVal
+   loopList
+)
+
+splitIdeal Ideal := opts -> I -> splitIdeal({annotatedIdeal(I,{},{},{})}, opts)
+splitIdeal AnnotatedIdeal := opts -> I -> splitIdeal({I},opts)
+splitIdeal List := opts -> L -> (
+    strat := opts.Strategy;
+    if not instance (strat,List) then strat = {strat};
+    stratPairs := for s in strat list (
+       if not instance(s,Sequence) then s = (s,infinity);
+       if not member(first s,{Linear,Birational,Factorization,IndependentSet,Minprimes}) then
+          error ("Unknown strategy " | toString s | " given.");
+       s
+    );
+    loopList := L;
+    for s in stratPairs do (
+       loopList = splitUntil(loopList,s#0,s#1);
+    );
+    loopList
 )
 
 ------------------------------------------------------------

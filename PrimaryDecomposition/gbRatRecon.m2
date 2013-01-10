@@ -199,7 +199,10 @@ factorIrredTowerWorker List := opts -> polyList -> (
     otherVars = otherVars/numerator;
     -- as of now, we use quickGB if the base field is not a fraction field.
     -- use modPFracGB here too perhaps?
-    G := time if numgens coefficientRing S == 0 then (quickEliminate(L1,otherVars))_0 else (eliminate(L1, otherVars))_0;
+    G := time if numgens coefficientRing S == 0 then
+                 (quickEliminate(L1,otherVars))_0
+              else
+                 (eliminate(L1, otherVars))_0;
     completelySplit := degree(lastVar, G) === vecdim;
     facs := factors G;
     if opts.Verbosity > 0 then print netList facs;
@@ -269,11 +272,14 @@ R = QQ[r,s]
 use S
 f = r^2-3
 g = s^2+5*s+22/4
+factorTower({f,g})
 factorTower({f,g},"SplitIrred"=>true)
+factorTower({f^2,g},"SplitIrred"=>true, "Minprimes"=>true)
 factorTower({f^2,g},"SplitIrred"=>true, "Minprimes"=>false)
 gbTrace = 3
 -- problem here, caught in an infinite loop.
 factorTower({f^2,g^2},"SplitIrred"=>true, "Minprimes"=>false)
+primaryDecomposition ideal {f^2,g^2}
 
 --- another
 restart

@@ -8,7 +8,7 @@ AnnotatedIdeal = new Type of MutableHashTable
 --  A.NonzeroDivisors
 ------- IndependentSet Flags : The existence of the following two flags also implies the
 -------                        ideal is equidimensional
---  A.FiberInfo   This is a triple (basevars,S,SF) where S,SF are returned from makeFiberRings
+--  A.IndependentSet   This is a triple (basevars,S,SF) where S,SF are returned from makeFiberRings
 --  A.LexGBOverBase  GB of ISF over SF
 -- Finished Flags: if any of these flags exists, then that split
 -- technique is done on that ideal.
@@ -277,7 +277,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     -- does this really belong in the annotated ideal framework?
     -- create two annotated ideals:
     if isPrime I === "YES" then return {I};
-    if I.?FiberInfo then return {I};
+    if I.?IndependentSet then return {I};
     J := I.Ideal;
     if J == 1 then error "Internal error: Input should not be unit ideal.";
     R := ring J;
@@ -291,7 +291,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     -- if basevars is empty, then return I, but put in the lex ring.
     -- return value not correct form yet
     if #basevars == 0 then (
-        I.FiberInfo = ({},S,SF);
+        I.IndependentSet = ({},S,SF);
         I.LexGBOverBase = (ideal gens gb JS)_*;
         return {I};
     );
@@ -300,7 +300,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     --gens gb IS;
     (JSF, coeffs) := minimalizeOverFrac(JS, SF);
     if coeffs == {} then (
-        I.FiberInfo = (basevars,S,SF);
+        I.IndependentSet = (basevars,S,SF);
         I.LexGBOverBase = JSF;
         {I}
     )
@@ -312,7 +312,7 @@ splitFunction#IndependentSet = (I,opts) -> (
        G = S.cache#"StoR" G;
        J1 := saturate(J, G);
        J1ann := annotatedIdeal(J1,I.Linears,unique join(I.NonzeroDivisors,facs),I.Inverted);
-       J1ann.FiberInfo = (basevars,S,SF);
+       J1ann.IndependentSet = (basevars,S,SF);
        J1ann.LexGBOverBase = JSF;
        if J1 == J then
           {J1ann}
@@ -338,7 +338,8 @@ splitFunction#Minprimes = (I,opts) -> (
 )
 
 isStrategyDone = method()
-isStrategyDone (List,Symbol) := (L,strat) -> all(L, I -> I#?strat)
+isStrategyDone (List,Symbol) := (L,strat) ->
+  all(L, I -> I#?strat or (I.?isPrime and I.isPrime === "YES"))
 
 splitUntil = method(Options => options splitIdeal)
 
@@ -360,8 +361,8 @@ splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
       if opts.Verbosity > 0 then (
           knownPrimes := #select(loopList, I -> isPrime I === "YES");
           notknownPrimes := #loopList - knownPrimes;
-          << "  Known as primes : " << knownPrimes << endl;
-          << "  Not known as primes : " << notknownPrimes << endl;
+          << "  Strategy: " << pad(toString strat,18) << " #primes = " << knownPrimes <<
+             " #other = " << notknownPrimes << endl;
       );
       i = i + 1;
    );

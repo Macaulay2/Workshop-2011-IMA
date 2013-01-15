@@ -39,6 +39,7 @@ export {
 
 minprimes = method(Options => {
         Verbosity => 0,
+        Strategy => null,  -- if this is present, call splitIdeal with this strategy list
         "SquarefreeFactorSize" => 1,
         Ideal => null,  -- used in inductive setting
         "RadicalSoFar" => null, -- used in inductive setting
@@ -525,26 +526,37 @@ minprimes Ideal := opts -> (I) -> (
     -- note: at this point, R is the ring of I, and R is a polynomial ring over a prime field
     phi := identity;
     
-    -- pre-processing of ideals:
-    J := squarefreeGenerators(I, "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize");
-    -- TODO: do simplify ideal before or after factorizingSplit?
-    doSimplifyIdeal := opts#"SimplifyIdeal" and any(gens R, x -> any(J_*, f -> first degree diff(x,f) == 0));
-    if doSimplifyIdeal then (J,phi) = simplifyIdeal J;
-    Js := if opts#"FactorizationSplit"
-        then factorizationSplit(J,
-                               "FactorizationDepth"=>opts#"FactorizationDepth",
-                               "UseColon"=>opts#"UseColon",
-                               "FactorizationLimit"=>opts#"FactorizationLimit"
-                               )
-        else {J};
-
-    -- compute minimal primes of the processed ideals
-    C := flatten for j in Js list minprimesWorker(j, opts);
-    C1 := C / (c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity));
-    C2 := C1 / (i -> (ring i).cache#"StoR" i);
-
-    --- post-processing of ideals
-    (selectMinimalIdeals C2) / phi / backToOriginalRing
+    if opts#Strategy === null then 
+    (
+       -- pre-processing of ideals:
+       J := squarefreeGenerators(I, "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize");
+       -- TODO: do simplify ideal before or after factorizingSplit?
+       doSimplifyIdeal := opts#"SimplifyIdeal" and any(gens R, x -> any(J_*, f -> first degree diff(x,f) == 0));
+       if doSimplifyIdeal then (J,phi) = simplifyIdeal J;
+       Js := if opts#"FactorizationSplit"
+           then factorizationSplit(J,
+                                  "FactorizationDepth"=>opts#"FactorizationDepth",
+                                  "UseColon"=>opts#"UseColon",
+                                  "FactorizationLimit"=>opts#"FactorizationLimit"
+                                  )
+           else {J};
+    
+       -- compute minimal primes of the processed ideals
+       C := flatten for j in Js list minprimesWorker(j, opts);
+       C1 := C / (c -> contractToPolynomialRing(c,Verbosity=>opts.Verbosity));
+       C2 := C1 / (i -> (ring i).cache#"StoR" i);
+    
+       --- post-processing of ideals
+       (selectMinimalIdeals C2) / phi / backToOriginalRing
+    )
+    else
+    (
+        C = splitIdeal(I,
+                       Strategy=>opts#Strategy,
+                       "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize",
+                       Verbosity=>opts#Verbosity);
+        (C,backToOriginalRing)
+    )
     )
 
 minprimesWorker = method (Options => options minprimes)

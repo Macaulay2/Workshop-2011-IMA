@@ -364,9 +364,19 @@ TEST ///
    J'' = time splitUntil(J',infinity,Birational);
    checkMinimalPrimes(I,J'' / ideal, "Answer"=>decompose);
    
-   J = time splitIdeal2(I,Strategy=>{Linear,Birational});
+   J = time splitIdeal(I,Strategy=>{Linear,Birational});
    checkMinimalPrimes(I,J / ideal, "Answer"=>decompose);
    
+   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational});
+   checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
+   
+   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,Factorization});
+   checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
+   
+   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,IndependentSet});
+   checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
+
+   -- this is the old splitIdeal
    J = time splitIdeal(I, Strategy=>splice{2:Linear,10:Birational});
    time primesJ = (first J) / ideal
    checkMinimalPrimes(I, primesJ, "Answer"=>decompose)

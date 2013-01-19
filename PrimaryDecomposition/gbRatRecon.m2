@@ -110,7 +110,6 @@ modPFracGB (Ideal,List) := opts -> (I, baseVars) -> (
 List ** List := (xs,ys) -> flatten for y in ys list apply(xs, x -> {x,y})
 -- compose all functions in a list
 composeList := fs -> if #fs == 0 then identity else (first fs) @@ (composeList drop(fs,1))
--- left, rather than right, fold.
 -- takes the iterated cartesian product of a List of Lists.  Care is taken
 -- to avoid flattening all the way, since the original list may be a list of lists.
 cartProdList = method()
@@ -118,7 +117,7 @@ cartProdList List := xss -> (
     if #xss < 2 then return xss;
     if #xss == 2 then return (first xss) ** (last xss); 
     xsLengths := xss / length / (i -> toList(0..(i-1)));
-    indexList := fold((as,bs) -> (as ** bs) / flatten,xsLengths);
+    indexList := fold(xsLengths, (as,bs) -> (as ** bs) / flatten);
     apply(indexList, l -> apply(#l, i -> xss#i#(l#i)))
 )
 
@@ -128,10 +127,17 @@ factorListToIdeal List := facs -> ideal gens gb ideal apply(facs, p -> (p#1)^(p#
 idealToFactorList = method()
 idealToFactorList Ideal := I -> flatten (I_* / factors / (l -> l / toList))
 
-factorTower = method(Options => {Verbosity => 0})
+factorTower = method(Options => {Verbosity => 0,
+                                 "SplitIrred" => false, -- this option tells the function to try and split the irreducibles further mod the 'earlier' irreducibles
+                                 "Minprimes" => true}) -- this option clears out all powers of irreducibles on input
 factorTower List := opts -> polyList -> (
    polyFacList := for f in polyList list ((factors f) / toList);
    splitFacList := cartProdList polyFacList;
+   -- the below command removes all multiplicity information on the input if the Minprimes option is set
+   -- At the moment, I can't seem to get it working without having Minprimes => true yet.
+   if opts#"Minprimes" then splitFacList = apply(splitFacList, l -> apply(l, p -> {1,p#1}));
+   -- if the user doesn't want to try and split modulo the irreducibles, return
+   if not opts#"SplitIrred" then return splitFacList;
    -- before calling factorIrredTower, do I need to make sure the ideal is zero dimensional over the base field? Ignore for now.
    flatten apply(splitFacList, facs -> factorIrredTower(facs,opts))
 )
@@ -157,7 +163,7 @@ factorIrredTower List := opts -> polyList -> (
 
     -- partition the generators into linear and nonlinear terms
     E := partition(p -> hasLinearLeadTerm(p#1 // leadCoefficient p#1), polyList);
-    -- nothing to do, all linear generators
+    -- nothing to do, since all generators are linear
     if not E#?false then return {polyList};
     nonlinears := E#false;
     if #nonlinears <= 1 then return {polyList};
@@ -226,7 +232,7 @@ factorIrredTowerWorker List := opts -> polyList -> (
                       -- now we need to put the power of the new irreducible in, if it exists (and if minprimes is not set)
                       -- TODO: Prove that this power is correct?
                       C = idealToFactorList C;
-                      C = drop(C,-1) | {{fac#0,(last C)#1}};
+                      C = drop(C,-1) | {{if opts#"Minprimes" then 1 else fac#0,(last C)#1}};
                       if completelySplit then {C} else factorIrredTower C
                    );
          -- if we made it all the way through facs1, then we are done.  Else, we may use
@@ -258,20 +264,6 @@ time cartProdList {X,X,X,X};
 time cartProdList {X,X,X,X,X};
 #oo
 
---- example for factorTower
-restart
-debug needsPackage "PD"
-R = QQ[t,s,r]
-(S,SF) = makeFiberRings({},R)
-use S
-f = r^2-2
-g = s^4-4
-factorTower {f,g}
-
---- note:  the example I was worried about, of the form:
---- {f,g} where f is irred and g factors over kk[x]/(f) as g_1^2
---- is not possible as long as kk is perfect.  Forgot about that!
-
 --- a very baby example for factorTower
 restart
 debug needsPackage "PD"
@@ -280,19 +272,14 @@ R = QQ[r,s]
 use S
 f = r^2-3
 g = s^2+5*s+22/4
-factorTower {f,g}
-factorTower {f^2,g}
-factorTower {f^2,g}
+factorTower({f,g})
+factorTower({f,g},"SplitIrred"=>true)
+factorTower({f^2,g},"SplitIrred"=>true, "Minprimes"=>true)
+factorTower({f^2,g},"SplitIrred"=>true, "Minprimes"=>false)
 gbTrace = 3
 -- problem here, caught in an infinite loop.
 factorTower({f^2,g^2},"SplitIrred"=>true, "Minprimes"=>false)
 primaryDecomposition ideal {f^2,g^2}
-
-use S
-I = ideal {f^2,g^2}
-J = ideal {g^2,(r+2*s+5)^2}
-K = ideal {g^2,(r-2*s-5)^2}
-intersect {J,K} == I
 
 --- another
 restart

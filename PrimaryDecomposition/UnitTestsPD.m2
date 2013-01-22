@@ -376,6 +376,15 @@ TEST ///
    (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,IndependentSet});
    checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
 
+   -- testing IndependentSet split
+   restart
+   debug needsPackage "PD"
+   needsPackage "UnitTestsPD"
+   R = ZZ/32003[a,b,c,d,h]
+   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
+   (C,backToOriginalRing) = time minprimes(I,Strategy=>{IndependentSet})
+   intersect (C / ideal) == (radical I)
+   
    -- this is the old splitIdeal
    J = time splitIdeal(I, Strategy=>splice{2:Linear,10:Birational});
    time primesJ = (first J) / ideal
@@ -1247,6 +1256,11 @@ TOODAMNSLOW ///
     -d2-f2-g2+2dx+2fy+2gz"
   -- too much time being spent in equidimSplitOneStep again, 'gens gb IS' line
   time C = minprimes I -- takes a while  NEEDS WORK TOO DAMN SLOW
+  -- this works with the new splitIdeal code using the Birational split.
+  {*
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational});
+  time (C / ideal)
+  *}
   time decompose I -- .74 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) 
 ///
@@ -1383,6 +1397,27 @@ TOODAMNSLOW ///
   time p1 = factorizationSplit(I1, "UseColon"=>false)
   -- TODO: Play with factorization depth in this example?
 
+  (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,Linear,Factorization,Linear,Factorization});
+    
+  D = select(C, c -> (not c.?isPrime or c.isPrime === "UNKNOWN") and numgens c.Ideal > 1);
+  
+  time D = (C / ideal);
+  time Dmin = selectMinimalIdeals D;
+///
+
+TOODAMNSLOW ///
+   -- Comes from newGTZ/siphon-eg.m2
+   -- Large Non-Naive Franzi example
+  restart
+  debug needsPackage "PD"
+  needsPackage "UnitTestsPD"
+  R = QQ[x3283, x3096, x2909, x1952, x319, x1683, x2321, x2921, x2855, x1370, x622, x331, x1904, x2933, x2867, x1382, x2273, x634, x343, x1916, x3319, x1647, x1394, x2285, x646, x421, x1928, x3331, x3188, x1659, x2297, x295, x433, x3271, x1940, x2309, x1671, x2254, x307];
+    
+  I = ideal(x1940*x1671-x1671^2,-x622*x343+x1671,-x1940*x2254+x2309,x2867*x2309*x1671-x2309^2,x3331*x3271*x2254-x3271^2,-x2855*x3331+x3271,x634*x433-x433^2,-x331*x295+x433,-x1928*x2254+x2297,x2867*x1659*x2297-x2297^2,x1928*x1659-x1659 ^2,-x1647*x295+x1659,-x634*x343+x1659,x3096*x3188*x2254-x3188^2,-x3096*x2855+x3188,x622*x421-x421^2,-x319*x295+x421,-x1916*x2254+x2285,x2855*x1370*x2285-x2285^2,x1904*x1394-x1394^2,-x622*x307+x1394,-x343*x646+x1647,-x1370^2+ x1370*x1916,-x646*x295+x634,-x2855*x622+x634,-x1904*x2254+x2273,x2855*x2273*x1394-x2273^2,-x646*x307+x1382,-x319*x2855+x331,-x634*x307+x1370,-x1382*x295+x1370,x2921*x2855*x2933-x2921^2,-x2909*x2855+x2921,-x1952*x2254+x2321,x1683 *x2321*x2867-x2321^2,x1952*x1683-x1683^2,-x343*x295+x1683,-x3331*x2254+x3096,x3283*x3319*x2254-x3283^2,-x2867*x3319+x3283)
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Factorization});
+
+  time D = (C / ideal);
+  time Dmin = selectMinimalIdeals D;
 ///
 
 end

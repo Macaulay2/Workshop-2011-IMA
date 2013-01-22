@@ -79,10 +79,15 @@ net AnnotatedIdeal := (I) -> (
 ring AnnotatedIdeal := (I) -> ring I.Ideal
 
 ideal AnnotatedIdeal := (I) -> (
-    --F := product I.NonzeroDivisors;
     F := product unique join(I.Linears / (x -> x#1),I.Inverted);
     I1 := ideal(I.Linears/last);
-    I2 := I.Ideal;
+    I2 := if I.?IndependentSet then (
+            S := (I.IndependentSet)#1;
+            phi := S.cache#"StoR";
+            phi contractToPolynomialRing ideal I.LexGBOverBase
+          )
+          else
+            I.Ideal;
     I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
     if F == 1 then I3 else saturate(I3, F)
     )
@@ -144,6 +149,25 @@ squarefreeGenerators AnnotatedIdeal := opts -> I -> (
    else 
       I
 )
+
+splitLexGB AnnotatedIdeal := I -> (
+    if not I.?IndependentSet then return {I};
+    if I.?LexGBSplit then return {I};
+    IF := ideal I.LexGBOverBase;
+    L := IF_*;
+    for f in L do (
+        facs := factors f;
+        if #facs == 1 and facs#0#0 == 1 then continue;
+        return flatten for fac in facs list (
+               J := ideal gens gb ((ideal fac#1) + IF);
+               Jann := new AnnotatedIdeal from I;
+               Jann.LexGBOverBase = J_*;
+               splitLexGB Jann
+            )
+        );
+    I.LexGBSplit = true;
+    {I}
+    )
 
 nzds = method()
 nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
@@ -293,7 +317,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     if #basevars == 0 then (
         I.IndependentSet = ({},S,SF);
         I.LexGBOverBase = (ideal gens gb JS)_*;
-        return {I};
+        return splitLexGB I;
     );
     -- otherwise compute over the fraction field.
     if hf =!= null then gb(JS, Hilbert=>hf) else gb JS;
@@ -302,7 +326,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     if coeffs == {} then (
         I.IndependentSet = (basevars,S,SF);
         I.LexGBOverBase = JSF;
-        {I}
+        splitLexGB I
     )
     else (
        facs := (factors product coeffs)/last;
@@ -315,11 +339,11 @@ splitFunction#IndependentSet = (I,opts) -> (
        J1ann.IndependentSet = (basevars,S,SF);
        J1ann.LexGBOverBase = JSF;
        if J1 == J then
-          {J1ann}
+          splitLexGB J1ann
        else (
           J2 := trim (J : J1);
           J2ann := annotatedIdeal(J2,I.Linears,I.NonzeroDivisors,I.Inverted);
-          {J1ann,J2ann}
+          join(splitLexGB J1ann,{J2ann})
        )
     )
 )

@@ -31,6 +31,7 @@ export {
     splitIdeal,
     Birational,  -- Strategy option for splitIdeal.  Exported now for simplicity
     IndependentSet,
+    LexGBSplit,
     Factorization,
     CharacteristicSets,
     Minprimes,
@@ -51,6 +52,8 @@ minprimes = method(Options => {
         })
 
 squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
+
+splitLexGB = method()
 
 load (PD#"source directory"|"PD/annotated-ideals.m2")
 
@@ -625,7 +628,6 @@ equidimSplitOneStep Ideal := opts -> (I) -> (
 -- Below, IF is a reduced lex GB for I k(indep)[fiber]
 -- This function factors the terms that are not linear in a GB for IF and splits the ideal by those factors
 -- This function returns the empty list if I is the unit ideal.
-splitLexGB = method()
 splitLexGB Ideal := (IF) -> (
     L := IF_*;
     for f in L do (

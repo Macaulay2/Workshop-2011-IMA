@@ -85,4 +85,16 @@ A list of activities that are required or at least desirable
    * gb rat recon throughout? Engine?
    * trivial cases in splitFunction (zero and unit ideal)
    * SplitTower in annotated ideal
-   * Make splittower work for a list of polynomials, rather than an ideal
+   * Make splitTower work for a list of polynomials, rather than an ideal
+
+* 22 Jan 2013 Notes/Todo
+   * Still need to do meta-strategies (see above)
+   * trivial cases in splitFunction code.  Also make sure that ann ideals created
+     via IndependentSet are handled correctly in other split commands
+   * tower splitFunction - this will be two functions, one for building a tower
+     and the other for factoring an element over a tower
+   * speed up linear splitFunction
+   * on line 1400 in UnitTests, examine the redundancy that is popping up and handle
+     appropriately (i.e. ideal-so-far)
+   * splitFunction based on monomial generators (or other 'small' ideals)
+   

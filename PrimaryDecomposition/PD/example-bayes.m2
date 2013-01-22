@@ -12,6 +12,13 @@ restart
 load "PD/example-bayes.m2"
 debug needsPackage "PD"
 
+time L1 = splitIdeal(J, Strategy=>splice{10:Birational});
+time L1 = splitIdeal(J, Strategy=>splice{IndependentSet});
+time L2 = splitIdeal(L1, Strategy=>splice{IndependentSet});
+
+
+
+-- old:
 gbTrace=3
 C = time birationalSplit J;
 

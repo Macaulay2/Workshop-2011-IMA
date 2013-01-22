@@ -33,6 +33,7 @@ export {
     IndependentSet,
     LexGBSplit,
     Factorization,
+    DecomposeMonomials,
     CharacteristicSets,
     Minprimes,
     Squarefree

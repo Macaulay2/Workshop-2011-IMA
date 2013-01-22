@@ -64,3 +64,12 @@ time minprimes I
 adjacentMinorsIdeal(2,5,5,CoefficientRing=>ZZ/32003)
 time minprimes I
 
+I = adjacentMinorsIdeal(2,3,8,CoefficientRing=>ZZ/32003)
+  -- 8 Jan 2013:
+   J = time splitIdeal(I, Strategy=>splice{20:Birational});
+
+  time J1 = splitIdeal(I, Strategy=>Birational);
+  peek J1_1_0
+  peek J1_1_1
+  L = time squarefreeGenerators J1_1_1
+  L1 = time splitIdeal(L, Strategy=>splice{10:Factorization})

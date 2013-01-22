@@ -17,6 +17,7 @@ AnnotatedIdeal = new Type of MutableHashTable
 --  A.Factorization
 --  A.Squarefree
 --  A.IndependentSet
+--  A.DecomposeMonomials
 
 -- An "annotated ideal" is a tuple (I, L, NZ, inverteds)
 -- where I is an ideal (in a subset of the variables)
@@ -361,6 +362,30 @@ splitFunction#Minprimes = (I,opts) -> (
    annotatedMPList
 )
 
+splitFunction#DecomposeMonomials = (I,opts) -> (
+    if isPrime I === "YES" then return {I};
+    if I.?DecomposeMonomials or I.?IndependentSet then return {I};
+    -- get all of the monomial generators of I,
+    -- find all minimal primes of those, and return lots of annotated ideals adding these monomial generators
+    monoms := select(I.Ideal_*, f -> size f === 1);
+    if #monoms === 0 then (
+        I.DecomposeMonomials = true;
+        return {I};
+        );
+    comps := decompose monomialIdeal monoms;
+    R := ring I;
+    for c in comps list (
+        newI := flatten entries compress ((gens I.Ideal) % c);
+        J := if #newI === 0 
+             then ideal matrix(R, {{}})
+             else trim(ideal newI);
+        newlinears := for x in c_* list (x, leadCoefficient x, x);
+        annJ := annotatedIdeal(J, join(I.Linears, newlinears), I.NonzeroDivisors, I.Inverted);
+        if #newI === 0 then annJ.isPrime = "YES";
+        annJ
+        )
+    )
+
 isStrategyDone = method()
 isStrategyDone (List,Symbol) := (L,strat) ->
   all(L, I -> I#?strat or (I.?isPrime and I.isPrime === "YES"))
@@ -400,7 +425,7 @@ splitIdeal List := opts -> L -> (
     if not instance (strat,List) then strat = {strat};
     stratPairs := for s in strat list (
        if not instance(s,Sequence) then s = (s,infinity);
-       if not member(first s,{Linear,Birational,Factorization,IndependentSet,Minprimes}) then
+       if not member(first s,{Linear,Birational,Factorization,IndependentSet,Minprimes,DecomposeMonomials}) then
           error ("Unknown strategy " | toString s | " given.");
        s
     );

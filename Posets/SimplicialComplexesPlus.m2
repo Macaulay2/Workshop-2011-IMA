@@ -1,622 +1,314 @@
-needsPackage "SimplicialComplexes"
-needsPackage "Graphs"
+-- Copyright 2011, 2012: David Cook II, Sonja Mapes, Gwyn Whieldon
+-- You may redistribute this file under the terms of the GNU General Public
+-- License as published by the Free Software Foundation, either version 2
+-- of the License, or any later version.
 
-newPackage(
-	"SimplicialComplexesPlus",
-	Version => "0.2",
-	Date => "03. August 2011",
-	Authors => {
-	     	{Name => "Gwyneth Whieldon", Email => "whieldon@math.cornell.edu", HomePage => "http://www.math.cornell.edu/~whieldon/Main_Details.html"},
-     	        {Name => "David Cook II", Email => "dcook@ms.uky.edu", HomePage => "http://www.ms.uky.edu/~dcook/"}
-	},
-	Headline => "Adds operations on simplicial complexes",
-	Configuration => { },
-	DebuggingMode => true
-)
+-- TODO:
+-- closure, star
+-- eulerCharacteristic
+
+
+------------------------------------------
+------------------------------------------
+-- Header 
+------------------------------------------
+------------------------------------------
+
+if version#"VERSION" <= "1.4" then (
+    needsPackage "SimplicialComplexes";
+    needsPackage "Graphs";
+    )
+
+newPackage select((
+    "SimplicialComplexesPlus",
+    Version => "0.3",
+    Date => "27. February 2013",
+    Authors => {
+            {Name => "Gwyn Whieldon", Email => "whieldon@hood.edu", HomePage => "http://www.hood.edu/Academics/Departments/Mathematics/Faculty/Gwyneth-Whieldon.html"},
+            {Name => "David Cook II", Email => "dcook8@nd.edu", HomePage => "http://www.nd.edu/~dcook8/"}
+    },
+    Headline => "Additional operations on simplicial complexes",
+    Configuration => { },
+    DebuggingMode => true,
+    if version#"VERSION" > "1.4" then PackageExports => {"SimplicialComplexes", "Graphs"}
+    ), x -> x =!= null)
+
+if version#"VERSION" <= "1.4" then (
+    needsPackage "SimplicialComplexes";
+    needsPackage "Graphs";
+    )
 
 export {
-    barycentricSubdivision,
-    bsdFacetLabels,
-        BSDVarMap,
-	combJoin,
-	bdcrossPolytope,
-	simplex,
-	bdsimplex,
-	sctoGap,
-	sctoGapFile,
-	sd,
-	recoverLabels,
-	sdlabel,
-	selectLevel,
-	originalvars,
-	nerveComplex,
-	IsMultigraded,
-	inducedSubcomplex,
-	randomSquarefreeIdeal,
-	randomSimplicialComplex
-}
+    --
+    -- Enumerators & constructors
+    "cliqueComplex",
+    "coverComplex",
+    "crossPolytopeBoundary",
+    "independenceComplex",
+    "nerveComplex",
+        "IsMultigraded",
+    "randomSimplicialComplex",
+    "randomSquarefreeIdeal",
+    "simplex",
+    "simplexBoundary",
+    --
+    -- Operations
+    "algebraicShift",
+    "barycentricSubdivision",
+    "bsdFacetLabels",
+        "BSDVarMap",
+    "combinatorialJoin",
+    "disjointUnion",
+    "faceDelete",
+    "inducedSubcomplex",
+    "polarise",
+    "simplicialCone",
+    "skeleton",
+    "star",
+    "suspension",
+    --
+    -- Properties & invariants
+    "gVector",
+    "hVector",
+    "isConnected",
+    "isFlag",
+    --
+    -- GAP
+    "gapSC",
+    "gapSCBetti",
+    "gapSCHomology",
+    "gapSCLibrary",
+    "gapSCLibrarySize"
+    }
 
-needsPackage"SimplicialComplexes"
-needsPackage"Graphs"
+------------------------------------------
+------------------------------------------
+-- Methods
+------------------------------------------
+------------------------------------------
 
---------------------------------------------------------
--- DC2, 1807, 03. August 2011
---
--- I propose the following two functions to replace sd/sdlabel and recoverLabels,
--- respectively.  The method barycentricSubdivision uses the fact that such a
--- simplicial complex is a flag complex, and the edges of the associated graph
--- are rather easy to get.  It is cleaner looking and, in general, much faster.  
---
--- Example: bsd is about 3 times faster than sd
--- R = QQ[a..f]; S = simplicialComplex monomialIdeal product gens R; time barycentricSubdivision S; time sd S;
--- Example: bsd is about 20 times faster than sd
--- R = QQ[a..g]; S = simplicialComplex monomialIdeal product gens R; time barycentricSubdivision S; time sd S;
+------------------------------------------
+-- Enumerators & constructors
+------------------------------------------
 
--- Barycentric subdivision built by looking at the non-faces.
+cliqueComplex = method(Options => {symbol CoefficientRing => QQ})
+cliqueComplex Graph := SimplicialComplex => opts -> G -> (
+    V := vertices G;
+    n := #V;
+    x := local x;
+    R := (opts.CoefficientRing)(monoid [x_0..x_(n-1)]);
+    vtoi := hashTable apply(n, i -> V_i => i);
+    nonEdges := subsets(n, 2) - set (toList \ edges G);
+    simplicialComplex monomialIdeal apply(nonEdges, e -> R_(vtoi#(first e)) * R_(vtoi#(last e)))
+    )
+
+coverComplex = method(Options => {symbol CoefficientRing => QQ})
+coverComplex Graph := SimplicialComplex => opts -> G -> simplicialComplex (ideal dual independenceComplex(G, opts))_*
+
+crossPolytopeBoundary = method(Options => {symbol CoefficientRing => QQ})
+crossPolytopeBoundary ZZ := SimplicialComplex => opts -> n -> (
+    x := local x;
+    y := local y;
+    R := (opts.CoefficientRing)(monoid [x_1..x_n,y_1..y_n]);
+    simplicialComplex monomialIdeal apply(toList(0..<n), i -> R_i * R_(n+i))
+    )
+
+independenceComplex = method(Options => {symbol CoefficientRing => QQ})
+independenceComplex Graph := SimplicialComplex => opts -> G -> (
+    V := vertices G;
+    n := #V;
+    x := local x;
+    R := (opts.CoefficientRing)(monoid [x_0..x_(n-1)]);
+    vtoi := hashTable apply(n, i -> V_i => i);
+    simplicialComplex monomialIdeal apply(toList \ edges G, e -> R_(vtoi#(first e)) * R_(vtoi#(last e)))
+    )
+
+nerveComplex = method(Options => {symbol CoefficientRing => QQ, symbol IsMultigraded => false})
+nerveComplex Graph := SimplicialComplex => opts -> G -> (
+    m := #edges G;
+    e := local e;
+    R := (opts.CoefficientRing)(
+        if opts.IsMultigraded then monoid[e_1..e_m, Degrees => entries map(ZZ^n, ZZ^n, 1)]
+        else monoid[e_1..e_m]);
+    I := apply(vertices G, v -> select(0..m-1, i -> member(v, (edges G)#i)));
+    simplicialComplex apply(I, L -> product(L, i -> R_i))
+    )
+nerveComplex SimplicialComplex := SimplicialComplex => D -> (
+    F := flatten entries facets D;
+    m := #F;
+    f := local f;
+    R := (opts.CoefficientRing)(
+        if opts.IsMultigraded then monoid[f_1..f_m, Degrees => entries map(ZZ^n, ZZ^n, 1)]
+        else monoid[f_1..f_m]);
+    I := apply(gens ring D, v -> select(0..m-1, i -> member(v, support F_i)));
+    simplicialComplex apply(I, L -> product(L, i -> R_i))
+    )
+
+--TODO
+--Effect probability of a face?
+randomSimplicialComplex = method(Options => {symbol CoefficientRing => QQ})
+randomSimplicialComplex (ZZ, ZZ, ZZ) := SimplicialComplex => opts -> (n, d, f) -> ()
+randomSimplicialComplex (ZZ, ZZ) := SimplicialComplex => opts -> (n, d) -> ()
+randomSimplicialComplex ZZ := SimplicialComplex => opts -> n -> ()
+
+--TODO
+--Effect probability of a generator?
+randomSquarefreeIdeal = method()
+randomSquarefreeIdeal Ring := MonomialIdeal => R -> ()
+randomSquarefreeIdeal (Ring, ZZ) := MonomialIdeal => (R, d) -> ()
+randomSquarefreeIdeal (Ring, ZZ, ZZ) := MonomialIdeal => (R, d, g) -> ()
+
+simplex = method(Options => {symbol CoefficientRing => QQ})
+simplex ZZ := SimplicialComplex => opts -> (n, K) -> simplexBoundary(n, n+1, opts)
+
+simplexBoundary = method(Options => {symbol CoefficientRing => QQ})
+simplexBoundary (ZZ, ZZ) := SimplicialComplexes => opts -> (n, k) -> (
+    x := local x;
+    R := (opts.CoefficientRing)(monoid [x_0..x_n]);
+    simplicialComplex(product \ subsets(gens R, k))
+    )
+simplexBoundary ZZ := SimplicialComplex => opts -> n -> simplexBoundary(n, n, opts)
+
+
+------------------------------------------
+-- Operations
+------------------------------------------
+
+--TODO
+algebraicShift = method()
+algebraicShift SimplicialComplex := SimplicialComplex => D -> ()
+
 barycentricSubdivision = method()
 barycentricSubdivision SimplicialComplex := SimplicialComplex => D -> (
-    -- Build the face sets, ring, and face to var-map
     S := apply(flatten apply(1 + dim D, d -> first entries faces(d, D)), indices);
     x := local x;
     R := (coefficientRing ring D)(monoid [apply(S, i -> x_i)]);
     idx := hashTable apply(#S, i -> S_i => R_i);
-    -- Find the non-faces and build the complex
-    N := for P in subsets(S, 2) list if not isSubset(P_0, P_1) and not isSubset(P_1, P_0) then idx#(P_0)*idx#(P_1) else continue;
-    bsdD := simplicialComplex monomialIdeal N;
-    -- Store the labels in case the user wants them.
+    -- Build the complex by looking at the non-faces
+    bsdD := simplicialComplex monomialIdeal for P in subsets(S, 2) list if not isSubset(P_0, P_1) and not isSubset(P_1, P_0) then idx#(P_0)*idx#(P_1) else continue;
     bsdD.cache.BSDVarMap = hashTable apply(S, s -> idx#s => product(s, j -> (ring D)_j));
     bsdD
     )
 
--- Recover the facet labels from the barycentric subdivision.
 bsdFacetLabels = method()
 bsdFacetLabels SimplicialComplex := List => D -> (
     if not D.cache.?BSDVarMap then error "The simplicial complex was not generated by barycentricSubdivision.";
     apply(first entries facets D, F -> apply(support F, v -> D.cache.BSDVarMap#v))
     )
---------------------------------------------------------
 
+combinatorialJoin = method()
+combinatorialJoin (SimplicialComplex, SimplicialComplex) := SimplicialComplex => (A, B) -> (
+    R := (coefficientRing ring A)(monoid [join(gens ring A, gens ring B)]);
+    FA := apply(flatten entries facets A, F -> sub(F, R));
+    FB := apply(flatten entries facets B, F -> sub(F, R));
+    simplicialComplex flatten apply(FA, a -> apply(FB, b -> a*b))
+    )
 
+--TODO
+disjointUnion = method()
+disjointUnion (SimplicialComplex, SimplicialComplex) := SimplicialComplex => (A, B) -> ()
 
+faceDelete = method()
+faceDelete (RingElement, SimplicialComplex) := SimplicialComplex => (s, D) -> simplicialComplex (monomialIdeal s + monomialIdeal F)
 
+inducedSubcomplex = method()
+inducedSubcomplex (SimplicialComplex, List) := SimplicialComplex => (D, W) -> (
+    if not isSubset(W, gens ring D) then error "The subset W must be a subset of the vertices of D.";
+    S := (coefficientRing ring D)(monoid [W]);
+    antiW := set gens ring D - set W;
+    simplicialComplex apply(first entries facets D, f -> sub(product(support f - antiW), S))
+    )
 
-cartesianProduct = method();
+--TODO
+polarise = method()
+polarise Ideal := SimplicialComplex => I -> ()
 
-cartesianProduct(List,List):= List => (H,J) -> (
-     
-     flatten apply(H, h-> apply(J, i-> h*i))
-     )
+simplicialCone = method(Options => {symbol Variable => symbol X})
+simplicialCone SimplicialComplex := SimplicialComplex => opts -> D -> combinatorialJoin(D, simplicialComplex gens (coefficientRing ring D)(monoid [opts.Variable]))
 
-combJoin = method();
+skeleton = method()
+skeleton (SimplicialComplex, ZZ) := SimplicialComplex => (D, k) -> simplicialComplex flatten apply(k + 1, i -> first entries faces(i, D))
 
-combJoin(SimplicialComplex,SimplicialComplex):= SimplicialComplex => (A,B)->(
-     f:=flatten entries facets A;
-     g:=flatten entries facets B;
-     simplicialComplex cartesianProduct(f,g)
-)
+star = method()
+star (RingElement, SimplicialComplex) := List => (s, D) -> (
+    sss := set support s;
+    select(flatten apply(1 + dim D, i -> first entries faces(i, D)), f -> #(set support f * sss) != 0)
+    )
 
-bdcrossPolytope = method();
-bdcrossPolytope(ZZ,Ring):=(n,kk)->(
---     s:=getSymbol "x";
---     t:=getSymbol "y";
-     x:=local x;
-     y:=local y;
-     R:=kk[x_1..x_n,y_1..y_n];
-     a:=apply(toList (0..n-1), i-> R_i*R_(n+i));
-     simplicialComplex monomialIdeal a
-     )
+suspension = method(Options => {symbol Variable => symbol X})
+suspension SimplicialComplex := SimplicialComplex => opts -> D -> combinatorialJoin(D, simplicialComplex gens (coefficientRing ring D)(monoid [opts.Variable_0, opts.Variable_1]))
 
-bdcrossPolytope(ZZ):=(n)->(
-     bdcrossPolytope(n,QQ)
-     )
+------------------------------------------
+-- Properties & invariants
+------------------------------------------
 
---Prewritten methods for producing the n-diml simplex and its boundary:
-simplex = method();
+--TODO
+gVector = method()
+gVector SimplicialComplex := HashTable => D -> (
+    h := hVector D;
+    d := dim D + 1;
+    hashTable prepend(0 => 1, apply(toList(1..(d+1)//2), j -> j => h#j - h#(j-1)))
+    )
 
-simplex(ZZ,Ring):=SimplicialComplex=>(n,kk)->(
-     x:=local x;
-     R:=kk[x_0..x_n];
-     facet:={product flatten entries vars R};
-     simplicialComplex facet
-     )
+hVector = method()
+hVector SimplicialComplex := HashTable => D -> (
+    f := fVector D;
+    d := dim D + 1;
+    hashTable apply(toList(0..d), j -> j => sum(j+1, i -> (-1)^(j-i)*binomial(d - i, j - i) * f#(i-1)))
+    )
 
-simplex(ZZ):=SimplicialComplex=>(n)->(
-     simplex(n,QQ)
-     )
+--TODO
+isConnected = method()
+isConnected SimplicialComplex := Boolean => D -> ()
 
-bdsimplex = method();
+isFlag = method()
+isFlag SimplicialComplex := Boolean => D -> all((monomialIdeal D)_*, g -> first degree g <= 2)
 
-bdsimplex(ZZ,Ring):=SimplicialComplex=>(n,kk)->(
-     x:=local x;
-     R:=kk[x_0..x_n];
-     simplicialComplex flatten entries faces(n-1,simplex(n,kk))
-     )
+------------------------------------------
+-- GAP
+------------------------------------------
 
-bdsimplex(ZZ):=SimplicialComplex=>(n)->(
-     bdsimplex(n,QQ)
-     )
+gapSC = method()
+gapSC (SimplicialComplex, String) := String => (D, S) -> concatenate(S, ":=SCFromFacets(", toString apply(new Array from flatten entries facets D, f -> new Array from indices f), ");")
+gapSC SimplicialComplex := String => D -> gapSC(D, "Delta")
 
+--TODO
+gapSCBetti = method()
+gapSCBetti (SimplicialComplex, ZZ) := List => (D, p) -> ()
 
---Method to print simplicial complexes in Gap format:
-sctoGap = method();
+--TODO
+gapSCHomology = method()
+gapSCHomology SimplicialComplex := List => D -> ()
 
+--TODO
+gapSCLibrary = method(Options => {symbol CoefficientRing => QQ})
+gapSCLibrary String := SimplicialComplex => opts -> D -> ()
+gapSCLibrary ZZ := SimplicialComplex => opts -> D -> ()
 
---This one you specify the name:
-sctoGap(SimplicialComplex,String):=String=>(D,s)->(
-     vertset:=gens ring D;
-     numvert:=toList(1..#vertset);
-     replacepairs:=hashTable apply(numvert, i-> vertset_(i-1) => i);
-     protofacetlist:=apply(flatten entries facets D, f-> support f);
-     facetlist:=toString apply(protofacetlist, f-> apply(f, i-> replacepairs#i));
-     concatenate(s,":=SCFromFacets(",replace("\\}","]",replace("\\{","[",facetlist)),");")
-     )
+--TODO
+gapSCLibrarySize = method()
+installMethod(gapSCLibrarySize, () -> 1)
 
---This one has "delta" as the automatic complex name:
-sctoGap(SimplicialComplex):=String=>(D)->(
-     sctoGap(D,"delta")
-     )
+------------------------------------------
+------------------------------------------
+-- Documentation
+------------------------------------------
+------------------------------------------
 
---This writes your complex to a file for Gap to read later:
+beginDocumentation()
 
-sctoGapFile = method();
-
-sctoGapFile(SimplicialComplex,String):=File=>(D,s)->(
-     fn:=concatenate(s,".g");
-     fn << toString sctoGap(D,s) << endl << close;
-     )
-
-sctoGapFile(SimplicialComplex):=File=>(D)->(
-     fn:=concatenate(temporaryFileName(),".g");
-     fn << toString sctoGap(D) << endl << close;
-     )
-
---Internal test function used by sd:
-
-testmax = method();
-
-
-testmax(List):=Boolean=>(L)->(
-     min apply(L, j->#j) > 1
-     )
-
---facePoset=method();
-
---facePoset(SimplicialComplex):=Poset=>(D)->(
---     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
---     chainheads:=apply(flatten entries facets D, i-> support i);
---     maxchains:=apply(chainheads, i-> {i});
---     while any(maxchains, testmax) do ( 
---     	  nextstage:={};
---     	  holdover:=select(maxchains,c-> not testmax c);
---     	  for m in select(maxchains,testmax) do (
---	       minsize:=min apply(m, i-> #i);
---	       minset:=first select(m, i-> #i== minsize);
---     	       coveredfaces:=subsets(minset,minsize-1);
---	       nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
---	       );
---      	  maxchains = join(nextstage,holdover);
---      	  );    
---     poset(faceset,unique flatten apply(maxchains, i-> apply(subsets(i,2),reverse)))
---     )
-
---Subdivisions method:
-sd = method();
-originalvars:=local originalvars;
-
---Relabels vertices to make them easier to work with, stores original faces as cache table:
-sd(SimplicialComplex):=SimplicialComplex=>(D)->(
-     x:=local x;
-     kk:=coefficientRing D;
-     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
-     numfaces:=#faceset;
-     varfaces:=apply(numfaces, i-> x_i);
-     R:=kk[varfaces];
-     toVarfaces:=hashTable(apply(toList(0..numfaces-1), i-> faceset_i=>R_i));
-     toOrigFaces:=hashTable apply(apply(pairs toVarfaces, i-> reverse i), j-> first j => last j);
-     chainheads:=apply(flatten entries facets D, i-> support i);
-     maxchains:=apply(chainheads, i-> {i});
-     while any(maxchains, testmax) do ( 
-     	  nextstage:={};
-     	  holdover:=select(maxchains,c-> not testmax c);
-     	  for m in select(maxchains,testmax) do (
-	       minsize:=min apply(m, i-> #i);
-	       minset:=first select(m, i-> #i== minsize);
-     	       coveredfaces:=subsets(minset,minsize-1);
-	       nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
-	       );
-      	  maxchains = join(nextstage,holdover);
-      	  );
-      K:=simplicialComplex apply(maxchains, c-> product apply(c, j-> toVarfaces#j));
-      originalvars = new MutableHashTable;
-      K.cache.originalvars= toOrigFaces;
-      K
-      )
-
---This prints the list of facets in sd D:
-recoverLabels = method();
-
-
-recoverLabels(SimplicialComplex):=List=>(D)->(
-     if D.cache.?originalvars then (
-	  facetlist:=apply(flatten entries facets D, i-> support i);
-     	  apply(facetlist, c-> apply(c, v-> D.cache.originalvars#v))
-	  )
-     else (
-	  error "Not a generated barycentric subdivision."
-	  )
-     )
-
---Has vertices labeled by their original face in the complex:
-sdlabel = method();
-
-
-sdlabel(SimplicialComplex):=SimplicialComplex=>(D)->(
-     x:=local x;
-     kk:=coefficientRing D;
-     faceset:=apply(flatten apply(toList(0..dim D), i-> toList flatten entries faces(i,D)), r-> support r);
-     numfaces:=#faceset;
-     faceset2:=apply(faceset, f->replace("\\}",")",replace("\\{","(",toString(apply(f, v-> index v+1)))));
-     varfaces:=apply(faceset2, i-> x_i);
-     R:=kk[varfaces];
-     toVarfaces:=hashTable(apply(toList(0..numfaces-1), i-> faceset_i=>R_i));
-     chainheads:=apply(flatten entries facets D, i-> support i);
-     maxchains:=apply(chainheads, i-> {i});
-     while any(maxchains, testmax) do ( 
-     	  nextstage:={};
-     	  holdover:=select(maxchains,c-> not testmax c);
-     	  for m in select(maxchains,testmax) do (
-	       minsize:=min apply(m, i-> #i);
-	       minset:=first select(m, i-> #i== minsize);
-     	       coveredfaces:=subsets(minset,minsize-1);
-	       nextstage=join(nextstage,apply(coveredfaces, c->append(m,c)))
-	       );
-      	  maxchains = join(nextstage,holdover);
-      	  );
-      simplicialComplex apply(maxchains, c-> product apply(c, j-> toVarfaces#j))
-      )
- 
-selectLevel = method()
-
-selectLevel(SimplicialComplex,ZZ):= (D,i)-> (
-     select(gens ring D, v-> # sequence value last baseName v === i)
-     )
- 
-nerveComplex = method(Options=>{symbol IsMultigraded => false});
-
-nerveComplex(Graph,Ring):= opts -> (G,kk) -> (
-     
-     m := # edges G;
-     e :=local e;
-     S := if not opts.IsMultigraded then (
-	  kk(monoid[(symbol e)_1..(symbol e)_m])
-	  )
-     else (
-	  kk(monoid[(symbol e)_1..(symbol e)_m, MonomialSize => 8, Degrees => apply(m, i-> apply(m, j -> if i === j then 1 else 0))])
-     	  );
-     I := apply(vertices G, v -> select(0..(m-1), i -> member(v, toList(edges G)#i)));
-     simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
-)
-
-nerveComplex(Graph):= opts -> (G) -> (
-     nerveComplex(G,QQ)
-)
-
-nerveComplex(SimplicialComplex):= opts -> (D)->(
-     m := # flatten entries facets D;
-     e := local e;
-     kk := coefficientRing ring D;
-     S := if not opts.IsMultigraded then (
-	  kk(monoid[(symbol e)_1..(symbol e)_m])
-	  )
-     else (
-	  kk(monoid[(symbol e)_1..(symbol e)_m, MonomialSize => 8, Degrees => apply(m, i-> apply(m, j -> if i === j then 1 else 0))])
-     	  );
-     I := apply(gens ring D, v -> select(0..(m-1), i -> member(v, support (flatten entries facets D)#i)));
-     simplicialComplex apply(I, L -> product toList apply(L, i-> S_i))
-)
-
---Probably not the best way of doing this, seems really slow on easy examples.
---Better to compute star and take difference of facets?
-
-inducedSubcomplex=method();
-
-inducedSubcomplex(SimplicialComplex, List):= (D,W)->(
-     R:=ring D;
-     kk:=coefficientRing R;
-     vertlist:=flatten entries faces(0,D);
-     V:=select(vertlist, v-> not member(v,W));
-     I:=ideal D;
-     if isSubset(W,vertlist) then (
-	  L:={product V};
-	  for w in W do (
-	       L=join(L,select(flatten entries gens I, k-> k % w === sub(0,R)));
-     	       );
-	  L
-	  );
-     S:=kk[W];
-     J:=monomialIdeal sub(ideal select(flatten entries gens I, i-> not member(i,L)),S);
-     simplicialComplex J
-     )
-
-randomSquarefreeIdeal = method();
-
-randomSquarefreeIdeal(Ring,ZZ,ZZ):=(R,d,k)->(
-     n:=numgens R;
-     L:=gens R;
-     ideal apply(k, i-> product take(random L, d))
-     )
-
-randomSimplicialComplex = method();
-
-randomSimplicialComplex(Ring,ZZ,ZZ):=(R,d,k)->(
-     n:=numgens R;
-     L:=gens R;
-     simplicialComplex apply(k, i-> product take(random L, d))
-     )
-
-
-beginDocumentation();
-
-
+-- Front Page
 doc ///
-	Key
-		SimplicialComplexesPlus
+    Key
+        SimplicialComplexesPlus
+    Headline
+        a package for additional operations on simplicial complexes
+    Description
+        Text
 
-	Description
-		Text
-			This package adds a number of features to the SimplicialComplexes package, including barycentric subdivision, simplex and boundary of simplex constructions, combinatorial join, construction of the cross polytope, and exportation of Macaulay 2 code for a simplicial complex into GAP format. 
-		Example
-			simplex 5
-			D=bdsimplex 3
-			C=sd D
-			facetset=flatten entries facets C
-			recoverLabels(C)--displays facets of sd corresponding to chains of faces in D
-			sdlabel bdsimplex 2
-			sctoGap bdsimplex 3
-		Text
-		        This package includes LaTeX and GAP format outputs.
-     	SeeAlso
-		     	bdsimplex
-			simplex
-			bdcrossPolytope
-			combJoin
-			sctoGap
-			sctoGapFile
-			sd
-			recoverLabels
-			sdlabel
+            This package adds a number of features to the @TO "SimplicialComplexes"@ package, 
+            including barycentric subdivision, simplex and boundary of simplicial constructions,
+            combinatorial join, construction of the cross polytope, and exportation of 
+            Macaulay2 code for a simplicial complex into GAP format.
 ///
 
-doc ///
-	Key
-		simplex
-		(simplex, ZZ)
-		(simplex, ZZ, Ring)
-      	Headline 
-		returns the simplex as an object of type SimplicialComplex.
-	Description
-		Text
-			inputs:  dimension n
-		Text
-			outputs:  simplex D of dimension n
-		Example
-			D3=simplex 3
-			D7=simplex 7
-		Text
-		     	This produces the simplex on n+1 vertices of dimension n.
-	SeeAlso
-		bdsimplex
-		sd
-		sctoGap
-///
-
-doc ///
-	Key
-		bdsimplex
-		(bdsimplex, ZZ)
-		(bdsimplex, ZZ, Ring)
-	Headline 
-		returns the boundary of a simplex as an object of type SimplicialComplex.
-	Description
-		Text
-			inputs:  dimension n
-		Text
-			outputs:  boundary of simplex D of dimension n
-		Example
-			Bd3=bdsimplex 3
-			Bd1=bdsimplex 1
-			Bd4=bdsimplex 4
-		Text
-		     	This produces the (n-1)-skeleton of the n simplex.
-	SeeAlso
-		simplex
-		sd
-		sctoGap
-///
-
-doc ///
-	Key
-		sd
-		(sd, SimplicialComplex)
-	Headline 
-		returns the barycentric subdivision of a simplicial complex
-	Description
-		Text
-			inputs:  simplicial complex D
-		Text
-			outputs:  barycentric subdivision of D with new vertex labels
-		Example
-     	       	    	R=QQ[x_1..x_4]
-			L={{x_1,x_2,x_3},{x_1,x_4},{x_2,x_4}}
-		     	D=simplicialComplex(apply(L, product))
-     	       	    	subdivD=sd D
-			flatten entries facets oo
-			recoverLabels subdivD
-	SeeAlso
-		sdlabel
-		recoverLabels
-///
-
-
-doc ///
-	Key
-		bdcrossPolytope
-		(bdcrossPolytope, ZZ)
-		(bdcrossPolytope, ZZ, Ring)
-	Headline 
-		returns boundary of the n dimensional cross polytope
-	Description
-		Text
-			inputs:  n
-		Text
-			outputs:  (n-1)-dimensional complex of boundary of n-dimensional cross polytope
-		Example
-     	       	    	D=bdcrossPolytope 3
-			ideal D
-	SeeAlso
-		simplex
-		bdsimplex
-///
-
-doc ///
-	Key
-		sctoGap
-		(sctoGap, SimplicialComplex)
-		(sctoGap, SimplicialComplex, String)
-	Headline 
-		returns a string of input to GAP
-	Description
-		Text
-			inputs:  simplicial complex D
-		Text
-			outputs:  string of GAP code constructing simplicial complex D
-		Example
-     	       	    	D=bdsimplex 3
-		     	sctoGap D
-		Text
-		     	This produces a simplicial complex on vertex set [1,...,n] in GAP.  Other labelings have not been implemented.
-		Example
-		     	R=QQ[a..d]
-			L={{a,b,c},{a,d},{b,d}}
-     	       	    	D=simplicialComplex(apply(L, product))
-			sctoGap D
-		Text
-		     	As a default, this will name the new complex "delta".  To choose a different name, add a string with desired complex name as the second input.
-		Example
-     	       	    	R=QQ[a..d]
-			L={{a,b,c},{a,d},{b,d}}
-     	       	    	D=simplicialComplex(apply(L,product))
-			sctoGap(D,"testcomplex")
-
-	SeeAlso
-		sctoGapFile
-///
-
-doc ///
-	Key
-		sctoGapFile
-		(sctoGapFile, SimplicialComplex)
-		(sctoGapFile, SimplicialComplex, String)
-	Headline 
-		outputs a file containing a string of input to GAP
-	Description
-		Text
-			inputs:  simplicial complex D
-		Text
-			outputs:  file containing string of GAP code constructing simplicial complex D
-		Example
-     	       	    	D=bdsimplex 3
-		     	sctoGapFile(D,"desiredname");
-			get "desiredname.g"
-		Text
-		     	Note that this names the file "desiredname.g" not "desiredname".  This can be changed by user.  This file can be read directly by GAP with Read("desiredname.g"), returning a complex in GAP named "desiredname".
-		Text
-		     	If no name is specified, this will produce a temporaryFileName as the name and name the complex "delta".
-     	        Example
-		     	D=bdsimplex 3
-			sctoGapFile D
-	SeeAlso
-		sctoGap
-///
-
-doc ///
-	Key
-		sdlabel
-		(sdlabel, SimplicialComplex)
-	Headline 
-		returns the barycentric subdivision of a simplicial complex
-	Description
-		Text
-			inputs:  simplicial complex D
-		Text
-			outputs:  barycentric subdivision of D with vertices labeled by face in D
-		Example
-     	       	    	R=QQ[x_1..x_4]
-			L={{x_1,x_2,x_3},{x_1,x_4},{x_2,x_4}}
-		     	D=simplicialComplex(apply(L, product))
-     	       	    	sdlabel D
-			flatten entries facets oo
-		Text
-		     	This is slightly clunkier, but easier to see chains of faces of D as facets of sd D.
-	SeeAlso
-		sd
-		recoverLabels
-		selectLevel
-///
-
-doc ///
-	Key
-		selectLevel
-		(selectLevel, SimplicialComplex,ZZ)
-	Headline 
-		from the labeled barycentric subdivision of a complex, selects variables corresponding to sets of a certain size
-	Description
-		Text
-			inputs:  labeled barycentric simplicial complex and integer i
-		Text
-			outputs:  vertices of barycentric subdivision coming from faces of size i
-		Example
-     	       	    	D=bdsimplex 3
-     	       	    	C=sdlabel D
-			selectLevel(C,1)
-			selectLevel(C,2)
-		Text
-		     	This selects vertices of subdivision coming from faces of dimension (i-1).
-	SeeAlso
-		sdlabel
-///
-
-end;
-
-uninstallPackage"SimplicialComplexesPlus"
-restart
-
-path=append(path, "/Users/gwynethwhieldon/Dropbox/M2/packages/")
---loadPackage"SimplicialComplexesPlus"
-installPackage"SimplicialComplexesPlus"
-viewHelp SimplicialComplexesPlus
-
-loadPackage"SimplicialComplexes"
-loadPackage"EdgeIdeals"
-
-doc ///
-	Key
-		selectLevel
-		(selectLevel, SimplicialComplex,ZZ)
-	Headline 
-		from the labeled barycentric subdivision of a complex, selects variables corresponding to sets of a certain size
-	Description
-		Text
-			inputs:  labeled barycentric simplicial complex and integer i
-		Text
-			outputs:  vertices of barycentric subdivision coming from faces of size i
-		Pre
-     	       	    	D=bdsimplex 3
-     	       	    	C=sdlabel D
-			selectLevel(C,1)
-			selectLevel(C,2)
-		Text
-		     	This selects vertices of subdivision coming from faces of dimension (i-1).
-	SeeAlso
-		sdlabel
-///

@@ -1,12 +1,7 @@
--- Copyright 2011, 2012: David Cook II, Sonja Mapes, Gwyn Whieldon
+-- Copyright 2011, 2012, 2013: David Cook II and Gwyn Whieldon
 -- You may redistribute this file under the terms of the GNU General Public
 -- License as published by the Free Software Foundation, either version 2
 -- of the License, or any later version.
-
--- TODO:
--- closure, star
--- eulerCharacteristic
-
 
 ------------------------------------------
 ------------------------------------------
@@ -49,15 +44,16 @@ export {
         "IsMultigraded",
     "randomSimplicialComplex",
     "randomSquarefreeIdeal",
+    "revlexComplex",
     "simplex",
     "simplexBoundary",
     --
     -- Operations
-    "algebraicShift",
     "barycentricSubdivision",
     "bsdFacetLabels",
         "BSDVarMap",
     "combinatorialJoin",
+    "combinatorialShift",
     "disjointUnion",
     "faceDelete",
     "inducedSubcomplex",
@@ -66,8 +62,11 @@ export {
     "skeleton",
     "star",
     "suspension",
+    "underlyingGraph",
     --
     -- Properties & invariants
+    "connectedComponents",
+    "eulerCharacteristic",
     "gVector",
     "hVector",
     "isConnected",
@@ -128,17 +127,17 @@ nerveComplex Graph := SimplicialComplex => opts -> G -> (
     m := #edges G;
     e := local e;
     R := (opts.CoefficientRing)(
-        if opts.IsMultigraded then monoid[e_1..e_m, Degrees => entries map(ZZ^n, ZZ^n, 1)]
+        if opts.IsMultigraded then monoid[e_1..e_m, Degrees => entries map(ZZ^m, ZZ^m, 1)]
         else monoid[e_1..e_m]);
     I := apply(vertices G, v -> select(0..m-1, i -> member(v, (edges G)#i)));
     simplicialComplex apply(I, L -> product(L, i -> R_i))
     )
-nerveComplex SimplicialComplex := SimplicialComplex => D -> (
+nerveComplex SimplicialComplex := SimplicialComplex => opts -> D -> (
     F := flatten entries facets D;
     m := #F;
     f := local f;
     R := (opts.CoefficientRing)(
-        if opts.IsMultigraded then monoid[f_1..f_m, Degrees => entries map(ZZ^n, ZZ^n, 1)]
+        if opts.IsMultigraded then monoid[f_1..f_m, Degrees => entries map(ZZ^m, ZZ^m, 1)]
         else monoid[f_1..f_m]);
     I := apply(gens ring D, v -> select(0..m-1, i -> member(v, support F_i)));
     simplicialComplex apply(I, L -> product(L, i -> R_i))
@@ -158,6 +157,13 @@ randomSquarefreeIdeal Ring := MonomialIdeal => R -> ()
 randomSquarefreeIdeal (Ring, ZZ) := MonomialIdeal => (R, d) -> ()
 randomSquarefreeIdeal (Ring, ZZ, ZZ) := MonomialIdeal => (R, d, g) -> ()
 
+revlexComplex = method()
+revlexComplex SimplicialComplex := SimplicialComplex => D -> (
+    R := (coefficientRing ring D)(monoid[gens ring D]);
+    f := fVector D;
+    simplicialComplex flatten apply(dim D + 1, i -> take(rsort (product \ subsets(gens R, i+1)), f#i))
+    )
+
 simplex = method(Options => {symbol CoefficientRing => QQ})
 simplex ZZ := SimplicialComplex => opts -> (n, K) -> simplexBoundary(n, n+1, opts)
 
@@ -173,10 +179,6 @@ simplexBoundary ZZ := SimplicialComplex => opts -> n -> simplexBoundary(n, n, op
 ------------------------------------------
 -- Operations
 ------------------------------------------
-
---TODO
-algebraicShift = method()
-algebraicShift SimplicialComplex := SimplicialComplex => D -> ()
 
 barycentricSubdivision = method()
 barycentricSubdivision SimplicialComplex := SimplicialComplex => D -> (
@@ -198,18 +200,30 @@ bsdFacetLabels SimplicialComplex := List => D -> (
 
 combinatorialJoin = method()
 combinatorialJoin (SimplicialComplex, SimplicialComplex) := SimplicialComplex => (A, B) -> (
-    R := (coefficientRing ring A)(monoid [join(gens ring A, gens ring B)]);
+    R := (coefficientRing ring A)(monoid [gens ring A, gens ring B]);
     FA := apply(flatten entries facets A, F -> sub(F, R));
     FB := apply(flatten entries facets B, F -> sub(F, R));
     simplicialComplex flatten apply(FA, a -> apply(FB, b -> a*b))
     )
 
 --TODO
+combinatorialShift = method()
+combinatorialShift SimplicialComplex := SimplicialComplex => D -> ()
+
 disjointUnion = method()
-disjointUnion (SimplicialComplex, SimplicialComplex) := SimplicialComplex => (A, B) -> ()
+disjointUnion (SimplicialComplex, SimplicialComplex) := SimplicialComplex => (A, B) -> (
+    nA := #gens ring A;
+    nB := #gens ring B;
+    a := local a;
+    b := local b;
+    R := (coefficientRing ring A)(monoid [a_1..a_nA, b_1..b_nB]);
+    FA := apply(flatten entries facets A, F -> product(indices F, i -> R_i));
+    FB := apply(flatten entries facets B, F -> product(indices F, i -> R_(i + nA)));
+    simplicialComplex join(FA, FB)
+    )
 
 faceDelete = method()
-faceDelete (RingElement, SimplicialComplex) := SimplicialComplex => (s, D) -> simplicialComplex (monomialIdeal s + monomialIdeal F)
+faceDelete (RingElement, SimplicialComplex) := SimplicialComplex => (s, D) -> simplicialComplex (monomialIdeal s + monomialIdeal D)
 
 inducedSubcomplex = method()
 inducedSubcomplex (SimplicialComplex, List) := SimplicialComplex => (D, W) -> (
@@ -219,11 +233,19 @@ inducedSubcomplex (SimplicialComplex, List) := SimplicialComplex => (D, W) -> (
     simplicialComplex apply(first entries facets D, f -> sub(product(support f - antiW), S))
     )
 
---TODO
 polarise = method()
-polarise Ideal := SimplicialComplex => I -> ()
+polarise Ideal := SimplicialComplex => I -> (
+    if not isMonomialIdeal I then I = monomialIdeal I;
+    n := #gens ring I;
+    E := flatten (exponents \ I_*);
+    A := max \ transpose E;
+    offset := accumulate(plus, join({0,0},A));
+    x := local x;
+    R := (coefficientRing ring I)(monoid [flatten apply(n, j -> apply(A_j, k -> x_{j, k}))]);
+    monomialIdeal apply(#E, i -> product(n, j -> product(E_i_j, k -> R_(offset_j + k))))
+    )
 
-simplicialCone = method(Options => {symbol Variable => symbol X})
+simplicialCone = method(Options => {symbol Variable => "X"})
 simplicialCone SimplicialComplex := SimplicialComplex => opts -> D -> combinatorialJoin(D, simplicialComplex gens (coefficientRing ring D)(monoid [opts.Variable]))
 
 skeleton = method()
@@ -235,14 +257,37 @@ star (RingElement, SimplicialComplex) := List => (s, D) -> (
     select(flatten apply(1 + dim D, i -> first entries faces(i, D)), f -> #(set support f * sss) != 0)
     )
 
-suspension = method(Options => {symbol Variable => symbol X})
+suspension = method(Options => {symbol Variable => {"X", "Y"}})
 suspension SimplicialComplex := SimplicialComplex => opts -> D -> combinatorialJoin(D, simplicialComplex gens (coefficientRing ring D)(monoid [opts.Variable_0, opts.Variable_1]))
+
+underlyingGraph = method()
+underlyingGraph SimplicialComplex := Graph => D -> (
+    E := support \ first entries faces(1, D);
+    S := gens ring D - set flatten E;
+    graph(E, Singletons => S)
+    )
 
 ------------------------------------------
 -- Properties & invariants
 ------------------------------------------
 
---TODO
+connectedComponents = method()
+connectedComponents SimplicialComplex := List => D -> (
+    G := underlyingGraph D;
+    V := vertices G;
+    while #V > 0 list (
+        R := reachable(G, {first V});
+        V = V - set R;
+        R
+        )
+    )
+
+eulerCharacteristic = method()
+eulerCharacteristic SimplicialComplex := ZZ => D -> (
+    f := fVector D;
+    sum(dim D + 1, i -> (-1)^i * f#i)
+    )
+
 gVector = method()
 gVector SimplicialComplex := HashTable => D -> (
     h := hVector D;
@@ -257,9 +302,11 @@ hVector SimplicialComplex := HashTable => D -> (
     hashTable apply(toList(0..d), j -> j => sum(j+1, i -> (-1)^(j-i)*binomial(d - i, j - i) * f#(i-1)))
     )
 
---TODO
 isConnected = method()
-isConnected SimplicialComplex := Boolean => D -> ()
+isConnected SimplicialComplex := Boolean => D -> (
+    G := underlyingGraph D;
+    #reachable(G, {first vertices G}) == #vertices G
+    )
 
 isFlag = method()
 isFlag SimplicialComplex := Boolean => D -> all((monomialIdeal D)_*, g -> first degree g <= 2)

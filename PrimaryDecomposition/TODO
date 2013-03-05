@@ -96,5 +96,18 @@ A list of activities that are required or at least desirable
    * speed up linear splitFunction
    * on line 1400 in UnitTests, examine the redundancy that is popping up and handle
      appropriately (i.e. ideal-so-far)
-   * splitFunction based on monomial generators (or other 'small' ideals)
+   * splitFunction based on monomial generators (or other 'small' ideals) ***DONE***
+
+* 5 Mar 2013 Notes/Todo
+   * Keep track of codimension during annotated ideal computations and throw out
+     ideals of large codimension during computation
+   * Add the functionality to return only those minimal primes of top dimension
+   * Run Jason's high regularity examples?
    
+Proposed Strategy Priority:
+--------------------------
+((DecomposeMonomials,infinity),Linear),infinity)
+((Factorization,infinity),Linear),infinity)
+Birational
+IndependentSet
+SplitTower (not yet implemented) 

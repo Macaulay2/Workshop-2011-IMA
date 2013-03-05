@@ -171,6 +171,9 @@ splitLexGB AnnotatedIdeal := I -> (
                splitLexGB Jann
             )
         );
+    -- At this point, all generators of IF_* are irreducible over the base field
+    if #select(L, f -> sum first exponents leadTerm f > 1) <= 1 then
+       I.isPrime = "YES";
     I.LexGBSplit = true;
     {I}
     )
@@ -180,7 +183,7 @@ nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
 ------------------------------------------------------------
 -- splitIdeal code
 splitIdeal = method(Options => {Strategy=>null,
-                                Verbosity=>1,
+                                Verbosity=>0,
                                 "SquarefreeFactorSize" => 1})
   -- possible Strategy values:
   --  Linear     -- Eliminates variables where a generator is of the form x - g
@@ -209,7 +212,7 @@ splitFunction = new MutableHashTable
 splitFunction#Linear = (I, opts) -> (
     if I.?Linear then return {I};
     J := I.Ideal;
-    time linears := for x in gens ring J list (
+    linears := for x in gens ring J list (
         k := position(J_*, f -> first degree contract(x,f) == 0);
         if k === null then continue;
         m := makeLinearElement(x, J_k);
@@ -314,7 +317,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     hf := if isHomogeneous J then poincare J else null;
     indeps := independentSets(J, Limit=>1);
     basevars := support first indeps;
-    if opts.Verbosity > 0 then 
+    if opts.Verbosity >= 3 then 
         << "  Choosing: " << basevars << endl;
     (S, SF) := makeFiberRings(basevars,R);
     JS := S.cache#"RtoS" J;
@@ -337,7 +340,7 @@ splitFunction#IndependentSet = (I,opts) -> (
     else (
        facs := (factors product coeffs)/last;
        G := product facs;
-       if opts.Verbosity > 0 then
+       if opts.Verbosity >= 3 then
            << "  the factors of the flattener: " << netList(facs) << endl;
        G = S.cache#"StoR" G;
        J1 := saturate(J, G);
@@ -411,10 +414,10 @@ splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
    primeList := {};
    loopList := L;
    while i < n and not isStrategyDone(loopList,strat) do (
-      if opts.Verbosity > 0 then (
+      if opts.Verbosity >= 2 then (
           << "  Strategy: " << pad(toString strat,18) << flush;
           );
-      if opts.Verbosity >= 2 then (
+      if opts.Verbosity >= 3 then (
           << endl;
           loopList = loopList / (x -> (
                   tim := timing splitFunction#strat(x,opts);
@@ -424,15 +427,14 @@ splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
           )
       else (
           tim := timing(loopList = loopList / (x -> splitFunction#strat(x,opts)));
-          if opts.Verbosity >= 1 then << "(time " << tim#0 << ") ";
+          if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
           );
       loopList = loopList // flatten / flagIsPrime;
       --loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
-      if opts.Verbosity > 0 then (
+      if opts.Verbosity >= 2 then (
           knownPrimes := #select(loopList, I -> isPrime I === "YES");
           notknownPrimes := #loopList - knownPrimes;
-          << "  Strategy: " << pad(toString strat,18) << " #primes = " << knownPrimes <<
-             " #other = " << notknownPrimes << endl;
+          << " #primes = " << knownPrimes << " #other = " << notknownPrimes << endl;
       );
       i = i + 1;
    );
@@ -452,12 +454,74 @@ splitIdeal List := opts -> L -> (
     );
     loopList := L;
     for s in stratPairs do (
-       loopList = splitUntil(loopList,s#0,s#1);
+       loopList = splitUntil(loopList,s#0,s#1,opts);
     );
     loopList
 )
+-------------------------------------------------------------------------
+--- Begin new nested strategy code
 
-------------------------------------------------------------
+splitUntil = method(Options => options splitIdeal)
+
+splitUntil (Ideal,Symbol,ZZ) := 
+splitUntil (Ideal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
+   splitUntil(annotatedIdeal(I,{},{},{}), strat,n,opts)
+
+splitUntil (AnnotatedIdeal,Symbol,ZZ) := 
+splitUntil (AnnotatedIdeal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
+   splitUntil({I},strat,n,opts)
+
+splitUntil (List,Symbol,ZZ) := 
+splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
+   i := 0;
+   primeList := {};
+   loopList := L;
+   while i < n and not isStrategyDone(loopList,strat) do (
+      if opts.Verbosity >= 2 then (
+          << "  Strategy: " << pad(toString strat,18) << flush;
+          );
+      if opts.Verbosity >= 3 then (
+          << endl;
+          loopList = loopList / (x -> (
+                  tim := timing splitFunction#strat(x,opts);
+                  << "    time: " << tim#0 << endl;
+                  tim#1
+              ));
+          )
+      else (
+          tim := timing(loopList = loopList / (x -> splitFunction#strat(x,opts)));
+          if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
+          );
+      loopList = loopList // flatten / flagIsPrime;
+      --loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
+      if opts.Verbosity >= 2 then (
+          knownPrimes := #select(loopList, I -> isPrime I === "YES");
+          notknownPrimes := #loopList - knownPrimes;
+          << " #primes = " << knownPrimes << " #other = " << notknownPrimes << endl;
+      );
+      i = i + 1;
+   );
+   loopList
+)
+
+splitIdeal Ideal := opts -> I -> splitIdeal({annotatedIdeal(I,{},{},{})}, opts)
+splitIdeal AnnotatedIdeal := opts -> I -> splitIdeal({I},opts)
+splitIdeal List := opts -> L -> (
+    strat := opts.Strategy;
+    if not instance (strat,List) then strat = {strat};
+    stratPairs := for s in strat list (
+       if not instance(s,Sequence) then s = (s,infinity);
+       if not member(first s,{Linear,Birational,Factorization,IndependentSet,Minprimes,DecomposeMonomials}) then
+          error ("Unknown strategy " | toString s | " given.");
+       s
+    );
+    loopList := L;
+    for s in stratPairs do (
+       loopList = splitUntil(loopList,s#0,s#1,opts);
+    );
+    loopList
+)
+----- End new nested strategy code
 
 end
 

@@ -373,7 +373,7 @@ TEST ///
    (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,Factorization});
    checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
    
-   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,IndependentSet});
+   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,IndependentSet}, Verbosity=>2);
    checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
 
    -- testing IndependentSet split
@@ -948,7 +948,7 @@ SIMPLETEST ///
 ///
 
 TOODAMNSLOW ///
-  needsPackage "PD"
+  debug needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,f,h,MonomialOrder=>Lex]
   R = ZZ/32003[a,b,c,d,e,f,h]
   I = ideal(
@@ -961,11 +961,11 @@ TOODAMNSLOW ///
   -- this slow due to equidimSplitOneStep 'trim (I:I1)' line
   time C = minprimes I -- STILL SLOW
   assert false
-{*
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
+
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes},Verbosity=>2);    -- 7 secs on FM machine
   time D = C/ideal;
-  time selectMinimalIdeals D;
-*}
+  time D = selectMinimalIdeals D;
+  checkMinimalPrimes(I,D) 
 ///
 
 BENCHMARK ///
@@ -1432,9 +1432,12 @@ TOODAMNSLOW ///
   time D = for c in C list (t := timing ideal c; if t#0 > 5. then << "ideal: " << c << endl; t#1);
   time Dmin = selectMinimalIdeals D;
     
-  D = select(C, c -> (not c.?isPrime or c.isPrime === "UNKNOWN") and numgens c.Ideal > 1);
-  
-  time D = (C / ideal);
+  C = apply(#C, i -> (C#i,i));
+  -- this is very slow because of a saturate at around ~1750,
+  -- and again at ~2100, and again at ~2200 (probably the same one since we are not being
+  -- careful with redundancy)
+  D = C / (c -> (if c#1 % 50 == 0 then << "Computing Ideal number " << c#1 << endl; ideal c#0));
+    
   time Dmin = selectMinimalIdeals D;
   
   -- Mike playing:

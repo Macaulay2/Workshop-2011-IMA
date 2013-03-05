@@ -12,8 +12,12 @@ end
   load "PD/example-permanents.m2"
   time minprimes I
 
+  J = ideal gens gb I;
+  (C,backToOriginalRing) = time minprimes(J,Strategy=>{DecomposeMonomials, Linear,Factorization,DecomposeMonomials,Linear,Factorization});  
+  C1 = select(C, c -> (c.?isPrime and c.isPrime === "UNKNOWN") or numgens c.Ideal > 1)
   time gens gb I;
   G = flatten entries oo;
+
   G/size//tally  
   I1 = ideal radical monomialIdeal select(G, g -> size g === 1)
   primaryDecomposition oo

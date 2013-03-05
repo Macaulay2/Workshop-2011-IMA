@@ -929,6 +929,10 @@ TOODAMNSLOW ///
    --checkMinimalPrimes(I, C, "CheckPrimality" => true) -- takes WAY too long to use as a test
    --checkMinimalPrimes(I, C, "Answer" => decompose) -- takes too long to use as a test
    assert false -- need to put some actual tests in here
+   
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Birational});  -- .3 sec
+  time selectMinimalIdeals (C/ideal);
+  #oo
 ///
 
 SIMPLETEST ///
@@ -957,6 +961,11 @@ TOODAMNSLOW ///
   -- this slow due to equidimSplitOneStep 'trim (I:I1)' line
   time C = minprimes I -- STILL SLOW
   assert false
+{*
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
+  time D = C/ideal;
+  time selectMinimalIdeals D;
+*}
 ///
 
 BENCHMARK ///
@@ -1004,6 +1013,8 @@ BENCHMARK ///
   time C = minprimes I -- 4 seconds -- why so slow?
   time C1 = decompose I -- .12 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is much faster on this one
+
+  (C,backToOriginalRing) = time minprimes(ideal gens gb I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes});  
 ///
 
 BENCHMARK  ///
@@ -1062,7 +1073,7 @@ SIMPLETEST ///
 
 
 TOODAMNSLOW ///
-  needsPackage "PD"
+  debug needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --dejong (DGP) related to the base space of a semi-universal deformation
@@ -1076,6 +1087,11 @@ TOODAMNSLOW ///
     -2dgj - 2del + ac"
   time C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose) -- DECOMPOSE TOO SLOW HERE??  but it does work eventually
+
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
+  time D = C/ideal;
+  time selectMinimalIdeals D;
+
 ///
 
 
@@ -1145,6 +1161,14 @@ TOODAMNSLOW ///
   --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO slow here
   -- TODO: need to be able to check this answer
   assert false
+
+
+{*
+    BUGGY!! This goes into an infinite loop 22 Jan 2013
+  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
+  time D = C/ideal;
+  time selectMinimalIdeals D;
+*}
 ///
 
 TEST ///
@@ -1319,7 +1343,11 @@ TEST ///
        2*e_1*e_3*e_4-3*e_3*g_1*g_4+3*e_1*g_3*g_4,
        2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,
        2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
-  minprimes J
+  time minprimes J
+
+
+  (C,backToOriginalRing) = time minprimes(J,Strategy=>{Linear,Birational,Factorization,Linear,Birational,Minprimes});
+  time (C / ideal)
 ///
 
 TEST ///
@@ -1398,11 +1426,41 @@ TOODAMNSLOW ///
   -- TODO: Play with factorization depth in this example?
 
   (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,Linear,Factorization,Linear,Factorization});
+
+  (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials}, Verbosity=>1);
+    -- 190 sec    
+  time D = for c in C list (t := timing ideal c; if t#0 > 5. then << "ideal: " << c << endl; t#1);
+  time Dmin = selectMinimalIdeals D;
     
   D = select(C, c -> (not c.?isPrime or c.isPrime === "UNKNOWN") and numgens c.Ideal > 1);
   
   time D = (C / ideal);
   time Dmin = selectMinimalIdeals D;
+  
+  -- Mike playing:
+    C = splitUntil(I1, Linear, 1)
+    time C1 = splitUntil(C, Factorization, infinity, Verbosity=>2);
+    time C2 = splitUntil(C1, DecomposeMonomials, infinity, Verbosity=>1);
+    time C3 = splitUntil(C2, Linear, infinity, Verbosity=>2);
+    D = select(C3, c -> (not c.?isPrime or c.isPrime === "UNKNOWN") and numgens c.Ideal > 1);
+    #D
+    tally for d in D list numgens d.Ideal
+    select(D, d -> numgens d.Ideal >= 14)
+    (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials});
+    
+    time C1 = splitUntil(C, Factorization, 20, Verbosity=>1);
+    time C2 = splitUntil(C1, Linear, 10, Verbosity=>2);
+
+    time splitUntil(C1_-1, Linear, 1, Verbosity=>0)
+    time C3 = C2/squarefreeGenerators;
+    time C4 = splitUntil(C3, DecomposeMonomials, 10, Verbosity=>1);    
+    
+    for i from 0 to #C4-1 do (
+        << "doing " << i << endl;
+        time ideal C4_i
+        );
+    
+
 ///
 
 TOODAMNSLOW ///

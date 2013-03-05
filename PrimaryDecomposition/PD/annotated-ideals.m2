@@ -58,6 +58,10 @@ annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
         }
     )
 
+gb AnnotatedIdeal := opts -> (I) -> I.Ideal = gb(I.Ideal, opts)
+
+codim AnnotatedIdeal := options(codim,Ideal) >> opts -> (I) -> # I.Linears + codim(I.Ideal)
+
 annotatedIdeal Ideal := (I) -> (
      -- input: ideal I in a polynomial ring R
      linears := for x in gens ring I list (
@@ -80,7 +84,8 @@ net AnnotatedIdeal := (I) -> (
 ring AnnotatedIdeal := (I) -> ring I.Ideal
 
 ideal AnnotatedIdeal := (I) -> (
-    F := product unique join(I.Linears / (x -> x#1),I.Inverted);
+    --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
+    F := product unique (I.Linears / (x -> x#1));
     I1 := ideal(I.Linears/last);
     I2 := if I.?IndependentSet then (
             S := (I.IndependentSet)#1;
@@ -204,7 +209,7 @@ splitFunction = new MutableHashTable
 splitFunction#Linear = (I, opts) -> (
     if I.?Linear then return {I};
     J := I.Ideal;
-    linears := for x in gens ring J list (
+    time linears := for x in gens ring J list (
         k := position(J_*, f -> first degree contract(x,f) == 0);
         if k === null then continue;
         m := makeLinearElement(x, J_k);
@@ -406,7 +411,23 @@ splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
    primeList := {};
    loopList := L;
    while i < n and not isStrategyDone(loopList,strat) do (
-      loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
+      if opts.Verbosity > 0 then (
+          << "  Strategy: " << pad(toString strat,18) << flush;
+          );
+      if opts.Verbosity >= 2 then (
+          << endl;
+          loopList = loopList / (x -> (
+                  tim := timing splitFunction#strat(x,opts);
+                  << "    time: " << tim#0 << endl;
+                  tim#1
+              ));
+          )
+      else (
+          tim := timing(loopList = loopList / (x -> splitFunction#strat(x,opts)));
+          if opts.Verbosity >= 1 then << "(time " << tim#0 << ") ";
+          );
+      loopList = loopList // flatten / flagIsPrime;
+      --loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
       if opts.Verbosity > 0 then (
           knownPrimes := #select(loopList, I -> isPrime I === "YES");
           notknownPrimes := #loopList - knownPrimes;

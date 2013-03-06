@@ -29,11 +29,13 @@ export {
     LexGBOverBase,
     nzds,
     splitIdeal,
+    newSplitIdeal,
     Birational,  -- Strategy option for splitIdeal.  Exported now for simplicity
     IndependentSet,
     LexGBSplit,
     Factorization,
     DecomposeMonomials,
+    Trim,
     CharacteristicSets,
     Minprimes,
     Squarefree

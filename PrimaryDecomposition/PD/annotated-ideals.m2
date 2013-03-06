@@ -18,7 +18,8 @@ AnnotatedIdeal = new Type of MutableHashTable
 --  A.Squarefree
 --  A.IndependentSet
 --  A.DecomposeMonomials
-
+--  A.Trim
+--
 -- An "annotated ideal" is a tuple (I, L, NZ, inverteds)
 -- where I is an ideal (in a subset of the variables)
 -- L is a list of (x, g, f), where 
@@ -209,6 +210,8 @@ splitFunction = new MutableHashTable
     --   I1s is a list of AnnotatedIdeal's, known to be prime
     --   I2s is a list of AnnotatedIdeal's, primality unknown
 
+splitFunction#Trim = (I, opts) -> if I.?Trim then {I} else {trim I}
+
 splitFunction#Linear = (I, opts) -> (
     if I.?Linear then return {I};
     J := I.Ideal;
@@ -255,7 +258,8 @@ splitFunction#Birational = (I, opts) -> (
           -- i.e. m#1 is in the radical of I.Ideal
           g := m#1//factors/last//product; -- squarefree part of m#1
           if g == 1 then error "also a bad error";
-          newI = annotatedIdeal(I.Ideal + ideal g, I.Linears, I.NonzeroDivisors, I.Inverted);
+          newI = ideal compress((gens I.Ideal) % g) + ideal g;
+          newI = annotatedIdeal(newI, I.Linears, I.NonzeroDivisors, I.Inverted);
           return {newI};
           );
 
@@ -461,66 +465,94 @@ splitIdeal List := opts -> L -> (
 -------------------------------------------------------------------------
 --- Begin new nested strategy code
 
-splitUntil = method(Options => options splitIdeal)
+-- format for strategy:
+-- a strategy is one of the following:
+--  1. Symbol (allowed: Linear, Factorization, ...)
+--  2. (strategy, #times)
+--  3. list of strategies
+-- If no #times is given (e.g. in (1) or (3), then 1 is assumed)
 
-splitUntil (Ideal,Symbol,ZZ) := 
-splitUntil (Ideal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
-   splitUntil(annotatedIdeal(I,{},{},{}), strat,n,opts)
+-- each of the mikeSplit routines:
+--  takes a list of annotated ideals, and returns a similar list
+--  
+mikeSplit = method(Options => {Strategy=>null,
+                                Verbosity=>0,
+                                "SquarefreeFactorSize" => 1})
 
-splitUntil (AnnotatedIdeal,Symbol,ZZ) := 
-splitUntil (AnnotatedIdeal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
-   splitUntil({I},strat,n,opts)
+strategySet = strat -> (
+    if instance(strat, Symbol) then set {strat}
+    else if instance(strat, List) then sum(strat/strategySet)
+    else if instance(strat, Sequence) then strategySet first strat
+    )
 
-splitUntil (List,Symbol,ZZ) := 
-splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
-   i := 0;
-   primeList := {};
-   loopList := L;
-   while i < n and not isStrategyDone(loopList,strat) do (
-      if opts.Verbosity >= 2 then (
-          << "  Strategy: " << pad(toString strat,18) << flush;
-          );
-      if opts.Verbosity >= 3 then (
-          << endl;
-          loopList = loopList / (x -> (
-                  tim := timing splitFunction#strat(x,opts);
-                  << "    time: " << tim#0 << endl;
-                  tim#1
-              ));
-          )
-      else (
-          tim := timing(loopList = loopList / (x -> splitFunction#strat(x,opts)));
-          if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
-          );
-      loopList = loopList // flatten / flagIsPrime;
-      --loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
-      if opts.Verbosity >= 2 then (
-          knownPrimes := #select(loopList, I -> isPrime I === "YES");
-          notknownPrimes := #loopList - knownPrimes;
-          << " #primes = " << knownPrimes << " #other = " << notknownPrimes << endl;
-      );
-      i = i + 1;
-   );
-   loopList
-)
+separateDone = (L, strats) -> (
+    -- L is a list of annotated ideals
+    H := partition(f -> all(strats, s -> isStrategyDone({f}, s)), L);
+    (if H#?true then H#true else {}, if H#?false then H#false else {})
+    )
 
-splitIdeal Ideal := opts -> I -> splitIdeal({annotatedIdeal(I,{},{},{})}, opts)
-splitIdeal AnnotatedIdeal := opts -> I -> splitIdeal({I},opts)
-splitIdeal List := opts -> L -> (
-    strat := opts.Strategy;
-    if not instance (strat,List) then strat = {strat};
-    stratPairs := for s in strat list (
-       if not instance(s,Sequence) then s = (s,infinity);
-       if not member(first s,{Linear,Birational,Factorization,IndependentSet,Minprimes,DecomposeMonomials}) then
-          error ("Unknown strategy " | toString s | " given.");
-       s
-    );
-    loopList := L;
-    for s in stratPairs do (
-       loopList = splitUntil(loopList,s#0,s#1,opts);
-    );
-    loopList
-)
+mikeSplit(List, Symbol) := opts -> (L, strat) -> (
+    -- L is a list of annotated ideals
+    -- process each using strategy 'strat'.
+    -- return (L1, L2), where L1 consists of the ideals
+    --   that are either prime, or are done using this method
+    --   (i.e. running it through this strategy again would have no effect).
+    -- and L2 are ideals which may or may not be done, but we don't know that yet.
+    if not member(strat,{
+            Linear,
+            Birational,
+            Factorization,
+            IndependentSet,
+            Minprimes,
+            DecomposeMonomials,
+            Trim
+            }) then
+          error ("Unknown strategy " | toString strat | " given.");
+    flatten for f in L list (
+        if opts.Verbosity >= 2 then (
+            << "  Strategy: " << pad(toString strat,18) << flush;
+            );
+        tim := timing splitFunction#strat(f, opts);
+        ans := tim#1;
+        if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
+        if opts.Verbosity >= 2 then (
+            knownPrimes := #select(ans, I -> isPrime I === "YES");
+            notknownPrimes := #ans - knownPrimes;
+            << " #primes = " << knownPrimes << " #other = " << notknownPrimes << endl;
+            );
+        ans
+        )
+    )
+mikeSplit(List, Sequence) := opts -> (L, strat) -> (
+    (strategy, n) := strat;
+    strategies := toList strategySet strat;
+    (L1,L2) := separateDone(L, strategies);
+    while n > 0 and #L2 != 0 do (
+        M := mikeSplit(L2, strategy, opts);
+        (M1,M2) := separateDone(M, strategies);
+        L1 = join(L1, M1);
+        L2 = M2;
+        n = n-1;
+        );
+    join(L1,L2)
+    )
+mikeSplit(List, List) := opts -> (L, strat) -> (
+    strategies := toList strategySet strat;
+    (L1,L2) := separateDone(L, strategies);
+    for s from 0 to #strat-1 do L2 = mikeSplit(L2, strat#s, opts);
+    join(L1,L2)
+    )
+mikeIdeal = method(Options => options mikeSplit)
+mikeIdeal(Ideal) := opts -> (I) -> (
+    M := mikeSplit({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);
+    (M1,M2) := separateDone(M, {});
+    M = join(M1,M2);
+    if #M2 > 0 then ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
+    M
+    )
+    
+    
+
 ----- End new nested strategy code
 
 end

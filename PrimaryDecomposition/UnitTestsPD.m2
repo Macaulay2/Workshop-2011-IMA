@@ -570,6 +570,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
+  -- MES: this duplicates the example right before this?
   -- This is Broken!!!  Problem in gbRatRecon
   needsPackage "PD"
   R = ZZ/32003[x,y,z,MonomialOrder=>Lex]

@@ -16,19 +16,23 @@ debug needsPackage "PD"
 
 runExamples = (ETable, Keys, filename, beginString, fcn) -> (
     K := if Keys === null then sort keys ETable else Keys;
-    F := openOut filename;
-    F << beginString << endl;
+    if not fileExists filename then (
+         F := openOut filename;
+         F << beginString << endl;
+         close F;
+         );
     for k in K do (
         -- run example, with timing
         -- append info to file
         I := value (ETable#k#1);  -- evaluates to an ideal, at least we expect that
         if not instance(I, Ideal) then error "expected an ideal";
-        << "running: " << k;
+        << "running: " << k << ": " << ETable#k#0 << flush;
         t := timing (fcn I);
         << "  " << t#0 << endl;
+        F = openOutAppend filename;
         F << "\"" << ETable#k#0 << "\" => " << t#0 << endl;
+        close F;
         );
-    close F;
     )
 
 readResults = method()
@@ -66,16 +70,26 @@ combineResults List := (L) -> (
     )
 view = method()
 view List := (L) -> (
-    -- L is a list of file names
-    -- each file consists of timings for a specific algorithm
-    --
+    -- L is a list of lists, as output by combineResults
     netList(L, Alignment=>Right)
     )
+
+viewCSV = method()
+viewCSV List := (L) -> (
+    -- L is a list, as output by combineResults
+    --
+    for a in L do (
+         a1 := between(",",a);
+         line := a1/toString//concatenate;
+         << line << endl;
+         )
+    )
+
 end
 
 restart
-load "test-timing.m2"
-ETable = getExampleFile("minprimes-examples.m2")
+load "PD/test-timing.m2"
+ETable = getExampleFile("PD/minprimes-examples.m2")
 fcn = (I) -> minprimes I
 stratA = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), (Minprimes, 1)});
 stratB = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), IndependentSet,(Minprimes, 1)});
@@ -88,3 +102,31 @@ runExamples(ETable, null, "foo-decompose", "--decompose", decompose)
 combineResults{"foo-decompose", "foo-minprimes", "foo-stratA", "foo-stratB"}
 view oo
 view transpose ooo
+viewCSV oo
+
+restart
+load "PD/test-timing.m2"
+ETable = getExampleFile("PD/DGP.m2");
+kk = ZZ/32003
+
+runExamples(ETable, null, "DGP-decompose", "--decompose", decompose)
+runExamples(ETable, splice{14..36}, "DGP-decompose", "--decompose", decompose)
+runExamples(ETable, splice{27..36}, "DGP-decompose", "--decompose", decompose)
+
+fcn = (I) -> minprimes I
+runExamples(ETable, null, "DGP-minprimes", "--minprimes", fcn)
+
+
+stratA = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), (Minprimes, 1)});
+fcnA = (I) -> mikeIdeal(I, stratA) 
+runExamples(ETable, null, "DGP-stratA", "--stratA", fcnA)
+
+stratB = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Minprimes, 1)});
+fcnB = (I) -> mikeIdeal(I, stratB) 
+runExamples(ETable, null, "DGP-stratB", "--stratB", fcnB)
+
+combineResults{"DGP-decompose", "DGP-minprimes", "DGP-stratA", "DGP-stratB"}
+view oo
+view transpose ooo
+viewCSV oo
+

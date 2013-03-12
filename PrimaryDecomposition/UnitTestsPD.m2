@@ -333,6 +333,69 @@ restart
 ///
 
 -------------------------------------
+-- new splitIdeal tests -------------
+-------------------------------------
+TEST ///
+  restart
+  debug needsPackage "PD"
+  needsPackage "UnitTestsPD"
+  kk = QQ
+  kk = ZZ/32003
+  R = kk[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
+  I = ideal"
+    -ab-ad+2ah,
+    ad-bd-cf-2ah+2bh+2ck,
+    ab-ad-2bh+2dh-2ck+2fk+2gl,
+    ac-2cs-at+2bt,
+    ac-cs-2at+bt,
+    -d-3s+4u,
+    -f-3t+4v,
+    -g+4w,
+    -a+2x,
+    -b2-c2+2bx+2cy,
+    -d2-f2-g2+2dx+2fy+2gz"
+
+   strat1 = ({(Linear,2),(Factorization,infinity)}, 3)
+   strat2 = {strat1, (Birational, infinity), strat1}
+
+   strat3 = ({DecomposeMonomials,(Linear,2),(Factorization,infinity)}, 3)
+   strat4 = {strat3, (Birational, infinity), strat3, Minprimes}
+   strat5 = {strat3, (Birational, infinity), Minprimes}
+   strategySet strat1
+   strategySet Linear
+   strategySet{Linear, Factorization}
+
+   J = time mikeIdeal(I,Strategy=>strat1, Verbosity=>2);   
+   J = time mikeIdeal(I,Strategy=>strat2, Verbosity=>2);   
+   J = time mikeIdeal(I,Strategy=>{strat2,strat2,strat2}, Verbosity=>2);   
+   J = time mikeIdeal(I,Strategy=>strat3, Verbosity=>2);   
+   J = time mikeIdeal(I,Strategy=>strat4, Verbosity=>2);   
+   J = time mikeIdeal(I,Strategy=>strat5, Verbosity=>2);   
+
+-- below are older tries
+   J = time mikeIdeal(I,Strategy=>{Linear,DecomposeMonomials,(Birational,infinity)}, Verbosity=>2);   
+   J = time mikeIdeal(I,Strategy=>{Linear,DecomposeMonomials,(Birational,infinity)});   
+   J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity)}, Verbosity=>2);   
+      J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity)});   
+   J = time mikeIdeal(I,Strategy=>{Linear,IndependentSet}, Verbosity=>2);   
+
+   J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),
+                                    (Birational,1)}, Verbosity=>2);      
+   J1 = time mikeSplit(J, Birational, Verbosity=>2)
+   J2 = time mikeSplit(J1, Birational, Verbosity=>2)
+   J3 = time mikeSplit(J2, Birational, Verbosity=>2)
+   J4 = time mikeSplit(J3, Birational, Verbosity=>2)
+   J5 = time mikeSplit(J4, Birational, Verbosity=>2)
+   J6 = time mikeSplit(J5, (Birational,infinity), Verbosity=>2)
+   
+   time mikeIdeal(I, Strategy=>(Birational,infinity), Verbosity=>2)
+   time mikeIdeal(I, Strategy => {
+           ({Linear, DecomposeMonomials, (Factorization,10)}, 2)},
+           Verbosity=>2);
+///
+-------------------------------------
+
+-------------------------------------
 -- splitIdeal tests -----------------
 -------------------------------------
 TEST ///
@@ -376,31 +439,6 @@ TEST ///
    (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,IndependentSet}, Verbosity=>2);
    checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
 
-{*
-   strat = ({(Linear,2),(Factorization,infinity)}, 3)
-   strategySet strat
-   strategySet Linear
-   strategySet{Linear, Factorization}
-   J = time mikeIdeal(I,Strategy=>{Linear,DecomposeMonomials,(Birational,infinity)}, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>{Linear,DecomposeMonomials,(Birational,infinity)});   
-   J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity)}, Verbosity=>2);   
-      J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity)});   
-   J = time mikeIdeal(I,Strategy=>{Linear,IndependentSet}, Verbosity=>2);   
-
-   J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),
-                                    (Birational,1)}, Verbosity=>2);      
-   J1 = time mikeSplit(J, Birational, Verbosity=>2)
-   J2 = time mikeSplit(J1, Birational, Verbosity=>2)
-   J3 = time mikeSplit(J2, Birational, Verbosity=>2)
-   J4 = time mikeSplit(J3, Birational, Verbosity=>2)
-   J5 = time mikeSplit(J4, Birational, Verbosity=>2)
-   J6 = time mikeSplit(J5, (Birational,infinity), Verbosity=>2)
-   
-   time mikeIdeal(I, Strategy=>(Birational,infinity), Verbosity=>2)
-   time mikeIdeal(I, Strategy => {
-           ({Linear, DecomposeMonomials, (Factorization,10)}, 2)},
-           Verbosity=>2);
-*}
    -- testing IndependentSet split
    restart
    debug needsPackage "PD"

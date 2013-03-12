@@ -491,6 +491,14 @@ separateDone = (L, strats) -> (
     (if H#?true then H#true else {}, if H#?false then H#false else {})
     )
 
+separatePrime = (L) -> (
+    -- L is a list of annotated ideals
+    -- returns (L1,L2), where L1 is the list of elements of L which are known to be prime
+    -- and L2 are the rest
+    H := partition(I -> (I.?isPrime and I.isPrime === "YES"), L);
+    (if H#?true then H#true else {}, if H#?false then H#false else {})
+    )
+
 mikeSplit(List, Symbol) := opts -> (L, strat) -> (
     -- L is a list of annotated ideals
     -- process each using strategy 'strat'.
@@ -539,16 +547,24 @@ mikeSplit(List, Sequence) := opts -> (L, strat) -> (
 mikeSplit(List, List) := opts -> (L, strat) -> (
     strategies := toList strategySet strat;
     (L1,L2) := separateDone(L, strategies);
-    for s from 0 to #strat-1 do L2 = mikeSplit(L2, strat#s, opts);
+    for s from 0 to #strat-1 do (
+         L2 = mikeSplit(L2, strat#s, opts);
+         (M1,M2) := separateDone(L2, strategies);
+         L1 = join(L1, M1);
+         L2 = M2;
+         );
     join(L1,L2)
     )
 mikeIdeal = method(Options => options mikeSplit)
 mikeIdeal(Ideal) := opts -> (I) -> (
     M := mikeSplit({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);
-    (M1,M2) := separateDone(M, {});
+    (M1,M2) := separatePrime(M);
     M = join(M1,M2);
-    if #M2 > 0 then ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
-    M
+    if #M2 > 0 then (
+         ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
+         error "answer not complete";
+         );
+    M/ideal//selectMinimalIdeals
     )
     
     

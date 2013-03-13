@@ -73,3 +73,9 @@ I = adjacentMinorsIdeal(2,3,8,CoefficientRing=>ZZ/32003)
   peek J1_1_1
   L = time squarefreeGenerators J1_1_1
   L1 = time splitIdeal(L, Strategy=>splice{10:Factorization})
+
+
+I = adjacentMinorsIdeal(3,5,5,CoefficientRing=>ZZ/32003)
+time gens gb I;
+time mikeIdeal(I, stratA, Verbosity=>2);
+codim I

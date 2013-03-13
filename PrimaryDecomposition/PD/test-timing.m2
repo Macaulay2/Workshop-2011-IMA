@@ -85,6 +85,21 @@ viewCSV List := (L) -> (
          )
     )
 
+strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
+stratA = (Strategy=>{strat1,(Birational,infinity), (Minprimes, 1)});
+--stratA = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), (Minprimes, 1)});
+stratB = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Minprimes, 1)});
+stratC = Strategy => {
+    ({(
+        {Linear, DecomposeMonomials, (Factorization, 3)}, 
+        infinity
+    ), (Birational, infinity)}, infinity),
+    Minprimes
+    }
+
+fcnA = (I) -> mikeIdeal(I, stratA) 
+fcnB = (I) -> mikeIdeal(I, stratB) 
+fcnC = (I) -> mikeIdeal(I, stratC) 
 end
 
 restart
@@ -113,20 +128,42 @@ runExamples(ETable, null, "DGP-decompose", "--decompose", decompose)
 runExamples(ETable, splice{14..36}, "DGP-decompose", "--decompose", decompose)
 runExamples(ETable, splice{27..36}, "DGP-decompose", "--decompose", decompose)
 
-fcn = (I) -> minprimes I
-runExamples(ETable, null, "DGP-minprimes", "--minprimes", fcn)
-
-
-stratA = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), (Minprimes, 1)});
-fcnA = (I) -> mikeIdeal(I, stratA) 
+runExamples(ETable, null, "DGP-minprimes", "--minprimes", minprimes)
 runExamples(ETable, null, "DGP-stratA", "--stratA", fcnA)
-
-stratB = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Minprimes, 1)});
-fcnB = (I) -> mikeIdeal(I, stratB) 
 runExamples(ETable, null, "DGP-stratB", "--stratB", fcnB)
+runExamples(ETable, null, "DGP-stratC", "--stratC", fcnC)
+combineResults{"DGP-decompose", "DGP-minprimes", "DGP-stratA", "DGP-stratB", "DGP-stratC"}
 
-combineResults{"DGP-decompose", "DGP-minprimes", "DGP-stratA", "DGP-stratB"}
 view oo
 view transpose ooo
 viewCSV oo
 
+
+
+
+
+
+
+
+-----------------------------
+-- harder tests
+restart
+load "PD/test-timing.m2"
+ETable = getExampleFile("PD/minprimes2-examples.m2");
+ETable
+
+runExamples(ETable, null, "primes2-minprimes", "--minprimes", minprimes)
+runExamples(ETable, null, "primes2-stratA", "--stratA", fcnA)
+runExamples(ETable, null, "primes2-stratB", "--stratB", fcnB)
+runExamples(ETable, null, "primes2-stratC", "--stratC", fcnC)
+
+I = value ETable#1#1
+I = ideal gens gb(I, DegreeLimit=>8);
+time mikeSplit(I, stratA, Verbosity=>2)
+
+time mikeSplit(I, Strategy=>strat1, Verbosity=>2);
+time (M1,M2) = separatePrime(oo);
+#M1
+#M2
+time J1 = M1/ideal;
+J1/codim

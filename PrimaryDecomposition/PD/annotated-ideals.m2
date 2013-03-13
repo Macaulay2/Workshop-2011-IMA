@@ -555,6 +555,9 @@ mikeSplit(List, List) := opts -> (L, strat) -> (
          );
     join(L1,L2)
     )
+mikeSplit(Ideal) := opts -> (I) -> (
+    mikeSplit({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts)
+    )
 mikeIdeal = method(Options => options mikeSplit)
 mikeIdeal(Ideal) := opts -> (I) -> (
     M := mikeSplit({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);

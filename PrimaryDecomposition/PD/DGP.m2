@@ -109,7 +109,7 @@ ideal"
   4a4d + 3a3be + a3cf - 8ae2f2
   "
 --------------------------------------------------------
---arnborg-lazard (DGP, from POSSO)
+--arnborg-lazard (DGP from POSSO)
 R = kk[x,y,z];
 ideal"
   x2yz + xy2z + xyz2 + xyz + xy + xz + yz,
@@ -126,19 +126,19 @@ ideal"
   -d2 - 2ce - ah - 2bh
   "
 --------------------------------------------------------
---katsura4 (DGP, from POSSO)
+--katsura4 (DGP from POSSO)
 katsura(4,kk)
 --------------------------------------------------------
---katsura5 (DGP, from POSSO)
+--katsura5 (DGP from POSSO)
 katsura(5,kk)
 --------------------------------------------------------
 --cyclic roots 5 homog (DGP)
 cyclicRootsHomogeneous(5,kk)
 --------------------------------------------------------
---cyclic roots 5 (DGP, from POSSO)
+--cyclic roots 5 (DGP from POSSO)
 cyclicRoots(5,kk)
 --------------------------------------------------------
---cyclic roots 4 (DGP, from POSSO)
+--cyclic roots 4 (DGP from POSSO)
 cyclicRoots(4,kk)
 --------------------------------------------------------
 --roczen (DGP) related to classification of singularities
@@ -184,7 +184,7 @@ ideal"
   -x3y2+xy2z+xyz3-2xy+y4,
   -2x2y+xy4+yz4-3"
 --------------------------------------------------------
---caprasse4 (DGP, from POSSO)
+--caprasse4 (DGP from POSSO)
 R = kk[x,y,z,t];
 ideal"
   y2z+2xyt-2x-z,
@@ -192,7 +192,7 @@ ideal"
   2yzt+xt2-x-2z,
   -xz3+4yz2t+4xzt2+2yt3+4xz+4z2-10yt-10t2+2"
 --------------------------------------------------------
---cassou (DGP, from POSSO)
+--cassou (DGP from POSSO)
 R = kk[b,c,d,e]
 ideal"
   6b4c3 + 21b4c2d + 15b4cd2 + 9b4d3 - 8b2c2e - 28b2cde + 36b2d2e - 144b2c
@@ -205,7 +205,7 @@ ideal"
     + 40d2e2 + 1008ce - 1008de + 5184,
   -4b2c2 + 4b2cd - 3b2d2 + 22ce - 22de + 261"
 --------------------------------------------------------
---square of a generic 3x3 matrix (DGP, from POSSO)
+--square of a generic 3x3 matrix (DGP from POSSO)
 R = kk[vars(0..8)]
 ideal (genericMatrix(R,3,3))^2
 --------------------------------------------------------
@@ -222,7 +222,7 @@ ideal(
   (l-k)^2*(l-h),
   (l-k)*(l-j))
 --------------------------------------------------------
---gerdt (DGP, from POSSO)
+--gerdt (DGP from POSSO)
 R = kk[t,u,v,w,x,y,z];
 ideal"2tw + 2wy - wz,
   2uw2 - 10vw2 + 20w3 - 7tu + 35tv - 70tw,
@@ -288,7 +288,7 @@ ideal"
   c2 + 2bd + 2ae + f2 + e,
   2cd + 2be + 2af + f"
 --------------------------------------------------------
---buchberger (DGP, from POSSO)
+--buchberger (DGP from POSSO)
 R = kk[a,b,c,d,x,y,z,t];
 ideal"
   t - b - d,
@@ -296,7 +296,7 @@ ideal"
   xz + yz + xt + zt - ac - ad - cd,
   xzt - acd"
 --------------------------------------------------------
---lanconelli (DGP, from POSSO)
+--lanconelli (DGP from POSSO)
 R = kk[a,b,c,d,e,f,g,h,j,k,l];
 ideal"
   a + c + d + e + f + g + h + j - 1,
@@ -346,7 +346,7 @@ ideal"
   twy2 + ty2z + y2z2,
   t2wx + t2wz + t2z2"
 --------------------------------------------------------
---macaulay (DGP, from an older M2 tutorial)
+--macaulay (DGP from an older M2 tutorial)
 R = kk[a,b,c,d]
 ideal"
   b4 - a3d,

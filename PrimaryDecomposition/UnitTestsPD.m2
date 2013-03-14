@@ -355,45 +355,6 @@ TEST ///
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
 
-{*
-   strat1 = ({(Linear,2),(Factorization,infinity)}, 3)
-   strat2 = {strat1, (Birational, infinity), strat1}
-
-   strat3 = ({DecomposeMonomials,(Linear,2),(Factorization,infinity)}, 3)
-   strat4 = {strat3, (Birational, infinity), strat3, Minprimes}
-   strat5 = {strat3, (Birational, infinity), Minprimes}
-   strategySet strat1
-   strategySet Linear
-   strategySet{Linear, Factorization}
-
-   J = time mikeIdeal(I,Strategy=>strat1, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>strat2, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>{strat2,strat2,strat2}, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>strat3, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>strat4, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>strat5, Verbosity=>2);   
-
--- below are older tries
-   J = time mikeIdeal(I,Strategy=>{Linear,DecomposeMonomials,(Birational,infinity)}, Verbosity=>2);   
-   J = time mikeIdeal(I,Strategy=>{Linear,DecomposeMonomials,(Birational,infinity)});   
-   J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity)}, Verbosity=>2);   
-      J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity)});   
-   J = time mikeIdeal(I,Strategy=>{Linear,IndependentSet}, Verbosity=>2);   
-
-   J = time mikeIdeal(I,Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),
-                                    (Birational,1)}, Verbosity=>2);      
-   J1 = time mikeSplit(J, Birational, Verbosity=>2)
-   J2 = time mikeSplit(J1, Birational, Verbosity=>2)
-   J3 = time mikeSplit(J2, Birational, Verbosity=>2)
-   J4 = time mikeSplit(J3, Birational, Verbosity=>2)
-   J5 = time mikeSplit(J4, Birational, Verbosity=>2)
-   J6 = time mikeSplit(J5, (Birational,infinity), Verbosity=>2)
-   
-   time mikeIdeal(I, Strategy=>(Birational,infinity), Verbosity=>2)
-   time mikeIdeal(I, Strategy => {
-           ({Linear, DecomposeMonomials, (Factorization,10)}, 2)},
-           Verbosity=>2);
-*}
 ///
 -------------------------------------
 
@@ -419,83 +380,6 @@ TEST ///
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
-   
-   J = time splitUntil(I,infinity,Linear);
-   J' = time splitUntil(J,infinity,Birational);
-   checkMinimalPrimes(I,J' / ideal, "Answer"=>decompose);
-   
-   J = time splitIdeal(I, Strategy=>splice{2:Linear});
-   J' = time splitUntil(I,infinity,Linear);
-   J'' = time splitUntil(J',infinity,Birational);
-   checkMinimalPrimes(I,J'' / ideal, "Answer"=>decompose);
-   
-   J = time splitIdeal(I,Strategy=>{Linear,Birational});
-   checkMinimalPrimes(I,J / ideal, "Answer"=>decompose);
-   
-   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational});
-   checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
-   
-   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,Factorization});
-   checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
-   
-   (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Birational,IndependentSet}, Verbosity=>2);
-   checkMinimalPrimes(I,C / ideal, "Answer"=>decompose)
-
-   -- testing IndependentSet split
-   restart
-   debug needsPackage "PD"
-   needsPackage "UnitTestsPD"
-   R = ZZ/32003[a,b,c,d,h]
-   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
-   (C,backToOriginalRing) = time minprimes(I,Strategy=>{IndependentSet})
-   intersect (C / ideal) == (radical I)
-   
-   -- this is the old splitIdeal
-   J = time splitIdeal(I, Strategy=>splice{2:Linear,10:Birational});
-   time primesJ = (first J) / ideal
-   checkMinimalPrimes(I, primesJ, "Answer"=>decompose)
-   
-   J = time splitIdeal(I, Strategy=>splice{2:Linear,5:Factorization,2:Linear,6:Birational,1:Factorization});
-   time primesJ = (first J) / ideal
-   checkMinimalPrimes(I, primesJ, "Answer"=>decompose)
-   
-   J = time splitIdeal(I, Strategy=>splice{2:Linear,5:Factorization,2:Linear,6:Birational,1:IndependentSet,1:Factorization});
-   
-   I1 = time splitIdeal(I, Strategy=>Linear);
-   I2 = time splitIdeal(I1, Strategy=>Linear);
-   I3 = time splitIdeal(I2, Strategy=>Birational);
-   I4 = time splitIdeal(I3, Strategy=>Linear);
-   I5 = time splitIdeal(I4, Strategy=>Linear);
-   I6 = time splitIdeal(I5, Strategy=>Birational);
-   I7 = time splitIdeal(I6, Strategy=>Birational);
-   I8 = time splitIdeal(I7, Strategy=>Birational);
-   I9 = time splitIdeal(I8, Strategy=>Linear);
-   mpI9 = time splitIdeal(I9, Strategy=>Minprimes);
-   (last I8)/(a -> a.?BirationalSplitCompleted)
-   I9 = splitIdeal(I8, Strategy=>Birational)
-   (last I9)/(a -> a.?BirationalSplitCompleted)
-   I10 = splitIdeal(I9, Strategy=>Birational)
-   (last I10)/(a -> a.?BirationalSplitCompleted)
-   I11 = splitIdeal(I10, Strategy=>Linear)
-   (I2primes, I2nonprimes) = I2
-   I2primes
-   
-   first I2   
-   class I2
-   I1a = splitIdeal(I1, Strategy=>Linear)
-   I2 = splitIdeal(I1#2#0, Strategy=>Linear)
-   J = first last I1
-   (didwork, primes, todo) = splitIdeal(J, Strategy=>Birational)
-   todo = todo/(a -> splitIdeal(a, Strategy=>Linear))//flatten
-   #todo
-   todo#1
-   splitIdeal(todo#1#2#0, Strategy=>Birational)
-   didwork
-   primes
-   todo#0
-   todo/(a -> splitIdeal(a, Strategy=>Birational))
-
-   L = flatten oo
 ///
 
 
@@ -966,7 +850,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  needsPackage "PD"
+  debug needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,h]
   I = ideal(
      a+b+c+d+e,
@@ -974,8 +858,12 @@ SIMPLETEST ///
 	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
-   time C = minprimes I
+   time C = minprimes(I, Strategy=>null, Verbosity=>2)
+   --time C = splitIdeal(I, Strategy=> {(options minprimes).Strategy, stratEnd}, Verbosity=>2);
    checkMinimalPrimes(I, C, "Answer" => decompose)
+   
+   --select(C, c -> (gens I) % (ideal c) != 0)
+   
 ///
 
 TOODAMNSLOW ///
@@ -1023,12 +911,11 @@ TOODAMNSLOW ///
 	 a*b*c*d+b*c*d*e+c*d*e*f+d*e*f*a+e*f*a*b+f*a*b*c,
 	 a*b*c*d*e+b*c*d*e*f+c*d*e*f*a+d*e*f*a*b+e*f*a*b*c+f*a*b*c*d,
 	 a*b*c*d*e*f-h^6)
-  -- this slow due to equidimSplitOneStep 'trim (I:I1)' line
-  time C = minprimes I -- STILL SLOW
-  assert false
 
-  C = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes},Verbosity=>2);    -- 7 secs on FM machine
-  checkMinimalPrimes(I,C) 
+  strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
+  stratD = {strat1, (Birational,infinity)}
+  time C = minprimesWithStrategy(I, Strategy=>stratD, Verbosity=>2);
+  checkMinimalPrimes(I,C)
 ///
 
 BENCHMARK ///
@@ -1076,8 +963,6 @@ BENCHMARK ///
   time C = minprimes I -- 4 seconds -- why so slow?
   time C1 = decompose I -- .12 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is much faster on this one
-
-  C = time minprimes(ideal gens gb I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes});  
 ///
 
 BENCHMARK  ///

@@ -195,8 +195,6 @@ splitIdeal = method(Options => {Strategy=>null,
                          -- If g is a nzd mod I, this eliminates x.  Else,
                          -- if g is in the radical of I, add in g to I and return
                          -- else, split with g as: (sat(I,g), (I:sat(I,g)))
-  --  Minprimes          -- Mostly for testing(?) Apply minprimes to the annotated ideal
-                         -- and keep track of annotated information
   --  IndependentSet     -- Find an independent set (annotate this), find a flattener,
                          -- and split using flattener
   --  SplitTower         -- For an ideal which has LexGBSplit set to true, this splits the
@@ -370,7 +368,7 @@ splitFunction#SplitTower = (I,opts) -> (
     -- create two annotated ideals:
     if isPrime I === "YES" then return {I};
     if I.?SplitTower then return {I};
-    if not I.?IndependentSet or not I.?LexGBSplit then {I};
+    if not I.?IndependentSet or not I.?LexGBSplit then return {I};
     -- Finally we can try to split this ideal into primes
     L := I.LexGBOverBase;  -- L is the lex GB over the fraction field base
     -- ADD CODE HERE
@@ -397,19 +395,6 @@ splitFunction#SplitTower = (I,opts) -> (
               )
          )
     )
-
-splitFunction#Minprimes = (I,opts) -> (
-   if isPrime I === "YES" then return {I};
-   minPrimesList := minprimes I.Ideal; --get options to work here 
-   annotatedMPList := minPrimesList / (x -> (
-                                  newI := annotatedIdeal(x,
-                                              I.Linears,
-                                              I.NonzeroDivisors,
-                                              I.Inverted);
-                                  newI.isPrime = "YES";
-                                  newI));
-   annotatedMPList
-)
 
 splitFunction#DecomposeMonomials = (I,opts) -> (
     if isPrime I === "YES" then return {I};
@@ -489,7 +474,6 @@ splitIdeals(List, Symbol) := opts -> (L, strat) -> (
             Factorization,
             IndependentSet,
             SplitTower,
-            Minprimes,
             DecomposeMonomials,
             Trim
             }) then
@@ -536,19 +520,26 @@ splitIdeals(List, List) := opts -> (L, strat) -> (
 splitIdeal(Ideal) := opts -> (I) -> (
     splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts)
     )
+
+stratEnd = ({IndependentSet,SplitTower},infinity)
+
 minprimesWithStrategy = method(Options => options splitIdeals)
 minprimesWithStrategy(Ideal) := opts -> (I) -> (
-    M := splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);
+    newstrat := {opts.Strategy, stratEnd};
+    M := splitIdeals({annotatedIdeal(I,{},{},{})}, newstrat, opts);
     (M1,M2) := separatePrime(M);
-    M = join(M1,M2);
     if #M2 > 0 then (
          ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
-         --error "answer not complete";
+         error "answer not complete";
          );
-    M/ideal//selectMinimalIdeals
+    answer := M/ideal//selectMinimalIdeals;
+    if opts.Verbosity >= 2 then (
+         if #answer < #M then (
+              << "#minprimes=" << #answer << ", #computed=" << #M << endl;
+              );
+         );
+    answer
     )
-    
-    
 
 ----- End new nested strategy code
 

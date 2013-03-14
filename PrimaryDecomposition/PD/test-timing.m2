@@ -87,6 +87,7 @@ viewCSV List := (L) -> (
 
 strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
 strat2 = ({strat1, (Birational, infinity)}, infinity)
+stratEnd = ({IndependentSet,SplitTower},infinity)
 stratA = {strat1,(Birational,infinity), (Minprimes, 1)}
 stratB = {strat1,(Minprimes, 1)}
 stratC = {
@@ -99,9 +100,9 @@ fcnB = (I) -> minprimesWithStrategy(I, Strategy=>stratB)
 fcnC = (I) -> minprimesWithStrategy(I, Strategy=>stratC) 
 
 -- strategies for testing only:
-stratD = {strat1, (Birational,infinity), (IndependentSet, infinity), SplitTower}
-stratD = {strat2, (IndependentSet, infinity), SplitTower}
-stratD = {strat2, Minprimes}
+stratD = {strat1, (Birational,infinity), stratEnd}
+--stratD = {strat2, stratEnd}
+
 end
 
 restart

@@ -43,9 +43,11 @@ export {
     Squarefree
     }
 
+strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
+defaultStrat = ({strat1, (Birational,infinity)},infinity)
 minprimes = method(Options => {
         Verbosity => 0,
-        Strategy => null,  -- if this is present, call splitIdeal with this strategy list
+        Strategy => null, -- defaultStrat,  -- if null, calls older minprimesWorker code
         "SquarefreeFactorSize" => 1,
         Ideal => null,  -- used in inductive setting
         "RadicalSoFar" => null, -- used in inductive setting

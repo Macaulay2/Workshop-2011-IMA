@@ -1,3 +1,8 @@
+
+
+
+end
+----------------------
 loadPackage "Markov"
 G = makeGraph {{}, {1}, {1}, {1} , {2,3,4}}
 S = globalMarkovStmts G

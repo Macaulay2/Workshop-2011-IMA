@@ -167,3 +167,68 @@ time (M1,M2) = separatePrime(oo);
 #M2
 time J1 = M1/ideal;
 J1/codim
+
+
+ETable = getExampleFile("PD/bayes-examples.m2");
+I = value ETable#1#1
+
+time mikeSplit(I, stratA, Verbosity=>2);
+time mikeSplit(I, Strategy=>{Minprimes}, Verbosity=>2);
+time mikeIdeal(I, stratA, Verbosity=>2);
+----
+I = value ETable#14#1
+    
+gbTrace=1
+time gens gb(I, Algorithm=>LinearAlgebra); -- this gives codim 7, i.e. I is a CI
+
+gens ring I
+for x in reverse gens ring I do (
+    I1 := sub(I, x=>0);
+    g := gens gb(I1, Algorithm=>LinearAlgebra);
+    lt := ideal leadTerm g;
+    if codim lt < 7 then (<< "####element " << x << " is a zero-divisor" << endl)
+    else (<< "#### " << x << " is ok" << endl;);
+    )
+
+J = sub(I, {b_2=>1})
+J1 = time mikeSplit(J, Strategy=>(Linear,infinity), Verbosity=>2);
+J1 = (first J1).Ideal
+J1 = sub(J1, c_12=>1)
+
+Ja = J1 + ideal(b_4*b_5-1)
+gens gb Ja;
+independentSets J1
+support first oo
+makeFiberRings(oo, R)
+sub(J1, last oo)
+see J1  -- 3 gens, codim3
+diff(c_5,J1_0) == 1 - b_4*b_5
+g1 = diff(c_5, J1_1) * J1_0 - (1-b_4*b_5) * J1_1
+g2 = diff(c_5, J1_2) * J1_0 - (1-b_4*b_5) * J1_2
+
+J2 = ideal(g1,g2)
+codim J2
+independentSets J2
+-- time minprimes J2; -- doesn't seem to work well
+
+M = contract(transpose matrix{{c_1..c_12}}, gens I)
+submatrix(M, {0,1,2,3,4,7,8}, )
+det oo
+
+use ring R
+M1 = contract(transpose matrix{{b_1..b_10}}, gens I)
+gbTrace=1
+detC = minors(7,M1);
+M2 = contract(transpose matrix{{c_1..c_12}}, gens I)
+
+--------------------------------
+----
+I = value ETable#10#1
+time mikeSplit(I, Strategy=>IndependentSet, Verbosity=>2);
+I = ideal gens gb I;
+-- b_(3,3) is a nzd
+I1 = eliminate({a_(1,3)}, I);
+time mikeSplit(I, Strategy=>strat1, Verbosity=>2);
+#oo
+
+time mikeSplit(I, Strategy=>Birational, Verbosity=>2);

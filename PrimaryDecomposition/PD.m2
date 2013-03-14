@@ -21,6 +21,9 @@ export {
     fromAmbientField,  -- make as a string so that we dont have to export?
     -- Main functions
     minprimes,
+    minprimesWithStrategy,
+    splitIdeal,
+    splitIdeals,
     AnnotatedIdeal,
     Linears,
     NonzeroDivisors,
@@ -28,10 +31,9 @@ export {
     FiberInfo,
     LexGBOverBase,
     nzds,
-    splitIdeal,
-    newSplitIdeal,
     Birational,  -- Strategy option for splitIdeal.  Exported now for simplicity
     IndependentSet,
+    SplitTower,
     LexGBSplit,
     Factorization,
     DecomposeMonomials,
@@ -557,11 +559,11 @@ minprimes Ideal := opts -> (I) -> (
     )
     else
     (
-        C = splitIdeal(I,
+        C = minprimesWithStrategy(I,
                        Strategy=>opts#Strategy,
                        "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize",
                        Verbosity=>opts#Verbosity);
-        (C,backToOriginalRing)
+        C / backToOriginalRing
     )
     )
 

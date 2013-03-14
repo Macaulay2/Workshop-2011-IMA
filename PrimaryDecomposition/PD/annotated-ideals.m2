@@ -17,6 +17,7 @@ AnnotatedIdeal = new Type of MutableHashTable
 --  A.Factorization
 --  A.Squarefree
 --  A.IndependentSet
+--  A.SplitTower  -- last resort!
 --  A.DecomposeMonomials
 --  A.Trim
 --
@@ -198,6 +199,8 @@ splitIdeal = method(Options => {Strategy=>null,
                          -- and keep track of annotated information
   --  IndependentSet     -- Find an independent set (annotate this), find a flattener,
                          -- and split using flattener
+  --  SplitTower         -- For an ideal which has LexGBSplit set to true, this splits the
+                         -- ideal into prime (annotated) ideals
   --  Factorization -
   --  CharacteristicSets -
 
@@ -361,6 +364,40 @@ splitFunction#IndependentSet = (I,opts) -> (
     )
 )
 
+splitFunction#SplitTower = (I,opts) -> (
+    -- what do we need to stash in the answer from independentSets?
+    -- does this really belong in the annotated ideal framework?
+    -- create two annotated ideals:
+    if isPrime I === "YES" then return {I};
+    if I.?SplitTower then return {I};
+    if not I.?IndependentSet or not I.?LexGBSplit then {I};
+    -- Finally we can try to split this ideal into primes
+    L := I.LexGBOverBase;  -- L is the lex GB over the fraction field base
+    -- ADD CODE HERE
+    facsL := factorTower(L, Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true);
+    -- facsL is currently a list of lists:
+    --   each list is of the form {exponent, poly}.  Here, we need to remove these exponents.
+    if opts.Verbosity >= 4 then (
+         << "SplitTower: Input: " << L << endl;
+         << "           Output: " << netList facsL << endl;
+         );
+    didSplit := #facsL > 1 or any(facsL#0, s -> s#0 > 1);
+    if not didSplit then (
+         I.SplitTower = true;
+         I.isPrime = "YES";
+         {I}
+         )
+    else (
+         for fac in facsL list (
+              newI := new AnnotatedIdeal from I;
+              newI.LexGBOverBase = fac/last;
+              newI.SplitTower = true;
+              newI.isPrime = "YES";
+              newI
+              )
+         )
+    )
+
 splitFunction#Minprimes = (I,opts) -> (
    if isPrime I === "YES" then return {I};
    minPrimesList := minprimes I.Ideal; --get options to work here 
@@ -402,66 +439,6 @@ isStrategyDone = method()
 isStrategyDone (List,Symbol) := (L,strat) ->
   all(L, I -> I#?strat or (I.?isPrime and I.isPrime === "YES"))
 
-splitUntil = method(Options => options splitIdeal)
-
-splitUntil (Ideal,Symbol,ZZ) := 
-splitUntil (Ideal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
-   splitUntil(annotatedIdeal(I,{},{},{}), strat,n,opts)
-
-splitUntil (AnnotatedIdeal,Symbol,ZZ) := 
-splitUntil (AnnotatedIdeal,Symbol,InfiniteNumber) := opts -> (I,strat,n) -> 
-   splitUntil({I},strat,n,opts)
-
-splitUntil (List,Symbol,ZZ) := 
-splitUntil (List,Symbol,InfiniteNumber) := opts -> (L,strat,n) -> (
-   i := 0;
-   primeList := {};
-   loopList := L;
-   while i < n and not isStrategyDone(loopList,strat) do (
-      if opts.Verbosity >= 2 then (
-          << "  Strategy: " << pad(toString strat,18) << flush;
-          );
-      if opts.Verbosity >= 3 then (
-          << endl;
-          loopList = loopList / (x -> (
-                  tim := timing splitFunction#strat(x,opts);
-                  << "    time: " << tim#0 << endl;
-                  tim#1
-              ));
-          )
-      else (
-          tim := timing(loopList = loopList / (x -> splitFunction#strat(x,opts)));
-          if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
-          );
-      loopList = loopList // flatten / flagIsPrime;
-      --loopList = loopList / (x -> splitFunction#strat(x,opts)) // flatten / flagIsPrime;
-      if opts.Verbosity >= 2 then (
-          knownPrimes := #select(loopList, I -> isPrime I === "YES");
-          notknownPrimes := #loopList - knownPrimes;
-          << " #primes = " << knownPrimes << " #other = " << notknownPrimes << endl;
-      );
-      i = i + 1;
-   );
-   loopList
-)
-
-splitIdeal Ideal := opts -> I -> splitIdeal({annotatedIdeal(I,{},{},{})}, opts)
-splitIdeal AnnotatedIdeal := opts -> I -> splitIdeal({I},opts)
-splitIdeal List := opts -> L -> (
-    strat := opts.Strategy;
-    if not instance (strat,List) then strat = {strat};
-    stratPairs := for s in strat list (
-       if not instance(s,Sequence) then s = (s,infinity);
-       if not member(first s,{Linear,Birational,Factorization,IndependentSet,Minprimes,DecomposeMonomials}) then
-          error ("Unknown strategy " | toString s | " given.");
-       s
-    );
-    loopList := L;
-    for s in stratPairs do (
-       loopList = splitUntil(loopList,s#0,s#1,opts);
-    );
-    loopList
-)
 -------------------------------------------------------------------------
 --- Begin new nested strategy code
 
@@ -472,10 +449,10 @@ splitIdeal List := opts -> L -> (
 --  3. list of strategies
 -- If no #times is given (e.g. in (1) or (3), then 1 is assumed)
 
--- each of the mikeSplit routines:
+-- each of the splitIdeals routines:
 --  takes a list of annotated ideals, and returns a similar list
 --  
-mikeSplit = method(Options => {Strategy=>null,
+splitIdeals = method(Options => {Strategy=>null,
                                 Verbosity=>0,
                                 "SquarefreeFactorSize" => 1})
 
@@ -499,7 +476,7 @@ separatePrime = (L) -> (
     (if H#?true then H#true else {}, if H#?false then H#false else {})
     )
 
-mikeSplit(List, Symbol) := opts -> (L, strat) -> (
+splitIdeals(List, Symbol) := opts -> (L, strat) -> (
     -- L is a list of annotated ideals
     -- process each using strategy 'strat'.
     -- return (L1, L2), where L1 consists of the ideals
@@ -511,6 +488,7 @@ mikeSplit(List, Symbol) := opts -> (L, strat) -> (
             Birational,
             Factorization,
             IndependentSet,
+            SplitTower,
             Minprimes,
             DecomposeMonomials,
             Trim
@@ -531,12 +509,12 @@ mikeSplit(List, Symbol) := opts -> (L, strat) -> (
         ans
         )
     )
-mikeSplit(List, Sequence) := opts -> (L, strat) -> (
+splitIdeals(List, Sequence) := opts -> (L, strat) -> (
     (strategy, n) := strat;
     strategies := toList strategySet strat;
     (L1,L2) := separateDone(L, strategies);
     while n > 0 and #L2 != 0 do (
-        M := mikeSplit(L2, strategy, opts);
+        M := splitIdeals(L2, strategy, opts);
         (M1,M2) := separateDone(M, strategies);
         L1 = join(L1, M1);
         L2 = M2;
@@ -544,28 +522,28 @@ mikeSplit(List, Sequence) := opts -> (L, strat) -> (
         );
     join(L1,L2)
     )
-mikeSplit(List, List) := opts -> (L, strat) -> (
+splitIdeals(List, List) := opts -> (L, strat) -> (
     strategies := toList strategySet strat;
     (L1,L2) := separateDone(L, strategies);
     for s from 0 to #strat-1 do (
-         L2 = mikeSplit(L2, strat#s, opts);
+         L2 = splitIdeals(L2, strat#s, opts);
          (M1,M2) := separateDone(L2, strategies);
          L1 = join(L1, M1);
          L2 = M2;
          );
     join(L1,L2)
     )
-mikeSplit(Ideal) := opts -> (I) -> (
-    mikeSplit({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts)
+splitIdeal(Ideal) := opts -> (I) -> (
+    splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts)
     )
-mikeIdeal = method(Options => options mikeSplit)
-mikeIdeal(Ideal) := opts -> (I) -> (
-    M := mikeSplit({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);
+minprimesWithStrategy = method(Options => options splitIdeals)
+minprimesWithStrategy(Ideal) := opts -> (I) -> (
+    M := splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);
     (M1,M2) := separatePrime(M);
     M = join(M1,M2);
     if #M2 > 0 then (
          ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
-         error "answer not complete";
+         --error "answer not complete";
          );
     M/ideal//selectMinimalIdeals
     )
@@ -577,22 +555,6 @@ mikeIdeal(Ideal) := opts -> (I) -> (
 end
 
 restart
-g = (n,opts) -> (n >= 15,n+1)
-gComp = composeUntil(g,20)
-gComp(0,{})
-
-restart
 debug needsPackage "PD"
-  R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
-  I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
-time  minprimesViaBirationalSplit I1;
-time minprimes I1;
-time decompose I1;
-C = time   birationalSplit I1
-D =  C/annotatedIdeal
-D/isPrime
-D/ideal
-minprimes D_0
-(z1,z2) = equidimSplitOneStep I1
-z1
-z2
+R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
+I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);

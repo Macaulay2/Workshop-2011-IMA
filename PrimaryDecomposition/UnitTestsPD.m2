@@ -355,6 +355,7 @@ TEST ///
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
 
+{*
    strat1 = ({(Linear,2),(Factorization,infinity)}, 3)
    strat2 = {strat1, (Birational, infinity), strat1}
 
@@ -392,6 +393,7 @@ TEST ///
    time mikeIdeal(I, Strategy => {
            ({Linear, DecomposeMonomials, (Factorization,10)}, 2)},
            Verbosity=>2);
+*}
 ///
 -------------------------------------
 
@@ -994,8 +996,7 @@ TOODAMNSLOW ///
    --checkMinimalPrimes(I, C, "Answer" => decompose) -- takes too long to use as a test
    assert false -- need to put some actual tests in here
    
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Birational});  -- .3 sec
-  time selectMinimalIdeals (C/ideal);
+  C = time minprimes(I,Strategy=>{Birational});
   #oo
 ///
 
@@ -1026,10 +1027,8 @@ TOODAMNSLOW ///
   time C = minprimes I -- STILL SLOW
   assert false
 
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes},Verbosity=>2);    -- 7 secs on FM machine
-  time D = C/ideal;
-  time D = selectMinimalIdeals D;
-  checkMinimalPrimes(I,D) 
+  C = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes},Verbosity=>2);    -- 7 secs on FM machine
+  checkMinimalPrimes(I,C) 
 ///
 
 BENCHMARK ///
@@ -1078,7 +1077,7 @@ BENCHMARK ///
   time C1 = decompose I -- .12 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is much faster on this one
 
-  (C,backToOriginalRing) = time minprimes(ideal gens gb I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes});  
+  C = time minprimes(ideal gens gb I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,Minprimes});  
 ///
 
 BENCHMARK  ///
@@ -1152,10 +1151,7 @@ TOODAMNSLOW ///
   time C = minprimes I
   checkMinimalPrimes(I, C, "Answer" => decompose) -- DECOMPOSE TOO SLOW HERE??  but it does work eventually
 
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
-  time D = C/ideal;
-  time selectMinimalIdeals D;
-
+  C = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
 ///
 
 
@@ -1229,9 +1225,7 @@ TOODAMNSLOW ///
 
 {*
     BUGGY!! This goes into an infinite loop 22 Jan 2013
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
-  time D = C/ideal;
-  time selectMinimalIdeals D;
+  C = time minprimes(I,Strategy=>{Linear,Birational,Factorization,DecomposeMonomials,Linear,Factorization});    -- 1.25 sec
 *}
 ///
 
@@ -1346,8 +1340,7 @@ TOODAMNSLOW ///
   time C = minprimes I -- takes a while  NEEDS WORK TOO DAMN SLOW
   -- this works with the new splitIdeal code using the Birational split.
   {*
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Birational});
-  time (C / ideal)
+  C = time minprimes(I,Strategy=>{Linear,Birational});
   *}
   time decompose I -- .74 sec
   checkMinimalPrimes(I, C, "Answer" => decompose) 
@@ -1409,9 +1402,7 @@ TEST ///
        2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
   time minprimes J
 
-
-  (C,backToOriginalRing) = time minprimes(J,Strategy=>{Linear,Birational,Factorization,Linear,Birational,Minprimes});
-  time (C / ideal)
+  C = time minprimes(J,Strategy=>{Linear,Birational,Factorization,Linear,Birational,Minprimes});
 ///
 
 TEST ///
@@ -1438,8 +1429,8 @@ needsPackage "PD"
   kk = GF(9, Variable=>a)
   R = kk[x,y,z,w]
   I = ideal(x^2-x-a)
-  minprimes I  
-  factor I_0
+  --minprimes I -- NOT FUNCTIONAL IN 1.5??  But it is in 1.5.0.1...
+  --factor I_0
 ///
 
 -- factorizationSplit test
@@ -1489,9 +1480,9 @@ TOODAMNSLOW ///
   time p1 = factorizationSplit(I1, "UseColon"=>false)
   -- TODO: Play with factorization depth in this example?
 
-  (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,Linear,Factorization,Linear,Factorization});
+  C = time minprimes(I1,Strategy=>{Linear,Factorization,Linear,Factorization,Linear,Factorization});
 
-  (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials}, Verbosity=>1);
+  C = time minprimes(I1,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials}, Verbosity=>1);
     -- 190 sec    
   time D = for c in C list (t := timing ideal c; if t#0 > 5. then << "ideal: " << c << endl; t#1);
   time Dmin = selectMinimalIdeals D;
@@ -1503,31 +1494,6 @@ TOODAMNSLOW ///
   D = C / (c -> (if c#1 % 50 == 0 then << "Computing Ideal number " << c#1 << endl; ideal c#0));
     
   time Dmin = selectMinimalIdeals D;
-  
-  -- Mike playing:
-    C = splitUntil(I1, Linear, 1)
-    time C1 = splitUntil(C, Factorization, infinity, Verbosity=>2);
-    time C2 = splitUntil(C1, DecomposeMonomials, infinity, Verbosity=>1);
-    time C3 = splitUntil(C2, Linear, infinity, Verbosity=>2);
-    D = select(C3, c -> (not c.?isPrime or c.isPrime === "UNKNOWN") and numgens c.Ideal > 1);
-    #D
-    tally for d in D list numgens d.Ideal
-    select(D, d -> numgens d.Ideal >= 14)
-    (C,backToOriginalRing) = time minprimes(I1,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials,Linear,Factorization,DecomposeMonomials});
-    
-    time C1 = splitUntil(C, Factorization, 20, Verbosity=>1);
-    time C2 = splitUntil(C1, Linear, 10, Verbosity=>2);
-
-    time splitUntil(C1_-1, Linear, 1, Verbosity=>0)
-    time C3 = C2/squarefreeGenerators;
-    time C4 = splitUntil(C3, DecomposeMonomials, 10, Verbosity=>1);    
-    
-    for i from 0 to #C4-1 do (
-        << "doing " << i << endl;
-        time ideal C4_i
-        );
-    
-
 ///
 
 TOODAMNSLOW ///
@@ -1539,14 +1505,11 @@ TOODAMNSLOW ///
   R = QQ[x3283, x3096, x2909, x1952, x319, x1683, x2321, x2921, x2855, x1370, x622, x331, x1904, x2933, x2867, x1382, x2273, x634, x343, x1916, x3319, x1647, x1394, x2285, x646, x421, x1928, x3331, x3188, x1659, x2297, x295, x433, x3271, x1940, x2309, x1671, x2254, x307];
     
   I = ideal(x1940*x1671-x1671^2,-x622*x343+x1671,-x1940*x2254+x2309,x2867*x2309*x1671-x2309^2,x3331*x3271*x2254-x3271^2,-x2855*x3331+x3271,x634*x433-x433^2,-x331*x295+x433,-x1928*x2254+x2297,x2867*x1659*x2297-x2297^2,x1928*x1659-x1659 ^2,-x1647*x295+x1659,-x634*x343+x1659,x3096*x3188*x2254-x3188^2,-x3096*x2855+x3188,x622*x421-x421^2,-x319*x295+x421,-x1916*x2254+x2285,x2855*x1370*x2285-x2285^2,x1904*x1394-x1394^2,-x622*x307+x1394,-x343*x646+x1647,-x1370^2+ x1370*x1916,-x646*x295+x634,-x2855*x622+x634,-x1904*x2254+x2273,x2855*x2273*x1394-x2273^2,-x646*x307+x1382,-x319*x2855+x331,-x634*x307+x1370,-x1382*x295+x1370,x2921*x2855*x2933-x2921^2,-x2909*x2855+x2921,-x1952*x2254+x2321,x1683 *x2321*x2867-x2321^2,x1952*x1683-x1683^2,-x343*x295+x1683,-x3331*x2254+x3096,x3283*x3319*x2254-x3283^2,-x2867*x3319+x3283)
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Factorization});
+  C = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Factorization});
 
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Factorization});
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization});
-  time D = (C / ideal);
-  time Dmin = selectMinimalIdeals D;
-  
-  (C,backToOriginalRing) = time minprimes(I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization});  
+  C = time minprimes(I,Strategy=>{Linear,Factorization,Linear,Factorization});
+  C = time minprimes(I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization});
+  C = time minprimes(I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization});  
 ///
 
 end

@@ -86,43 +86,50 @@ viewCSV List := (L) -> (
     )
 
 strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
-stratA = (Strategy=>{strat1,(Birational,infinity), (Minprimes, 1)});
---stratA = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), (Minprimes, 1)});
-stratB = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Minprimes, 1)});
-stratC = Strategy => {
-    ({(
-        {Linear, DecomposeMonomials, (Factorization, 3)}, 
-        infinity
-    ), (Birational, infinity)}, infinity),
+strat2 = ({strat1, (Birational, infinity)}, infinity)
+stratA = {strat1,(Birational,infinity), (Minprimes, 1)}
+stratB = {strat1,(Minprimes, 1)}
+stratC = {
+    ({strat1, (Birational, infinity)}, infinity),
     Minprimes
     }
 
-fcnA = (I) -> mikeIdeal(I, stratA) 
-fcnB = (I) -> mikeIdeal(I, stratB) 
-fcnC = (I) -> mikeIdeal(I, stratC) 
+fcnA = (I) -> minprimesWithStrategy(I, Strategy=>stratA) 
+fcnB = (I) -> minprimesWithStrategy(I, Strategy=>stratB) 
+fcnC = (I) -> minprimesWithStrategy(I, Strategy=>stratC) 
+
+-- strategies for testing only:
+stratD = {strat1, (Birational,infinity), (IndependentSet, infinity), SplitTower}
+stratD = {strat2, (IndependentSet, infinity), SplitTower}
+stratD = {strat2, Minprimes}
 end
 
 restart
 load "PD/test-timing.m2"
 ETable = getExampleFile("PD/minprimes-examples.m2")
-fcn = (I) -> minprimes I
-stratA = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), (Minprimes, 1)});
-stratB = (Strategy=>{({Linear,DecomposeMonomials,(Factorization,3)},infinity),(Birational,infinity), IndependentSet,(Minprimes, 1)});
-fcnA = (I) -> mikeIdeal(I, stratA) 
-fcnB = (I) -> mikeIdeal(I, stratB) 
-runExamples(ETable, null, "foo-minprimes", "--minprimes", fcn)
+runExamples(ETable, null, "foo-minprimes", "--minprimes", minprimes)
 runExamples(ETable, null, "foo-stratA", "--stratA", fcnA)
 runExamples(ETable, null, "foo-stratB", "--stratB", fcnB)
+--runExamples(ETable, null, "foo-stratC", "--stratC", fcnC)
 runExamples(ETable, null, "foo-decompose", "--decompose", decompose)
 combineResults{"foo-decompose", "foo-minprimes", "foo-stratA", "foo-stratB"}
 view oo
 view transpose ooo
 viewCSV oo
 
+fcnD = (I) -> minprimesWithStrategy(I, Strategy=>stratD)
+time runExamples(ETable, null, "foo-stratD-DGP", "--testing only", fcnD)
+runExamples(ETable, splice{10..36}, "foo-stratD-DGP", "--testing only", fcnD)
+runExamples(ETable, splice{16..36}, "foo-stratD-DGP", "--testing only", fcnD)
+-- 9, 12, 13, 15
+
 restart
 load "PD/test-timing.m2"
 ETable = getExampleFile("PD/DGP.m2");
 kk = ZZ/32003
+I = value ETable#9#1
+splitIdeal(I, Strategy=>stratD, Verbosity=>0);
+
 
 runExamples(ETable, null, "DGP-decompose", "--decompose", decompose)
 runExamples(ETable, splice{14..36}, "DGP-decompose", "--decompose", decompose)

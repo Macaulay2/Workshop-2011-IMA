@@ -49,8 +49,9 @@ gbRationalReconstruction (Ideal,List) := (L, paramList) -> (
        if retVal === null then break;
        first retVal
     );
-    if #rrLoopG == #loopG then (	 << "(totalLoopCount,loopCount,paramList) : " << (totalLoops,loopCount,#paramList) << endl;
-	 return (rrLoopG,totalLoops);
+    if #rrLoopG == #loopG then (
+         --<< "(totalLoopCount,loopCount,paramList) : " << (totalLoops,loopCount,#paramList) << endl;
+	     return (rrLoopG,totalLoops);
     )
   );
 )  
@@ -199,7 +200,7 @@ factorIrredTowerWorker List := opts -> polyList -> (
     otherVars = otherVars/numerator;
     -- as of now, we use quickGB if the base field is not a fraction field.
     -- use modPFracGB here too perhaps?
-    G := time if numgens coefficientRing S == 0 then
+    G := if numgens coefficientRing S == 0 then
                  (quickEliminate(L1,otherVars))_0
               else
                  (eliminate(L1, otherVars))_0;
@@ -226,7 +227,7 @@ factorIrredTowerWorker List := opts -> polyList -> (
                       j = j + 1;
                       G = (fac#1) % L;
                       if G == 0 then error "Internal error.  Tried to add in zero element to ideal in factorTower.";
-                      C := time ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
+                      C := ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
                       if C == 1 then continue;
                       newFacs = newFacs * (first toList (set C_* - set IF_*))^(fac#0);
                       -- now we need to put the power of the new irreducible in, if it exists (and if minprimes is not set)

@@ -388,7 +388,9 @@ splitFunction#SplitTower = (I,opts) -> (
     else (
          for fac in facsL list (
               newI := new AnnotatedIdeal from I;
-              newI.LexGBOverBase = fac/last;
+              --temp := fac / last;
+              --if set temp =!= set flatten entries gens gb ideal (fac/last) then error "err";
+              newI.LexGBOverBase = flatten entries gens gb ideal (fac/last);
               newI.SplitTower = true;
               newI.isPrime = "YES";
               newI

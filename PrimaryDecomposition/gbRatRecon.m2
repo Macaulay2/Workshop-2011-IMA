@@ -250,21 +250,6 @@ factorIrredTowerWorker List := opts -> polyList -> (
 
 end
 
---- making sure the cartesian product stuff is working
-restart
-debug needsPackage "PD"
-needsPackage "ModularGCD"
-X = toList (0..1);
-X = X ** X
-time cartProdList {X,X};
-#oo
-time cartProdList {X,X,X};
-#oo
-time cartProdList {X,X,X,X};
-#oo
-time cartProdList {X,X,X,X,X};
-#oo
-
 --- a very baby example for factorTower
 restart
 debug needsPackage "PD"

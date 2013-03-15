@@ -858,11 +858,13 @@ SIMPLETEST ///
 	 c*d*e+b*c*d+a*d*e+a*b*e+a*b*c,
 	 b*c*d*e+a*c*d*e+a*b*d*e+a*b*c*e+a*b*c*d,
 	 a*b*c*d*e-h^5)
-   time C = minprimes(I, Strategy=>null, Verbosity=>2)
-   --time C = splitIdeal(I, Strategy=> {(options minprimes).Strategy, stratEnd}, Verbosity=>2);
-   checkMinimalPrimes(I, C, "Answer" => decompose)
+   time C = minprimes(I, Verbosity=>2)
+   --time C = minprimes(I, Strategy=>null, Verbosity=>2)
    
+   --time C = splitIdeal(I, Strategy=> {defaultStrat,stratEnd}, Verbosity=>2);
    --select(C, c -> (gens I) % (ideal c) != 0)
+   
+   checkMinimalPrimes(I, C, "Answer" => decompose)
    
 ///
 

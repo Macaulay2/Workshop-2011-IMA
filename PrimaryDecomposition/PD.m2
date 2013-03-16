@@ -47,7 +47,7 @@ strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
 defaultStrat = ({strat1, (Birational,infinity)},infinity)
 minprimes = method(Options => {
         Verbosity => 0,
-        Strategy => null, -- defaultStrat,  -- if null, calls older minprimesWorker code
+        Strategy => defaultStrat,  -- if null, calls older minprimesWorker code
         "SquarefreeFactorSize" => 1,
         Ideal => null,  -- used in inductive setting
         "RadicalSoFar" => null, -- used in inductive setting
@@ -535,7 +535,6 @@ minprimes Ideal := opts -> (I) -> (
     if I == 0 then return {if A === R then I else ideal map(A^1,A^0,0)};
     -- note: at this point, R is the ring of I, and R is a polynomial ring over a prime field
     phi := identity;
-    
     if opts#Strategy === null then 
     (
        -- pre-processing of ideals:
@@ -587,6 +586,7 @@ minprimesWorker Ideal := opts -> (I) -> (
         --if char ring I != 0 then comps = join(comps, (apply(D, j -> splitTower(j,opts))) // flatten)
         --  else comps = join(comps, (apply(D, j -> factorTower(j,Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true))) // flatten);
         comps = join(comps, (apply(D, j -> factorTower(j,Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true))) // flatten);
+        --comps = join(comps, (apply(D, j -> factorTower2(j,Verbosity=>opts.Verbosity))) // flatten);
         J = I2;
         loopCount = loopCount + 1;
         );

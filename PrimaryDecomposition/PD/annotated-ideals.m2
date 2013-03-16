@@ -371,8 +371,8 @@ splitFunction#SplitTower = (I,opts) -> (
     if not I.?IndependentSet or not I.?LexGBSplit then return {I};
     -- Finally we can try to split this ideal into primes
     L := I.LexGBOverBase;  -- L is the lex GB over the fraction field base
-    -- ADD CODE HERE
-    facsL := factorTower(L, Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true);
+    --facsL := factorTower(L, Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true);
+    facsL := factorTower2(L, Verbosity=>opts.Verbosity);
     -- facsL is currently a list of lists:
     --   each list is of the form {exponent, poly}.  Here, we need to remove these exponents.
     if opts.Verbosity >= 4 then (

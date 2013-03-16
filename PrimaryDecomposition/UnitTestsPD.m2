@@ -422,7 +422,7 @@ SIMPLETEST ///
 ///
 
 SIMPLETEST ///
-  needsPackage "PD"
+  debug needsPackage "PD"
   R = ZZ/32003[a,b,c,d,h]
   I = ideal(a+b+c+d,a*b+b*c+c*d+d*a,a*b*c+b*c*d+c*d*a+d*a*b,a*b*c*d-h^4)
   C = minprimes I
@@ -1189,6 +1189,7 @@ TEST ///
   2cd + 2be + 2af + g2 + f,
   d2 + 2ce + 2bf + 2ag + g"
   time C = minprimes I
+  time C = minprimes(I,Strategy=>null)  -- This is the difference!
   --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO long here.  TODO: need to test this one
 ///
 

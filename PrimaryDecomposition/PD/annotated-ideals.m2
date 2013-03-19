@@ -534,6 +534,10 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
          ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
          error "answer not complete";
          );
+    if opts#Verbosity>=2 then (
+       << "Converting annotated ideals to ideals and selecting minimal primes." << endl;
+    );
+    error "err";
     answer := M/ideal//selectMinimalIdeals;
     if opts.Verbosity >= 2 then (
          if #answer < #M then (

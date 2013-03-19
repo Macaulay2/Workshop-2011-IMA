@@ -45,6 +45,7 @@ export {
 
 strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
 defaultStrat = ({strat1, (Birational,infinity)},infinity)
+noBirationalStrat = strat1
 minprimes = method(Options => {
         Verbosity => 0,
         Strategy => defaultStrat,  -- if null, calls older minprimesWorker code

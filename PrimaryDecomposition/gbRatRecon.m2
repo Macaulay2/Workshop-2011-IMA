@@ -76,7 +76,6 @@ modPFracGB (Ideal,List) := opts -> (I, baseVars) -> (
   -- Input: An ideal I over a polynomial ring defined over QQ, and a list baseVars of variables
   --        which will be inverted
   -- Output: A gb of I over the polynomial ring over the fraction field with baseVars inverted
-
   S := ring I;
   SZ := ZZ(monoid S);
   intCont := if char ring I == 0 then integerContent I else {};
@@ -267,6 +266,7 @@ factorTower2 List := opts -> polyList -> (
                    apply(newFacs, newFac -> facList | {newFac})
                 );
     );
+    -- put the linear generators back in
     retVal / (C -> apply(linears, l -> {1,l}) | C)
 )
 
@@ -278,7 +278,8 @@ factorOverTower = method(Options => options factorTower2)
 factorOverTower (List,RingElement) := opts -> (tower,f) -> (
     -- Input : Irreducible tower over a ring of the form k(xs)[ys]
     --           (which was created from makeFiberRings) and another ring element.
-    -- Output : The factors of f modulo the irreducible tower.
+    -- Output : The factors of f modulo the irreducible tower in the form
+    --          {{power,irred},...}
     
     --- Checks first on the support of f and tower...
     vecdim := tower/(p -> (first degree leadTerm p))//product;  -- the vector space dimension of the extension of k(basevars) that the irred ideal gives
@@ -293,7 +294,7 @@ factorOverTower (List,RingElement) := opts -> (tower,f) -> (
     -- change coordinates
     IF1 := sub(IF, lastVar => lastVar + F);
     L1 := ideal(IF1_*/numerator);
-    lastVar = numerator lastVar;  -- put lastVar in the correct ring
+    lastVar = numerator lastVar;      -- put lastVar in the correct ring
     otherVars = otherVars/numerator;  -- as well as the other variables
     -- as of now, we use quickGB if the base field is not a fraction field.
     -- use modPFracGB here too perhaps?
@@ -314,7 +315,7 @@ factorOverTower (List,RingElement) := opts -> (tower,f) -> (
     if (#facs1 == 1 and facs1#0#0 == 1) then return {(1,f)};
     j := 0;
     -- Note that the second condition forces the 'last factor' trick to not occur
-    -- in case the polynomial is, for example, a pure power of an irreducible (modulo the earlier polynomials, of course)
+    -- in case the polynomial is, for example, a pure power of an irreducible mod the tower
     retVal := while (j <= #facs1 - 2 or (j == #facs1-1 and facs1#j#0 > 1)) list (
                  fac := facs1#j;
                  j = j + 1;
@@ -325,8 +326,6 @@ factorOverTower (List,RingElement) := opts -> (tower,f) -> (
                  if C == 1 then continue;
                  newFactor := {fac#0, first toList (set C_* - set IF_*)};
                  firstFacs = firstFacs * (newFactor#1)^(newFactor#0);
-                 -- now we need to put the power of the new irreducible in, if it exists (and if minprimes is not set)
-                 -- TODO: Prove that this power is correct?
                  newFactor
     );
     -- if we made it all the way through facs1, then we are done.  Else, we may use

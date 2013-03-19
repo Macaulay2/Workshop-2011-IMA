@@ -869,8 +869,7 @@ SIMPLETEST ///
 ///
 
 TOODAMNSLOW ///
-  -- UNKNOWN - Runs for a very long time on built in version, as well as the 'decompose' version.
-  -- The GeneralPosition one does indeed run a lot faster though
+  --- Now quite fast, no longer TOODAMNSLOW
   needsPackage "PD"
   R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l,MonomialOrder=>Lex]
     R = ZZ/32003[a,b,c,d,e,f,g,h,j,k,l]
@@ -881,13 +880,11 @@ TOODAMNSLOW ///
            -2dfj - 2dek + ab,
            -2dgj - 2del + ac"
    time C = minprimes I
+   -- this ideal is radical
    assert(intersect C == I)
    --checkMinimalPrimes(I, C, "CheckPrimality" => true) -- takes WAY too long to use as a test
    --checkMinimalPrimes(I, C, "Answer" => decompose) -- takes too long to use as a test
    assert false -- need to put some actual tests in here
-   
-  C = time minprimes(I,Strategy=>{Birational});
-  #oo
 ///
 
 SIMPLETEST ///
@@ -1175,7 +1172,7 @@ TEST ///
 ///
 
 TEST ///
-  needsPackage "PD"
+  debug needsPackage "PD"
   --from ExampleIdeals/DGP.m2
   kk = ZZ/101
   --amrheim2 (DGP)
@@ -1188,9 +1185,17 @@ TEST ///
   c2 + 2bd + 2ae + 2fg + e,
   2cd + 2be + 2af + g2 + f,
   d2 + 2ce + 2bf + 2ag + g"
-  time C = minprimes I
-  time C = minprimes(I,Strategy=>null)  -- This is the difference!
-  --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO long here.  TODO: need to test this one
+  time C = minprimes(I,Strategy=>noBirationalStrat, Verbosity=>2);
+  --time C = minprimes(I, Verbosity=>2)   -- the extra time is in the conversion
+                                          -- from annotated ideal to ideal caused by
+                                          -- the 'Linears' added in calls to Birational
+                                          -- Specifically, the GB computation once
+                                          -- we throw in the birational elements.
+  --time C = minprimes(I,Strategy=>null); -- Note this is the old minprimes call, same
+                                          -- time as NoBirationalStrat above.
+  checkMinimalPrimes(I,C)
+  --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO long here.
+  --TODO: need to get an answer for this one to check against
 ///
 
 TEST ///

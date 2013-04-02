@@ -93,7 +93,7 @@ ideal AnnotatedIdeal := (I) -> (
             S := (I.IndependentSet)#1;
             phi := S.cache#"StoR";
             phi contractToPolynomialRing ideal I.LexGBOverBase
-          )
+         )
           else
             I.Ideal;
     I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
@@ -522,8 +522,11 @@ splitIdeals(List, List) := opts -> (L, strat) -> (
 splitIdeal(Ideal) := opts -> (I) -> (
     splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts)
     )
+splitIdeal(AnnotatedIdeal) := opts -> (I) -> (
+    splitIdeals({I}, opts.Strategy, opts)
+    )
 
-stratEnd = ({IndependentSet,SplitTower},infinity)
+stratEnd = {(IndependentSet,infinity),SplitTower}
 
 minprimesWithStrategy = method(Options => options splitIdeals)
 minprimesWithStrategy(Ideal) := opts -> (I) -> (
@@ -537,7 +540,6 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
     if opts#Verbosity>=2 then (
        << "Converting annotated ideals to ideals and selecting minimal primes." << endl;
     );
-    error "err";
     answer := M/ideal//selectMinimalIdeals;
     if opts.Verbosity >= 2 then (
          if #answer < #M then (

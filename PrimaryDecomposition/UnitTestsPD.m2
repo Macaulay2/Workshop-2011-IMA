@@ -1186,7 +1186,8 @@ TEST ///
   2cd + 2be + 2af + g2 + f,
   d2 + 2ce + 2bf + 2ag + g"
   time C = minprimes(I,Strategy=>noBirationalStrat, Verbosity=>2);
-  --time C = minprimes(I, Verbosity=>2)   -- the extra time is in the conversion
+  --time C = splitIdeal(I,Strategy=>{defaultStrat,stratEnd}, Verbosity=>2);
+  --time C = minprimes(I, Verbosity=>2);   -- the extra time is in the conversion
                                           -- from annotated ideal to ideal caused by
                                           -- the 'Linears' added in calls to Birational
                                           -- Specifically, the GB computation once
@@ -1294,8 +1295,24 @@ TEST ///
        2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,
        2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
   time minprimes J
-
-  C = time minprimes(J,Strategy=>{Linear,Birational,Factorization,Linear,Birational,Minprimes});
+  {*
+  C = splitIdeal(J,Strategy=>{defaultStrat,(IndependentSet,infinity)}, Verbosity=>2)
+  C / isPrime
+  J2 = C#2
+  splitIdeal(J2,Strategy=>SplitTower, Verbosity=>2)
+  use ring (J2.LexGBOverBase)_0
+  use coefficientRing ring (J2.LexGBOverBase)_0
+  factorOverTower({(J2.LexGBOverBase)_0},g_1^2-3*g_4^2)
+  factorOverTower({(J2.LexGBOverBase)_0},r*(g_1^2-3*g_4^2)) -- r changed rings?
+  J2 = C#5
+  use ring (J2.LexGBOverBase)_0
+  use coefficientRing ring (J2.LexGBOverBase)_0
+  lexGBOverBase = J2.LexGBOverBase
+  factorOverTower({lexGBOverBase#0}, lexGBOverBase#1)
+  factorOverTower(drop(lexGBOverBase,-1), lexGBOverBase#2, Verbosity=>2)
+  splitIdeal(J2,Strategy=>SplitTower, Verbosity=>2)
+  *}
+  --C = time minprimes(J,Strategy=>{Linear,Birational,Factorization,Linear,Birational,Minprimes});
 ///
 
 TEST ///

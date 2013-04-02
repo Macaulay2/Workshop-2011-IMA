@@ -51,6 +51,7 @@ minprimes = method(Options => {
         Strategy => defaultStrat,  -- if null, calls older minprimesWorker code
         "SquarefreeFactorSize" => 1,
         Ideal => null,  -- used in inductive setting
+        "CodimensionLimit" => null, -- only find minimal primes of codim <= this bound
         "RadicalSoFar" => null, -- used in inductive setting
         "SimplifyIdeal" => true, -- TODO: Change to a more descriptive name
         "FactorizationSplit" => false, -- Perform the factorization split in preprocessing
@@ -562,6 +563,7 @@ minprimes Ideal := opts -> (I) -> (
     else
     (
         C = minprimesWithStrategy(I,
+                       "CodimensionLimit" => opts#"CodimensionLimit",
                        Strategy=>opts#Strategy,
                        "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize",
                        Verbosity=>opts#Verbosity);

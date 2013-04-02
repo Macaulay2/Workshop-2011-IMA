@@ -14,6 +14,14 @@ debug needsPackage "PD"
 -- (3) display several different timings next to each other
 -- (4) boldface the best?
 
+wallTime = Command (() -> value get ///!date +%s///)
+wallTiming = f -> (
+    a := wallTime(); 
+    r := f(); 
+    b := wallTime();  
+    << "wall time : " << b-a << " seconds" << endl;
+    r);
+
 runExamples = (ETable, Keys, filename, beginString, fcn) -> (
     K := if Keys === null then sort keys ETable else Keys;
     if not fileExists filename then (
@@ -21,7 +29,7 @@ runExamples = (ETable, Keys, filename, beginString, fcn) -> (
          F << beginString << endl;
          close F;
          );
-    for k in K do (
+    doAllExamples := () -> (for k in K do (
         -- run example, with timing
         -- append info to file
         I := value (ETable#k#1);  -- evaluates to an ideal, at least we expect that
@@ -32,7 +40,8 @@ runExamples = (ETable, Keys, filename, beginString, fcn) -> (
         F = openOutAppend filename;
         F << "\"" << ETable#k#0 << "\" => " << t#0 << endl;
         close F;
-        );
+        ));
+     wallTiming doAllExamples
     )
 
 readResults = method()
@@ -88,32 +97,27 @@ viewCSV List := (L) -> (
 strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
 strat2 = ({strat1, (Birational, infinity)}, infinity)
 stratEnd = ({IndependentSet,SplitTower},infinity)
-stratA = {strat1,(Birational,infinity), (Minprimes, 1)}
-stratB = {strat1,(Minprimes, 1)}
-stratC = {
-    ({strat1, (Birational, infinity)}, infinity),
-    Minprimes
+stratA = {strat1,(Birational,infinity)}
+stratB = {
+    ({strat1, (Birational, infinity)}, infinity)
     }
-
-fcnA = (I) -> minprimesWithStrategy(I, Strategy=>stratA) 
-fcnB = (I) -> minprimesWithStrategy(I, Strategy=>stratB) 
-fcnC = (I) -> minprimesWithStrategy(I, Strategy=>stratC) 
-
--- strategies for testing only:
-stratD = {strat1, (Birational,infinity), stratEnd}
---stratD = {strat2, stratEnd}
+stratC = strat1
+fcnA = (I) -> minprimes(I, Strategy=>stratA) 
+fcnB = (I) -> minprimes(I, Strategy=>stratB) 
+fcnC = (I) -> minprimes(I, Strategy=>strat1) 
 
 end
 
 restart
 load "PD/test-timing.m2"
 ETable = getExampleFile("PD/minprimes-examples.m2")
+
 runExamples(ETable, null, "foo-minprimes", "--minprimes", minprimes)
-runExamples(ETable, null, "foo-stratA", "--stratA", fcnA)
-runExamples(ETable, null, "foo-stratB", "--stratB", fcnB)
---runExamples(ETable, null, "foo-stratC", "--stratC", fcnC)
+runExamples(ETable, null, "foo-stratA", "-- " | toString stratA, fcnA)
+runExamples(ETable, null, "foo-stratB", "-- " | toString stratB, fcnB)
+runExamples(ETable, null, "foo-stratC", "-- " | toString stratC, fcnC)
 runExamples(ETable, null, "foo-decompose", "--decompose", decompose)
-combineResults{"foo-decompose", "foo-minprimes", "foo-stratA", "foo-stratB"}
+combineResults{"foo-decompose", "foo-minprimes", "foo-stratA", "foo-stratB", "foo-stratC"}
 view oo
 view transpose ooo
 viewCSV oo
@@ -130,7 +134,6 @@ ETable = getExampleFile("PD/DGP.m2");
 kk = ZZ/32003
 I = value ETable#9#1
 splitIdeal(I, Strategy=>stratD, Verbosity=>0);
-
 
 runExamples(ETable, null, "DGP-decompose", "--decompose", decompose)
 runExamples(ETable, splice{14..36}, "DGP-decompose", "--decompose", decompose)
@@ -165,29 +168,13 @@ runExamples(ETable, null, "primes2-stratA", "--stratA", fcnA)
 runExamples(ETable, null, "primes2-stratB", "--stratB", fcnB)
 runExamples(ETable, null, "primes2-stratC", "--stratC", fcnC)
 
-I = value ETable#1#1
-I = ideal gens gb(I, DegreeLimit=>8);
-time mikeSplit(I, stratA, Verbosity=>2)
-
-time mikeSplit(I, Strategy=>strat1, Verbosity=>2);
-time (M1,M2) = separatePrime(oo);
-#M1
-#M2
-time J1 = M1/ideal;
-J1/codim
-
-
+I = value ETable#3#1
+time minprimes(I, Verbosity=>2);
+oo/codim
+time splitIdeal(I, Strategy=>{defaultStrat, (IndependentSet,infinity), SplitTower}, Verbosity=>2);
+oo/codim
+numgens I
 ETable = getExampleFile("PD/bayes-examples.m2");
-I = value ETable#1#1
-
-time mikeSplit(I, stratA, Verbosity=>2);
-time mikeSplit(I, Strategy=>{Minprimes}, Verbosity=>2);
-time mikeIdeal(I, stratA, Verbosity=>2);
-----
-I = value ETable#14#1
-    
-gbTrace=1
-time gens gb(I, Algorithm=>LinearAlgebra); -- this gives codim 7, i.e. I is a CI
 
 gens ring I
 for x in reverse gens ring I do (

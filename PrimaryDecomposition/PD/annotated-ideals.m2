@@ -62,7 +62,41 @@ annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
 
 gb AnnotatedIdeal := opts -> (I) -> I.Ideal = gb(I.Ideal, opts)
 
-codim AnnotatedIdeal := options(codim,Ideal) >> opts -> (I) -> # I.Linears + codim(I.Ideal)
+getGB = method()
+getGB Ideal := (I) -> (
+     cached := keys I.generators.cache;
+     pos := select(1, cached, k -> instance(k, GroebnerBasisOptions));
+     if #pos === 0 then null
+     else
+       I.generators.cache#(first pos)
+     )
+
+codim AnnotatedIdeal := options(codim,Ideal) >> opts -> (I) -> (
+     if I.?LexGBOverBase then (
+         S := ring I.LexGBOverBase#0; -- should be of the form kk(indepvars)[fibervars]
+         # I.Linears + numgens S
+         )
+     else 
+         # I.Linears + codim(I.Ideal)
+     )
+
+codimLowerBound = method()
+codimLowerBound AnnotatedIdeal := (I) -> (
+     if I.?LexGBOverBase then (
+         S := ring I.LexGBOverBase#0; -- should be of the form kk(indepvars)[fibervars]
+         # I.Linears + numgens S
+         )
+     else (
+          GB := getGB I.Ideal;
+          if GB =!= null then (
+             # I.Linears + codim(monomialIdeal leadTerm GB)
+             )
+          else if numgens I.Ideal === 1 and I.Ideal_0 != 0 then
+             # I.Linears + 1
+          else
+             # I.Linears
+         )
+     )
 
 annotatedIdeal Ideal := (I) -> (
      -- input: ideal I in a polynomial ring R
@@ -184,8 +218,10 @@ nzds = method()
 nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
 ------------------------------------------------------------
 -- splitIdeal code
-splitIdeal = method(Options => {Strategy=>null,
+
+splitIdeal = method(Options => {Strategy=>defaultStrat,
                                 Verbosity=>0,
+                                "CodimensionLimit" => null,
                                 "SquarefreeFactorSize" => 1})
   -- possible Strategy values:
   --  Linear     -- Eliminates variables where a generator is of the form x - g
@@ -439,9 +475,7 @@ isStrategyDone (List,Symbol) := (L,strat) ->
 -- each of the splitIdeals routines:
 --  takes a list of annotated ideals, and returns a similar list
 --  
-splitIdeals = method(Options => {Strategy=>null,
-                                Verbosity=>0,
-                                "SquarefreeFactorSize" => 1})
+splitIdeals = method(Options => options splitIdeal)
 
 strategySet = strat -> (
     if instance(strat, Symbol) then set {strat}
@@ -486,11 +520,13 @@ splitIdeals(List, Symbol) := opts -> (L, strat) -> (
             );
         tim := timing splitFunction#strat(f, opts);
         ans := tim#1;
+        numOrig := #ans;
+        if opts#"CodimensionLimit" =!= null then 
+            ans = select(ans, i -> codimLowerBound i <= opts#"CodimensionLimit");
         if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
         if opts.Verbosity >= 2 then (
             knownPrimes := #select(ans, I -> isPrime I === "YES");
-            notknownPrimes := #ans - knownPrimes;
-            << " #primes = " << knownPrimes << " #other = " << notknownPrimes << endl;
+            << " #primes = " << knownPrimes << " #prunedViaCodim = " << numOrig - #ans << endl;
             );
         ans
         )
@@ -531,7 +567,11 @@ stratEnd = {(IndependentSet,infinity),SplitTower}
 minprimesWithStrategy = method(Options => options splitIdeals)
 minprimesWithStrategy(Ideal) := opts -> (I) -> (
     newstrat := {opts.Strategy, stratEnd};
+    if opts#"CodimensionLimit" === null then 
+      opts = opts ++ {"CodimensionLimit" => numgens I};
     M := splitIdeals({annotatedIdeal(I,{},{},{})}, newstrat, opts);
+    numRawPrimes := #M;
+    M = select(M, i -> codim i <= opts#"CodimensionLimit");
     (M1,M2) := separatePrime(M);
     if #M2 > 0 then (
          ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
@@ -542,8 +582,8 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
     );
     answer := M/ideal//selectMinimalIdeals;
     if opts.Verbosity >= 2 then (
-         if #answer < #M then (
-              << "#minprimes=" << #answer << ", #computed=" << #M << endl;
+         if #answer < numRawPrimes then (
+              << "#minprimes=" << #answer << ", #underCodimLimit=" << #M << " #computed=" << numRawPrimes << endl;
               );
          );
     answer
@@ -557,3 +597,7 @@ restart
 debug needsPackage "PD"
 R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
 I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
+time minprimes(I1, "CodimensionLimit"=>6, Verbosity=>2)
+time minprimes(I1, "CodimensionLimit"=>7, Verbosity=>2)
+time minprimes(I1, "CodimensionLimit"=>6, Verbosity=>2);
+

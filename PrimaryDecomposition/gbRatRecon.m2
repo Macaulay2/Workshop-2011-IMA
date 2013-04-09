@@ -303,8 +303,16 @@ factorOverTower (List,RingElement) := opts -> (tower,f) -> (
               else
                  (eliminate(L1, otherVars))_0;
     facs := factors G;
-    if opts.Verbosity >= 2 then print netList facs;
     facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - (numerator F))));
+    if opts.Verbosity >= 3 then (
+       << "Factoring over tower: " << endl;
+       print netList tower;
+    );
+    if opts.Verbosity >= 2 then (
+      apply(facs1, f -> (ltf := leadTerm S.cache#"StoSF" f#1;
+                         << "Variable : " << support ltf << "  LeadTerm : " << ltf << endl << endl;
+                         << S.cache#"StoSF" f#1 << endl << endl;));
+    );
     firstFacs := 1_SF;
     lastIrred := IF_(numgens IF - 1);
     -- sort the factors (by degree) and only compute GB for the first n-1 of them
@@ -322,7 +330,14 @@ factorOverTower (List,RingElement) := opts -> (tower,f) -> (
                  G = (fac#1) % L;
                  if G == 0 then
                     error "Internal error.  Tried to add in zero element to ideal in factorTower.";
-                 C := ideal gens gb S.cache#"StoSF" modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
+                 C := time if MONICTOWERTRICK then (
+                         newFac := makeMonicOverTower(tower,S.cache#"StoSF" G);
+                         ideal gens gb ideal (IF_* | {newFac})
+                      )
+                      else (
+                         modPGB := modPFracGB(ideal G + L,gens coefficientRing SF / S.cache#"SFtoS");
+                         ideal gens gb S.cache#"StoSF" modPGB
+                      );
                  if C == 1 then continue;
                  newFactor := {fac#0, first toList (set C_* - set IF_*)};
                  firstFacs = firstFacs * (newFactor#1)^(newFactor#0);
@@ -336,6 +351,22 @@ factorOverTower (List,RingElement) := opts -> (tower,f) -> (
        newFactor = {(last facs1)#0, lastFactor};
        append(retVal, newFactor)
     )
+)
+
+makeMonicOverTower = method()
+makeMonicOverTower (List,RingElement) := (tower,f) -> (
+   --- This function takes an irreducible tower in the ring k(xs)[ys]
+   --- and an element f whose lead term is a variable in varf, and variables later
+   --- than varf, and returns f with its lead coefficient inverted
+   --- where 'inverse' is taken in the ring mod the tower.
+   varf := first support leadTerm f;
+   lcf := contract(varf^(degree(varf,f)),f);
+   tempRing := (ring f)/(ideal tower);
+   phi := map(tempRing,ring f);
+   psi := map(ring f, tempRing);
+   fTemp := phi f;
+   lcfTemp := phi lcf;
+   psi (fTemp*(lcfTemp)^(-1))
 )
 
 end

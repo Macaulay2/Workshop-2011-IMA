@@ -12,6 +12,8 @@ newPackage(
 
 needs "gbRatRecon.m2"
 
+exportMutable {MONICTOWERTRICK} --- remove this, debugging only
+
 export {
     -- Support routines
     radicalContainment, -- test
@@ -42,7 +44,7 @@ export {
     Minprimes,
     Squarefree
     }
-
+MONICTOWERTRICK = true
 strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
 defaultStrat = ({strat1, (Birational,infinity)},infinity)
 noBirationalStrat = strat1

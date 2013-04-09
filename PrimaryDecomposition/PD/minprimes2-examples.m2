@@ -265,3 +265,48 @@
       -p_(1,2,2,1,2)*p_(2,2,2,1,1)+p_(1,2,2,1,1)*p_(2,2,2,1,2),
       -p_(1,2,2,2,2)*p_(2,2,2,2,1)+p_(1,2,2,2,1)*p_(2,2,2,2,2))
 ----------------------------------------------
+----------------------------------------------
+
+-- Kalle
+restart
+debug needsPackage "PD"
+kk = ZZ/32003 -- this one just seems to go off to never never land  
+--kk = QQ       -- this is the one that crashes early  
+R = kk[x1,x2,x3,x4,x5,x6]
+I = ideal(x1^2*x2^2*x5^8*x6^8-x3^4*x4^4,
+          x2^8*x3^2*x4^8*x5^2-x1^4*x6^4,
+          x1^8*x3^8*x4^2*x6^2-x2^4*x5^4)
+time C = splitIdeal(I, Strategy=>defaultStrat, Verbosity=>2);
+nonprimeC = select(C, c -> isPrime c != "YES");
+J = first nonprimeC
+J = first splitIdeal(J, Strategy=>IndependentSet, Verbosity=>2)
+MONICTOWERTRICK = true
+splitJ = splitIdeal(J, Strategy=>SplitTower, Verbosity=>3)
+time minprimes I;
+---
+makeMonicOverTower(tower,S.cache#"StoSF" G)
+G1 = S.cache#"StoSF" (facs1#0#1 % L)
+G2 = S.cache#"StoSF" (facs1#1#1 % L)
+lcG1 = diff(x3,G1)
+lcG2 = diff(x3,G2)
+tempR = ring G1/(first tower)
+G1temp = sub(G1,tempR)
+lcG1temp = diff(x3,G1temp)
+G1monic = sub(G1temp*(lcG1temp)^(-1),ring G1)
+
+restart
+debug needsPackage "PD"
+--primes = select(10000..20000, i -> isPrime i)
+--select(primes, p -> (R := ZZ/p[x]; #(factor(x^2+x+1)) > 1))
+kk = ZZ/19993 -- this one just seems to go off to never never land  
+--kk = QQ       -- this is the one that crashes early  
+R = kk[x1,x2,x3,x4,x5,x6]
+I = ideal(x1^2*x2^2*x5^8*x6^8-x3^4*x4^4,
+          x2^8*x3^2*x4^8*x5^2-x1^4*x6^4,
+          x1^8*x3^8*x4^2*x6^2-x2^4*x5^4)
+time C = splitIdeal(I, Strategy=>defaultStrat, Verbosity=>2);
+nonprimeC = select(C, c -> isPrime c != "YES");
+J = first nonprimeC
+C' = splitIdeal(J, Strategy=>IndependentSet, Verbosity=>2)
+time minprimes(I, Verbosity=>2);
+

@@ -1866,7 +1866,22 @@ doc ///
       as input gives a {\tt gaussianRing} with extra indeterminates related to the parametrization
       of the graphical model associated to that graph. If a graph is used, 
       the indeterminates in the {\tt gaussianRing} are indexed by the vertices in the graph $G$.  
-
+      
+      The $s_(i,j)$ indeterminates in the {\tt gaussianRing} are the entries in the
+      covariance matrix of the jointly normal random variables.  The $k_{(i,j)}$
+      indeterminates  in the {\tt gaussianRing} are the nonzero entries in the concentration
+      matrix in the graphical model associatd to an undirected graph.
+      The $l_{(i,j)}$
+      indeterminates consist of regression coefficients associated to the directed
+      edges in the graph.
+      The $p_{(i,j)}$
+      indeterminates  in the {\tt gaussianRing} are the nonzero entries in the covariance matrix of the error terms
+      in the graphical model associatd to a mixed graph with bidirected edges. 
+      Those entries can be placed into an appropriate matrix format using the
+      functions @TO covarianceMatrix@, 
+      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, and  
+      @TO bidirectedEdgesMatrix@ respectively.
+      
     Example
       R = gaussianRing 5;
       gens R
@@ -2400,7 +2415,7 @@ doc ///
       a @TO Symbol@ or a @TO String@ 
   Description
     Text
-      The option {\tt gaussianRing(G,kVariableName=>t)} changes the symbol used for intedeterminates in the error covariance matrix 
+      The option {\tt gaussianRing(G,sVariableName=>t)} changes the symbol used for intedeterminates in the covariance matrix 
       in a polynomial ring created with @TO gaussianRing@.
       
     Example
@@ -2544,8 +2559,18 @@ doc///
       for both discrete and Gaussian graphical models. In the case of discrete random variables, it computes the 2x2 minors
       of the matrices produced by @TO markovMatrices@. For Gaussian graphical models, it computes the minors 
       of the matrices produced by @TO gaussianMatrices@.
+      
+      A single conditional independence statement is a list consisting of three disjoint
+      lists of indices for random variables, e.g. $\{ \{1,2\},\{4\}, \{3\} \}$
+      which represents the conditional independence statement ``$(X_1, X_2)$
+      is conditionally independent of $X_4$ given $X_3$''.
+      In the input to {\tt conditionalIndependenceIdeal} a list of conditional
+      independence statements is used.
 
-      Below are two examples of independence ideals on discrete random variables. 
+      A common way that we arrive at collections of conditional independence statements
+      is through the Markov statements implied by a graph.
+      Below are two examples of independence ideals on discrete random variables,
+      using @TO globalMarkov@ statements and @TO localMarkov@ statements.
 
     Example
       G = graph {{1,2},{2,3},{3,4},{4,1}}

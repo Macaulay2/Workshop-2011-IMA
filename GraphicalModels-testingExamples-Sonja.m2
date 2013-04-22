@@ -1,6 +1,7 @@
 quit
 restart
 uninstallPackage "GraphicalModels"
+installPackage( "GraphicalModels", RemakeAllDocumentation=>true)
 installPackage( "GraphicalModels", RemakeAllDocumentation=>true, RerunExamples=>true)
 viewHelp "GraphicalModels"
 

@@ -5,7 +5,7 @@ needsPackage "Graphs"
 newPackage(
      "GraphicalModels",
      Version => "1.0",
-     Date => "August 2012",
+     Date => "April 2013",
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
@@ -23,8 +23,8 @@ newPackage(
 	  -- Email=> "",
 	  -- HomePage=>""}      
 	  },
-     Headline => "A package for discrete and Gaussian graphical models",
-     DebuggingMode => true
+     Headline => "A package for discrete and Gaussian graphical models"
+     --DebuggingMode => true
      )
 export {"bidirectedEdgesMatrix",
        "Coefficients",
@@ -341,7 +341,7 @@ removeRedundants = (Ds) -> (
 
 pairMarkov = method()
 pairMarkov Graph := List => (G) -> (
-     removeRedundants flatten apply(sort vertices G, v -> (
+     removeRedundants flatten apply(vertices G, v -> ( -- removed sort
      	  apply(toList nonneighbors(G,v), non-> (
 		    {set {v}, set {non}, set vertices G - set {v} - set {non}}
 		    )
@@ -352,7 +352,7 @@ pairMarkov Graph := List => (G) -> (
 
 pairMarkov Digraph := List => (G) -> (
      if isCyclic G then error("digraph must be acyclic");
-     removeRedundants flatten apply(sort vertices G, v -> (
+     removeRedundants flatten apply(vertices G, v -> (  -- removed sort
     	       ND := nondescendents(G,v);
      	       W := ND - parents(G,v);
      	       apply(toList W, w -> {set {v}, set{w}, ND - set{w}}))))
@@ -369,7 +369,7 @@ pairMarkov Digraph := List => (G) -> (
 
 localMarkov = method()
 localMarkov Graph := List =>  (G) -> (
-     removeRedundants apply(sort vertices G, v -> (
+     removeRedundants apply(vertices G, v -> (  -- removed sort
 	   {set {v},  nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
 		    )
 	       )
@@ -378,7 +378,7 @@ localMarkov Graph := List =>  (G) -> (
 localMarkov Digraph := List =>  (G) -> (
      if isCyclic G then error("digraph must be acyclic");
      result := {};
-     scan(sort vertices G, v -> (
+     scan(vertices G, v -> (  -- removed sort
 	       ND := nondescendents(G,v);
 	       P := parents(G,v);
 	       if #(ND - P) > 0 then
@@ -413,7 +413,7 @@ globalMarkov Graph := List => (G) ->(
     ) 
  
 globalMarkov Digraph := List => (G) -> (
-     V := sort vertices G;
+     V := vertices G;  -- removed sort
      result := {};
      AX := subsets V;
      AX = drop(AX,1); -- drop the empty set
@@ -1171,8 +1171,8 @@ doc ///
   Description
   
     Text
-      {\bf Graphical Models} is a package for algebraic statistics, it constructs ideals of discrete and 
-      Gaussian graphical models. This package extends Markov.m2.
+      {\bf Graphical Models} is a package for algebraic statistics. It constructs ideals of discrete and 
+      Gaussian graphical models. This package supercedes Markov.m2.
        
       This package constructs ideals of discrete Bayesian networks (directed acyclic graphs)
       as described in several places, including the paper: Luis David Garcia, Michael Stillman and Bernd Sturmfels,
@@ -1190,7 +1190,7 @@ doc ///
       Proceedings of the $26^{th}$ Conference of Uncertainty in Artificial Intelligence.
           
       Here is a typical use of this package.  We create the ideal in 16 variables whose zero set 
-      represents the probability distributions on four binary random variables which satisfy the
+      represents the probability distributions on four binary random variables  satisfying the
       conditional independence statements coming from the "diamond" graph $4 \to 3, 4 \to 2, 3 \to 1, 2 \to 1$.
       
     Example
@@ -1198,7 +1198,7 @@ doc ///
        R = markovRing (2,2,2,2) -- this ring corresponds to four binary random variables
        S = globalMarkov G  
        I = conditionalIndependenceIdeal (R,S);
-       netList pack(2,I_*)     
+       netList I_*  
        
     Text
       Sometimes an ideal can be simplified by changing variables. For example, conditional independence ideals are often
@@ -1208,13 +1208,13 @@ doc ///
     Example
        F = marginMap (1,R)        
        J = F I; 
-       netList pack (2,J_*)
+       netList J_*
        
     Text
       This ideal has 5 primary components.  The first component is the one that has statistical significance.
       It is the defining ideal of the variety parameterized by the 
       the factorization of the probability distributions 
-      according to the graph G. The remaining components lie on the boundary of the simplex.
+      according to the graph $G$. The remaining components lie on the boundary of the simplex.
       
     Example  
       netList primaryDecomposition J
@@ -1248,14 +1248,9 @@ doc ///
       David Murrugarra<@HREF"http://people.math.gatech.edu/~davidmur/Home.html"@>.
       
   Caveat
-     This package requires Graphs.m2, as a consequence it can do computations with graphs
-     whose vertices are not necessarily labeled by integers. This could potentially create some confusion 
-     regarding the joint probability distribution of discrete random variables. In order to avoid any ambiguity on
-     the meaning of the symbol  
-     $p_{i_1i_2\cdots i_n}$, GraphicalModels orders the vertices lexicographically. So 
-     $p_{i_1i_2\cdots i_n} = p(X_1 = i_1, X_2 = i_2, \dots, X_n = i_n)$ where the labels
-     $X_1,X_2,\dots,X_n$ have been ordered lexicographically. Therefore, the user is encouraged
-     to label the vertices in a consistent way (all numbers, or all letters, etc).
+     GraphicalModels requires Graphs.m2. This package allows the user to create graphs whose vertices are labeled arbitrarily. 
+     However, several functions in GraphicalModels sort the vertices of the graph. Hence, graphs used as input to methods 
+     in GraphicalModels must have sortable vertex labels, e.g., all numbers or all letters. 
 ///;
 
 --------------------------------
@@ -1306,7 +1301,12 @@ doc ///
       netList pack (3, pairMarkov D)
       
     Text
-      Note that the method displays only non-redundant statements.
+      This method displays only non-redundant statements. In general, given a set $S$  of conditional independent 
+      statements and a statement $s$, then we say that $s$ is a a redundant statement if $s$ can be obtained from the 
+      statements in $S$ using the semigraphoid axioms of conditional independence: symmetry, decomposition, weak 
+      union,  and contraction as described in Section 1.1 of Judea Pearl, {\em Causality: models, reasoning, and inference}, 
+      Cambridge University Press.  We do not use the intersection axiom since it is only valid for strictly positive 
+      probability distributions.
       
   SeeAlso
     localMarkov 
@@ -1363,7 +1363,12 @@ doc ///
       netList pack (3, localMarkov D) 
       
     Text
-      Note that the method displays only non-redundant statements.
+      This method displays only non-redundant statements. In general, given a set $S$  of conditional independent 
+      statements and a statement $s$, then we say that $s$ is a a redundant statement if $s$ can be obtained from the 
+      statements in $S$ using the semigraphoid axioms of conditional independence: symmetry, decomposition, weak 
+      union,  and contraction as described in Section 1.1 of Judea Pearl, {\em Causality: models, reasoning, and inference}, 
+      Cambridge University Press.  We do not use the intersection axiom since it is only valid for strictly positive 
+      probability distributions.
   SeeAlso
     pairMarkov
     globalMarkov
@@ -1408,9 +1413,10 @@ doc ///
       $A$ is independent of $B$ given $C$ for every triple of sets of vertices $A$, $B$, and $C$, 
       such that $A$ and $B$ are $d$-separated by $C$ (in the graph $G$).\break
        
-      The global independent statements are computed using the Bayes ball algorithm,
-      as described in the paper {\em Bayes-Ball: The Rational Pastime (for Determining Irrelevance and Requisite Information
-      in Belief Networks and Influence Diagrams)} by Ross D. Shachter.
+      The global independent statements of a directed graph are computed using the Bayes-Ball algorithm,
+      as described in the paper Ross D. Shachter, {\em Bayes-Ball: The Rational Pastime (for Determining Irrelevance and 
+      Requisite Information in Belief Networks and Influence Diagrams)}  In Proceedings of the Fourteenth Conference in 
+      Uncertainty in Artificial Intelligence, p. 480--487, 1998.
       
       For example, given the digraph $D$ on $7$ vertices with edges $1 \to 2, 1 \to 3, 2 \to 4, 2 \to 5, 3 \to 5, 3 \to 6, 4 \to 7, 5 \to 7$, and $6\to 7$, 
       we get the following global Markov statements:
@@ -1420,8 +1426,12 @@ doc ///
       netList pack (3, globalMarkov D) 
       
     Text
-    
-      Note that the method displays only non-redundant statements.
+      This method displays only non-redundant statements. In general, given a set $S$  of conditional independent 
+      statements and a statement $s$, then we say that $s$ is a a redundant statement if $s$ can be obtained from the 
+      statements in $S$ using the semigraphoid axioms of conditional independence: symmetry, decomposition, weak 
+      union,  and contraction as described in Section 1.1 of Judea Pearl, {\em Causality: models, reasoning, and inference}, 
+      Cambridge University Press.  We do not use the intersection axiom since it is only valid for strictly positive 
+      probability distributions.
   Caveat
     -- If G is large, this should maybe be rewritten so that
     -- one huge list of subsets is not made all at once
@@ -1451,17 +1461,17 @@ doc ///
     :RingMap
   Description
     Text
-      The ring $R$ must be a ring of probability distributions on $n$ random variables created using markovRing. The integer $i$
+      The ring $R$ must be a ring of probability distributions on $n$ random variables created using {\tt markovRing}. The integer $i$
       must be in the range from 1 to $n$.  
        
       Let $p_{u_1,u_2,\dots, +,\dots,u_n}$ denote the linear form $p_{u_1,u_2,\dots, 1,\dots,u_n} + \dots + p_{u_1,u_2,\dots, d_i,\dots,u_n}$, where $d_i$ is the number of
       states of random variable $X_i$.
       
-      The method marginMap returns a ring map $F : R \to R$ such that after applying $F$, the indeterminate
+      The method {\tt marginMap} returns a ring map $F : R \to R$ such that after applying $F$, the indeterminate
       $p_{u_1,u_2,\dots,1,\dots,u_n}$ refers to $ p_{u_1,u_2,\dots, +,\dots,u_n}$, where the '1' and the '$+$' are
       in the $i$th spot. 
       
-      Further $F$ in the identity on all other indeterminates, that is, 
+      Further $F$ is the identity on all other indeterminates, that is, 
       $ F(p_{u_1,u_2,\dots, j,\dots,u_n}) = p_{u_1,u_2,\dots, j,\dots,u_n} $, for all $j\geq 2$.
       
     Example   
@@ -1548,7 +1558,7 @@ doc ///
     :RingMap
   Description
     Text
-      The ring $R$ is  a ring of probability distributions on $n$ random variables created using markovRing.
+      The ring $R$ is  a ring of probability distributions on $n$ random variables created using {\tt markovRing}.
       This method creates a ring map $F: S \to R$ from the ring $S$ of probability distributions on $n-1$ 
       random variables, leaving out the $i$th random variable from $R$. This corresponds to the situation where
       the $i$th random variable is hidden and $S$ is the ring of {\bf observed} probability distributions. 
@@ -1620,7 +1630,7 @@ doc ///
     :Ring       
   Description
     Text
-      In both markovRing and gaussianRing, the default coefficient ring is QQ.
+      In both {\tt markovRing} and {\tt gaussianRing}, the default coefficient ring is QQ.
       Putting {\tt Coefficients => r} for a choice of ring(field) r as an argument in 
       the function @TO markovRing@ or @TO gaussianRing@ creates a ring with the
       desired coefficient ring.
@@ -1697,11 +1707,21 @@ doc ///
       d=(1,2);
       markovRing (d,VariableName => q);
       gens oo 
-   
+      
     Text
-      The routines @TO conditionalIndependenceIdeal@, @TO discreteVanishingIdeal@, @TO hiddenMap@, 
-      @TO inverseMarginMap@, @TO marginMap@, @TO markovMatrices@ require that the ring be created by this function. 
+      The routines  @TO hiddenMap@, 
+      @TO inverseMarginMap@, @TO marginMap@, @TO markovMatrices@ require the ring to be created by this function. 
+      The routines @TO conditionalIndependenceIdeal@, @TO discreteVanishingIdeal@ require the ring to be created by this function or 
+      the method @TO gaussianRing@.
      
+  Caveat
+     As opposed to @TO gaussianRing@, this method does not store information about a graph or the names of the random variables.
+     In case these random variables are not numbered $1, 2, \dots, n$, then the methods @TO conditionalIndependenceIdeal@ and
+     @TO markovMatrices@ require an additional input in the form of a list of the random variable names. This list must be in the same
+     order as the implicit order used in the sequence $d$. The user is encouraged to read the caveat on the method 
+     @TO conditionalIndependenceIdeal@ regarding probability distributions on discrete random variables that have 
+     been labeled arbitrarily.
+      
   SeeAlso
     conditionalIndependenceIdeal 
     discreteVanishingIdeal 
@@ -1741,7 +1761,7 @@ doc ///
       @ofClass Symbol@ or @ofClass String@
   Description
     Text
-      The indeterminates in the polynomial ring made by markovRing are labeled with the letter ''p'' suggesting 
+      The indeterminates in the polynomial ring made by {\tt markovRing} are labeled with the letter ''p'' suggesting 
       probability distributions. However, it is useful to be able to create a new ring where the indeterminates are 
       labeled different (for example, they may represent marginal probabilities). 
  
@@ -1751,10 +1771,6 @@ doc ///
       gens oo 
 
 ///
-
-
-
-
 
 ------------------------------------
 -- Documentation markovMatrices   --
@@ -1790,11 +1806,10 @@ doc ///
       as minors of matrices instead of their polynomial expansions. 
       
     Example
-      VarNames = {a,b,c,d}
-      S = {{{a},{c},{d}}}
+      S = {{{1},{3},{4}}}
       R = markovRing (4:2)
       compactMatrixForm =false;
-      markovMatrices (R,S,VarNames) 
+      netList markovMatrices (R,S) 
       
     Text
       Here is an example where the independence statements are extracted from a graph.
@@ -1804,6 +1819,14 @@ doc ///
       S = localMarkov G
       R = markovRing (4:2)
       markovMatrices (R,S,vertices G)   
+      
+  Caveat
+     In case the random variables are not numbered $1, 2, \dots, n$, then this method requires an additional input 
+     in the form of a list of the random variable names. This list must be in the same
+     order as the implicit order used in the sequence $d$. The user is encouraged to read the caveat on the method 
+     @TO conditionalIndependenceIdeal@ regarding probability distributions on discrete random variables that have 
+     been labeled arbitrarily.
+      
   SeeAlso
     conditionalIndependenceIdeal 
     markovRing
@@ -1835,13 +1858,14 @@ doc ///
     :Ring
       a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
       additionally $l_{(i,j)}, p_{(i,j)}$ for mixed graphs or $k_{(i,j)}$ for graphs
+      with $1 \leq i \leq j \leq n$ where $n$ is the number of vertices in $G$.      
   Description
     Text
       This function creates a ring whose indeterminates are the covariances of an 
-      n dimensional Gaussian random vector.  Using a graph, digraph, or mixed graph G
-      as input gives a gaussianRing with extra indeterminates related to the parametrization
+      n dimensional Gaussian random vector.  Using a graph, digraph, or mixed graph $G$
+      as input gives a {\tt gaussianRing} with extra indeterminates related to the parametrization
       of the graphical model associated to that graph. If a graph is used, 
-      the indeterminates in the gaussianRing are indexed by the vertices in the graph G.  
+      the indeterminates in the {\tt gaussianRing} are indexed by the vertices in the graph $G$.  
 
     Example
       R = gaussianRing 5;
@@ -1872,7 +1896,7 @@ doc ///
       in the mixed graph there is an indeterminate, denoted by default $l_{(i,j)}$, corresponding to the associated direct causal effect parameter in the model. 
       For each  bidirected edge $i$<->$j$ there is an indeterminate, denoted by default $p_{(i,j)}$, corresponding to the associated noise parameter. Finally,
       for each node $i$, there is an indeterminate $p_{(i,i)}$. 
-      gaussianRing of a mixed graph assumes that the
+      The {\tt gaussianRing} of a mixed graph assumes that the
       undirected part of the graph is empty.
 
     Example
@@ -1905,6 +1929,7 @@ doc ///
     directedEdgesMatrix
     gaussianVanishingIdeal
     trekIdeal
+    undirectedEdgesMatrix
 ///
 
 
@@ -1972,7 +1997,7 @@ doc///
        where $n$ is the number of random
        variables in the model.  If the gaussianRing was created
        using a graph, $n$ will be the number of vertices of the graph.
-       If this function is called without a graph G, it is assumed that R is the gaussianRing of a directed acyclic graph.
+       If this function is called without a graph $G$, it is assumed that $R$ is the {\tt gaussianRing} of a directed acyclic graph.
 
      Example
        compactMatrixForm =false;
@@ -1982,7 +2007,7 @@ doc///
        S = covarianceMatrix R
 
      Text
-       This function also works for gaussianRings created with a graph or mixedGraph.
+       This function also works for {\tt gaussianRings} created with a {\tt graph} or {\tt mixedGraph}.
 
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
@@ -2022,7 +2047,7 @@ doc///
      Text
        This method returns the $n \times{} n$ covariance matrix of the noise variables in the Gaussian graphical model.
        The diagonal in this matrix consists of the indeterminates  $p_{(i,i)}$. Each off-diagonal entry is zero unless 
-       there is a bidirected edge between i and j in which case the corresponding entry in the matrix is the ideterminate
+       there is a bidirected edge between i and j in which case the corresponding entry in the matrix is the indeterminate
        $p_{(i,j)}$. The documentation of @TO gaussianRing@ 
        further describes the indeterminates $p_{(i,j)}$.
        
@@ -2073,7 +2098,7 @@ doc///
        directedEdgesMatrix R
 
      Text
-       To obtain the directed edges matrix of a Digraph, it should first be embedded into a mixed graph as follows.
+       To obtain the directed edges matrix of a {\tt digraph}, it should first be embedded into a mixed graph as follows.
 
      Example
        D = digraph{{a,b},{c,d}}
@@ -2107,15 +2132,15 @@ doc///
        the parametrization of the covariance matrix in terms of treks
    Description 
      Text
-       Given a mixed graph G with directed and bidirected edges, let L be the matrix corresponding to 
-       the directed edges (see @TO directedEdgesMatrix@) and let W be the matrix corresponding to 
-       the bidirected edges (see @TO bidirectedEdgesMatrix@). Then, the covariance matrix S 
+       Given a mixed graph $G$ with directed and bidirected edges, let $L$ be the matrix corresponding to 
+       the directed edges (see @TO directedEdgesMatrix@) and let $W$ be the matrix corresponding to 
+       the bidirected edges (see @TO bidirectedEdgesMatrix@). Then, the covariance matrix $S$ 
        (see @TO covarianceMatrix@) of the random variables in the Gaussian graphical model corresponding
-       to the mixed graph G can be parametrized by the matrix equation $S = (I-L)^{-T}W(I-L)^{-1}$, where
-       I is the identity matrix.
+       to the mixed graph $G$ can be parametrized by the matrix equation $S = (I-L)^{-T}W(I-L)^{-1}$, where
+       $I$ is the identity matrix.
        
        The entry $s_{(i,j)}$ of the covariance matrix can also be written as the sum of all monomials corresponding
-       to treks between vertices i and j. See @TO trekSeparation@ for the definition of a trek. The monomial corresponding
+       to treks between vertices $i$ and $j$. See @TO trekSeparation@ for the definition of a trek. The monomial corresponding
        to a trek is the product of all parameters associated to the directed and bidirected edges on the trek.
        
        The following example shows how to compute the ideal of the model using the parametrization,
@@ -2185,8 +2210,8 @@ doc///
    Description 
      Text
        Put {\tt SimpleTreks => true} as an argument in the function @TO gaussianParametrization@ to compute 
-       a parametrization of the covariance matrix S=(s_{(i,j)}) where s_{(i,j)} is the sum of monomials corresponding
-       to simple treks between vertices i and j. Here, a simple trek is a trek (P_L,P_R) where the paths P_L and P_R 
+       a parametrization of the covariance matrix $S=(s_{(i,j)})$ where $s_{(i,j)}$ is the sum of monomials corresponding
+       to simple treks between vertices $i$ and $j$. Here, a simple trek is a trek $(P_L,P_R)$ where the paths $P_L$ and $P_R$ 
        do not have any common vertices except perhaps at their source. See @TO trekSeparation@ for the definition of a trek.
       
        If the option {\tt SimpleTreks => false} is used, then the sum is over 
@@ -2213,7 +2238,7 @@ doc///
        which should be a gaussianRing created with a mixed graph
    Outputs
      H:HashTable
-       where H#p is the ideal of equations involving only the parameter p and the covariances s_{(i,j)}
+       where H#p is the ideal of equations involving only the parameter $p$ and the covariances $s_{(i,j)}$
    Description 
      Text
        Expresses each parameter in the gaussianParametrization in terms of covariances,
@@ -2221,13 +2246,13 @@ doc///
        problem for mixed graph models is described in Garcia, Spielvogel, Sullivant,  "Identifying causal effects with computer algebra",
         UAI, Proceedings of the 26th Conferences, AUAI Press, 2010.
        
-       If H#p contains a linear equation a*p+b where a is always nonzero, then p is identifiable.
+       If H#p contains a linear equation $a*p+b$ where a is always nonzero, then $p$ is identifiable.
        
-       If H#p contains a linear equation a*p+b where a may be zero, then p is generically identifiable.
+       If H#p contains a linear equation $a*p+b$ where a may be zero, then $p$ is generically identifiable.
        
-       If H#p contains a polynomial in p of degree d, then p is algebraically d-identifiable.
+       If H#p contains a polynomial in $p$ of degree $d$, then $p$ is algebraically $d$-identifiable.
        
-       If H#p does not contain any polynomial in p, then p is not generically identifiable.
+       If H#p does not contain any polynomial in $p$, then $p$ is not generically identifiable.
 
      Example
        G = mixedGraph(digraph {{a,{b}},{b,{c}}},bigraph {{a,c}, {b,c}})
@@ -2265,7 +2290,7 @@ doc///
       or @ofClass MixedGraph@ with directed and bidirected edges
    Outputs
      I:Ideal
-       the ideal of determinantal trek separation statements implied by the graph G.
+       the ideal of determinantal trek separation statements implied by the graph $G$.
    Description 
      Text  
        For mixed graphs, the ideal corresponding to all trek separation statements {A,B,CA,CB} (where A,B,CA,CB
@@ -2283,9 +2308,9 @@ doc///
        ideal gens gb T
        
      Text
-       For undirected graphs G, the trekIdeal(R,G) is the same as 
-       conditionalIndependenceIdeal(R,globalMarkov(G)).  For directed graphs G, trekIdeal(R,G)
-        is generally larger than conditionalIndependenceIdeal(R,globalMarkov(G)).
+       For undirected graphs $G$, the {\tt trekIdeal(R,G)} is the same as 
+       {\tt conditionalIndependenceIdeal(R,globalMarkov(G))}.  For directed graphs $G$, {\tt trekIdeal(R,G)}
+        is generally larger than {\tt conditionalIndependenceIdeal(R,globalMarkov(G))}.
 
      Example
        G = graph{{a,b},{b,c},{c,d},{a,d}}     
@@ -2299,7 +2324,7 @@ doc///
        CI = conditionalIndependenceIdeal(R,globalMarkov(H));
        T == CI
    Caveat
-       trekSeparation is currently only implemented with mixedGraphs that have directed and 
+       {\tt trekSeparation} is currently only implemented with {\tt mixedGraphs} that have directed and 
        bidirected edges.  
    SeeAlso
      trekSeparation
@@ -2325,25 +2350,25 @@ doc///
         of lists \{A,B,CA,CB\}, where (CA,CB) trek-separates A from B
    Description 
      Text
-       A trek between vertices i and j in a mixed graph G with directed and bidirected edges is a triple 
-       (P_L,P_R) where P_L is a directed path of directed edges with sink i and source k, P_R is a directed path
-       of directed edges with sink j and source l, and either k=l or there is a bidirected edge between k and l.
-       Let A,B,CA,CB be subsets of vertices of G. 
+       A trek between vertices $i$ and $j$ in a mixed graph $G$ with directed and bidirected edges is a triple 
+       $(P_L,P_R)$ where $P_L$ is a directed path of directed edges with sink $i$ and source $k$, $P_R$ is a directed path
+       of directed edges with sink $j$ and source $l$, and either $k=l$ or there is a bidirected edge between $k$ and $l$.
+       Let $A,B,CA,CB$ be subsets of vertices of $G$. 
        
-       We say that (CA,CB) trek-separates A from B in G if for every trek 
-       (P_L,P_R) from a vertex in A to a vertex in B, either P_L contains a vertex in CA or P_R contains a vertex in CB.
+       We say that $(CA,CB)$ trek-separates $A$ from $B$ in $G$ if for every trek 
+       $(P_L,P_R)$ from a vertex in $A$ to a vertex in $B$, either $P_L$ contains a vertex in $CA$ or $P_R$ contains a vertex in $CB$.
        
-       The function @TO trekSeparation@ returns a list of trek separation statements \{A,B,CA,CB\}\,where 
-       #CA + #CB < min(#A, #B). Each statement is maximal in the ordering where \{A1,B1,CA,CB\}\,<\,\{A2,B2,CA,CB\}\,if A1 is a 
-       subset of A2 and B1 is a subset of B2. Each statement is also unique up to symmetry, since \{B,A,CB,CA\}\,is a 
-       trek separation statement if and only if \{A,B,CA,CB\}.
+       The function @TO trekSeparation@ returns a list of trek separation statements $\{A,B,CA,CB\}$\,where 
+       $#CA + #CB < min(#A, #B)$. Each statement is maximal in the ordering where $\{A1,B1,CA,CB\}\,<\,\{A2,B2,CA,CB\}$\,if $A1$ is a 
+       subset of $A2$ and $B1$ is a subset of $B2$. Each statement is also unique up to symmetry, since $\{B,A,CB,CA\}$\,is a 
+       trek separation statement if and only if $\{A,B,CA,CB\}$.
 
      Example
        G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
        S = trekSeparation G
 
    Caveat
-       trekSeparation G is only implemented for mixedGraphs with directed and bidirected edges.    
+       {\tt trekSeparation} $G$ is only implemented for mixedGraphs with directed and bidirected edges.    
    SeeAlso
      trekIdeal
 ///
@@ -2507,16 +2532,18 @@ doc///
     Stmts:List
       list of conditional independence statements
     VarNames:List
-       list of names of random variables in conditional independence statements in S.  If this is omited
+       list of names of random variables in conditional independence statements in $S$.  If this is omited
        it is assumed that these are integers 1 to $n$ where $n$ is the number of variables in the
-       declaration of markovRing or gaussianRing
+       declaration of {\tt markovRing} or {\tt gaussianRing}
   Outputs
     :Ideal
       ideal of conditional independence relations
   Description
     Text
-      conditionalIndependenceIdeal computes the ideal of a set of conditional independence statements. This method works
-      for both discrete and Gaussian graphical models. 
+      {\tt conditionalIndependenceIdeal} computes the ideal of a list of conditional independence statements. This method works
+      for both discrete and Gaussian graphical models. In the case of discrete random variables, it computes the 2x2 minors
+      of the matrices produced by @TO markovMatrices@. For Gaussian graphical models, it computes the minors 
+      of the matrices produced by @TO gaussianMatrices@.
 
       Below are two examples of independence ideals on discrete random variables. 
 
@@ -2537,7 +2564,7 @@ doc///
         
     Text
       For Gaussian models, 	
-      conditionalIndependenceIdeal  can compute the ideal of a list of independence statements on a graph even
+      {\tt conditionalIndependenceIdeal}  can compute the ideal of a list of independence statements on a graph even
       if the ring was not constructed with that specific graph.  
       However, the vertex labels in the graph should be integers. 
       
@@ -2556,20 +2583,36 @@ doc///
       conditionalIndependenceIdeal (R,S) / print;
 
     Text
-      For general discrete independence models (not necessarily arising from a graph), conditionalIndependenceIdeal requires one of the 
-      following two options: 
-      (1) the random variables are labelled by integers (as in the first example above) or 
+      For general discrete independence models (not necessarily arising from a graph), {\tt conditionalIndependenceIdeal} requires one of the 
+      following two options: \break
+      (1) the random variables are labelled by integers (as in the first example above) or  \break
       (2) in case the random variables have arbitrary names, an extra input parameter must be used in order to specify
       the names of the random variables. 
-      
-      The user is encourage to read the caveat on the method @TO markovRing@ regarding probability distributions 
-      on random variables that have been labeled arbitrarily.
 
     Example    
       R = markovRing (2,2,2,2)
       VarNames = {c,d,e,f}
       Stmts = { {{c,d},{e},{}}, {{d,e},{c},{f}}}
       conditionalIndependenceIdeal(R,Stmts,VarNames)	/ print;  
+
+    Text
+      The following example illustrates the caveat below.
+      
+    Example
+      D = digraph {{b,{a}},{a,{c}},{c,{}}}
+      R = markovRing (2,3,2)  
+      VarNames = {b,a,c}
+      S = globalMarkov D
+      conditionalIndependenceIdeal(R, S, VarNames) / print;
+      vertices D
+      conditionalIndependenceIdeal(R, S, vertices D) / print;
+      
+  Caveat
+     We note that the list of random variable names must be in the same order as the implicit order used in the sequence $d$.
+     In the previous example, we have the graph $b \to a \to c$, where $a$ has three states and $b$ and $c$ are both binary.
+     Note that the ring $R$ was created with the sequence $d = (2,3,2)$, having in mind the topological order of the graph as opposed
+     to the vertex labels. Note how the first instance of this method returns the correct output, however, the second instance returns
+     an incorrect ideal since vertices D is not in the same order as the sequence $d$.
       
   SeeAlso
     discreteVanishingIdeal
@@ -2637,7 +2680,7 @@ doc ///
         ideal in R
    Description
      Text
-       gaussianVanishingIdeal computes the ideal in $R$ of homogeneous polynomial relations 
+       {\tt gaussianVanishingIdeal} computes the ideal in $R$ of homogeneous polynomial relations 
        on the variance-covariance parameters of a graphical model on $G$ as explained in 
        ``Lectures on Algebraic Statistics'' by Drton, Sturmfels, and Sullivant.
        

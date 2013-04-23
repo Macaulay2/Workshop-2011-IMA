@@ -1,38 +1,48 @@
 -- part of PD.m2, uses code from there too
 
 AnnotatedIdeal = new Type of MutableHashTable
--- fields of this type:
---  A.Ideal
---  A.Linears
---  A.Inverted
---  A.NonzeroDivisors
-------- IndependentSet Flags : The existence of the following two flags also implies the
--------                        ideal is equidimensional
---  A.IndependentSet   This is a triple (basevars,S,SF) where S,SF are returned from makeFiberRings
---  A.LexGBOverBase  GB of ISF over SF
--- Finished Flags: if any of these flags exists, then that split
--- technique is done on that ideal.
---  A.Birational   
---  A.Linear
---  A.Factorization
---  A.Squarefree
---  A.IndependentSet
---  A.SplitTower  -- last resort!
---  A.DecomposeMonomials
---  A.Trim
---
--- An "annotated ideal" is a tuple (I, L, NZ, inverteds)
--- where I is an ideal (in a subset of the variables)
--- L is a list of (x, g, f), where 
---   x is a variable (not appearing in I at all)
---   g is a poly not involving x
---     g is  monic
---   f = xg-h is in the original ideal (leadTerm f is not nec leadTerm(xg))
--- NZ: list of known nonzero-divisors *need more detail here of how they are used*
--- inverteds: Elements that have been 'inverted' in the calculation.  Need to saturate
---  with respect to these when using ideal AnnotatedIdeal.
--- This ideal represents I', where
--- I' = saturate(I + ideal (L/last), product of L/(s -> s#1)).
+
+-- An "annotated ideal" is a hash table with keys:
+--   Ideal:  I
+--   Linears: L
+--   NonzeroDivisors: NZ
+--   Inverted: inverteds
+--   where 
+--     (a) I is an ideal (in a subset of the variables)
+--     (b) L is a list of (x, g, f), where 
+--     (c) x is a variable (not appearing in I at all)
+--     (d) g is a monic poly not involving x
+--     (e) f = xg-h is in the original ideal (leadTerm f is not nec leadTerm(xg))
+--     (f) h does not involve x.
+--   NZ: list of known nonzero-divisors.  This is used only for performance:
+--     once we know that e.g. A.Ideal : f == A.Ideal, then f can be placed on this list.
+--   inverteds: Elements that have been 'inverted' in the calculation.  Need to saturate
+--     with respect to these when reconstructing the associated ideal, assuming that
+--     the ideal is not known to be prime already.
+-- HOWEVER, if the keys IndependentSet, LexGBOverBase exist
+--   then I is only contained in the associated ideal.
+--   These keys contain the following info:
+--     A.IndependentSet   This is a triple (basevars,S,SF) where S,SF are returned from makeFiberRings
+--     A.LexGBOverBase  GB of ISF over SF
+--     If one of these flags is set, both are, and the resulting ideal is equidimensional.
+-- Other keys:
+--   Finished Flags: if any of these flags exists, then that split
+--   technique would have no further effect on the annotated ideal A.
+--    A.Birational   
+--    A.Linear
+--    A.Factorization
+--    A.IndependentSet
+--    A.SplitTower
+--    A.DecomposeMonomials
+--    A.Trim
+--    A.LexGBSplit is set once LexGBOverBase consists of irred polynomials over the base field.
+--   A.isPrime: possible values: "YES", "NO", "UNKNOWN".  Usually "YES" or "UNKNOWN".
+-- The associated ideal consists of 3 parts, with a potential saturation step:
+--   (a) the linear polynomials in L
+--   (b) the ideal I
+--   (c) if LexGBOverBase is a key, then the contraction of (ideal A.LexGBOverBase) to the polynomial ring
+-- the saturation is with respect to all g for each (x,g,f) in L.
+-- See "ideal AnnotatedIdeal" for the exact formula.
 
 monicUniqueFactors = polyList -> (
     polyList1 := polyList/factors//flatten;
@@ -42,11 +52,8 @@ monicUniqueFactors = polyList -> (
 
 annotatedIdeal = method()
 annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
-    -- I is an ideal
-    -- linears is a list of LinearElement's (x, g, f), where 
-    --   f = xg-h is in the ideal, 
-    --   g and h don't involve x
-    --   and g is monic over the base field
+    -- See above for the definition of an annotated ideal and its keys
+    -- The arguments are named the same thing as in that description
     -- nzds is a list of polynomials which are nzds's of the associated ideal
     -- inverted is a list of elements such that we ignore the minimal primes
     --   that contain any of these elements
@@ -62,6 +69,12 @@ annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
 
 gb AnnotatedIdeal := opts -> (I) -> I.Ideal = gb(I.Ideal, opts)
 
+-- getGB is used for finding a lower bound on the codim of the ideal I
+-- The idea is that sometimes the GB computation is too huge, and we
+-- don't want to undertake that.  But, if it is there, we want to take
+-- advantage of it.  It could even be a partial Groebner basis.
+-- codimLowerBound below uses whatever lead terms we can find in the ideal
+-- to get some lower bound on the codimension.
 getGB = method()
 getGB Ideal := (I) -> (
      cached := keys I.generators.cache;
@@ -98,6 +111,7 @@ codimLowerBound AnnotatedIdeal := (I) -> (
          )
      )
 
+{*
 annotatedIdeal Ideal := (I) -> (
      -- input: ideal I in a polynomial ring R
      linears := for x in gens ring I list (
@@ -110,15 +124,28 @@ annotatedIdeal Ideal := (I) -> (
      if #linears === 0 then newI.Linear = true;
      newI
      )
+*}
 
+{*
 net AnnotatedIdeal := (I) -> (
     net new HashTable from {
         "Ideal" => if numgens I.Ideal === 0 then net I.Ideal else netList (I.Ideal)_*, 
         "Linears" => netList (I.Linears)}
     )
+*}
+net AnnotatedIdeal := (I) -> peek I
 
 ring AnnotatedIdeal := (I) -> ring I.Ideal
 
+-- The associated ideal to an annotated ideal I is
+-- defined at the top of this file.
+-- TODO Notes (23 April 2013):
+--  (1) Possibly split the linears into two groups, and add the ones with denom=1
+--      after the saturation is done.
+--  (2) Should we be saturating with the I.Inverted \ I.NonzeroDivisors polynomials? 
+--    Answer should be yes: but if we know the ideal is prime, then 
+--    we think we can avoid this.  BUT: we need to be very precise about
+--    this logic.
 ideal AnnotatedIdeal := (I) -> (
     --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
     F := product unique (I.Linears / (x -> x#1));
@@ -134,7 +161,13 @@ ideal AnnotatedIdeal := (I) -> (
     if F == 1 then I3 else saturate(I3, F)
     )
 
+-- Note that if I.IndependentSet is set, then I.Ideal is not the entire ideal.
+-- However in this case, I.isPrime will (TODO: check this!) have previously
+-- been set to "UNKNOWN", or maybe to "YES" during the IndependentSet or
+-- SplitTower computatations.
 isPrime AnnotatedIdeal := (I) -> (
+    if I.?IndependentSet and not I.?isPrime 
+      then error "our isPrime logic is wrong";
     if not I.?isPrime or I.isPrime === "UNKNOWN" then (
         I.isPrime = if numgens I.Ideal == 0 then "YES" else
                     if I.?Factorization and numgens I.Ideal == 1 then "YES" else
@@ -157,6 +190,8 @@ flagIsPrime AnnotatedIdeal := I -> (isPrime I; I)
 
 --- this is so that we can add in generators to I and keep track of
 --- how the annotation changes
+--- TODO: make sure that this method is only being used where I.NonzeroDivisors
+--   should be considered non-zero-divisors for the sum.
 AnnotatedIdeal + Ideal := (I,J) -> (
    annotatedIdeal(J + I.Ideal,
                   I.Linears,  -- 'linear' generators
@@ -208,8 +243,10 @@ splitLexGB AnnotatedIdeal := I -> (
             )
         );
     -- At this point, all generators of IF_* are irreducible over the base field
-    if #select(L, f -> sum first exponents leadTerm f > 1) <= 1 then
-       I.isPrime = "YES";
+    I.isPrime = if #select(L, f -> sum first exponents leadTerm f > 1) <= 1 then
+       "YES"
+    else
+       "UNKNOWN";
     I.LexGBSplit = true;
     {I}
     )

@@ -2803,8 +2803,8 @@ assert(sort Ssorted === sort L)
 TEST ///
 G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 S = pairMarkov G
-S = apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
-L = {{{c}, {d}, {a, b}}, {{a}, {d}, {b, c}}}
+S = sort apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
+L = sort {{{c}, {d}, {a, b}}, {{a}, {d}, {b, c}}}
 assert(S === L)
 ///
 
@@ -2823,8 +2823,8 @@ assert(sort Ssorted === sort L)
 TEST ///
 G = digraph { {1,{2,3,4}}, {5,{2,3,4}} }
 S = localMarkov G
-S = apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
-L = {{{2}, {3, 4}, {1, 5}}, {{2, 3}, {4}, {1, 5}}, {{2, 4}, {3}, {1, 5}}, {{1}, {5}, {}}} 
+S = sort apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
+L = sort {{{2}, {3, 4}, {1, 5}}, {{2, 3}, {4}, {1, 5}}, {{2, 4}, {3}, {1, 5}}, {{1}, {5}, {}}} 
 assert(S === L)
 ///
 
@@ -2836,7 +2836,7 @@ TEST ///
 G = graph({{a,b},{b,c},{c,d},{d,e},{e,a}})
 S = globalMarkov G
 S = sort apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
-L={{{a}, {c, d}, {b, e}}, {{a, b}, {d}, {c, e}}, {{a, e}, {c}, {b, d}}, {{b}, {d, e}, {a,c}}, {{b, c}, {e}, {a, d}}}
+L= sort {{{a}, {c, d}, {b, e}}, {{a, b}, {d}, {c, e}}, {{a, e}, {c}, {b, d}}, {{b}, {d, e}, {a,c}}, {{b, c}, {e}, {a, d}}}
 assert(S === L)
 ///
 
@@ -2844,7 +2844,7 @@ TEST ///
 G = digraph { {2, {1}}, {3,{2}}, {4,{1,3}} }
 S = globalMarkov G
 S = sort apply(S,s -> {sort s#0, sort s#1, sort s#2}) 
-L = {{{1}, {3}, {2, 4}}, {{2}, {4}, {3}}}
+L = sort {{{1}, {3}, {2, 4}}, {{2}, {4}, {3}}}
 assert(S === L)
 ///
 

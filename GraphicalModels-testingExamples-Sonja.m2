@@ -375,3 +375,13 @@ vars R
 S = {{set{set{1},set{3}},set{2,5}}}
 S = { {{1},{3},{2,5}}}
 conditionalIndependenceIdeal(R,S)
+
+
+R = gaussianRing 5
+G = graph{{1,2},{2,3},{3,4},{4,1}}
+conditionalIndependenceIdeal(R,globalMarkov(G))
+
+      G = graph {{a,b},{b,c},{c,d},{d,a}}
+      R=gaussianRing G
+
+      conditionalIndependenceIdeal (R,globalMarkov(G))  / print; 

@@ -2481,7 +2481,7 @@ doc ///
       a @TO Symbol@ or a @TO String@ 
   Description
     Text
-      The option {\tt gaussianRing(G,kVariableName=>q)} changes the symbol used for intedeterminates in the error covariance matrix 
+      The option {\tt gaussianRing(G,pVariableName=>q)} changes the symbol used for intedeterminates in the error covariance matrix 
       in a polynomial ring created with @TO gaussianRing@.
     
     Example

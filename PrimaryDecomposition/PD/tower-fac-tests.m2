@@ -7,10 +7,11 @@
   flatten entries gens gb T
   F = (y+a)*(y-2*b)*(y^2+a+b)
   F = F % T
+  independentSets (T + ideal F)
   (S,SF) = makeFiberRings({}, R)
   TS = flatten entries gens gb sub(T, S)
   FS = sub(F, S) % (ideal TS)
-  towerFac = factorOverTower(TS, FS)
+  towerFac = factorOverTowerWorker(TS, FS)
   assert((product(towerFac/last)) % (ideal TS) == FS)
 
 -- wang2
@@ -26,7 +27,7 @@
   (S,SF) = makeFiberRings({}, R)
   TS = flatten entries gens gb sub(T, S)
   FS = sub(F, S) % (ideal TS)
-  towerFac = factorOverTower(TS, FS)
+  towerFac = factorOverTowerWorker(TS, FS)
   prodTowerFac = (product(towerFac/last)) % (ideal TS);
   prodTowerFac = (1/(leadCoefficient prodTowerFac))*prodTowerFac;
   assert(prodTowerFac == FS)
@@ -51,9 +52,9 @@
   (S,SF) = makeFiberRings({}, R)
   TS = flatten entries gens gb sub(T, S)
   FS = sub(F, S) % (ideal TS)
-  time towerFac = factorOverTower(TS, FS)  --- bug here!  Why are we getting things
-                                           --- of higher degree?  Ans: Not a tower in the
-                                           --- first place!
+  time towerFac = factorOverTowerWorker(TS, FS) --- bug here!  Why are we getting things
+                                                --- of higher degree?  Ans: Not a tower in the
+                                                --- first place!
   prodTowerFac = (product(towerFac/last)) % (ideal TS);
   prodTowerFac = (1/(leadCoefficient prodTowerFac))*prodTowerFac;
   assert(prodTowerFac == FS)
@@ -62,7 +63,7 @@
   restart
   debug needsPackage "PD"
   debug needsPackage "UnitTestsPD"
-  R = ZZ/32003[y,a,b,c,d, MonomialOrder=>Lex]
+  R = QQ[y,a,b,c,d, MonomialOrder=>Lex]
   T = ideal {-1-a^2+a*c+b^2-b*c+c^2-c*d+d^2+d,
              1+a*b+a*c+a-b*c-b*d+b-c^2-c*d-c,
              1+a*c+a*d+a+b^2+b*d-b-c-d^2,

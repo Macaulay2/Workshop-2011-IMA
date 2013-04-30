@@ -44,11 +44,20 @@ AnnotatedIdeal = new Type of MutableHashTable
 -- the saturation is with respect to all g for each (x,g,f) in L.
 -- See "ideal AnnotatedIdeal" for the exact formula.
 
+-- this function returns a list of the unique factors occurring in polyList, made monic
 monicUniqueFactors = polyList -> (
     polyList1 := polyList/factors//flatten;
     polyList2 := select(polyList1, g -> #g > 0);
     polyList2 / last // unique
 )
+
+TEST ///
+   debug needsPackage "PD"
+   R = QQ[a,b,c]
+   polyList = {2*a^2,b^2,c^2,a^3,1_R,8*b^3-c^3}
+   muf = monicUniqueFactors polyList
+   assert(set muf === set {a, b, c, b-(1/2)*c, b^2+(1/2)*b*c+(1/4)*c^2})
+///
 
 annotatedIdeal = method()
 annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
@@ -67,7 +76,7 @@ annotatedIdeal(Ideal, List, List, List) := (I, linears, nzds, inverted) -> (
         }
     )
 
-gb AnnotatedIdeal := opts -> (I) -> I.Ideal = gb(I.Ideal, opts)
+gb AnnotatedIdeal := opts -> (I) -> I.Ideal = ideal gens gb(I.Ideal, opts)
 
 -- getGB is used for finding a lower bound on the codim of the ideal I
 -- The idea is that sometimes the GB computation is too huge, and we
@@ -86,16 +95,23 @@ getGB Ideal := (I) -> (
 
 codim AnnotatedIdeal := options(codim,Ideal) >> opts -> (I) -> (
      if I.?LexGBOverBase then (
+         -- this codim is correct in all cases
          S := ring I.LexGBOverBase#0; -- should be of the form kk(indepvars)[fibervars]
          # I.Linears + numgens S
          )
-     else 
+     else ( 
+         -- this codim may be only a codimLowerBound if an element in the
+         -- inverted list is in all the minimal primes of top dimension
+         if not I.?isPrime or I.isPrime =!= "YES" then 
+            << "Warning : codim AnnotatedIdeal called on ideal not known to be prime." << endl;
          # I.Linears + codim(I.Ideal)
+     )
      )
 
 codimLowerBound = method()
 codimLowerBound AnnotatedIdeal := (I) -> (
      if I.?LexGBOverBase then (
+         -- again, in this case, this is the actual codimension.
          S := ring I.LexGBOverBase#0; -- should be of the form kk(indepvars)[fibervars]
          # I.Linears + numgens S
          )
@@ -111,28 +127,6 @@ codimLowerBound AnnotatedIdeal := (I) -> (
          )
      )
 
-{*
-annotatedIdeal Ideal := (I) -> (
-     -- input: ideal I in a polynomial ring R
-     linears := for x in gens ring I list (
-         k := position(I_*, f -> first degree contract(x,f) == 0);
-         if k === null then continue;
-         m := makeLinearElement(x, I_k);
-         I = replaceVariable(I,m);
-         m);
-     newI := annotatedIdeal(I, linears, {}, {});
-     if #linears === 0 then newI.Linear = true;
-     newI
-     )
-*}
-
-{*
-net AnnotatedIdeal := (I) -> (
-    net new HashTable from {
-        "Ideal" => if numgens I.Ideal === 0 then net I.Ideal else netList (I.Ideal)_*, 
-        "Linears" => netList (I.Linears)}
-    )
-*}
 net AnnotatedIdeal := (I) -> peek I
 
 ring AnnotatedIdeal := (I) -> ring I.Ideal
@@ -143,9 +137,9 @@ ring AnnotatedIdeal := (I) -> ring I.Ideal
 --  (1) Possibly split the linears into two groups, and add the ones with denom=1
 --      after the saturation is done.
 --  (2) Should we be saturating with the I.Inverted \ I.NonzeroDivisors polynomials? 
---    Answer should be yes: but if we know the ideal is prime, then 
---    we think we can avoid this.  BUT: we need to be very precise about
---    this logic.
+--      Answer should be yes: but if we know the ideal is prime, then 
+--      we think we can avoid this.  BUT: we need to be very precise about
+--      this logic.
 ideal AnnotatedIdeal := (I) -> (
     --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
     F := product unique (I.Linears / (x -> x#1));
@@ -160,6 +154,28 @@ ideal AnnotatedIdeal := (I) -> (
     I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
     if F == 1 then I3 else saturate(I3, F)
     )
+TEST ///
+  debug needsPackage "PD"
+  R = QQ[b,s,t,u,v,w,x,y,z]
+  I = ideal"su - bv, tv - sw, vx - uy, wy - vz"
+  J1 = annotatedIdeal(trim ideal 0_R,{},{},{})
+  assert(ideal J1 == 0)
+  assert(ring J1 === R)
+  assert(codim J1 == 0)
+  J2Linears = {(z, v, - w*y + v*z), (y, u, - v*x + u*y), (w, s, - t*v + s*w), (v, b, - s*u + b*v)}
+  J2 = annotatedIdeal(trim ideal 0_R, J2Linears,{v, u, s, b},{})
+  F = product unique (J2Linears / (x -> x#1))
+  assert(ideal J2 == saturate(ideal (J2Linears / last), F))
+  assert(ring J2 === R)
+  assert(codim J2 == 4)
+  J2 = trim J2
+  assert(J2.Trim)
+  J3 = annotatedIdeal(trim ideal 1_R,{},{},{})
+  assert(ideal J3 == 1)
+  assert(ring J3 === R)
+  assert(codim J3 == infinity)
+  --- TODO: An example with IndependentSets/SplitTower
+///
 
 -- Note that if I.IndependentSet is set, then I.Ideal is not the entire ideal.
 -- However in this case, I.isPrime will (TODO: check this!) have previously
@@ -167,7 +183,7 @@ ideal AnnotatedIdeal := (I) -> (
 -- SplitTower computatations.
 isPrime AnnotatedIdeal := (I) -> (
     if I.?IndependentSet and not I.?isPrime 
-      then error "our isPrime logic is wrong";
+      then error "Our isPrime logic is wrong";
     if not I.?isPrime or I.isPrime === "UNKNOWN" then (
         I.isPrime = if numgens I.Ideal == 0 then "YES" else
                     if I.?Factorization and numgens I.Ideal == 1 then "YES" else
@@ -176,6 +192,7 @@ isPrime AnnotatedIdeal := (I) -> (
     I.isPrime
     )
 
+{*
 partitionPrimes = method()
 partitionPrimes List := Is -> (
    P := partition(I -> isPrime I === "YES",Is);
@@ -188,22 +205,33 @@ partitionPrimes AnnotatedIdeal := I -> partitionPrimes {I}
 flagIsPrime = method()
 flagIsPrime AnnotatedIdeal := I -> (isPrime I; I)
 
---- this is so that we can add in generators to I and keep track of
---- how the annotation changes
---- TODO: make sure that this method is only being used where I.NonzeroDivisors
---   should be considered non-zero-divisors for the sum.
 AnnotatedIdeal + Ideal := (I,J) -> (
+   error "Calling AnnotatedIdeal + Ideal.";
    annotatedIdeal(J + I.Ideal,
                   I.Linears,  -- 'linear' generators
                   {},        -- clear out nonzerodivisor list
                   unique join(I.NonzeroDivisors,I.Inverted)) -- move nonzerodivisors to inverted list
 )
+*}
+
+--- this is so that we can add in generators to I and keep track of
+--- how the annotation changes
+adjoinElement = method()
+adjoinElement (AnnotatedIdeal,RingElement) := (I,f) -> (
+   annotatedIdeal((ideal f) + I.Ideal,
+                  I.Linears,  -- 'linear' generators
+                  {},         -- clear out nonzerodivisor list
+                  unique join(I.NonzeroDivisors,I.Inverted)) -- move nonzerodivisors to inverted list
+)
 
 trim AnnotatedIdeal := opts -> I -> (
     I.Ideal = trim I.Ideal;
+    I.Trim = true;
     I
 )
 
+-- this function is used in the #Factorization splitting option, followed by a trim.
+-- TODO: rethink how the trim is done when variables are added?
 squarefreeGenerators AnnotatedIdeal := opts -> I -> (
    if I.?Squarefree then return I; 
    nonzeros := set I.Inverted;
@@ -227,6 +255,8 @@ squarefreeGenerators AnnotatedIdeal := opts -> I -> (
       I
 )
 
+--- this function is used in splitFunction#IndependentSet to make the
+--- generators of the ideal over the fraction field ready for #SplitTower
 splitLexGB AnnotatedIdeal := I -> (
     if not I.?IndependentSet then return {I};
     if I.?LexGBSplit then return {I};
@@ -251,29 +281,36 @@ splitLexGB AnnotatedIdeal := I -> (
     {I}
     )
 
-nzds = method()
-nzds AnnotatedIdeal := (I) -> I.NonzeroDivisors
 ------------------------------------------------------------
 -- splitIdeal code
-
 splitIdeal = method(Options => {Strategy=>defaultStrat,
                                 Verbosity=>0,
                                 "CodimensionLimit" => null,
                                 "SquarefreeFactorSize" => 1})
   -- possible Strategy values:
-  --  Linear     -- Eliminates variables where a generator is of the form x - g
-                 -- for g not containing x
-  --  Birational         -- Tries to eliminates variables where a generator is of
-                         -- the form g*x - h for g,h not containing x.
-                         -- If g is a nzd mod I, this eliminates x.  Else,
-                         -- if g is in the radical of I, add in g to I and return
-                         -- else, split with g as: (sat(I,g), (I:sat(I,g)))
-  --  IndependentSet     -- Find an independent set (annotate this), find a flattener,
-                         -- and split using flattener
-  --  SplitTower         -- For an ideal which has LexGBSplit set to true, this splits the
-                         -- ideal into prime (annotated) ideals
-  --  Factorization -
-  --  CharacteristicSets -
+  --  Linear               -- Eliminates variables where a generator is of the form x - g
+                           -- for g not containing x
+  --  Birational           -- Tries to eliminates variables where a generator is of
+                           -- the form g*x - h for g,h not containing x.
+                           -- If g is a nzd mod I, this eliminates x.  Else,
+                           -- if g is in the radical of I, add in g to I and return
+                           -- else, split with g as: (sat(I,g), (I:sat(I,g)))
+  --  IndependentSet       -- Find an independent set (annotate this), find a flattener,
+                           -- and split using flattener
+  --  SplitTower           -- For an ideal which has LexGBSplit set to true, this splits the
+                           -- ideal into prime (annotated) ideals
+  --  Trim                 -- simply trim I.ideal
+  --  DecomposeMonomials   -- Finds monomials that appear as generators, and uses monomial
+                           -- ideal decomposition on those
+  --  Factorization        -- Finds a generator that factors, and splits the ideal based on
+                           -- these factors.  ***No GB computed using this strategy***
+  --  SquarefreeGenerators -- appears currently in Factorization. (not individually
+                           -- implemented yet)
+  --  GB                   -- replaces I.ideal with ideal gens gb I.ideal (not yet implemented)
+  --  CharacteristicSets   -- Use original decompose command (not yet implemented)
+  --  UseColon             -- Commented out in factorization, but logic is faulty.  Not yet
+                           -- implemented, but can we get the logic to work properly?
+  --  WangSplitTower       -- Worth doing?
 
 splitFunction = new MutableHashTable
 -- each function should like like this:
@@ -306,7 +343,7 @@ splitFunction#Linear = (I, opts) -> (
 
 splitFunction#Birational = (I, opts) -> (
       if I.?Birational then return {I};
-      if I.Ideal == 1 then error "got a bad ideal";
+      if I.Ideal == 1 then return {};
       m := findGoodBirationalPoly I.Ideal;
         -- either null or a list {x, g, f=xg-h}, with f in ideal
       if m === null then (
@@ -374,8 +411,9 @@ splitFunction#Factorization = (I,opts) -> (
                 product toList (set ((factors f)/last) - nonzeros)
               ));
           *}
-          J = I + ideal(g);
-          J = trim squarefreeGenerators(J,"SquarefreeFactorSize" => opts#"SquarefreeFactorSize");
+          J = adjoinElement(I,g);
+          J = trim squarefreeGenerators(J,
+                     "SquarefreeFactorSize" => opts#"SquarefreeFactorSize");
           J.Inverted = toList (set(J.Inverted) + prev);
           prev = prev + set{g};
           if numgens J.Ideal === 1 and J.Ideal_0 == 1 then continue else J
@@ -608,7 +646,7 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
       opts = opts ++ {"CodimensionLimit" => numgens I};
     M := splitIdeals({annotatedIdeal(I,{},{},{})}, newstrat, opts);
     numRawPrimes := #M;
-    M = select(M, i -> codim i <= opts#"CodimensionLimit");
+    M = select(M, i -> codimLowerBound i <= opts#"CodimensionLimit");
     (M1,M2) := separatePrime(M);
     if #M2 > 0 then (
          ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);

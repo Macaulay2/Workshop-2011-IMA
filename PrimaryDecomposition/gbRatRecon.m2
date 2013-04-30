@@ -247,7 +247,6 @@ factorIrredTowerWorker List := opts -> polyList -> (
     )
 )
 
--- Question : Will this work in the case of an inseparable polynomial?
 factorTower2 = method(Options => {Verbosity => 0})
 factorTower2 List := opts -> polyList -> (
     -- partition the generators into linear and nonlinear terms
@@ -262,7 +261,7 @@ factorTower2 List := opts -> polyList -> (
     retVal := {{{1,nonlinears_0}}};
     for i from 1 to #nonlinears - 1 do (
        retVal = flatten for facList in retVal list (
-                   newFacs := factorOverTower(facList / last,nonlinears_i,opts);
+                   newFacs := factorOverTowerWorker(facList / last,nonlinears_i,opts);
                    apply(newFacs, newFac -> facList | {newFac})
                 );
     );
@@ -276,6 +275,22 @@ factorTower2 Ideal := opts -> I -> (
 
 factorOverTower = method(Options => options factorTower2)
 factorOverTower (List,RingElement) := opts -> (tower,f) -> (
+   --- This function just sets up the rings properly using makeFiberRings
+   --- so that the calls in the worker function below will work properly.
+   R := ring f;
+   -- get the variables to invert.
+   baseVars := support first independentSets (ideal tower + ideal f);
+   (S,SF) := makeFiberRings(baseVars, R);
+   -- need to make sure the monomial order is correct.  The
+   -- variables need to be in the right order.
+   towerS := flatten entries gens gb sub(tower,S);
+   fS := sub(f,S);
+   facs := factorOverTowerWorker(towerS, fS % (ideal towerS));
+   -- now place back in the correct ring.
+)
+
+factorOverTowerWorker = method(Options => options factorTower2)
+factorOverTowerWorker (List,RingElement) := opts -> (tower,f) -> (
     -- Input : Irreducible tower over a ring of the form k(xs)[ys]
     --           (which was created from makeFiberRings) and another ring element.
     -- Output : The factors of f modulo the irreducible tower in the form

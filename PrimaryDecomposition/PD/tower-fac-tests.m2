@@ -36,7 +36,7 @@
   restart
   debug needsPackage "PD"
   debug needsPackage "UnitTestsPD"
-  R = ZZ/32003[y,a,b,c,d, MonomialOrder=>Lex]
+  R = QQ[y,a,b,c,d]
   T = ideal {a^2+a*c-a*d+b^2-b+c*d-d^2-d,
              a^2+a*b-a*d+b^2+b*c+b+d^2-d,
              1+a*b-a*c+a*d+a+b^2-b*c+b*d-b+c^2+c*d-d^2,
@@ -46,7 +46,7 @@
   factor first Tgb
   C = minprimes(T,Verbosity=>2); -- looks correct here.
   C / codim
-  checkMinimalPrimes(T,C,"CheckPrimality"=>true)    -- checks out.  WAY faster than decompose.
+  checkMinimalPrimes(T,C)    -- checks out.  WAY faster than decompose.
   F = (y+a)*(y-2*d)*(y+b+c)
   F = F % T
   (S,SF) = makeFiberRings({}, R)
@@ -63,7 +63,7 @@
   restart
   debug needsPackage "PD"
   debug needsPackage "UnitTestsPD"
-  R = QQ[y,a,b,c,d, MonomialOrder=>Lex]
+  R = QQ[y,a,b,c,d]
   T = ideal {-1-a^2+a*c+b^2-b*c+c^2-c*d+d^2+d,
              1+a*b+a*c+a-b*c-b*d+b-c^2-c*d-c,
              1+a*c+a*d+a+b^2+b*d-b-c-d^2,
@@ -72,10 +72,13 @@
   Tgb = flatten entries gens gb T
   factor first Tgb
   C = minprimes(T,Verbosity=>2); -- looks correct here.
-  checkMinimalPrimes(T,C,"CheckPrimality"=>true)    -- checks out.  WAY faster than decompose.
+  checkMinimalPrimes(T,C)    -- checks out.  WAY faster than decompose.
   C / codim
   T = last C
   F = (y-2*d^2+a*c+b+1)*(y+b^2+c*d+a*c+2)
+  D = minprimes(T+ideal F,Verbosity=>2)
+  #D
+  checkMinimalPrimes(T+ideal F,D)
   F = F % T
   (S,SF) = makeFiberRings({}, R)
   TS = flatten entries gens gb sub(T, S)

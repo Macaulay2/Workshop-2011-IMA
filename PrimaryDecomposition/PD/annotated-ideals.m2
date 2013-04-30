@@ -232,6 +232,7 @@ trim AnnotatedIdeal := opts -> I -> (
 
 -- this function is used in the #Factorization splitting option, followed by a trim.
 -- TODO: rethink how the trim is done when variables are added?
+squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
 squarefreeGenerators AnnotatedIdeal := opts -> I -> (
    if I.?Squarefree then return I; 
    nonzeros := set I.Inverted;
@@ -257,6 +258,7 @@ squarefreeGenerators AnnotatedIdeal := opts -> I -> (
 
 --- this function is used in splitFunction#IndependentSet to make the
 --- generators of the ideal over the fraction field ready for #SplitTower
+splitLexGB = method()
 splitLexGB AnnotatedIdeal := I -> (
     if not I.?IndependentSet then return {I};
     if I.?LexGBSplit then return {I};
@@ -639,6 +641,8 @@ splitIdeal(AnnotatedIdeal) := opts -> (I) -> (
 
 stratEnd = {(IndependentSet,infinity),SplitTower}
 
+----- End new nested strategy code
+
 minprimesWithStrategy = method(Options => options splitIdeals)
 minprimesWithStrategy(Ideal) := opts -> (I) -> (
     newstrat := {opts.Strategy, stratEnd};
@@ -664,7 +668,41 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
     answer
     )
 
------ End new nested strategy code
+-----------------------
+-- Minimal primes -----
+-----------------------
+minprimes Ideal := opts -> (I) -> (
+    -- returns a list of ideals, the minimal primes of I
+    A := ring I;
+    (I',F) := flattenRing I; -- F is not needed
+    R := ring I';
+    if not isPolynomialRing R then error "expected ideal in a polynomial ring or a quotient of one";
+    psi := map(A, R, generators(A, CoefficientRing => coefficientRing R));
+    backToOriginalRing := if R === A then 
+            identity 
+         else (J) -> trim psi J;
+    I = I';
+    if not isCommutative R then
+      error "expected commutative polynomial ring";
+    kk := coefficientRing R;
+    if kk =!= QQ and not instance(kk,QuotientRing) and not instance(kk, GaloisField) then
+      error "expected base field to be QQ or ZZ/p or GF(q)";
+    if I == 0 then return {if A === R then I else ideal map(A^1,A^0,0)};
+    -- note: at this point, R is the ring of I, and R is a polynomial ring over a prime field
+    C := minprimesWithStrategy(I,
+                       "CodimensionLimit" => opts#"CodimensionLimit",
+                       Strategy=>opts#Strategy,
+                       "SquarefreeFactorSize"=>opts#"SquarefreeFactorSize",
+                       Verbosity=>opts#Verbosity);
+    C / backToOriginalRing
+)
+
+TEST ///
+R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
+I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
+assert(#(minprimes I1) == 22)
+assert(#(oldMinPrimes I1) == 22)
+///
 
 end
 
@@ -673,6 +711,8 @@ debug needsPackage "PD"
 R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
 I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
 time minprimes(I1, "CodimensionLimit"=>6, Verbosity=>2)
+#(minprimes I1)
+#(oldMinPrimes I1)
 time minprimes(I1, "CodimensionLimit"=>7, Verbosity=>2)
 time minprimes(I1, "CodimensionLimit"=>6, Verbosity=>2);
 

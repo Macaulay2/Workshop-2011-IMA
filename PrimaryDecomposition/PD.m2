@@ -10,9 +10,7 @@ newPackage(
         AuxiliaryFiles=>true
         )
 
-needs "gbRatRecon.m2"
-
-exportMutable {MONICTOWERTRICK} --- remove this, debugging only
+needs "factorTower.m2"
 
 export {
     -- Support routines
@@ -51,8 +49,6 @@ export {
     Minprimes,
     Squarefree
 }
-
-MONICTOWERTRICK = true
 
 ---------------------------------
 --- Minprimes strategies
@@ -542,9 +538,6 @@ splitFunction#DecomposeMonomials = (I,opts) -> (
         )
     )
 
-isStrategyDone = method()
-isStrategyDone (List,Symbol) := (L,strat) ->
-  all(L, I -> I#?strat or (I.?isPrime and I.isPrime === "YES"))
 
 ------------------------------------------------
 ---- Birational helper functions
@@ -672,8 +665,9 @@ squarefreeGenerators AnnotatedIdeal := opts -> I -> (
       I
 )
 
--------------------------------------------------------------------------
+-----------------------------------------
 --- Begin new nested strategy code
+-----------------------------------------
 
 -- format for strategy:
 -- a strategy is one of the following:
@@ -692,6 +686,10 @@ strategySet = strat -> (
     else if instance(strat, List) then sum(strat/strategySet)
     else if instance(strat, Sequence) then strategySet first strat
     )
+
+isStrategyDone = method()
+isStrategyDone (List,Symbol) := (L,strat) ->
+  all(L, I -> I#?strat or (I.?isPrime and I.isPrime === "YES"))
 
 separateDone = (L, strats) -> (
     -- L is a list of annotated ideals
@@ -774,7 +772,9 @@ splitIdeal(AnnotatedIdeal) := opts -> (I) -> (
 
 stratEnd = {(IndependentSet,infinity),SplitTower}
 
------ End new nested strategy code
+--------------------------------
+--- Minimal primes
+--------------------------------
 
 minprimesWithStrategy = method(Options => options splitIdeals)
 minprimesWithStrategy(Ideal) := opts -> (I) -> (
@@ -834,7 +834,6 @@ TEST ///
 R1 = QQ[d, f, j, k, m, r, t, A, D, G, I, K];
 I1 = ideal ( I*K-K^2, r*G-G^2, A*D-D^2, j^2-j*t, d*f-f^2, d*f*j*k - m*r, A*D - G*I*K);
 assert(#(minprimes I1) == 22)
-assert(#(oldMinPrimes I1) == 22)
 ///
 
 ------------------------------
@@ -869,6 +868,7 @@ radicalContainment(Ideal, Ideal) := (I,J) -> (
     for i from 0 to #G-1 do if not rad G#i then return i;
     null
     )
+
 -----------------------------
 -- Redundancy control -------
 -----------------------------
@@ -896,9 +896,10 @@ selectMinimalIdeals = (L) -> (
         ML#i
         )
     )
---------------------------------
--- Factorization ---------------
---------------------------------
+
+----------------------------------------------
+-- Factorization and fraction field commands 
+----------------------------------------------
 -- setAmbientField:
 --   input: KR, a ring of the form kk(t)[u] (t and u sets of variables)
 --          RU, kk[u,t] (with some monomial ordering)
@@ -983,10 +984,6 @@ makeFiberRings(List,Ring) := (basevars,R) -> (
       (S, SF)
    )
 )
-
----------------------------------------------------
---- Methods for passing to/from the fraction field
----------------------------------------------------
 
 minimalizeOverFrac = method()
 minimalizeOverFrac(Ideal, Ring) := (I, SF) -> (

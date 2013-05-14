@@ -159,6 +159,11 @@ TEST ///
   assert( J == contractToPolynomialRing I )
 ///
 
+--- TODO : (5/14/2013) Get these working with the new version of splitTower code.
+---        Also, for every minprimes check below, make one for each of
+---        the built in general strategies.  At this time, there are only 2
+---        namely BirationalStrat and NoBirationalStrat.  Also should come up with
+---        some better names for these probably.
 {*
 TEST ///
   debug needsPackage "PD"
@@ -198,9 +203,7 @@ TEST ///
   J = ideal{1_R}
   assert try equidimSplitOneStep J else true;
 ///
-*}
 
-{*
 TEST ///
   debug needsPackage "PD"
   R = QQ[a,b,c,d]
@@ -228,7 +231,6 @@ TEST ///
   J = ideal{1_R}
   assert (splitLexGB J == {})
 ///
-*}
 
 TEST ///
   debug needsPackage "PD"
@@ -240,10 +242,6 @@ TEST ///
   assert not hasLinearLeadTerm 0_R
   assert not hasLinearLeadTerm 1_R
 ///
-
-{*
-
-TODO : Get these working with the new version of splitTower code.
 
 TEST ///
   -- again, find a better test that is not simply comparing against old return values?
@@ -264,14 +262,12 @@ TEST ///
   assert (splitTower ideal 1_R == {ideal 1_R})
   assert (splitTower ideal 0_R == {ideal 0_R})  
 ///
-*}
 
 ----------------------------------------------------------
 -- Tests of routines for birationalSplit, simplifyIdeal --
 ----------------------------------------------------------
 
 TEST ///
-restart
   debug needsPackage "PD"
   R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"
@@ -292,7 +288,6 @@ restart
 ///
 
 TEST ///
-restart
   debug needsPackage "PD"
   R = QQ[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   F = -a+2*x
@@ -310,7 +305,6 @@ restart
 ///
 
 TEST ///
-restart
   debug needsPackage "PD"
   R = ZZ/32003[a,b,c,d,f,g,h,k,l,s,t,u,v,w,x,y,z]
   I = ideal"
@@ -363,7 +357,7 @@ TEST ///
     -a+2x,
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
-
+  
 ///
 -------------------------------------
 
@@ -390,7 +384,7 @@ TEST ///
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
 ///
-
+*}
 
 -------------------------------------
 --- Primary Decomposition tests below

@@ -102,6 +102,7 @@ quickEliminate (List,Ideal) := (v,I) -> (
 quickEliminate (Ideal,List) := (I,v) -> quickEliminate(v,I)
 
 quickEliminate1 = (elimindices,I) -> (
+   -- helper function to quickEliminate
    -- at this point, I is an ideal in a flat ring, 
    -- and elimindices represents the variables
    -- to eliminate.

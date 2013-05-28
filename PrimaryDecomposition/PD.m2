@@ -268,7 +268,9 @@ isPrime AnnotatedIdeal := (I) -> (
 --- how the annotation changes
 adjoinElement = method()
 adjoinElement (AnnotatedIdeal,RingElement) := (I,f) -> (
-   annotatedIdeal((ideal f) + I.Ideal,
+   J := ideal compress ((gens I.Ideal) % f);
+   J = if J == 0 then ideal f else (ideal f) + J;
+   annotatedIdeal(J,  -- is a trim necessary/desirable here?
                   I.Linears,  -- 'linear' generators
                   {},         -- clear out nonzerodivisor list
                   unique join(I.NonzeroDivisors,I.Inverted)) -- move nonzerodivisors to inverted list
@@ -398,10 +400,11 @@ splitFunction#Factorization = (I,opts) -> (
     prev := set{};
     nonzeroFacs := toList(set facs - nonzeros);
     if #nonzeroFacs == 1 and nonzeroFacs#0 != f then
-       return {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
+       return {adjoinElement(I,nonzeroFacs#0)};
+       {*return {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
                               I.Linears,
                               I.NonzeroDivisors,
-                              I.Inverted)};
+                              I.Inverted)};*}
     L := for g in nonzeroFacs list (
           -- colon or sum?
           -- Try and fix UseColon?  May not be fixable...
@@ -417,7 +420,8 @@ splitFunction#Factorization = (I,opts) -> (
               ));
           *}
           J = adjoinElement(I,g);
-          J = trim squarefreeGenerators(J,
+          J = squarefreeGenerators(J,  -- there used to be a trim here, but we changed
+                                       -- the function so that it was no longer needed.
                      "SquarefreeFactorSize" => opts#"SquarefreeFactorSize");
           J.Inverted = toList (set(J.Inverted) + prev);
           prev = prev + set{g};
@@ -514,6 +518,44 @@ splitFunction#SplitTower = (I,opts) -> (
          )
     )
 
+{*
+splitFunction#CharactisticSets = (I,opts) -> (
+    -- what do we need to stash in the answer from independentSets?
+    -- does this really belong in the annotated ideal framework?
+    -- create two annotated ideals:
+    if isPrime I === "YES" then return {I};
+    if I.?SplitTower then return {I};
+    if not I.?IndependentSet or not I.?LexGBSplit then return {I};
+    -- Finally we can try to split this ideal into primes
+    L := I.LexGBOverBase;  -- L is the lex GB over the fraction field base
+    --facsL := factorTower(L, Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true);
+    facsL := factorTower(L, Verbosity=>opts.Verbosity);
+    -- facsL is currently a list of lists:
+    --   each list is of the form {exponent, poly}.  Here, we need to remove these exponents.
+    if opts.Verbosity >= 4 then (
+         << "SplitTower: Input: " << L << endl;
+         << "           Output: " << netList facsL << endl;
+         );
+    didSplit := #facsL > 1 or any(facsL#0, s -> s#0 > 1);
+    if not didSplit then (
+         I.SplitTower = true;
+         I.isPrime = "YES";
+         {I}
+         )
+    else (
+         for fac in facsL list (
+              newI := new AnnotatedIdeal from I;
+              --temp := fac / last;
+              --if set temp =!= set flatten entries gens gb ideal (fac/last) then error "err";
+              newI.LexGBOverBase = flatten entries gens gb ideal (fac/last);
+              newI.SplitTower = true;
+              newI.isPrime = "YES";
+              newI
+              )
+         )
+    )
+*}
+
 splitFunction#DecomposeMonomials = (I,opts) -> (
     if isPrime I === "YES" then return {I};
     if I.?DecomposeMonomials or I.?IndependentSet then return {I};
@@ -602,7 +644,8 @@ splitBy = (I, h) -> (
      if h == 1 then return null;
      Isat := saturate(I, h);
      if Isat == I then return null; -- in this case, h is a NZD mod I
-     I2 := I : Isat;
+     I2 := I : Isat;  -- this line is a killer (sometimes).
+     --I2 := (ideal h) + I;
      (Isat, I2)
      )
 ------------------------------------
@@ -639,6 +682,8 @@ splitLexGB AnnotatedIdeal := opts -> I -> (
 ---------------------------------------
 -- Factorization helper functions
 ---------------------------------------
+{*
+-- Old version - 5/28/2013
 -- this function is used in the #Factorization splitting option, followed by a trim.
 -- TODO: rethink how the trim is done when variables are added?
 squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
@@ -661,6 +706,38 @@ squarefreeGenerators AnnotatedIdeal := opts -> I -> (
       -- note that the NonzeroDivisor list is empty below since elements
       -- can become zerodivisors when removing powers of generators
       annotatedIdeal(J1,I.Linears,{},unique join(I.NonzeroDivisors,I.Inverted))
+   else 
+      I
+)
+*}
+-- new version with trim moved to a smaller ideal than the whole input.
+squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
+squarefreeGenerators AnnotatedIdeal := opts -> I -> (
+   if I.?Squarefree then return I; 
+   nonzeros := set I.Inverted;
+   J := I.Ideal;
+   n := opts#"SquarefreeFactorSize";
+   madeChanges := false;
+   L := for g in J_* list (
+           if size g > n then (g,false)
+           else (
+             nonzeroFacs := set ((factors g) / last) - nonzeros;
+             h := (1_(ring I))*(product toList nonzeroFacs);
+             if g != h then madeChanges = true;
+             (h,g != h)
+           )
+        );
+   if madeChanges then
+   (
+      -- note that the NonzeroDivisor list is empty below since elements
+      -- can become zerodivisors when removing powers of generators
+      J1 := ideal (L / first);
+      J2 := trim ideal (select(L, p -> p#1) / first);  -- note that this trim involves only
+                                                       -- 'small' factors
+      J1 = ideal compress ((gens J1) % J2);
+      J1 = if J1 == 0 then J2 else J1 + J2;
+      annotatedIdeal(J1,I.Linears,{},unique join(I.NonzeroDivisors,I.Inverted))
+   )
    else 
       I
 )

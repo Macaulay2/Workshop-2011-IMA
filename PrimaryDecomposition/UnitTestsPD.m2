@@ -1111,7 +1111,7 @@ TEST ///
   tx2y + x2yz + x2z2,
   twy2 + ty2z + y2z2,
   t2wx + t2wz + t2z2"
-  time C = minprimes I
+  time C = minprimes(I)
   checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
@@ -1367,6 +1367,15 @@ TOODAMNSLOW ///
 ///
 
 end
+
+-- UHOH problem with finite fields
+restart
+needsPackage "PD"
+kk = GF(7)
+R = kk[x,y,t]
+I = ideal {x^7-t^2,y^7-t^2}
+I' = sub(I, {x => (random kk)*y + (random kk)*x, y => (random kk)*x + (random kk)*y})
+minprimes(I, Verbosity=>2)
 
 ---
 restart

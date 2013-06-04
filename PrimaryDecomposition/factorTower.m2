@@ -94,6 +94,12 @@ factorOverTowerWorker (List,RingElement) := opts -> (tower,f) -> (
                  (quickEliminate(L1,otherVars))_0
               else
                  (eliminate(L1, otherVars))_0;
+    completelySplit := degree(lastVar, G) === vecdim;
+    if char ring f > 0 and char ring f <= vecdim and not completelySplit then (
+       << endl;
+       << "*** SplitTower called on ring of small characteristic relative to ideal." << endl;
+       << "*** Take the answer with a grain of salt." << endl;
+    );
     facs := factors G;
     facs1 := apply(facs, (mult,h) -> (mult,sub(h, lastVar => lastVar - (numerator F))));
     if opts.Verbosity >= 3 then (
@@ -137,6 +143,8 @@ factorOverTowerWorker (List,RingElement) := opts -> (tower,f) -> (
                  if C == 1 then continue;
                  newFactor := {fac#0, first toList (set C_* - set IF_*)};
                  firstFacs = firstFacs * (newFactor#1)^(newFactor#0);
+                 -- something like this command needs to go here...
+                 -- if not completelySplit then factorOverTowerWorker(tower,newFactor#1)
                  newFactor
     );
     -- if we made it all the way through facs1, then we are done.  Else, we may use
@@ -145,6 +153,7 @@ factorOverTowerWorker (List,RingElement) := opts -> (tower,f) -> (
     else (
        lastFactor := lastIrred // firstFacs;
        newFactor = {(last facs1)#0, lastFactor};
+       --if not completelySplit then factorOverTowerWorker(tower,newFactor#1)
        append(retVal, newFactor)
     )
 )

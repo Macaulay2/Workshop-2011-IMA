@@ -292,6 +292,7 @@ trim AnnotatedIdeal := opts -> I -> (
 -- splitIdeal code
 splitIdeal = method(Options => {Strategy=>BirationalStrat,
                                 Verbosity=>0,
+                                "PDState"=>null,
                                 "CodimensionLimit" => null,
                                 "SquarefreeFactorSize" => 1})
   -- possible Strategy values:
@@ -331,6 +332,7 @@ splitFunction = new MutableHashTable
 splitFunction#Trim = (I, opts) -> if I.?Trim then {I} else {trim I}
 
 splitFunction#Linear = (I, opts) -> (
+    -- no redundancy issues (in fact, ideals are not split at all...)
     if I.?Linear then return {I};
     J := I.Ideal;
     linears := for x in gens ring J list (
@@ -357,6 +359,8 @@ splitFunction#Birational = (I, opts) -> (
           I.Birational = true;
           return {I};
           );
+      -- depending on whether splitBy uses colons or adds in generators,
+      -- the following line will/will not possibly create redundant components.
       splitt := if member(m#1, I.NonzeroDivisors) then null else splitBy(I.Ideal,m#1);
       if splitt === null then (
           -- in this case, m#1 is a nonzerodivisor
@@ -370,10 +374,11 @@ splitFunction#Birational = (I, opts) -> (
           -- if newI.Ideal is generatedby one irreducible element
           return {newI};
           );
-
       (J1,J2) := splitt;  -- two ideals.  The first has m#1 as a non-zero divisor.
       if J1 == 1 then (
           -- i.e. m#1 is in the radical of I.Ideal
+          -- since m#1 is in the radical, even though this looks like
+          -- redundant components are possible, that is not the case here.
           g := m#1//factors/last//product; -- squarefree part of m#1
           if g == 1 then error "also a bad error";
           newI = ideal compress((gens I.Ideal) % g) + ideal g;
@@ -574,6 +579,7 @@ splitFunction#DecomposeMonomials = (I,opts) -> (
              then ideal matrix(R, {{}})
              else trim(ideal newI);
         newlinears := for x in c_* list (x, leadCoefficient x, x);
+        -- this is a place where we could be adding in redundancy.
         annJ := annotatedIdeal(J, join(I.Linears, newlinears), I.NonzeroDivisors, I.Inverted);
         if #newI === 0 then annJ.isPrime = "YES";
         annJ
@@ -644,8 +650,8 @@ splitBy = (I, h) -> (
      if h == 1 then return null;
      Isat := saturate(I, h);
      if Isat == I then return null; -- in this case, h is a NZD mod I
-     I2 := I : Isat;  -- this line is a killer (sometimes).
-     --I2 := (ideal h) + I;
+     I2 := I : Isat;  -- this line is a killer (sometimes) but doesn't generate redundant components.
+     --I2 := (ideal h) + I;  -- this will create (possibly) redundant components.
      (Isat, I2)
      )
 ------------------------------------
@@ -808,12 +814,14 @@ splitIdeals(List, Symbol) := opts -> (L, strat) -> (
         numOrig := #ans;
         if opts#"CodimensionLimit" =!= null then 
             ans = select(ans, i -> codimLowerBound i <= opts#"CodimensionLimit");
+        (primes,others) := separatePrime(ans);
+        updatePDState(opts#"PDState",primes,numOrig - #ans);
         if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
         if opts.Verbosity >= 2 then (
-            knownPrimes := #select(ans, I -> isPrime I === "YES");
-            << " #primes = " << knownPrimes << " #prunedViaCodim = " << numOrig - #ans << endl;
+            << " #primes = " << numPrimesInPDState(opts#"PDState");
+            << " #prunedViaCodim = " << opts#"PDState"#"PrunedViaCodim" << endl;
             );
-        ans
+        others
         )
     )
 splitIdeals(List, Sequence) := opts -> (L, strat) -> (
@@ -850,6 +858,41 @@ splitIdeal(AnnotatedIdeal) := opts -> (I) -> (
 stratEnd = {(IndependentSet,infinity),SplitTower}
 
 --------------------------------
+--- PDState commands -----------
+--------------------------------
+PDState = new Type of MutableHashTable
+createPDState = method()
+createPDState Ideal := I -> (
+   new PDState from {"OriginalIdeal" => I,
+                     "PrimesSoFar" => new MutableHashTable from {},
+                     "IntersectionSoFar" => ideal (1_(ring I)),
+                     "PrunedViaCodim" => 0}
+)
+
+updatePDState = method()
+updatePDState (PDState,List,ZZ) := (pdState,L,pruned) -> (
+  -- this function updates the pdState with the new primes in the list L which
+  -- consists of annotated ideals, all of which are known to be prime
+  ansSoFar := pdState#"PrimesSoFar";
+  intSoFar := pdState#"IntersectionSoFar";
+  pdState#"PrunedViaCodim" = pdState#"PrunedViaCodim" + pruned;
+  for p in L do (
+     c := codim p;
+     if not ansSoFar#?c then
+        ansSoFar#c = {p}
+     else
+        ansSoFar#c = append(ansSoFar#c,p);
+  );
+)
+
+numPrimesInPDState = method()
+numPrimesInPDState PDState := pdState -> sum apply(pairs (pdState#"PrimesSoFar"), p -> #(p#1))
+
+getPrimesInPDState = method()
+getPrimesInPDState PDState := pdState ->
+   (flatten apply(pairs (pdState#"PrimesSoFar"), p -> (p#1))) / ideal
+
+--------------------------------
 --- Minimal primes
 --------------------------------
 
@@ -858,24 +901,27 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
     newstrat := {opts.Strategy, stratEnd};
     if opts#"CodimensionLimit" === null then 
       opts = opts ++ {"CodimensionLimit" => numgens I};
+    pdState := createPDState(I);
+    opts = opts ++ {"PDState" => pdState};
     M := splitIdeals({annotatedIdeal(I,{},{},{})}, newstrat, opts);
-    numRawPrimes := #M;
-    M = select(M, i -> codimLowerBound i <= opts#"CodimensionLimit");
-    (M1,M2) := separatePrime(M);
-    if #M2 > 0 then (
-         ( << "warning: ideal did not split completely: " << #M2 << " did not split!" << endl;);
+    numRawPrimes := numPrimesInPDState pdState;
+    --M = select(M, i -> codimLowerBound i <= opts#"CodimensionLimit");
+    --(M1,M2) := separatePrime(M);
+    if #M > 0 then (
+         ( << "warning: ideal did not split completely: " << #M << " did not split!" << endl;);
          error "answer not complete";
          );
     if opts#Verbosity>=2 then (
-       << "Converting annotated ideals to ideals and selecting minimal primes." << endl;
+       << "Converting annotated ideals to ideals and selecting minimal primes..." << flush;
     );
-    answer := M/ideal//selectMinimalIdeals;
-    if opts.Verbosity >= 2 then (
-         if #answer < numRawPrimes then (
-              << "#minprimes=" << #answer << ", #underCodimLimit=" << #M << " #computed=" << numRawPrimes << endl;
-              );
-         );
-    answer
+    answer := timing((getPrimesInPDState pdState)//selectMinimalIdeals);
+    if opts#Verbosity>=2 then (
+       << " Time taken : " << answer#0 << endl;
+       if #(answer#1) < numRawPrimes then (
+            << "#minprimes=" << #(answer#1) << " #computed=" << numPrimesInPDState pdState << endl;
+            );
+    );
+    answer#1
     )
 
 -----------------------
@@ -924,6 +970,7 @@ radFcn = (I) -> (
         S := (coefficientRing R) (monoid[Variables=>n+1,MonomialSize=>16]);
         mapto := map(S,R,submatrix(vars S,{0..n-1}));
         I = mapto I;
+        -- here is a GB of I!
         A := S/I;
         rad := (g) -> (g1 := promote(mapto g, A); g1 == 0 or ideal(g1 * A_n - 1) == 1);
         I.cache#"RadicalContainmentFunction" = rad;

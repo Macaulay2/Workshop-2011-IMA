@@ -1045,7 +1045,7 @@ TOODAMNSLOW ///
   2bc + 2ad + 2ef + d,
   c2 + 2bd + 2ae + f2 + e,
   2cd + 2be + 2af + f"
-  time C = minprimes I
+  time C = minprimes(I,Verbosity=>2)
   --checkMinimalPrimes(I, C, "Answer" => decompose) -- decompose is TOO slow here
   -- TODO: need to be able to check this answer
   assert false
@@ -1096,7 +1096,7 @@ TEST ///
   e2f2g2k2 + 2ef2g2hk2 + f2g2h2k2 + 2ef2g2k2l + 2f2g2hk2l + dg2,
   -e2f2g2hk2-ef2g2h2k2-e2f2g2k2l-2ef2g2hk2l-f2g2h2k2l-ef2g2k2l2
     - f2g2hk2l2 + a2"
-  time C = minprimes I
+  time C = minprimes(I,Verbosity=>2)
   checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
@@ -1111,7 +1111,7 @@ TEST ///
   tx2y + x2yz + x2z2,
   twy2 + ty2z + y2z2,
   t2wx + t2wz + t2z2"
-  time C = minprimes(I)
+  time C = minprimes(I, Verbosity => 2)
   checkMinimalPrimes(I, C, "Answer" => decompose)
 ///
 
@@ -1175,7 +1175,7 @@ TOODAMNSLOW ///
     -b2-c2+2bx+2cy,
     -d2-f2-g2+2dx+2fy+2gz"
   -- too much time being spent in equidimSplitOneStep again, 'gens gb IS' line
-  time C = minprimes I -- takes a while  NEEDS WORK TOO DAMN SLOW
+  time C = minprimes(I,Verbosity=>2) -- takes a while  NEEDS WORK TOO DAMN SLOW
   -- this works with the new splitIdeal code using the Birational split.
   {*
   C = time minprimes(I,Strategy=>{Linear,Birational});
@@ -1238,7 +1238,7 @@ TEST ///
        2*e_1*e_3*e_4-3*e_3*g_1*g_4+3*e_1*g_3*g_4,
        2*e_1*e_2*e_4-3*e_2*g_1*g_4+3*e_1*g_2*g_4,
        2*e_1*e_2*e_3-3*e_2*g_1*g_3+3*e_1*g_2*g_3)
-  time minprimes J
+  time minprimes(J,Verbosity=>2);
   {*
   C = splitIdeal(J,Strategy=>{defaultStrat,(IndependentSet,infinity)}, Verbosity=>2)
   C / isPrime

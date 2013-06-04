@@ -194,13 +194,18 @@ codimLowerBound AnnotatedIdeal := (I) -> (
           else if numgens I.Ideal === 1 and I.Ideal_0 != 0 then
              # I.Linears + 1
           else
-             # I.Linears
+             # I.Linears + codim(monomialIdeal gens I.Ideal)
          )
      )
 
 net AnnotatedIdeal := (I) -> peek I
 
 ring AnnotatedIdeal := (I) -> ring I.Ideal
+
+isSubset (Ideal,AnnotatedIdeal) := (J,I) -> (
+   -- naive attempt first...
+   isSubset(J,ideal I)
+)
 
 -- The associated ideal to an annotated ideal I is
 -- defined at the top of this file.
@@ -213,18 +218,22 @@ ring AnnotatedIdeal := (I) -> ring I.Ideal
 --      this logic.
 ideal AnnotatedIdeal := (I) -> (
     --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
-    F := product unique (I.Linears / (x -> x#1));
-    I1 := ideal(I.Linears/last);
-    I2 := if I.?IndependentSet then (
-            S := (I.IndependentSet)#1;
-            phi := S.cache#"StoR";
-            phi contractToPolynomialRing ideal I.LexGBOverBase
-         )
-          else
-            I.Ideal;
-    I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
-    if F == 1 then I3 else saturate(I3, F)
-    )
+    if not I#?"CachedIdeal" then I#"CachedIdeal" = (
+       F := product unique (I.Linears / (x -> x#1));
+       I1 := ideal(I.Linears/last);
+       I2 := if I.?IndependentSet then (
+               S := (I.IndependentSet)#1;
+               phi := S.cache#"StoR";
+               phi contractToPolynomialRing ideal I.LexGBOverBase
+             )
+             else
+               I.Ideal;
+       I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
+       if F == 1 then I3 else saturate(I3, F)
+    );
+    I#"CachedIdeal"
+)
+
 TEST ///
   debug needsPackage "PD"
   R = QQ[b,s,t,u,v,w,x,y,z]
@@ -777,7 +786,9 @@ isStrategyDone (List,Symbol) := (L,strat) ->
 separateDone = (L, strats) -> (
     -- L is a list of annotated ideals
     H := partition(f -> all(strats, s -> isStrategyDone({f}, s)), L);
-    (if H#?true then H#true else {}, if H#?false then H#false else {})
+    (H1,H2) := (if H#?true then H#true else {}, if H#?false then H#false else {});
+    indexList := sort(apply(#H2, i -> (codimLowerBound H2#i,i))) / last;
+    (H1,H2_indexList)
     )
 
 separatePrime = (L) -> (
@@ -805,21 +816,27 @@ splitIdeals(List, Symbol) := opts -> (L, strat) -> (
             Trim
             }) then
           error ("Unknown strategy " | toString strat | " given.");
+    pdState := opts#"PDState";
     flatten for f in L list (
         if opts.Verbosity >= 2 then (
             << "  Strategy: " << pad(toString strat,18) << flush;
             );
+        -- check to see if this ideal is redundant before performing the splitting computation
+        if isRedundantIdeal(f,pdState) then (
+           if opts.Verbosity >= 2 then << " ** Redundant Ideal found and skipped." << endl;
+           continue;
+        );
         tim := timing splitFunction#strat(f, opts);
         ans := tim#1;
         numOrig := #ans;
         if opts#"CodimensionLimit" =!= null then 
             ans = select(ans, i -> codimLowerBound i <= opts#"CodimensionLimit");
         (primes,others) := separatePrime(ans);
-        updatePDState(opts#"PDState",primes,numOrig - #ans);
+        updatePDState(pdState,primes,numOrig - #ans);
         if opts.Verbosity >= 2 then << pad("(time " | toString (tim#0) | ") ", 16);
         if opts.Verbosity >= 2 then (
-            << " #primes = " << numPrimesInPDState(opts#"PDState");
-            << " #prunedViaCodim = " << opts#"PDState"#"PrunedViaCodim" << endl;
+            << " #primes = " << numPrimesInPDState(pdState);
+            << " #prunedViaCodim = " << pdState#"PrunedViaCodim" << endl;
             );
         others
         )
@@ -829,6 +846,7 @@ splitIdeals(List, Sequence) := opts -> (L, strat) -> (
     strategies := toList strategySet strat;
     (L1,L2) := separateDone(L, strategies);
     while n > 0 and #L2 != 0 do (
+        --<< endl << L2 / codimLowerBound << endl;
         M := splitIdeals(L2, strategy, opts);
         (M1,M2) := separateDone(M, strategies);
         L1 = join(L1, M1);
@@ -874,14 +892,16 @@ updatePDState (PDState,List,ZZ) := (pdState,L,pruned) -> (
   -- this function updates the pdState with the new primes in the list L which
   -- consists of annotated ideals, all of which are known to be prime
   ansSoFar := pdState#"PrimesSoFar";
-  intSoFar := pdState#"IntersectionSoFar";
   pdState#"PrunedViaCodim" = pdState#"PrunedViaCodim" + pruned;
   for p in L do (
+     I := ideal p;
+     --pdState#"IntersectionSoFar" = trim intersect(pdState#"IntersectionSoFar", I);
      c := codim p;
+     --<< endl << "   Adding codimension " << c << " prime ideal." << endl;
      if not ansSoFar#?c then
-        ansSoFar#c = {p}
+        ansSoFar#c = {(p,I)}
      else
-        ansSoFar#c = append(ansSoFar#c,p);
+        ansSoFar#c = append(ansSoFar#c,(p,I));
   );
 )
 
@@ -890,7 +910,17 @@ numPrimesInPDState PDState := pdState -> sum apply(pairs (pdState#"PrimesSoFar")
 
 getPrimesInPDState = method()
 getPrimesInPDState PDState := pdState ->
-   (flatten apply(pairs (pdState#"PrimesSoFar"), p -> (p#1))) / ideal
+   flatten apply(pairs (pdState#"PrimesSoFar"), p -> (p#1) / last)
+
+isRedundantIdeal = method()
+isRedundantIdeal (AnnotatedIdeal,PDState) := (I,pdState) -> (
+   -- the reason for this line is that once ind.set has been called, then
+   -- I.Ideal no longer reflects the ideal
+   if I.?IndependentSet then return false;
+   primeList := getPrimesInPDState(pdState);
+   false
+   --any(primeList,p -> isSubset(p,I))
+)
 
 --------------------------------
 --- Minimal primes

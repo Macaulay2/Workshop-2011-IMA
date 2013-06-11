@@ -1366,6 +1366,18 @@ TOODAMNSLOW ///
   C = time minprimes(I,Strategy=>{Linear,Factorization,DecomposeMonomials,Linear,Factorization});  
 ///
 
+TEST ///
+  debug needsPackage "PD"
+  kk = ZZ/7
+  R = kk[x,y,t]
+  I = ideal {x^7-t^2,y^7-t^2}
+
+  T = tally for i from 0 to 30 list (
+      C := minprimes I;
+      #C == 1 and C_0 == ideal(y-x, x^7-t^2))
+  assert(not T#?false)
+///
+
 end
 
 -- UHOH problem with finite fields

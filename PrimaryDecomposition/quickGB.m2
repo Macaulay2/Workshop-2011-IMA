@@ -31,8 +31,8 @@ computeGB Ideal := (I) -> (
   numLexGens := (toList(monOrder#1))#1;
   
   -- define the rings and ring maps that we need to perform the computation.  
-  grevLexRT := (coefficientRing R)[gensR,T, MonomialOrder=>GRevLex];
-  homogR := (coefficientRing R)[gensR,T, MonomialOrder=>monOrder | {GRevLex=>1}];
+  grevLexRT := (coefficientRing R) (monoid [gensR,T, MonomialOrder=>GRevLex]);
+  homogR := (coefficientRing R) (monoid [gensR,T, MonomialOrder=>monOrder | {GRevLex=>1}]);
   phi1 := map(grevLexRT,R);
   phi2 := map(homogR,grevLexRT);
   phi3 := (R,homogR);
@@ -40,7 +40,7 @@ computeGB Ideal := (I) -> (
   
   -- move around and compute the GBs
   grevLexGB := gens gb phi1 I;
-  grevLexHomogGB := homogenize(grevLexGB, sub(T,grevLexRT));
+  grevLexHomogGB := homogenize(grevLexGB, sub(homogR_(numgens homogR-1),grevLexRT));
   hilbI := poincare ideal grevLexHomogGB;
   homogFastI := phi2 grevLexHomogGB;
   homogFastGB := gens gb(homogFastI,Hilbert=>hilbI);

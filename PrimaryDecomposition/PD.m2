@@ -10,7 +10,8 @@ newPackage(
         AuxiliaryFiles=>true
         )
 
-needs "factorTower.m2"
+
+
 
 export {
     -- Support routines
@@ -49,6 +50,12 @@ export {
     Minprimes,
     Squarefree
 }
+
+raw  = value Core#"private dictionary"#"raw"
+rawGBContains = value Core#"private dictionary"#"rawGBContains"
+rawCharSeries = value Core#"private dictionary"#"rawCharSeries"
+
+needs "factorTower.m2"
 
 ---------------------------------
 --- Minprimes strategies
@@ -502,73 +509,72 @@ splitFunction#SplitTower = (I,opts) -> (
     -- create two annotated ideals:
     if isPrime I === "YES" then return {I};
     if I.?SplitTower then return {I};
+    if I.?CharacteristicSets then return {I};
     if not I.?IndependentSet or not I.?LexGBSplit then return {I};
     -- Finally we can try to split this ideal into primes
     L := I.LexGBOverBase;  -- L is the lex GB over the fraction field base
     --facsL := factorTower(L, Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true);
-    facsL := factorTower(L, Verbosity=>opts.Verbosity);
+    (completelySplit, facsL) := factorTower(L, Verbosity=>opts.Verbosity);
     -- facsL is currently a list of lists:
     --   each list is of the form {exponent, poly}.  Here, we need to remove these exponents.
     if opts.Verbosity >= 4 then (
          << "SplitTower: Input: " << L << endl;
          << "           Output: " << netList facsL << endl;
          );
-    didSplit := #facsL > 1 or any(facsL#0, s -> s#0 > 1);
-    if not didSplit then (
-         I.SplitTower = true;
-         I.isPrime = "YES";
-         {I}
+     for fac in facsL list (
+         newI := new AnnotatedIdeal from I;
+         newI.LexGBOverBase = flatten entries gens gb ideal (fac/last);
+         newI.SplitTower = true;
+         if completelySplit then (
+             newI.isPrime = "YES";
+             );
+         newI
          )
-    else (
-         for fac in facsL list (
-              newI := new AnnotatedIdeal from I;
-              --temp := fac / last;
-              --if set temp =!= set flatten entries gens gb ideal (fac/last) then error "err";
-              newI.LexGBOverBase = flatten entries gens gb ideal (fac/last);
-              newI.SplitTower = true;
-              newI.isPrime = "YES";
-              newI
-              )
-         )
+     )
+
+splitViaCharSeries = method()
+splitViaCharSeries Ideal := (IF) -> (
+    -- variables should be in order used by rawCharSeries.
+    SF := ring IF;
+    I := ideal (IF_*/numerator);
+    S := ring I;
+    toSF := S.cache#"StoSF";
+    C := rawCharSeries raw gens I;
+    C = C/(c -> map(S, c));
+    select(for c in C list flatten entries gens gb toSF c, i -> i#0 != 1)
     )
 
-{*
-splitFunction#CharactisticSets = (I,opts) -> (
-    -- what do we need to stash in the answer from independentSets?
+TEST ///
+  restart
+  debug needsPackage "PD"
+  R = ZZ/5[a,b,c]
+  I = ideal"a5-c2, b5-c2"
+  (S,SF) = makeFiberRings {c}
+  L = sub(I, SF)
+  splitViaCharSeries L
+///
+
+splitFunction#CharacteristicSets = (I,opts) -> (
     -- does this really belong in the annotated ideal framework?
     -- create two annotated ideals:
     if isPrime I === "YES" then return {I};
-    if I.?SplitTower then return {I};
+    if I.?CharacteristicSets then return {I};
     if not I.?IndependentSet or not I.?LexGBSplit then return {I};
     -- Finally we can try to split this ideal into primes
-    L := I.LexGBOverBase;  -- L is the lex GB over the fraction field base
-    --facsL := factorTower(L, Verbosity=>opts.Verbosity, "SplitIrred"=>true, "Minprimes"=>true);
-    facsL := factorTower(L, Verbosity=>opts.Verbosity);
-    -- facsL is currently a list of lists:
-    --   each list is of the form {exponent, poly}.  Here, we need to remove these exponents.
+    L := ideal I.LexGBOverBase;  -- L is the lex GB over the fraction field base
+    C := splitViaCharSeries L;  -- each of the results is a lex GB which is irred, over the ring SF
     if opts.Verbosity >= 4 then (
-         << "SplitTower: Input: " << L << endl;
-         << "           Output: " << netList facsL << endl;
+         << "CharacteristicSets: Input: " << L << endl;
+         << "                   Output: " << netList C << endl;
          );
-    didSplit := #facsL > 1 or any(facsL#0, s -> s#0 > 1);
-    if not didSplit then (
-         I.SplitTower = true;
-         I.isPrime = "YES";
-         {I}
-         )
-    else (
-         for fac in facsL list (
-              newI := new AnnotatedIdeal from I;
-              --temp := fac / last;
-              --if set temp =!= set flatten entries gens gb ideal (fac/last) then error "err";
-              newI.LexGBOverBase = flatten entries gens gb ideal (fac/last);
-              newI.SplitTower = true;
-              newI.isPrime = "YES";
-              newI
-              )
-         )
+    for P in C list (
+        newI := new AnnotatedIdeal from I;
+        newI.LexGBOverBase = P;
+        newI.CharacteristicSets = true;
+        newI.isPrime = "YES";
+        newI
+        )
     )
-*}
 
 splitFunction#DecomposeMonomials = (I,opts) -> (
     if isPrime I === "YES" then return {I};
@@ -812,6 +818,7 @@ splitIdeals(List, Symbol) := opts -> (L, strat) -> (
             Factorization,
             IndependentSet,
             SplitTower,
+            CharacteristicSets,
             DecomposeMonomials,
             Trim
             }) then
@@ -867,13 +874,16 @@ splitIdeals(List, List) := opts -> (L, strat) -> (
     join(L1,L2)
     )
 splitIdeal(Ideal) := opts -> (I) -> (
+    pdState := createPDState(I);
+    opts = opts ++ {"PDState" => pdState};
     splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts)
     )
 splitIdeal(AnnotatedIdeal) := opts -> (I) -> (
     splitIdeals({I}, opts.Strategy, opts)
     )
 
-stratEnd = {(IndependentSet,infinity),SplitTower}
+stratEnd = {(IndependentSet,infinity),SplitTower, CharacteristicSets}
+--stratEnd = {(IndependentSet,infinity),CharacteristicSets}
 
 --------------------------------
 --- PDState commands -----------
@@ -1028,8 +1038,6 @@ radicalContainment(Ideal, Ideal) := (I,J) -> (
 -----------------------------
 -- find, if any, an element of I which is NOT in the ideal J.
 -- returns the index x of that element, if any, else returns -1.
-raw  = value Core#"private dictionary"#"raw"
-rawGBContains = value Core#"private dictionary"#"rawGBContains"
 findNonMemberIndex = method()
 findNonMemberIndex(Ideal,Ideal) := (I,J) -> (
      m := generators I;

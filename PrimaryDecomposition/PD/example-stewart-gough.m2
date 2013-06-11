@@ -62,3 +62,38 @@
   (coeff1*coeff2) % K
   myFac = g_2 + (G*coeff2) % K
   J_2 // myFac
+
+-- Looking into using char series to factor towers.  
+time splitIdeal(I, Strategy=>({strat1, IndependentSet},infinity), Verbosity=>2);  -- BUG
+time splitIdeal(I, Strategy=>{strat1, (IndependentSet, infinity)}, Verbosity=>2);  -- 
+time minprimes(I, Verbosity=>2)
+
+debug Core
+splitLexGB2 = method()
+splitLexGB2(Ideal, Ring) := (I,SF) -> (
+    -- variables should be in order used by rawCharSeries.
+    sup := support I;
+    Rlex := (coefficientRing ring I)[support I, MonomialOrder=>Lex];
+    Ilex := sub(I, Rlex);
+    time C := rawCharSeries raw gens Ilex;
+    C = C/(c -> map(Rlex, c));
+    select(for c in C list time ideal gens gb sub(c, SF), i -> i != 1)
+    )
+M = gens L
+
+splitLexGB2(L, ring f)
+return; continue;
+L
+
+gens ring L
+R = QQ[a,b,c]
+I = ideal"a3-3, b3-3"
+rawCharSeries raw gens I
+map(R, last oo)
+gens gb oo
+
+R = ZZ/5[a,b,c]
+I = ideal"a5-c2, b5-c2"
+minprimes(I, Verbosity=>2)
+rawCharSeries raw gens I
+

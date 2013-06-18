@@ -1,0 +1,130 @@
+\documentclass{amsart}
+\usepackage{enumerate}
+\usepackage{amssymb}
+\usepackage{graphicx}
+%\usepackage{draftcopy}
+
+\usepackage[paper=letterpaper,width=7in,height=9.25in,centering]{geometry}
+
+\title{Working notes: Primary decomposition algorithms}
+\author{Franziska Hinkelmann, Frank Moore, and Mike Stillman}
+\date{\today}
+
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{algorithm}[theorem]{Algorithm}
+
+\DeclareMathOperator{\sigSym}{sig}
+\DeclareMathOperator{\lcm}{lcm}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\Gal}{Gal}
+\newcommand{\mmorSym}{\phi}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\q}{\mathfrak{q}}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\La}{{\mathcal{L}_p}}
+\newcommand{\s}{\ensuremath{^*}}
+\newcommand{\p}{\ensuremath{^\prime}}
+\newcommand{\pp}{\ensuremath{^{\prime\prime}}}
+\newcommand{\biimp}{\Leftrightarrow}
+\newcommand{\imp}{\Rightarrow}
+\newcommand{\impby}{\Leftarrow}
+\newcommand{\defeq}{\stackrel{\text{\tiny def}}{=}}
+\newcommand{\proj}[1]{\overline{#1}}
+\newcommand{\mbasis}[1]{\boldsymbol{e}_{#1}}
+\newcommand{\sig}[1]{\sigSym\left({#1}\right)}
+\newcommand{\origBasis}{\mathcal G}
+\newcommand{\extendBasis}[1]{\origBasis_{#1}}
+\newcommand{\mmor}[1]{\mmorSym\left({#1}\right)}
+\newcommand{\Rone}{(\text{R}_1)}
+\newcommand{\Stwo}{(\text{S}_2)}
+
+\newcommand{\set}[1]{\left\{{#1}\right\}}
+\newcommand{\setBuilder}[2]{\left\{{#1}\left|{#2}\right.\right\}}
+\newcommand{\setBuilderBarLeft}[2]{\left\{\left.{#1}\right|{#2}\right\}}
+\newcommand{\idealBuilder}[2]{\left\langle#1\left|#2\right.\right\rangle}
+\newcommand{\idealBuilderBarLeft}[2]{\left\langle\left.#1\right|#2\right\rangle}
+\newcommand{\ideal}[1]{\left\langle{#1}\right\rangle}
+\newcommand{\hd}[1]{\text{in}(#1)}
+\newcommand{\hdp}[1]{\hd{\proj{#1}}}
+\newcommand{\card}[1]{\left|#1\right|}
+\newcommand{\spair}[2]{\mathcal{S}({#1},{#2})}
+
+\newcommand{\grobner}{Gr\"obner}
+\newcommand{\galg}{signature Buchberger algorithm}
+\newcommand{\varProd}{\mathbbm{x}}
+
+\newcommand{\proofPart}[1]{{\bf $\boldsymbol{#1}$:}}
+\newcommand{\proofSubPart}[1]{{\underline{${#1}$:}}}
+\newcommand{\proofCase}[1]{\proofPart{\text{The case }#1}}
+
+\begin{document}
+
+\maketitle
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+%notational conventions: S = Noeth ring we want to Normalize
+%                        R = Noether normalization of S
+%                        A = arbitrary Noetherian ring (i.e. used in proofs where the ring is not thought of as S or R)
+
+\section{Introduction}
+
+Let $k$ be a field, and let $R = k[x_1, \ldots, x_n]$ be a polynomial ring.  
+If $I \subset R$ is an ideal, there are a number of algorithms to compute the
+set of minimal primes of $I$ (cite...).  In these notes, we describe in detail
+our algorithms, including different strategies which we use.
+
+\section{Splitting methods}
+
+\subsection{Monomials}
+
+\begin{proposition}
+Suppose that $I = J + L$, where $I, J, L \subset R = k[x_1, \ldots, x_n]$ are ideals.
+If the minimal primes of $J$ are $P_1, \ldots, P_N$, then 
+  $$\sqrt{I} = \sqrt{P_1 + L} \,\cap\, \ldots \,\cap\, \sqrt{P_N + L}.$$
+\end{proposition}
+
+\bigskip
+
+We apply this Proposition in the following manner.  If $I = (f_1,
+\ldots, f_r, f_{r+1}, \ldots, f_s)$, where $f_i$ is a monomial for $1
+\leq i \leq r$, let $J = (f_1, \ldots, f_r)$, and $L = (f_{r+1},
+\ldots, f_s)$.  We use Alexander dual methods (see
+\cite{frobby-paper}) to compute the minimal primes of the monomial
+ideal $J$.  This last algorithm is extremely fast in practice.
+
+A disadvantage of this method is that the resulting decomposition may be redundant.
+
+\subsection{IndependentSets}
+
+
+
+\subsection{Factorization}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\begin{thebibliography}{2}
+
+\bibitem{AM}
+  Atiyah-Macdonald
+\bibitem{Na}
+  Nagata - Local Rings
+\bibitem{Tr}
+  Trager's Thesis
+\bibitem{Va}
+  Vasconcelos - Computations
+\bibitem{frobby-paper}
+  Roune, The slice algorithm
+\end{thebibliography}
+\end{document}

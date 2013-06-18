@@ -1378,6 +1378,30 @@ TEST ///
   assert(not T#?false)
 ///
 
+TEST ///
+  debug needsPackage "PD"
+  R = QQ[x,y,z,w]
+  I = ideal {x^2+y^2,z^2+w^2}
+  assert(not detectMembership(x,I))
+  assert(detectMembership(x^2+y^2,I) === null)
+  gb I
+  assert(detectMembership(x^2+y^2,I))
+  S = QQ[a,b,c,d,Degrees=>{4:{1,1}}]
+  J = ideal {a^2+b^2,c^2+d^2}
+  assert(detectMembership(a,J) === null)
+  gb J
+  assert(not detectMembership(a,J))
+  assert(detectMembership(a^2+b^2+c^2+d^2,J))
+  I' = ideal {0_R}
+  J' = ideal {1_R}
+  assert(not detectMembership(x,I'))
+  assert(detectMembership(x,J') === null)
+  assert(detectMembership(0_R,I'))
+  assert(detectMembership(0_R,J'))
+  assert(not detectMembership(1_R,I'))
+  assert(detectMembership(1_R,J') === null)
+///
+
 end
 
 -- UHOH problem with finite fields

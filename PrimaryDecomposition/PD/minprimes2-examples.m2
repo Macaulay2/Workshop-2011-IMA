@@ -3,6 +3,10 @@
   R = ZZ/32003[vars(0..15)]
   M = genericMatrix(R,a,4,4)
   permanents(3,M)
+  -- one example ideal in doing this:
+  {*
+  L = ideal(h*k*n+g*l*n+h*j*o+f*l*o+g*j*p+f*k*p,d*h*k*n+d*g*l*n+c*h*l*n+d*h*j*o+d*f*l*o+b*h*l*o,16001*c*d^2*g*j*n+16001*c^2*d*h*j*n-16001*b*c*d*g*l*n-16001*b*c^2*h*l*n-16001*b*d^2*g*j*o-16001*b*c*d*h*j*o+b*c*d*f*l*o-16001*b^2*d*g*l*o-16001*b^2*c*h*l*o,c^2*d^4*g^2*j^2*n^2+2*c^3*d^3*g*h*j^2*n^2+c^4*d^2*h^2*j^2*n^2-2*b*c^3*d^2*g*h*j*l*n^2-2*b*c^4*d*h^2*j*l*n^2-b^2*c^2*d^2*g^2*l^2*n^2+b^2*c^4*h^2*l^2*n^2-2*b*c*d^4*g^2*j^2*n*o-2*b*c^2*d^3*g*h*j^2*n*o-2*b^2*c*d^3*g^2*j*l*n*o-4*b^2*c^2*d^2*g*h*j*l*n*o-2*b^2*c^3*d*h^2*j*l*n*o-2*b^3*c^2*d*g*h*l^2*n*o+2*b^3*c^3*h^2*l^2*n*o+b^2*d^4*g^2*j^2*o^2-b^2*c^2*d^2*h^2*j^2*o^2+2*b^3*d^3*g^2*j*l*o^2-2*b^3*c*d^2*g*h*j*l*o^2+b^4*d^2*g^2*l^2*o^2-2*b^4*c*d*g*h*l^2*o^2+b^4*c^2*h^2*l^2*o^2)
+  *}
 --------------------------------------------------------
 --stewart-gough-nonreduced
   -- minprimes time, 13 Mar 2013, Mike rMBP:  stratA: 8.1 sec

@@ -7,11 +7,12 @@ newPackage(
                   HomePage => ""}},
         Headline => "New Primary Decomposition Implementation",
         DebuggingMode => true,
+        --PackageImports => {"MGBInterface"},
         AuxiliaryFiles=>true
         )
 
-
-
+USEMGB = false;
+if USEMGB then needsPackage "MGBInterface";
 
 export {
     -- Support routines
@@ -57,6 +58,42 @@ rawGBContains = value Core#"private dictionary"#"rawGBContains"
 rawCharSeries = value Core#"private dictionary"#"rawCharSeries"
 
 needs "factorTower.m2"
+--needsPackage "MGBInterface"
+
+if USEMGB then (
+  myGB = (I) -> (
+      L := MGB I;
+      J := ideal matrix{L};
+      forceGB gens J;
+      J
+      )
+) else (
+  MGB = (I) -> flatten entries gens gb I;
+  myGB = (I) -> ideal gens gb I;
+  );
+
+    mySat0 = (I, var) -> (
+        if not isHomogeneous I then error "expected homogeneous input";
+        if index var === null then error "expected variable";
+        i := index var;
+        R := ring I;
+        n := numgens R - 1;
+        phi := map(R,R,sub(vars R, {R_n => var, var => R_n}));
+        J := phi I;
+        L := MGB J;
+        (M1,maxdeg) := divideByVariable(matrix{L}, R_n);
+        --<< "maxdeg = " << maxdeg << endl;
+        if maxdeg == 0 then I else ideal phi M1
+        )
+
+  mySat = (J, G) -> (
+      facs := (factors G)/last;
+      Jsat := J;
+      for f in facs do (
+          Jsat = if index f =!= null and isHomogeneous J and char ring J > 0 then mySat0(Jsat, f) else saturate(Jsat, f);
+          );
+      Jsat)
+      
 
 ---------------------------------
 --- Minprimes strategies
@@ -225,6 +262,7 @@ isSubset (Ideal,AnnotatedIdeal) := (J,I) -> (
 --      Answer should be yes: but if we know the ideal is prime, then 
 --      we think we can avoid this.  BUT: we need to be very precise about
 --      this logic.
+{*
 ideal AnnotatedIdeal := (I) -> (
     --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
     if not I#?"CachedIdeal" then I#"CachedIdeal" = (
@@ -238,7 +276,30 @@ ideal AnnotatedIdeal := (I) -> (
              else
                I.Ideal;
        I3 := if numgens I1 === 0 then I2 else if numgens I2 === 0 then I1 else I1+I2;
-       if F == 1 then I3 else saturate(I3, F)
+       --if F == 1 then I3 else saturate(I3, F)
+       if F == 1 then I3 else mySat(I3, F)
+    );
+    I#"CachedIdeal"
+)
+*}
+
+ideal AnnotatedIdeal := (I) -> (
+    --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
+    if not I#?"CachedIdeal" then I#"CachedIdeal" = (
+       I2 := if I.?IndependentSet then (
+               S := (I.IndependentSet)#1;
+               phi := S.cache#"StoR";
+               phi contractToPolynomialRing ideal I.LexGBOverBase
+             )
+             else
+               I.Ideal;
+       for linear in reverse I.Linears do (
+           I2 = I2 + ideal last linear;
+           if linear#1 == 1 then continue;
+           F := (factors linear#1)/last//product;
+           I2 = trim mySat(I2, F);
+           );
+       I2
     );
     I#"CachedIdeal"
 )
@@ -498,7 +559,8 @@ splitFunction#IndependentSet = (I,opts) -> (
        if opts.Verbosity >= 3 then
            << "  the factors of the flattener: " << netList(facs) << endl;
        G = S.cache#"StoR" G;
-       J1 := saturate(J, G);
+       J1 := mySat(J, G);
+       --J1 := saturate(J, G);
        J1ann := annotatedIdeal(J1,I.Linears,unique join(I.NonzeroDivisors,facs),I.Inverted);
        J1ann.IndependentSet = (basevars,S,SF);
        J1ann.LexGBOverBase = JSF;
@@ -672,7 +734,8 @@ splitBy = (I, h) -> (
      --   h == 1, or
      --   I1 == I (in which case, h is a NZD mod I)
      if h == 1 then return null;
-     Isat := saturate(I, h);
+     --time Isat := saturate(I, h);
+     Isat := mySat(I, h);
      if Isat == I then return null; -- in this case, h is a NZD mod I
      I2 := I : Isat;  -- this line is a killer (sometimes) but doesn't generate redundant components.
      --I2 := (ideal h) + I;  -- this will create (possibly) redundant components.
@@ -1257,7 +1320,9 @@ contractToPolynomialRing(Ideal) := opts -> (I) -> (
      denomList := unique flatten for d in denoms list (factors d)/last;
      if opts.Verbosity > 0 then << "denoms = " << denoms << " and denomList = " << denomList << endl;
      Isat := S.cache#"StoR" newI;
-     for f in denomList do Isat = saturate(Isat, S.cache#"StoR" f);
+     F := S.cache#"StoR" (product denomList);
+     Isat = mySat(Isat, F);
+     --for f in denomList do Isat = saturate(Isat, S.cache#"StoR" f);
      S.cache#"RtoS" Isat
      )
 

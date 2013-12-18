@@ -5,7 +5,7 @@ newPackage(
         Authors => {{Name => "", 
                   Email => "", 
                   HomePage => ""}},
-        Headline => "",
+        Headline => "Yada yada",
         DebuggingMode => true
         )
 
@@ -97,13 +97,14 @@ TEST ///
 TEST ///
   restart
   debug needsPackage "ModularGCD"
+  debug Core
+
   A = ZZ/32003[x, a, b, MonomialOrder=>Lex]
   B = makeTower(A, {b^2-3, a^2-b-1})
   (B_0 + B_1)^2 + B_2
   F = toTower(B, (x - b^2 - a)*(x - a - b))
   G = toTower(B, (x - b^2 - a)*(x - a + b))
   F*G
-  debug Core
   rawGCD(F,G) -- gcd is not functional for extensions...
 ///
 
@@ -382,11 +383,11 @@ load "ModularGCD.m2"
   F = (s^2+1) * a^3 - 12*(s+1)/s * a^2*b + (11*s^2-s-1)*a*b*c - 1/45 * s * c^3
   
   use RZZ
-  f1 = reduceMod(numerator F, s, 5_RK, 11)
-  f2 = reduceMod(numerator F, s, 6_RK, 11)
-  f3 = reduceMod(numerator F, s, 7_RK, 11)
-  f4 = reduceMod(numerator F, s, 8_RK, 11)
-
+  f1 = reduceMod(F, s, 5_RK, 11)
+  f2 = reduceMod(F, s, 6_RK, 11)
+  f3 = reduceMod(F, s, 7_RK, 11)
+  f4 = reduceMod(F, s, 8_RK, 11)
+  
   (g,r) = polyCRA((f1,s-5), (f2,s-6), s, 11)
   (g,r) = polyCRA((f3,s-7), (g,r), s, 11)  
   (g,r) = polyCRA((f4,s-8), (g,r), s, 11)  
@@ -707,18 +708,125 @@ rationalFunctionReconstruction(g1,h1)
 
 beginDocumentation()
 
-end
-
 doc ///
 Key
   ModularGCD
 Headline
+  functions for modular GCD, Chinese remaindering and rational reconstrucion
 Description
   Text
-  Example
-Caveat
-SeeAlso
 ///
+
+doc ///
+   Key
+       integerCRA
+   Headline
+       Chinese remainder algorithm applied to coefficients of a polynomial
+   Usage
+       (F,r) = integerCRA((g,m),(h,n))
+   Inputs
+       :Sequence
+         (g,m)
+       :Sequence
+          (h,n), g and h are elements in a polynomial ring over ZZ,
+          m and n are positive, relatively prime integers
+   Outputs
+       :Sequence
+         (F,r), where
+         F is a polynomial such that $F == g mod m$, and $F == h mod n$.
+         F is uniquely defined modulo $r = mn$.
+   Description
+    Text
+    Example
+        RZZ = ZZ[a..d]
+        F = a^3 - 12 * a^2*b + 11*a*b*c - 1450 * c^3
+        f = F % 11
+        g = F % 13
+        h = F % 41
+        (f1,r1) = integerCRA((f,11),(g,13))
+        (f2,r2) = integerCRA((f1,r1),(h,41))
+   SeeAlso
+       reduceMod
+///
+
+
+doc ///
+   Key
+       (integerRationalReconstruction, RingElement, ZZ)
+   Headline
+       lift integer coefficients mod number to a rational number
+   Usage
+       F = integerRationalReconstruction(g, r)
+   Inputs
+       g:RingElement
+         A polynomial in a ring $R = ZZ[some variables]$
+       r:ZZ
+         a positive integer
+   Outputs
+       :RingElement
+         A polynomial G in QQ[vars] (same monoid as in $R$),
+           such that $G = g (mod r)$
+   Consequences
+       Item
+           The ring of {\tt f} has a key placed into it
+   Description
+    Text
+      After using Chinese remaindering, this function is useful to
+      reconstruct coefficients over the rationals.
+      For each integer coefficient, if there exists a rational number
+      a/b, with 2*a^2, 2*b^2 less than sqrt(r),
+      then that element is lifted.
+    Example
+      R = ZZ[x]
+      a = 13/97
+      b = 73/126
+      c = 75/127
+      kk = ZZ/32003
+      a = lift(a * 1_kk, ZZ) * 1_R
+      b = lift(b * 1_kk, ZZ) * 1_R
+      c = lift(c * 1_kk, ZZ) * 1_R
+      g = a * x^2 + b*x + c
+      integerRationalReconstruction(g, 32003)
+      sqrt(.5) * sqrt(32003)
+    Example
+      R = ZZ[symbol a, symbol b, symbol c]
+      g = a^3+1978996*a^2*b+11*a*b*c+1932270*c^3
+      G = integerRationalReconstruction(g, 4576429)
+      ring G
+      monoid R === monoid ring G
+   Caveat
+      Add in a reference.  Do we need a more refined interface, including:
+      (a) null return value if not all elements can be lifted, 
+      (b) different bounds on the numerator and denominator ?
+   SeeAlso
+      integerCRA
+      polyRationalReconstruction
+      polyCRA
+      reduceMod
+///
+
+
+doc ///
+   Key
+       
+   Headline
+   Usage
+   Inputs
+   Outputs
+   Consequences
+    Item
+   Description
+    Text
+    Code
+    Pre
+    Example
+    CannedExample
+   Subnodes
+   Caveat
+   SeeAlso
+///
+
+end
 
 doc ///
 Key

@@ -18,8 +18,9 @@ end
 -- Trying to improve speed of minprimes of this ideal (18 June 2013, MES).
 -- Singular takes only a few minutes on it.
 -- Singular arrives at 70 minimal primes
-  
-  time L = myGB I;
+
+  time L = ideal gens gb I;  
+  --time L = myGB I;
   --time L = MGB I;  -- 5.4 seconds
 
   -- 1 July 2013: attempt to compute this
@@ -35,7 +36,7 @@ end
   strat1 = ({Linear,DecomposeMonomials,(Factorization,3)},infinity)
   strat1 = ({Linear,(Factorization,3)},infinity)
   strat = ({strat1, (Birational,infinity)},infinity)
-  time minprimes(L, Verbosity=>2, Strategy=>strat);
+  time minprimes(L, Verbosity=>0, Strategy=>strat);
   
   pdState = createPDState(L);
   time C = splitIdeals({annotatedIdeal(L,{},{},{})}, strat, Verbosity=>2, "PDState"=>pdState);

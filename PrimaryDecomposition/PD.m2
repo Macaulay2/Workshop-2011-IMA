@@ -12,6 +12,7 @@ newPackage(
         )
 
 USEMGB = false;
+--USEMGB = true;
 if USEMGB then needsPackage "MGBInterface";
 
 export {
@@ -63,8 +64,10 @@ needs "factorTower.m2"
 if USEMGB then (
   myGB = (I) -> (
       L := MGB I;
+      L2 := flatten entries gens gb I;
       J := ideal matrix{L};
       forceGB gens J;
+      if L2 != flatten entries gens gb J then << "OOPS: GB is different!\n" else "GBs are equal\n";
       J
       )
 ) else (
@@ -90,7 +93,10 @@ if USEMGB then (
       facs := (factors G)/last;
       Jsat := J;
       for f in facs do (
-          Jsat = if index f =!= null and isHomogeneous J and char ring J > 0 then mySat0(Jsat, f) else saturate(Jsat, f);
+          Jsat = if index f =!= null and isHomogeneous J and char ring J > 0 then 
+              mySat0(Jsat, f)
+          else 
+              saturate(Jsat, f);
           );
       Jsat)
       
@@ -1079,6 +1085,18 @@ minprimesWithStrategy(Ideal) := opts -> (I) -> (
     );
     answer#1
     )
+
+doSplitIdeal = method(Options => (options splitIdeals))
+doSplitIdeal(Ideal) := opts -> (I) -> (
+    if opts#"CodimensionLimit" === null then 
+      opts = opts ++ {"CodimensionLimit" => numgens I};
+    pdState := createPDState(I);
+    opts = opts ++ {"PDState" => pdState};
+    M := splitIdeals({annotatedIdeal(I,{},{},{})}, opts.Strategy, opts);
+    numRawPrimes := numPrimesInPDState pdState;
+    {getPrimesInPDState pdState, M}
+    )
+
 
 -----------------------
 -- Minimal primes -----

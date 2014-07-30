@@ -206,8 +206,8 @@ RZ=ZZ(monoid R);
 time Gs=reduceViaPrimes(I,primes2,RZ);
 GoodGsAndps=majorityRule(Gs,primes2);
 #(GoodGsAndps#1)==#primes2
-time ICRA=chineseRemainder GoodGsAndps
-time ILifted=rationalConversion(ICRA,product GoodGsAndps#1,ring I)
+time ICRA=chineseRemainder GoodGsAndps;
+time ILifted=rationalConversion(ICRA,product GoodGsAndps#1,ring I);
 ITest=ideal apply(flatten entries ILifted, f-> myReduce(f,primes_11,RZ));
 netList flatten entries (gens gb sub(I,Rp) - sub(ILifted,Rp))
 (flatten entries gens gb sub(I,Rp))_{0}-(flatten entries sub(ILifted,Rp))_{0}

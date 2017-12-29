@@ -10,13 +10,13 @@ newPackage(
         )
 
 export {
-     integerCRA,
-     integerRationalReconstruction,
-     reduceMod,     
-     polyCRA,
-     polyRationalReconstruction,
-     modularGCD,
-     newgcd -- just a test for mod p gcd in various cases
+     "integerCRA",
+     "integerRationalReconstruction",
+     "reduceMod",     
+     "polyCRA",
+     "polyRationalReconstruction",
+     "modularGCD",
+     "newgcd" -- just a test for mod p gcd in various cases
      }
 
 debug Core
